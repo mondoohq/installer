@@ -1,0 +1,20 @@
+collector: http
+agentmrn: //agents.api.mondoo.app/spaces/sample-space-457617/agents/1MdHVToY9XIymbUgOTKnymd3rPa
+spacemrn: //captain.api.mondoo.app/spaces/sample-space-457617
+api-endpoint: https://api.mondoo.app
+certificate: |
+  -----BEGIN CERTIFICATE-----
+  MIICVTCCAdqgAwIBAgIRAOyAXbcMbJVb5ImXAGeb1YcwCgYIKoZIzj0EAwMwPzE9
+  MDsGA1UEChM0Ly9jYXB0YWluLmFwaS5tb25kb28uYXBwL3NwYWNlcy9yb21hbnRp
+  ...
+  UGEwCgYIKoZIzj0EAwMDaQAwZgIxANRXVWvWpEmcB/bDD8frNHSEFEdjbrPIcOga
+  oAVja0I9PSZdt53i+6v1MAFPbX8OYAIxANZNbnIchDFXAwMh+o40vitJ9/5xSue+
+  E2UOYYTBVnfAU7KtYnnx9gcFFmSjtuJhKw==
+  -----END CERTIFICATE-----
+privatekey: |
+  -----BEGIN PRIVATE KEY-----
+  MIG2AgEAMBAGByqGSM49AgEGBSuBBAAiBIGeMIGbAgEBBDDVIS27bWNQNcn0CvEe
+  ...
+  AxLe3fCBYNPKQOU80f0kDWs0Ar3Zk7DeUG8QIrPmMhuvhDJGW8+Tboc=
+  -----END PRIVATE KEY-----
+    
