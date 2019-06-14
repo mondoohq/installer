@@ -1,0 +1,9 @@
+[Unit]
+Description=Run mondoo recurrently
+
+[Timer]
+OnBootSec=30s
+OnUnitInactiveSec=1h
+
+[Install]
+WantedBy=timers.target
