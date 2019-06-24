@@ -3,6 +3,7 @@ RUN curl --silent --location https://releases.mondoo.io/rpm/mondoo.repo | tee /e
 RUN yum install -y mondoo
 
 # allows customization of times
+RUN mkdir -p /etc/opt/mondoo
 COPY mondoo.timer /etc/systemd/system/mondoo.timer
 RUN systemctl enable mondoo.timer
 
