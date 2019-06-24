@@ -1,30 +1,37 @@
 Vagrant.require_version ">= 1.8.4"
 
+puts "The Mondoo vagrant demo uses the following registration token:"
+puts ENV['MONDOO_VAGRANT_REGISTRATION_TOKEN']
+
 Vagrant.configure(2) do |config|
   $rpm_script = <<SCRIPT
-# copy local config
-sudo mkdir -p /etc/opt/mondoo
-sudo mv /tmp/mondoo.yml /etc/opt/mondoo/.mondoo.yml
-
 # install mondoo
 echo Installing the mondoo-agent via RPM ...
 curl --silent --location https://releases.mondoo.io/rpm/mondoo.repo | tee /etc/yum.repos.d/mondoo.repo
 yum install -y mondoo
+
+echo $MONDOO_VAGRANT_REGISTRATION_TOKEN
+
+# register agent
+mkdir -p /etc/opt/mondoo/
+mondoo register --config /etc/opt/mondoo/mondoo.yml --token $MONDOO_VAGRANT_REGISTRATION_TOKEN
+echo "collector: http" >> /etc/opt/mondoo/mondoo.yml
+
+# enable systemd
+systemctl enable mondoo.timer
+systemctl start mondoo.timer
+systemctl daemon-reload
 SCRIPT
 
   config.vm.define "centos" do |centos|
     centos.vm.box = "bento/centos-7.5"
     centos.vm.network "public_network", bridge: "en0: Wi-Fi (AirPort)"
     centos.vm.synced_folder ".", "/vagrant", disabled: true
-    # optional step, makes it easy to push the config into the vagrant machine
-    centos.vm.provision "file", source: "mondoo.yml", destination: "/tmp/mondoo.yml"
-    centos.vm.provision "shell", inline: $rpm_script
+    centos.vm.provision "shell", inline: $rpm_script, env: {"MONDOO_VAGRANT_REGISTRATION_TOKEN" => ENV['MONDOO_VAGRANT_REGISTRATION_TOKEN']}
   end
 
   $dpkg_script = <<SCRIPT
-# copy local config
-sudo mkdir -p /etc/opt/mondoo
-sudo mv /tmp/mondoo.yml /etc/opt/mondoo/.mondoo.yml
+apt-get update -y
 
 # install mondoo
 echo Installing the mondoo via apt ...
@@ -32,25 +39,30 @@ sudo apt-get install -y apt-transport-https ca-certificates
 curl -sS https://releases.mondoo.io/debian/pubkey.gpg | sudo apt-key add -
 echo "deb https://releases.mondoo.io/debian/ stable main" | sudo tee /etc/apt/sources.list.d/mondoo.list
 sudo apt-get update && sudo apt-get install mondoo
+
+# register agent
+mkdir -p /etc/opt/mondoo/
+mondoo register --config /etc/opt/mondoo/mondoo.yml --token $MONDOO_VAGRANT_REGISTRATION_TOKEN
+echo "collector: http" >> /etc/opt/mondoo/mondoo.yml
+
+# enable systemd
+systemctl enable mondoo.timer
+systemctl start mondoo.timer
+systemctl daemon-reload
 SCRIPT
 
   config.vm.define "ubuntu" do |ubuntu|
     ubuntu.vm.box = "bento/ubuntu-18.04"
     ubuntu.vm.network "public_network", bridge: "en0: Wi-Fi (AirPort)"
     ubuntu.vm.synced_folder ".", "/vagrant", disabled: true
-     # optional step, makes it easy to push the config into the vagrant machine
-    ubuntu.vm.provision "file", source: "mondoo.yml", destination: "/tmp/mondoo.yml"
-    ubuntu.vm.provision "shell", inline: $dpkg_script
+    ubuntu.vm.provision "shell", inline: $dpkg_script, env: {"MONDOO_VAGRANT_REGISTRATION_TOKEN" => ENV['MONDOO_VAGRANT_REGISTRATION_TOKEN']}
   end
-
 
   config.vm.define "debian" do |debian|
     debian.vm.box = "bento/debian-9"
     debian.vm.network "public_network", bridge: "en0: Wi-Fi (AirPort)"
     debian.vm.synced_folder ".", "/vagrant", disabled: true
-     # optional step, makes it easy to push the config into the vagrant machine
-    debian.vm.provision "file", source: "mondoo.yml", destination: "/tmp/mondoo.yml"
-    debian.vm.provision "shell", inline: $dpkg_script
+    debian.vm.provision "shell", inline: $dpkg_script, env: {"MONDOO_VAGRANT_REGISTRATION_TOKEN" => ENV['MONDOO_VAGRANT_REGISTRATION_TOKEN']}
   end
 end
 

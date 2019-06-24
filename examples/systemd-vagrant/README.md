@@ -4,22 +4,27 @@
 
 1. Login to https://mondoo.app/
 2. Create or select a mondoo space and select `Agents` on the sidebar
-3. Download agent credentials and copy the content into the `mondoo.yml`
+3. Create a new registration token and set it as environment variable
 
 ## Start VM
 
-**Centos**
+
 ```
+# set registration token
+export MONDOO_VAGRANT_REGISTRATION_TOKEN='ey..k6C1TYwOk0J'
+# on mac you can use pbpaste to read the token from clipboard
+export MONDOO_VAGRANT_REGISTRATION_TOKEN=$(pbpaste)
+
+# ensure its set
+echo $MONDOO_VAGRANT_REGISTRATION_TOKEN
+
+# spin up centos
 vagrant up centos
-```
 
-**Debian**
-```
+# spin up Debian
 vagrant up debian
-```
 
-**Ubuntu**
-```
+# spin up Ubuntu
 vagrant up ubuntu
 ```
 
