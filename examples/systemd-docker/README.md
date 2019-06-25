@@ -19,7 +19,7 @@ $ echo "collector: http" >> mondoo.yml
 $ docker run -it --name mondoo-systemd -d --privileged -v /sys/fs/cgroup:/sys/fs/cgroup:ro -v $(PWD):/etc/opt/mondoo/ mondoo-systemd-example:latest
 
 # to inspec the container
-$ docker exec -it mondoo-systemd /bin/bash     
+$ docker exec -it mondoo-systemd /bin/bash
 bash-4.4# systemctl status mondoo
 ● mondoo.service - mondoo vuln
    Loaded: loaded (/etc/systemd/system/mondoo.service; static; vendor preset: disabled)
