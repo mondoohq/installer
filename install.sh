@@ -104,7 +104,7 @@ elif [ $OS = "Debian" ]; then
 elif [ $OS = "Suse" ]; then
   purple_bold "\n* Installing ZYPPER sources for Mondoo"
   $sudo_cmd rpm --import https://releases.mondoo.io/rpm/pubkey.gpg
-  $sudo_cmd  zypper addrepo --gpgcheck https://releases.mondoo.io/rpm mondoo
+  $sudo_cmd zypper addrepo --gpgcheck https://releases.mondoo.io/rpm mondoo
 
   purple_bold "\n* Installing the Mondoo agent package"
   $sudo_cmd zypper -n install mondoo

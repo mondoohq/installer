@@ -4,8 +4,7 @@ export REGISTRATION_TOKEN='ey..gg'
 
 # install mondoo
 echo Installing the mondoo-agent
-curl --silent --location https://releases.mondoo.io/rpm/mondoo.repo | tee /etc/yum.repos.d/mondoo.repo
-yum install -y mondoo
+curl -L https://mondoo.io/install.sh | bash
 
 # register agent
 mkdir -p /etc/opt/mondoo/
