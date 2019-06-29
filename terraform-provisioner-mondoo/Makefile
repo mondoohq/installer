@@ -24,6 +24,6 @@ HOST=52.31.244.47
 test/noop:
 	pushd ./test/noop && \
 	terraform init && \
-	rm terraform.tfstat* && \
-	terraform apply -auto-approve -var conn=${CONN} -var user=${USER} -var host=${HOST}  && \ 
+	rm terraform.tfstat* || true && \
+	TF_LOG=ERROR terraform apply -auto-approve -var conn=${CONN} -var user=${USER} -var host=${HOST}  && \
 	popd

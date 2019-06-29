@@ -35,6 +35,14 @@ func tfReportConfig(data *schema.ResourceData) *VulnOptsReport {
 	return conf
 }
 
+func tfCollector(data *schema.ResourceData) string {
+	collector, ok := data.Get("collector").(string)
+	if !ok {
+		return ""
+	}
+	return collector
+}
+
 func StringValue(keymap map[string]interface{}, key string) string {
 	v, ok := keymap[key]
 	if ok {

@@ -2,7 +2,6 @@ package mondoo
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
@@ -17,8 +16,16 @@ func applyFn(ctx context.Context) error {
 	data := ctx.Value(schema.ProvConfigDataKey).(*schema.ResourceData)
 	o := ctx.Value(schema.ProvOutputKey).(terraform.UIOutput)
 
+	o.Output("start mondoo provisioner")
+
 	// read ssh connection information
-	sshConfig, err := tfConnInfo(s)
+	connInfo, err := tfConnection(s)
+	if err != nil {
+		return err
+	}
+
+	// convert tf connection to mondoo connection string
+	mondooConn, err := connInfo.ToMondooConnection()
 	if err != nil {
 		return err
 	}
@@ -26,9 +33,10 @@ func applyFn(ctx context.Context) error {
 	// build mondoo config
 	conf := &VulnOpts{
 		Asset: &VulnOptsAsset{
-			Connection: fmt.Sprintf("ssh://%s@%s", sshConfig.User, sshConfig.Host),
+			Connection: mondooConn,
 		},
-		Report: tfReportConfig(data),
+		Report:    tfReportConfig(data),
+		Collector: tfCollector(data),
 	}
 
 	// run mondoo vuln command
@@ -38,7 +46,11 @@ func applyFn(ctx context.Context) error {
 func Provisioner() terraform.ResourceProvisioner {
 	return &schema.Provisioner{
 		Schema: map[string]*schema.Schema{
-			"reporter": &schema.Schema{
+			"collector": &schema.Schema{
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"report": &schema.Schema{
 				Type:     schema.TypeMap,
 				Optional: true,
 				Elem: &schema.Resource{
