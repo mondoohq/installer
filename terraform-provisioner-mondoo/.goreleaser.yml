@@ -20,4 +20,4 @@ archives:
     files:
       - none*
 checksum:
-  name_template: "checksums.txt"
+  name_template: "terraform-provisioner-mondoo-checksums.txt"
