@@ -53,7 +53,7 @@ func run(
 	// terraform mode
 	cmd.Env = os.Environ()
 	cmd.Env = append(cmd.Env, "CI=true")
-	cmd.Env = append(cmd.Env, "CI_TERRAFORM=true")
+	cmd.Env = append(cmd.Env, "TERRAFORM_PIPELINE=true")
 
 	stdin, err := cmd.StdinPipe()
 	if err != nil {
