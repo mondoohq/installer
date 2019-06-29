@@ -8,6 +8,9 @@ build/docker:
 release/terraform:
 	cd terraform-provisioner-mondoo && goreleaser --rm-dist
 
+release/packer:
+	cd packer-provisioner-mondoo && goreleaser --rm-dist
+
 test/installsh:
 	cp install.sh test/installscript
 	cd test/installscript && docker build --no-cache -f centos7.Dockerfile .
