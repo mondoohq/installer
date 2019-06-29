@@ -1,0 +1,4 @@
+dist
+vendor
+packer_cache
+output.box
