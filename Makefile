@@ -5,6 +5,9 @@ build/docker:
 	docker push mondoo/mondoo:$(shell cat VERSION)
 	docker push mondoo/mondoo:latest
 
+release/terraform:
+	cd terraform-provisioner-mondoo && goreleaser --rm-dist
+
 test/installsh:
 	cp install.sh test/installscript
 	cd test/installscript && docker build --no-cache -f centos7.Dockerfile .
