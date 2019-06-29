@@ -1,4 +1,5 @@
 ---
+project_name: terraform-provisioner-mondoo
 builds:
   - main: main.go
     binary: terraform-provisioner-mondoo
