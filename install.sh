@@ -41,14 +41,24 @@ function purple { echo -e "${purple}${1}${end}"; }
 function purple_bold { echo -e "${purpleb}${1}${end}"; }
 
 function on_error() {
-    red "It looks like you hit an issue when trying to install Mondoo. The 
+  red "It looks like you hit an issue when trying to install Mondoo. The 
 Mondoo Community is available at: https://spectrum.chat/mondoo"
+  exit 1;
 }
 
 # register a trap for error signals
 trap on_error ERR
 
 purple_bold "Mondoo Install Script"
+purple "
+  __  __                 _             
+ |  \/  |               | |            
+ | \  / | ___  _ __   __| | ___   ___  
+ | |\/| |/ _ \| \'_ \ / _\` |/ _ \ / _ \ 
+ | |  | | (_) | | | | (_| | (_) | (_) |
+ |_|  |_|\___/|_| |_|\__,_|\___/ \___/ 
+"
+                 
 echo -e "\nWelcome to the Mondoo Install Script. It tries to auto-detect your 
 operating system and determines the appropriate package manager. If you are 
 experiencing any issues, please do not hesitate to reach out: 
@@ -103,31 +113,35 @@ elif [ $OS = "Debian" ]; then
   $sudo_cmd apt-get update -y && $sudo_cmd apt-get install -y mondoo
 elif [ $OS = "Suse" ]; then
   purple_bold "\n* Installing ZYPPER sources for Mondoo"
-  $sudo_cmd rpm --import https://releases.mondoo.io/rpm/pubkey.gpg
-  $sudo_cmd zypper addrepo --gpgcheck https://releases.mondoo.io/rpm mondoo
+  curl --silent --location https://releases.mondoo.io/rpm/mondoo.repo | $sudo_cmd tee /etc/zypp/repos.d/mondoo.repo
 
   purple_bold "\n* Installing the Mondoo agent package"
-  $sudo_cmd zypper -n install mondoo
+  $sudo_cmd zypper -n --gpg-auto-import-keys install mondoo
 elif [ $OS = "macOS" ]; then
   red "macOS is not supported yet. Please reach out at Mondoo Community:
 
   * https://spectrum.chat/mondoo
-  "
-  exit;
+"
+  exit 1;
 els
   red "Your operating system is not supported yet. Please reach out at 
 Mondoo Community:
 
   * https://spectrum.chat/mondoo
 "
-  exit;
+  exit 1;
 fi
 
 # Display final message
-lightblue "
-Mondoo is properly installed. To activate the service run:
-
+purple "
+Mondoo installation was successful. To activate the service run:
 systemctl enable mondoo.timer
 systemctl start mondoo.timer
-systemctl daemon-reload
+systemctl daemon-reload.
+
+If you have any questions, please reach out at Mondoo Community:
+
+  * https://spectrum.chat/mondoo
 "
+
+purple_bold "Thank you for installing Mondoo!"
