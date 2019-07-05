@@ -1,0 +1,20 @@
+{
+  "variables": {
+    "api_token": "{{env `DIGITALOCEAN_TOKEN`}}"
+  },
+  "provisioners": [
+    {
+      "type": "mondoo"
+    }
+  ],
+  "builders": [
+    {
+      "type": "digitalocean",
+      "api_token": "{{user `api_token`}}",
+      "image": "ubuntu-18-04-x64",
+      "ssh_username": "root", 
+      "region": "nyc1",
+      "size": "s-4vcpu-8gb"
+    }
+  ]
+}
