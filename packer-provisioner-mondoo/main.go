@@ -46,6 +46,7 @@ type Config struct {
 	UseSFTP       bool     `mapstructure:"use_sftp"`
 	Debug         bool     `mapstructure:"debug"`
 	MondooEnvVars []string `mapstructure:"mondoo_env_vars"`
+	OnFailure     string   `mapstructure:"on_failure"`
 }
 
 type Provisioner struct {
@@ -232,6 +233,11 @@ func (p *Provisioner) executeMondoo(ui packer.Ui, comm packer.Communicator, priv
 		Report: &VulnOptsReport{
 			Format: "cli",
 		},
+	}
+
+	// pass packer build, even if the scan identified vulnerabilities
+	if p.config.OnFailure == "continue" {
+		conf.Exit0OnSuccess = true
 	}
 
 	// prep config for mondoo executable
