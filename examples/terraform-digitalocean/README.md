@@ -13,13 +13,13 @@ Note: This example is tested with [Terraform 0.12](https://www.terraform.io/upgr
 
 ## Build Infrastructure
 
-Verify that everthing is in place to build the infrastructure:
+Verify that everything is in place for the infrastructure:
 
 ```
 $ terraform init
 ```
 
-Now, since all the tooling is ready, lets plan the buuld. Terraform will ask you for your ssh fingerprint. Monddo will use reuse the configured SSH keys automatically. You can find your ssh key fingerprint in [DigitalOcean dashboard](https://cloud.digitalocean.com/account/securitys).
+Now, since all the tooling is ready, lets plan the build. Terraform will ask you for your ssh fingerprint. Mondoo will use reuse the configured SSH keys automatically. You can find your ssh key fingerprint in [DigitalOcean dashboard](https://cloud.digitalocean.com/account/securitys).
 
 ```
 $ terraform plan                                                                            
