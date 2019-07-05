@@ -43,10 +43,11 @@ type Config struct {
 	SSHAuthorizedKeyFile string `mapstructure:"ssh_authorized_key_file"`
 	// packer's SFTP proxy is not reliable on some unix/linux systems,
 	// therefore we recommend to use scp as default for packer proxy
-	UseSFTP       bool     `mapstructure:"use_sftp"`
-	Debug         bool     `mapstructure:"debug"`
-	MondooEnvVars []string `mapstructure:"mondoo_env_vars"`
-	OnFailure     string   `mapstructure:"on_failure"`
+	UseSFTP       bool              `mapstructure:"use_sftp"`
+	Debug         bool              `mapstructure:"debug"`
+	MondooEnvVars []string          `mapstructure:"mondoo_env_vars"`
+	OnFailure     string            `mapstructure:"on_failure"`
+	Labels        map[string]string `mapstructure:"labels"`
 }
 
 type Provisioner struct {
@@ -229,6 +230,7 @@ func (p *Provisioner) executeMondoo(ui packer.Ui, comm packer.Communicator, priv
 		Asset: &VulnOptsAsset{
 			Connection:   fmt.Sprintf("ssh://%s@%s", p.config.User, fmt.Sprintf("127.0.0.1:%d", p.config.LocalPort)),
 			IdentityFile: privKeyFile,
+			Labels:       p.config.Labels,
 		},
 		Report: &VulnOptsReport{
 			Format: "cli",
@@ -244,6 +246,10 @@ func (p *Provisioner) executeMondoo(ui packer.Ui, comm packer.Communicator, priv
 	mondooScanConf, err := json.Marshal(conf)
 	if err != nil {
 		return err
+	}
+
+	if p.config.Debug {
+		ui.Say(fmt.Sprintf("mondoo configuration: %v", string(mondooScanConf)))
 	}
 
 	cmd := exec.Command(p.config.Command, args...)
@@ -318,10 +324,11 @@ type VulnOpts struct {
 }
 
 type VulnOptsAsset struct {
-	ReferenceID  string `json:"referenceid,omitempty" mapstructure:"referenceid"`
-	AssetMrn     string `json:"assetmrn,omitempty" mapstructure:"assetmrn"`
-	Connection   string `json:"connection,omitempty" mapstructure:"connection"`
-	IdentityFile string `json:"identityfile,omitempty" mapstructure:"identityfile"`
+	ReferenceID  string            `json:"referenceid,omitempty" mapstructure:"referenceid"`
+	AssetMrn     string            `json:"assetmrn,omitempty" mapstructure:"assetmrn"`
+	Connection   string            `json:"connection,omitempty" mapstructure:"connection"`
+	IdentityFile string            `json:"identityfile,omitempty" mapstructure:"identityfile"`
+	Labels       map[string]string `json:"labels,omitempty" mapstructure:"labels"`
 }
 
 type VulnOptsReport struct {
