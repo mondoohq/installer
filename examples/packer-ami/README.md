@@ -7,7 +7,7 @@ This example assumes you have basic knowledge Packer and AWS. If you are unfamil
  * [AWS Account](https://aws.amazon.com/free/)
  * [Packer CLI installed on workstation](https://www.packer.io/intro/getting-started/install.html)
  * [Mondoo CLI installed on workstation](https://mondoo.io/docs/agent/installation)
-
+ * [Mondoo Packer Provisioner](https://mondoo.io/docs/apps/packer)
 
 ## Build your image
 
@@ -89,3 +89,5 @@ amazon-ebs output will be in this color.
     amazon-ebs: AMI: ami-0cb9729eaa3f53209
 ==> amazon-ebs: Waiting for AMI to become ready...
 ```
+
+At the end of the packer build, Packer outputs the mondoo assessment and the artifacts. The report is stored for future reference. 
