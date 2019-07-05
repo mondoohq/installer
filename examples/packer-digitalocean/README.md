@@ -1,4 +1,4 @@
-# Build an Dropt with Packer & Mondoo Vulnerability Scan
+# Build an Droplet with Packer & Mondoo Vulnerability Scan
 
 ## Preconditions
 
@@ -7,10 +7,9 @@
  * [Mondoo CLI installed on workstation](https://mondoo.io/docs/agent/installation)
  * [Mondoo Packer Provisioner](https://mondoo.io/docs/apps/packer)
 
+## Build your image
 
- ## Build your image
-
-Verify the packer configuration:
+Verify the Packer configuration:
 
 ```
 $ packer validate example.json
@@ -23,7 +22,7 @@ Set DIGITALOCEAN_TOKEN as environment variable:
 export DIGITALOCEAN_TOKEN=MYTOKEN
 ```
 
-Run packer build:
+Run `packer build`:
 
 ```
 $ packer build example.json
@@ -73,4 +72,4 @@ digitalocean output will be in this color.
 Build 'digitalocean' errored: Error executing Mondoo: Non-zero exit status: exit status 103
 ```
 
-At the end of the packer build, Packer outputs the mondoo assessment and the artifacts. The report is stored for future reference. 
+At the end of the Packer build, Packer outputs the Mondoo assessment and the artifacts. The report is stored for future reference. 
