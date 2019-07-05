@@ -11,7 +11,7 @@ This example assumes you have basic knowledge Packer and AWS. If you are unfamil
 
 ## Build your image
 
-Verify the packer configuration:
+Verify the Packer configuration:
 
 ```
 $ packer validate example.json
@@ -25,7 +25,7 @@ export AWS_ACCESS_KEY_ID=MYACCESSKEYID
 export AWS_SECRET_ACCESS_KEY=MYSECRETACCESSKEY
 ```
 
-Run packer build:
+Run `packer build`:
 
 ```
 $ packer build example.json
@@ -90,4 +90,4 @@ amazon-ebs output will be in this color.
 ==> amazon-ebs: Waiting for AMI to become ready...
 ```
 
-At the end of the packer build, Packer outputs the mondoo assessment and the artifacts. The report is stored for future reference. 
+At the end of the Packer build, Packer outputs the Mondoo assessment and the artifacts. The report is stored for future reference.
