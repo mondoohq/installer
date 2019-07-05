@@ -6,13 +6,10 @@ PLUGINS_DIR=~/.packer.d/plugins
 prep/plugins:
 	mkdir -p ${PLUGINS_DIR}
 
-build/linux:
-	GO111MODULE=on CGO_ENABLED=0 GOOS=linux installsuffix=cgo go build -o ./dist/${PROVISIONER_BINARY_NAME}
+build:
+	GO111MODULE=on CGO_ENABLED=0 installsuffix=cgo go build -o ./dist/${PROVISIONER_BINARY_NAME}
 
-build/darwin:
-	GO111MODULE=on CGO_ENABLED=0 GOOS=darwin installsuffix=cgo go build -o ./dist/${PROVISIONER_BINARY_NAME}
-
-install: prep/plugins
+install: prep/plugins build
 	cp ./dist/${PROVISIONER_BINARY_NAME} ${PLUGINS_DIR}/${PROVISIONER_BINARY_NAME}
 
 test:
