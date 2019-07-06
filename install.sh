@@ -137,7 +137,7 @@ purple "
 Mondoo installation was successful. To activate the service run:
 systemctl enable mondoo.timer
 systemctl start mondoo.timer
-systemctl daemon-reload.
+systemctl daemon-reload
 
 If you have any questions, please reach out at Mondoo Community:
 
