@@ -1,0 +1,34 @@
+---
+
+# workaround since zypper_repository does not support gpgkey value
+- name: Download Mondoo RPM key
+  get_url:
+    url: "{{ mondoo_zypper_gpgkey }}"
+    dest: /tmp/MONDOO_RPM_KEY.pub
+
+- name: "Install Mondoo GPG Key"
+  rpm_key:
+    state: present
+    key: /tmp/MONDOO_RPM_KEY.pub
+  become: true
+  when: not ansible_check_mode
+
+- name: Install Mondoo zypper repository
+  zypper_repository:
+    name: mondoo
+    description: Mondoo Repository
+    repo: "{{ mondoo_zypper_repo }}"
+    enabled: yes
+    disable_gpg_check: no
+    # gpgkey: "{{ mondoo_zypper_gpgkey }}"
+    auto_import_keys: true
+  become: true
+  when: not ansible_check_mode
+
+- name: Ensure Mondoo agent is installed
+  zypper:
+    name: mondoo
+    state: latest
+  become: true
+  when: not ansible_check_mode
+  notify: restart mondoo-service

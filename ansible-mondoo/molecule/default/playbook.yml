@@ -1,0 +1,7 @@
+---
+- name: Converge
+  hosts: all
+  roles:
+    - role: ansible-mondoo
+  vars:
+    mondoo_registration_token: "setregistrationtokenhere"

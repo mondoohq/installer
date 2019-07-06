@@ -1,0 +1,44 @@
+---
+
+# install agent
+- include_tasks: pkg_debian.yml
+  when: ansible_os_family == "Debian"
+
+- include_tasks: pkg_rhel.yml
+  when: ansible_os_family == "RedHat"
+
+- include_tasks: pkg_suse.yml
+  when: ansible_os_family == "Suse"
+
+# register if no config file exists
+- name: Create Mondoo config directory
+  file:
+    dest: /etc/opt/mondoo
+    state: directory
+  become: true
+  when: not ansible_check_mode
+
+- name: Register Mondoo Agent
+  command: mondoo register --config /etc/opt/mondoo/mondoo.yml --token {{ mondoo_registration_token | default('setregistrationtoken') }}
+  args:
+    # only run the command if no config file exists
+    creates: /etc/opt/mondoo/mondoo.yml
+  become: true
+  when: not ansible_check_mode
+
+- name: Enable collector mode
+  lineinfile:
+    path: /etc/opt/mondoo/mondoo.yml
+    regexp: '^collector'
+    line: "collector: http"
+  become: true
+  when: not ansible_check_mode
+
+# ensure systemd service is started and enableds
+- name: Ensure mondoo service is running
+  systemd:
+    name: mondoo.timer
+    state: started
+    enabled: yes
+  become: true
+  when: not ansible_check_mode
