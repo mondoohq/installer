@@ -1,0 +1,2 @@
+[mondoo-agents]
+54.172.7.243  ansible_user=ec2-user
