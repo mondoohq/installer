@@ -1,13 +1,15 @@
 # Mondoo Packer Provisioner
 
-This provisioner runs Mondoo vulnerability scan as part of the packer build. This provisioner enables you to easily plug Mondoo into your existing packer pipeline. The advantage of using Mondoo as part of the pipleine is that no tool needs to be installed on the target. Therefore the images stays clean.
+This provisioner runs Mondoo vulnerability scan as part of the packer build. It enables you to easily plug Mondoo into your existing Packer build pipeline. 
 
-Further documentation is available at [Mondoo Packer Integration Docs](https://mondoo.io/docs/apps/packer). An AMI build example is located in the [examples directory](../examples/packer-ami) 
+The provisioner leverages Packer's built-in ssh proxy, to easily assess the vulnerabilities without the need to install anything on the target. Everybody loves clean images, right?
+
+Further documentation is available at [Mondoo Packer Integration Docs](https://mondoo.io/docs/apps/packer). An AMI build example is located in the [examples directory](../examples/packer-aws) 
 
 ## Preparation
 
-1. Install mondoo agent on your workstation
-2. Download and install the packer plugin and place it into `~/.packer.d/plugins`
+1. Install Mondoo agent on your workstation
+2. Download and install the Packer plugin and place it into `~/.packer.d/plugins`
 
 ## Usage
 
