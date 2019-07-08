@@ -3,7 +3,7 @@
 ## Preparation:
 
 1. Login to https://mondoo.app/
-2. Create or select a mondoo space and select `Agents` on the sidebar
+2. Create or select a Mondoo space and select `Agents` on the sidebar
 3. Create a new registration token and set it as environment variable
 
 ## Start VM
@@ -35,7 +35,7 @@ vagrant ssh {machine}
 $ sudo -i
 ```
 
-List mondoo service status
+List Mondoo service status
 ```
 $ systemctl status mondoo
 ● mondoo.service - mondoo vuln

@@ -8,7 +8,7 @@ At first, built the container:
 docker build -t mondoo-systemd-example .
 ```
 
-Then run the mondoo service:
+Then run the Mondoo service:
 
 ```bash
 # first-time (only required once to register the agent)
