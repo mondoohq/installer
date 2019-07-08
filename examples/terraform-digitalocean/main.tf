@@ -1,18 +1,19 @@
 variable "ssh_fingerprint" {
+  description = <<DESCRIPTION
+Fingerpring of your ssh key
+- Get your ssh fingerprint from https://cloud.digitalocean.com/account/security
+- Obtain your ssh_key id number via your account. See Document https://developers.digitalocean.com/documentation/v2/#list-all-keys
+DESCRIPTION
   default = "5e:f8:07:77:14:db:ab:73:b5:62:69:79:66:04:8e:86"
 }
 
 provider "digitalocean" {
-  # set the token via:
+  # set the DIGITALOCEAN_TOKEN environment variable before calling
+  # terraform apply:
   # export DIGITALOCEAN_TOKEN="Your API TOKEN"
-  # or configure it directly here for the provider:
-  # token = ""
 }
 
 resource "digitalocean_droplet" "mywebserver" {
-  # - Get your ssh fingerprint from https://cloud.digitalocean.com/account/security
-  # - Obtain your ssh_key id number via your account. See Document https://developers.digitalocean.com/documentation/v2/#list-all-keys
-  # - Generate a new ssh key
   ssh_keys = [
     var.ssh_fingerprint,
   ]
