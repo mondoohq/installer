@@ -1,0 +1,2 @@
+name 'run'
+depends "mondoo"
