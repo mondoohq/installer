@@ -11,10 +11,13 @@ release/terraform:
 release/packer:
 	cd packer-provisioner-mondoo && goreleaser --rm-dist
 
-test/installsh:
-	cp install.sh test/installscript
-	cd test/installscript && docker build --no-cache -f centos7.Dockerfile .
-	cd test/installscript && docker build --no-cache -f amazonlinux2.Dockerfile .
-	cd test/installscript && docker build --no-cache -f debian.Dockerfile .
-	cd test/installscript && docker build --no-cache -f ubuntu.Dockerfile .	
-	cd test/installscript && docker build --no-cache -f opensuse.Dockerfile .
+.PHONY: test/install_bash
+test/install_bash:
+	cp install.sh test/install_bash
+	cd test/install_bash && docker build --no-cache -f centos7.Dockerfile .
+	cd test/install_bash && docker build --no-cache -f amazonlinux2.Dockerfile .
+	cd test/install_bash && docker build --no-cache -f debian.Dockerfile .
+	cd test/install_bash && docker build --no-cache -f ubuntu.Dockerfile .	
+	cd test/install_bash && docker build --no-cache -f opensuse.Dockerfile .
+	cd test/install_bash && docker build --no-cache -f centos7.arm64.Dockerfile .
+	cd test/install_bash && docker build --no-cache -f redhat8.Dockerfile .

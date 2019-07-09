@@ -49,7 +49,7 @@ Mondoo Community is available at: https://spectrum.chat/mondoo"
 # register a trap for error signals
 trap on_error ERR
 
-purple_bold "Mondoo Install Script"
+purple_bold "Mondoo Package Install Script"
 purple "
   __  __                 _             
  |  \/  |               | |            
@@ -97,7 +97,7 @@ fi
 # Install the necessary package sources
 if [ $OS = "RedHat" ]; then
   purple_bold "\n* Installing YUM sources for Mondoo"
-  curl --silent --location https://releases.mondoo.io/rpm/mondoo.repo | $sudo_cmd tee /etc/yum.repos.d/mondoo.repo
+  curl -sSL https://releases.mondoo.io/rpm/mondoo.repo | $sudo_cmd tee /etc/yum.repos.d/mondoo.repo
 
   purple_bold "\n* Installing the Mondoo agent package"
   $sudo_cmd yum install -y mondoo
@@ -106,14 +106,14 @@ elif [ $OS = "Debian" ]; then
   $sudo_cmd apt-get install -y apt-transport-https ca-certificates gnupg
 
   purple_bold "\n* Installing APT package sources for Mondoo"
-  curl -sS https://releases.mondoo.io/debian/pubkey.gpg | $sudo_cmd apt-key add - 
+  curl -sSL https://releases.mondoo.io/debian/pubkey.gpg | $sudo_cmd apt-key add - 
   echo "deb https://releases.mondoo.io/debian/ stable main" | $sudo_cmd tee /etc/apt/sources.list.d/mondoo.list
 
   purple_bold "\n* Installing the Mondoo agent package"
   $sudo_cmd apt-get update -y && $sudo_cmd apt-get install -y mondoo
 elif [ $OS = "Suse" ]; then
   purple_bold "\n* Installing ZYPPER sources for Mondoo"
-  curl --silent --location https://releases.mondoo.io/rpm/mondoo.repo | $sudo_cmd tee /etc/zypp/repos.d/mondoo.repo
+  curl -sSL https://releases.mondoo.io/rpm/mondoo.repo | $sudo_cmd tee /etc/zypp/repos.d/mondoo.repo
 
   purple_bold "\n* Installing the Mondoo agent package"
   $sudo_cmd zypper -n --gpg-auto-import-keys install mondoo
@@ -132,16 +132,34 @@ Mondoo Community:
   exit 1;
 fi
 
-# Display final message
-purple "
-Mondoo installation was successful. To activate the service run:
-systemctl enable mondoo.timer
-systemctl start mondoo.timer
-systemctl daemon-reload
+# Lets register the agent
+if [ ! -z "${MONDOO_REGISTRATION_TOKEN}" ]
+then
+  purple_bold "Register agent with Mondoo Cloud"
+  mkdir -p /etc/opt/mondoo/
+  mondoo register --config /etc/opt/mondoo/mondoo.yml --token $MONDOO_REGISTRATION_TOKEN
 
+  # set collector mode
+  if ! grep -qF "collector: http" /etc/opt/mondoo/mondoo.yml; then
+    echo "collector: http" | sudo tee -a /etc/opt/mondoo/mondoo.yml
+  fi
+else
+  red "Skip agent registration since MONDOO_REGISTRATION_TOKEN was not set"
+fi
+
+if [ -f "/etc/opt/mondoo/mondoo.yml" ]; then
+  purple_bold "Configure systemd services"
+  # configure systemd service
+  systemctl enable mondoo.timer
+  systemctl start mondoo.timer
+  systemctl daemon-reload
+fi
+
+# Display final message
+purple_bold "Thank you for installing Mondoo!"
+purple "
 If you have any questions, please reach out at Mondoo Community:
 
   * https://spectrum.chat/mondoo
 "
 
-purple_bold "Thank you for installing Mondoo!"
