@@ -30,7 +30,8 @@ In many cases, continuous vulnerability assessment is desired. If you wish to ac
 ```
 provisioner "remote-exec" {
   inline = [
-    "curl -sSL https://mondoo.io/install.sh | bash",
+    "export MONDOO_REGISTRATION_TOKEN='ey..gg'",
+    "curl -sSL https://mondoo.io/install.sh | bash"
   ] 
 }
 ```
