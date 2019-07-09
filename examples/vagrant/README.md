@@ -1,4 +1,4 @@
-# Mondoo systemd demo with Vagrant
+# Mondoo agent demo with Vagrant
 
 ## Preparation:
 
@@ -11,12 +11,12 @@
 
 ```
 # set registration token
-export MONDOO_VAGRANT_REGISTRATION_TOKEN='ey..k6C1TYwOk0J'
+export MONDOO_REGISTRATION_TOKEN='ey..k6C1TYwOk0J'
 # on mac you can use pbpaste to read the token from clipboard
-export MONDOO_VAGRANT_REGISTRATION_TOKEN=$(pbpaste)
+export MONDOO_REGISTRATION_TOKEN=$(pbpaste)
 
 # ensure its set
-echo $MONDOO_VAGRANT_REGISTRATION_TOKEN
+echo $MONDOO_REGISTRATION_TOKEN
 
 # spin up centos
 vagrant up centos
@@ -70,4 +70,3 @@ Jun 14 12:35:19 localhost.localdomain mondoo[3668]: [27B blob data]
 Jun 14 12:35:19 localhost.localdomain mondoo[3668]: <E2><86><92>  enabled collector
 Jun 14 12:35:24 localhost.localdomain mondoo[3668]: <E2><9C><94>  sent packages successfully
 ```
-

@@ -1,0 +1,34 @@
+Vagrant.require_version ">= 1.8.4"
+
+puts "The Mondoo vagrant demo uses the following registration token:"
+puts ENV['MONDOO_REGISTRATION_TOKEN']
+
+Vagrant.configure(2) do |config|
+  $mondoo_script = <<SCRIPT
+echo Installing mondoo ...
+curl -sSL https://mondoo.io/install.sh | bash
+SCRIPT
+
+  config.vm.define "centos" do |centos|
+    centos.vm.box = "bento/centos-7.5"
+    centos.vm.network "public_network", bridge: "en0: Wi-Fi (AirPort)"
+    centos.vm.synced_folder ".", "/vagrant", disabled: true
+    centos.vm.provision "shell", inline: $mondoo_script, env: {"MONDOO_REGISTRATION_TOKEN" => ENV['MONDOO_REGISTRATION_TOKEN']}
+  end
+
+  config.vm.define "ubuntu" do |ubuntu|
+    ubuntu.vm.box = "bento/ubuntu-18.04"
+    ubuntu.vm.network "public_network", bridge: "en0: Wi-Fi (AirPort)"
+    ubuntu.vm.synced_folder ".", "/vagrant", disabled: true
+    config.vm.provision "shell", inline: "apt-get update -y"
+    ubuntu.vm.provision "shell", inline: $mondoo_script, env: {"MONDOO_REGISTRATION_TOKEN" => ENV['MONDOO_REGISTRATION_TOKEN']}
+  end
+
+  config.vm.define "debian" do |debian|
+    debian.vm.box = "bento/debian-9"
+    debian.vm.network "public_network", bridge: "en0: Wi-Fi (AirPort)"
+    debian.vm.synced_folder ".", "/vagrant", disabled: true
+    config.vm.provision "shell", inline: "apt-get update -y"
+    debian.vm.provision "shell", inline: $mondoo_script, env: {"MONDOO_REGISTRATION_TOKEN" => ENV['MONDOO_REGISTRATION_TOKEN']}
+  end
+end
