@@ -18,7 +18,7 @@ export MONDOO_REGISTRATION_TOKEN='changeme'
 curl -sSL http://mondoo.io/download.sh | bash
 ```
 
-***Service**
+***Service***
 
 ```
 export MONDOO_REGISTRATION_TOKEN='changeme'
@@ -44,27 +44,25 @@ mondoo vuln -t ssh://ec2-user@54.76.229.223
 ## Repository Structure
 
 **Mondoo Deployment**
-- `ansible-mondoo` - Ansible role for Mondoo
-- `chef-mondoo` - Chef cookbook for Mondoo
-- `install.sh` - Mondoo Agent Bash Installer for Servers
-- `download.sh` - Mondoo Agent Bash Downloader for Workstation
-- `Dockerfile` - Build script for official Mondoo container
+- [ansible-mondoo](./ansible-mondoo) - Ansible role for Mondoo
+- [chef-mondoo](./chef-mondoo) - Chef cookbook for Mondoo
+- [install.sh](./install.sh) - Mondoo Agent Bash Installer for Servers
+- [download.sh](./download.sh) - Mondoo Agent Bash Downloader for Workstation
+- [Dockerfile](./Dockerfile) - Build script for official Mondoo container
 
 **Mondoo Integration**
-- `packer-provisioner-mondoo` - Mondoo Packer Provisioner
-- `terraform-provisioner-mondoo` - Mondoo Terrafrom Provisioner
+- [packer-provisioner-mondoo](./packer-provisioner-mondoo) - Mondoo Packer Provisioner
+- [terraform-provisioner-mondoo](./terraform-provisioner-mondoo) - Mondoo Terrafrom Provisioner
 
 **Examples**
 
-```
-examples
-├── ansible-aws-ec2        - Ansible Playbook to deploy Mondoo Agents
-├── chef-aws-ec2           - Chef Wrapper Cookbook to deploy Mondoo Agents
-├── cloudinit              - Lauch instance on AWS with Mondoo Agent
-├── docker                 - Play with Docker & Mondoo
-├── packer-aws             - Build & Scan AMI on AWS
-├── packer-digitalocean    - Build & Scan image on Digitalocean
-├── terraform-aws          - Launch & Scan instance on AWS
-├── terraform-digitalocean - Launch & Scan instance on Digitalocean
-└── vagrant                - Spin-up Mondoo agents in Vagrant
-```
+ - [ansible-aws-ec2](./examples/ansible-aws-ec2) - Ansible Playbook to deploy Mondoo Agents
+ - [chef-aws-ec2](./examples/chef-aws-ec2) - Chef Wrapper Cookbook to deploy Mondoo Agents
+ - [cloudinit](examples/cloudinit) - Lauch instance on AWS with Mondoo Agent
+ - [docker](./examples/docker) - Play with Docker & Mondoo
+ - [packer-aws](./examples/packer-aws) - Build & Scan AMI on AWS
+ - [packer-digitalocean](./examples/packer-digitalocean) - Build & Scan image on Digitalocean
+ - [terraform-aws](./examples/terraform-aws) - Launch & Scan instance on AWS
+ - [terraform-digitalocean](./examples/terraform-digitalocean) - Launch & Scan instance on Digitalocean
+ - [vagrant](./examples/vagrant) - Spin-up Mondoo agents in Vagrant
+
