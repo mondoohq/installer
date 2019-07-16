@@ -17,6 +17,12 @@
 # 
 # The Mondoo agent installation script installs the mondoo agent on supported
 # Linux distros using its native package manager
+# 
+# The script may use the following environment variables:
+# 
+# MONDOO_REGISTRATION_TOKEN
+#     (Optional) Mondoo Registation Token to register an agent. Systemd services
+#     are only activated if the agent is properly authenticated.
 
 # define colors
 end="\033[0m"
@@ -79,9 +85,6 @@ elif [ -f /etc/debian_version -o "$DISTRIBUTION" == "Debian" -o "$DISTRIBUTION" 
   OS="Debian"
 elif [ -f /etc/redhat-release -o "$DISTRIBUTION" == "RedHat" -o "$DISTRIBUTION" == "CentOS" -o "$DISTRIBUTION" == "Amazon" ]; then
   OS="RedHat"
-# Some newer distros like Amazon may not have a redhat-release file
-elif [ -f /etc/system-release -o "$DISTRIBUTION" == "Amazon" ]; then
-  OS="RedHat"
 # openSUSE and SUSE use /etc/SuSE-release
 elif [ -f /etc/SuSE-release -o "$DISTRIBUTION" == "SUSE" -o "$DISTRIBUTION" == "openSUSE" ]; then
   OS="Suse"
@@ -96,8 +99,8 @@ fi
 
 # Install the necessary package sources
 if [ $OS = "RedHat" ]; then
-  purple_bold "\n* Installing YUM sources for Mondoo"
-  curl -sSL https://releases.mondoo.io/rpm/mondoo.repo | $sudo_cmd tee /etc/yum.repos.d/mondoo.repo
+  purple_bold "\n* Configuring YUM sources for Mondoo at /etc/yum.repos.d/mondoo.repo"
+  curl --retry 3 --retry-delay 10 -sSL https://releases.mondoo.io/rpm/mondoo.repo | $sudo_cmd tee /etc/yum.repos.d/mondoo.repo
 
   purple_bold "\n* Installing the Mondoo agent package"
   $sudo_cmd yum install -y mondoo
@@ -105,15 +108,15 @@ elif [ $OS = "Debian" ]; then
   purple_bold "\n* Installing apt-transport-https"
   $sudo_cmd apt-get install -y apt-transport-https ca-certificates gnupg
 
-  purple_bold "\n* Installing APT package sources for Mondoo"
-  curl -sSL https://releases.mondoo.io/debian/pubkey.gpg | $sudo_cmd apt-key add - 
+  purple_bold "\n* Configuring APT package sources for Mondoo at /etc/apt/sources.list.d/mondoo.list"
+  curl --retry 3 --retry-delay 10 -sSL https://releases.mondoo.io/debian/pubkey.gpg | $sudo_cmd apt-key add - 
   echo "deb https://releases.mondoo.io/debian/ stable main" | $sudo_cmd tee /etc/apt/sources.list.d/mondoo.list
 
   purple_bold "\n* Installing the Mondoo agent package"
   $sudo_cmd apt-get update -y && $sudo_cmd apt-get install -y mondoo
 elif [ $OS = "Suse" ]; then
-  purple_bold "\n* Installing ZYPPER sources for Mondoo"
-  curl -sSL https://releases.mondoo.io/rpm/mondoo.repo | $sudo_cmd tee /etc/zypp/repos.d/mondoo.repo
+  purple_bold "\n* Configuring ZYPPER sources for Mondoo at /etc/zypp/repos.d/mondoo.repo"
+  curl --retry 3 --retry-delay 10 -sSL https://releases.mondoo.io/rpm/mondoo.repo | $sudo_cmd tee /etc/zypp/repos.d/mondoo.repo
 
   purple_bold "\n* Installing the Mondoo agent package"
   $sudo_cmd zypper -n --gpg-auto-import-keys install mondoo
@@ -123,7 +126,7 @@ elif [ $OS = "macOS" ]; then
   * https://spectrum.chat/mondoo
 "
   exit 1;
-els
+else
   red "Your operating system is not supported yet. Please reach out at 
 Mondoo Community:
 
@@ -133,9 +136,8 @@ Mondoo Community:
 fi
 
 # Lets register the agent
-if [ ! -z "${MONDOO_REGISTRATION_TOKEN}" ]
-then
-  purple_bold "Register agent with Mondoo Cloud"
+if [ ! -z "${MONDOO_REGISTRATION_TOKEN}" ]; then
+  purple_bold "\n* Register agent with Mondoo Cloud"
   mkdir -p /etc/opt/mondoo/
   mondoo register --config /etc/opt/mondoo/mondoo.yml --token $MONDOO_REGISTRATION_TOKEN
 
@@ -144,11 +146,11 @@ then
     echo "collector: http" | sudo tee -a /etc/opt/mondoo/mondoo.yml
   fi
 else
-  red "Skip agent registration since MONDOO_REGISTRATION_TOKEN was not set"
+  red "\n* Skipping agent registration since MONDOO_REGISTRATION_TOKEN was not set"
 fi
 
 if [ -f "/etc/opt/mondoo/mondoo.yml" ]; then
-  purple_bold "Configure systemd services"
+  purple_bold "\n* Configuring systemd services"
   # configure systemd service
   systemctl enable mondoo.timer
   systemctl start mondoo.timer
@@ -156,7 +158,7 @@ if [ -f "/etc/opt/mondoo/mondoo.yml" ]; then
 fi
 
 # Display final message
-purple_bold "Thank you for installing Mondoo!"
+purple_bold "\nThank you for installing Mondoo!"
 purple "
 If you have any questions, please reach out at Mondoo Community:
 
