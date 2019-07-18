@@ -1,3 +1,4 @@
 test/install_bash/install.sh
 test/download_sh/download.sh
 ansible-mondoo/molecule/default/tests/__pycache__
+.vagrant
