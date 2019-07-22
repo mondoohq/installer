@@ -36,4 +36,20 @@ provisioner "remote-exec" {
 }
 ```
 
+## Compiling the Terraform plugin from source
 
+If you wish to compile from source, you need to have [Go](https://golang.org/) installed and configured.
+
+1. Clone the mondoo repository from GitHub into your $GOPATH:
+
+```
+$ mkdir -p $(go env GOPATH)/src/github.com/mondoolabs && cd $_
+$ git clone https://github.com/mondoolabs/mondoo.git
+$ cd mondoo/terraform-provisioner-mondoo
+```
+
+2. Build the plugin for your current system and place the binary in the packer plugin directory
+
+```
+make install
+```

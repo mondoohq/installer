@@ -31,6 +31,24 @@ The simplest setup is to add `mondoo` to your provisioners list:
   }],
 ```
 
+## Compiling the Packer plugin from source
+
+If you wish to compile from source, you need to have [Go](https://golang.org/) installed and configured.
+
+1. Clone the mondoo repository from GitHub into your $GOPATH:
+
+```
+$ mkdir -p $(go env GOPATH)/src/github.com/mondoolabs && cd $_
+$ git clone https://github.com/mondoolabs/mondoo.git
+$ cd mondoo/packer-provisioner-mondoo
+```
+
+2. Build the plugin for your current system and place the binary in the packer plugin directory
+
+```
+make install
+```
+
 ## Kudos
 
 The tests are derived from [maier/packer-templates](https://github.com/maier/packer-templates).
