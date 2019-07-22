@@ -66,3 +66,7 @@ mondoo vuln -t ssh://ec2-user@54.76.229.223
  - [terraform-digitalocean](./examples/terraform-digitalocean) - Launch & Scan instance on Digitalocean
  - [vagrant](./examples/vagrant) - Spin-up Mondoo agents in Vagrant
 
+ **Docs**
+
+  - [docs](./docs) - Source for Mondoo documentation (uses [docsify](https://docsify.js.org/#/quickstart))
+
