@@ -1,0 +1,27 @@
+- [Getting Started](../get-started/)
+- **Agent**
+  - [Overview](readme.md)
+  - [Installation](installation.md)
+  - Automatic
+    - [Bash](bash.md)
+    - [Cloudinit](cloudinit.md)
+    - [Ansible](ansible.md)
+    - [Chef](chef.md)
+  - Manual
+    - [Windows](windows.md)
+    - [macOS](macos.md)
+    - [RedHat/CentOS](redhat.md)
+    - [Ubuntu](ubuntu.md)
+    - [Amazon Linux](amazonlinux.md)
+    - [Suse/openSUSE](suse.md)
+    - [Binaries](binaries.md)
+  - [Configuration](configuration.md)
+  - [Diagnosing](diagnosing.md)
+  - CLI Reference
+    - [mondoo](mondoo.md)
+    - [mondoo register](mondoo_register.md)
+    - [mondoo status](mondoo_status.md)
+    - [mondoo vuln](mondoo_vuln.md)
+    - [mondoo unregister](mondoo_unregister.md)
+- [Integration](../integration/)
+- [Help](../help)
