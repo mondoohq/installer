@@ -25,17 +25,17 @@
 </style>
 
 <div class="flex-container">
-  <a href="get-started/" class="tile">
+  <a href="/docs/get-started/" class="tile">
     <span >
       Getting Started
     </span>
   </a>
-  <a href="agent/" class="tile">
+  <a href="/docs/agent/" class="tile">
     <span class="tile">
       Agent
     </span>
   </a>
-  <a href="integration/" class="tile">
+  <a href="/docs/integration/" class="tile">
     <span class="tile">
       Integrations
     </span>

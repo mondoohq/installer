@@ -1,6 +1,6 @@
 # AWS Setup
 
-![Architecture](../ assets/aws-integration.png)
+![Architecture](../assets/aws-integration.png)
 
 
 

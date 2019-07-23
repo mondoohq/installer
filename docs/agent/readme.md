@@ -22,11 +22,11 @@ a.agents img {
 }
 </style>
 
-<a href="/agent/windows" class="agents"><img src="../assets/button-windows.png" class="agents"/></a><a href="/agent/macos" class="agents"><img src="../assets/button-macos.png"/></a><a href="/agent/redhat" class="agents"><img src="../assets/button-redhat.png"/></a><a href="/agent/amazonlinux" class="agents"><img src="../assets/button-amzn.png" /></a>
+<a href="/docs/agent/windows" class="agents"><img src="../assets/button-windows.png" class="agents"/></a><a href="/docs/agent/macos" class="agents"><img src="../assets/button-macos.png"/></a><a href="/docs/agent/redhat" class="agents"><img src="../assets/button-redhat.png"/></a><a href="/docs/agent/amazonlinux" class="agents"><img src="../assets/button-amzn.png" /></a>
 
-<a href="/agent/ubuntu" class="agents"><img src="../assets/button-ubuntu.png"/></a><a href="/agent/redhat" class="agents"><img src="../assets/button-centos.png" class="agents"/></a><a href="/agent/ubuntu" class="agents"><img src="../assets/button-debian.png" class="agents"/></a><a href="/agent/suse" class="agents"><img src="../assets/button-suse.png" class="agents"/></a>
+<a href="/docs/agent/ubuntu" class="agents"><img src="../assets/button-ubuntu.png"/></a><a href="/docs/agent/redhat" class="agents"><img src="../assets/button-centos.png" class="agents"/></a><a href="/docs/agent/ubuntu" class="agents"><img src="../assets/button-debian.png" class="agents"/></a><a href="/docs/agent/suse" class="agents"><img src="../assets/button-suse.png" class="agents"/></a>
 
-<a href="/agent/ansible" class="agents"><img src="../assets/button-ansible.png"/></a><a href="/agent/chef" class="agents"><img src="../assets/button-chef.png"/></a>
+<a href="/docs/agent/ansible" class="agents"><img src="../assets/button-ansible.png"/></a><a href="/docs/agent/chef" class="agents"><img src="../assets/button-chef.png"/></a>
 
 
 ## How it works
