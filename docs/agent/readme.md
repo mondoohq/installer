@@ -48,7 +48,7 @@ You want to see the vulnerability assessment of your server continuously. The ag
 You want to assess the vulnerabilities of a system that is accessible via SSH. 
 
 ```
-mondoo vuln -t ssh://ec2-user@54.146.196.40
+mondoo scan -t ssh://ec2-user@54.146.196.40
 Start vulnerability scan:
   →  verify platform access to ssh://ec2-user@54.146.196.40
   →  gather platform details
@@ -64,7 +64,7 @@ Advisory Report:
 Another option is to quickly scan a docker image stored in a docker registry:
 
 ```
-mondoo vuln -t docker://centos:7
+mondoo scan -t docker://centos:7
 Start vulnerability scan:
   →  verify platform access to docker://centos:7
   →  gather platform details

@@ -21,7 +21,7 @@
     - [mondoo](mondoo.md)
     - [mondoo register](mondoo_register.md)
     - [mondoo status](mondoo_status.md)
-    - [mondoo vuln](mondoo_vuln.md)
+    - [mondoo scan](mondoo_scan.md)
     - [mondoo unregister](mondoo_unregister.md)
 - [Integration](../integration/)
 - [Help](../help)

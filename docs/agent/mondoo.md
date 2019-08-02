@@ -28,8 +28,8 @@ Mondoo scans operating systems for known vulnerabilities
 ### SEE ALSO
 
 * [mondoo register](mondoo_register.md)	 - Registers Mondoo agent with Mondoo Cloud
+* [mondoo scan](mondoo_scan.md)	 - Scans an asset for known vulnerabilities
 * [mondoo status](mondoo_status.md)	 - Verifies the access to Mondoo Cloud
 * [mondoo unregister](mondoo_unregister.md)	 - Unregister Mondoo agent from Mondoo Cloud
 * [mondoo version](mondoo_version.md)	 - Displays the Mondoo agent version
-* [mondoo vuln](mondoo_vuln.md)	 - Scans an asset for known vulnerabilities
 
