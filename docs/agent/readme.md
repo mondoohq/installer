@@ -2,7 +2,7 @@
 
 The Mondoo agent is a small & cross-platform binary that makes it easy to assess system vulnerabilities. Its main responsibility is to determine installed packages and send the package list including their versions for further analysis to Mondoo's vulnerability database.
 
-![Mondoo CLI](../assets/mondoo_cli.png)
+![Mondoo CLI](../assets/mondoo-cli.png)
 
 ## Installation
 
