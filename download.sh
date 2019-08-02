@@ -1,6 +1,9 @@
 #!/bin/sh
 # Automatic Mondoo downloader to be used with
 # curl -sSL https://mondoo.io/download.sh | sh -
+# 
+# This script requires tar and gzip as helper commands
+# e.g. yum install tar gzip
 
 # Any subsequent commands which fails will stop the execution of the shell script
 set -e
@@ -38,7 +41,7 @@ This script source is available at: https://github.com/mondoolabs/mondoo
 
 base_url="${MONDOO_MIRROR:-https://releases.mondoo.io}"
 product="mondoo"
-version="${MONDOO_VERSION:-0.15.0}"
+version="${MONDOO_VERSION:-0.17.0}"
 
 fail() {
   echo -e "${red}${1}${end}";
