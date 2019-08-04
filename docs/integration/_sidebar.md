@@ -3,6 +3,10 @@
 - **Integrations**
   - [Overview](readme.md)
   - [AWS EC2](aws-ec2.md)
-  - [Gitlab](gitlab.md)
+  - [CICD](cicd.md)
+    - [Overview](cicd.md)
+    - [AWS CodePipeline](cicd.md?id=id=aws-codepipeline-codebuild)
+    - [Gitlab](cicd.md?id=gitlab)
+    - [CircleCI](cicd.md?id=circle-ci)
   - [Packer](packer.md)
   - [Terraform](terraform.md)

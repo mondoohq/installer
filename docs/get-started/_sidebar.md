@@ -3,5 +3,5 @@
   - [Introduction](introduction-mondoo.md)
   - [First Assessment](first.md)
 - [Agent](../agent/)
-- [Integrations](../integrations/)
+- [Integrations](../integration/)
 - [Help](../help)

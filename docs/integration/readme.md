@@ -18,5 +18,5 @@ a.integration img {
 }
 </style>
 
-<a href="/docs/integration/aws-ec2" class="integration"><img src="../assets/button-aws.png" class="integration"/></a><a href="/docs/integration/gitlab" class="integration"><img src="../assets/button-gitlab.png"/></a><a href="/docs/integration/terraform" class="integration"><img src="../assets/button-terraform.png"/></a><a href="/docs/integration/packer" class="integration"><img src="../assets/button-packer.png" /></a>
+<a href="/docs/integration/aws-ec2" class="integration"><img src="../assets/button-aws.png" class="integration"/></a><a href="/docs/integration/cicd" class="integration"><img src="../assets/button-gitlab.png"/></a><a href="/docs/integration/terraform" class="integration"><img src="../assets/button-terraform.png"/></a><a href="/docs/integration/packer" class="integration"><img src="../assets/button-packer.png" /></a>
 
