@@ -1,6 +1,6 @@
 # Mondoo Packer Provisioner
 
-Mondoo ships an integration for [Packer](https://www.packer.io) to ease the assessment of vulnerabilities during an image build process. The integration is open source and available in our [Mondoo github repository](https://github.com/mondoolabs/mondoo)
+Mondoo ships an integration for [Packer](https://www.packer.io) to ease the assessment of vulnerabilities during an image build process. The integration is open source and available in our [Mondoo GitHub repository](https://github.com/mondoolabs/mondoo)
 
 ## Install Mondoo Packer Provisioner
 
@@ -16,7 +16,7 @@ The provisioner plugin may be installed via:
 
 ### Install packer plugin from binary
 
-To install the pre-compiled binary, download the appropriate package from [Github](https://github.com/mondoolabs/mondoo/releases/latest) and place the binary in the Packer's plugin directory `~/.packer.d/plugins` (Linux, Mac) or `%USERPROFILE%/packer.d/plugins` (Windows). Other locations that Packer searches for are [documented on their website](https://www.packer.io/docs/extending/plugins.html#installing-plugins).
+To install the precompiled binary, download the appropriate package from [Github](https://github.com/mondoolabs/mondoo/releases/latest) and place the binary in the Packer's plugin directory `~/.packer.d/plugins` (Linux, Mac) or `%USERPROFILE%/packer.d/plugins` (Windows). Other locations that Packer searches for are [documented on their website](https://www.packer.io/docs/extending/plugins.html#installing-plugins).
 
 The following simplifies the installation:
 
@@ -58,10 +58,10 @@ make install
 
 ### Verifying the Installation 
 
-After installing Packer, Mondoo Agent and the Mondoo Packer Provisioning Plugin run the follow commands to check that everything is configured properly:
+After installing Packer, Mondoo Agent and the Mondoo Packer Provisioning Plugin run the following commands to check that everything is configured properly:
 
 ```
-$  packer
+$ packer
 Usage: packer [--version] [--help] <command> [<args>]
 
 Available commands are:
@@ -208,7 +208,7 @@ The simplest configuration for mondoo would be:
 }
 ```
 
-The additional `on_failure` allows Packer to continue, even if mondoo found vulnerabilities. Additional labels help you to identify the ami report in mondoo later. To verify the the packer template, run packer `packer validate`:
+The additional `on_failure` allows Packer to continue, even if mondoo found vulnerabilities. Additional labels help you to identify the ami report on mondoo later. To verify the packer template, run packer `packer validate`:
 
 ```
 $ packer validate example.json
@@ -217,7 +217,7 @@ Template validated successfully.
 
 ***Packer Build***
 
-Once the packer template is verified, we are ready to build the image. In this case, we are going to build an AMI, therefore we need the the AWS credentials to spin up a new instance. As shown above, the same will work with other cloud providers or Vagrant.
+Once the packer template is verified, we are ready to build the image. In this case, we are going to build an AMI, therefore we need the AWS credentials to spin up a new instance. As shown above, the same will work with other cloud providers or Vagrant.
 
 Now, set the AWS credentials
 

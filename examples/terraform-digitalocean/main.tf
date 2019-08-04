@@ -1,6 +1,6 @@
 variable "ssh_fingerprint" {
   description = <<DESCRIPTION
-Fingerpring of your ssh key
+The fingerprint of your ssh key
 - Get your ssh fingerprint from https://cloud.digitalocean.com/account/security
 - Obtain your ssh_key id number via your account. See Document https://developers.digitalocean.com/documentation/v2/#list-all-keys
 DESCRIPTION

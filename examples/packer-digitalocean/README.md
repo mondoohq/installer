@@ -1,4 +1,4 @@
-# Build an Droplet with Packer & Mondoo Vulnerability Scan
+# Build a Droplet with Packer & Mondoo Vulnerability Scan
 
 ## Preconditions
 
@@ -16,7 +16,7 @@ $ packer validate example.json
 Template validated successfully.
 ```
 
-Set DIGITALOCEAN_TOKEN as environment variable:
+Set DIGITALOCEAN_TOKEN as an environment variable:
 
 ```
 export DIGITALOCEAN_TOKEN=MYTOKEN

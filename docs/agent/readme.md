@@ -36,12 +36,12 @@ The agent works by continuously assessing the installed packages and submitting 
 The CLI is designed for two use cases:
 
  * run as service for continuous vulnerability assessment
- * run on workstation to assess vulnerabilities for remote systems or docker images
+ * run on the workstation to assess vulnerabilities for remote systems or docker images
  * run docker image scan as part of a CI/CD
 
 **Use case: Service**
 
-You want to see the vulnerability assessment of your server continuously. The agent runs in background and submits changes of the installed packages for vulnerability analysis. By using this approach, you always have the latest view on your infrastructure.
+You want to see the vulnerability assessment of your server continuously. The agent runs in the background and submits changes of the installed packages for vulnerability analysis. By using this approach, you always have the latest view of your infrastructure.
 
 **Use case: Workstation or CI/CD**
 

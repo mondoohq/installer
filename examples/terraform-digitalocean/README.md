@@ -1,6 +1,6 @@
 # Scan DigitalOcean droplet for vulnerabilities with Terraform and Mondoo
 
-This example provisions a new droplet via Terraform. In case you are not familar with both Terraform and Digitalocean, have a look at their [guide](https://www.digitalocean.com/community/tutorials/how-to-use-terraform-with-digitalocean). The provided Terraform configuration will spin up a new Ubuntu droplet, install Nginx, and run Mondoo to assess the vulnerabilities of the instance. 
+This example provisions a new droplet via Terraform. In case you are not familiar with both Terraform and Digitalocean, have a look at their [guide](https://www.digitalocean.com/community/tutorials/how-to-use-terraform-with-digitalocean). The provided Terraform configuration will spin up a new Ubuntu droplet, install Nginx, and run Mondoo to assess the vulnerabilities of the instance. 
 
 Note: This example is tested with [Terraform 0.12](https://www.terraform.io/upgrade-guides/0-12.html) and may not work with earlier versions.
 
@@ -19,7 +19,7 @@ Verify that everything is in place for the infrastructure:
 $ terraform init
 ```
 
-Now, since all the tooling is ready, lets plan the build. Terraform will ask you for your ssh fingerprint. Mondoo will use reuse the configured SSH keys automatically. You can find your ssh key fingerprint in [DigitalOcean dashboard](https://cloud.digitalocean.com/account/securitys).
+Now, since all the tooling is ready, let's plan the build. Terraform will ask you for your ssh fingerprint. Mondoo will use reuse the configured SSH keys automatically. You can find your ssh key fingerprint in [DigitalOcean dashboard](https://cloud.digitalocean.com/account/securitys).
 
 ```
 $ terraform plan                                                                            
@@ -174,4 +174,4 @@ name = sample-tf-droplet
 public_ip = 67.207.94.130
 ```
 
-At the end of the Terraform output, you see the vulnerability report for provisioned droplet.
+At the end of the Terraform output, you see the vulnerability report for the provisioned droplet.

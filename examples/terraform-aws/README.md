@@ -1,6 +1,6 @@
 # Scan AWS EC2 instances for vulnerabilities with Terraform and Mondoo
 
-This examples demonstrates the use of spinning up an AWS instance with Terraform and scaning that instance with Mondoo.
+This example demonstrates the use of spinning up an AWS instance with Terraform and scanning that instance with Mondoo.
 
 ## Preconditions
 
@@ -18,7 +18,7 @@ Verify that everything is in place for the infrastructure:
 terraform init
 ```
 
-Now, we are ready to spin up an instance. As parameter the terraform configuration requires an ssh key that is configured with the local ssh agent. All Terraform provisioners will use it to connect to the instance remotely.
+Now, we are ready to spin up an instance. As a parameter, the terraform configuration requires an ssh key that is configured with the local ssh-agent. All Terraform provisioners will use it to connect to the instance remotely.
 
 ```
 $ terraform apply -var 'key_name={your_aws_key_name}' \

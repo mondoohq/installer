@@ -4,7 +4,7 @@
 2. Create the wrapper cookbook
 
 ```
-# prepare basic structure of wrapper cookbook
+# prepare the basic structure of wrapper cookbook
 mkdir -p run
 mkdir -p run/recipes
 

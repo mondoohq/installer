@@ -1,6 +1,6 @@
 # Build an AMI Image with Packer & Mondoo Vulnerability Scan
 
-This example assumes you have basic knowledge Packer and AWS. If you are unfamiliar with Packer, have a look at their great [tutorials](https://www.packer.io/intro/getting-started/build-image.html).
+This example assumes you have basic knowledge of Packer and AWS. If you are unfamiliar with Packer, have a look at their great [tutorials](https://www.packer.io/intro/getting-started/build-image.html).
 
 ## Preconditions
 

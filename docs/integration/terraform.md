@@ -1,6 +1,6 @@
 # Mondoo Terraform Provisioner
 
-Mondoo ships an integration for [Terraform](https://www.terraform.io/) to ease the assessment of vulnerabilities during an image build process. The integration is open source and available in our [Mondoo github repository](https://github.com/mondoolabs/mondoo)
+Mondoo ships an integration for [Terraform](https://www.terraform.io/) to ease the assessment of vulnerabilities during an image build process. The integration is open source and available in our [Mondoo GitHub repository](https://github.com/mondoolabs/mondoo)
 
 ## Install Mondoo Packer Provisioner
 
@@ -16,7 +16,7 @@ The provisioner plugin may be installed via:
 
 ### Install packer plugin from binary
 
-To install the pre-compiled binary, download the appropriate package from [Github](https://github.com/mondoolabs/mondoo/releases/latest) and place the binary in Terraform's plugin directory `~/.terraform.d/plugins` (Linux, Mac) or `%USERPROFILE%/terraform.d/plugins` (Windows). Other locations that Terraform searches for are [documented on their website](https://www.terraform.io/docs/extend/how-terraform-works.html#plugin-locationss).
+To install the precompiled binary, download the appropriate package from [Github](https://github.com/mondoolabs/mondoo/releases/latest) and place the binary in Terraform's plugin directory `~/.terraform.d/plugins` (Linux, Mac) or `%USERPROFILE%/terraform.d/plugins` (Windows). Other locations that Terraform searches for are [documented on their website](https://www.terraform.io/docs/extend/how-terraform-works.html#plugin-locationss).
 
 The following simplifies the installation:
 
@@ -58,7 +58,7 @@ make install
 
 ### Verifying the Installation 
 
-After installing Terraform, Mondoo Agent and the Mondoo Terraform Provisioning Plugin run the follow commands to check that everything is configured properly:
+After installing Terraform, Mondoo Agent and the Mondoo Terraform Provisioning Plugin run the following commands to check that everything is configured properly:
 
 ```
 $ terraform
@@ -82,7 +82,7 @@ Once the plugin is installed, you can use the provisioner by adapting your `inst
 ```
 variable "ssh_fingerprint" {
   description = <<DESCRIPTION
-Fingerpring of your ssh key
+The fingerprint of your ssh key
 - Get your ssh fingerprint from https://cloud.digitalocean.com/account/security
 - Obtain your ssh_key id number via your account. See Document https://developers.digitalocean.com/documentation/v2/#list-all-keys
 DESCRIPTION

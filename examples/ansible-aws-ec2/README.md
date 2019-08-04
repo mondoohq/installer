@@ -2,7 +2,7 @@
 
 This playbook allows you to install the Mondoo agent via Ansible.
 
-1. Adapt the hosts inventory. Add your host to the group.
+1. Adapt the ansible hosts inventory. Add your host to the group.
 
 ```
 [mondoo-agents]

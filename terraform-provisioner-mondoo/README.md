@@ -25,7 +25,7 @@ provisioner "mondoo" {
 
 **Continuous Vulnerability Assessment**
 
-In many cases, continuous vulnerability assessment is desired. If you wish to achieve that, we recommend installing the Mondoo agent. It can be easily installed with Terraform by using the `remote-exec` provisioner with our [bash installer](https://mondoo.io/docs/agent/bash).
+In many cases, a continuous vulnerability assessment is desired. If you wish to achieve that, we recommend installing the Mondoo agent. It can be easily installed with Terraform by using the `remote-exec` provisioner with our [bash installer](https://mondoo.io/docs/agent/bash).
 
 ```
 provisioner "remote-exec" {
