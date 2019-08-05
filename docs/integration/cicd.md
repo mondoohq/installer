@@ -108,9 +108,9 @@ In you pipeline you can easily store the file with base64  decoding during every
 echo $MONDOO_AGENT_ACCOUNT | base64 -d > mondoo.json
 ```
 
-## AWS CodePipeline (CodeBuild)
+## AWS CodeBuild
 
-![Illustration of AWS CodePipeline integration(../assets/integration-aws-codepipeline.png)
+![Illustration of AWS CodePipeline integration](../assets/integration-aws-codepipeline.png)
 
 The following example illustrates how to scan a Docker image before its being pushed to ECR. At first, we install the agent, then we scan the freshly built image by Docker. If `mondoo scan` passes successfully, the image is pushed ECR. Based on your pipeline configuration, you can auto-deploy it to ECS then.
 
@@ -160,7 +160,7 @@ artifacts:
   files: imagedefinitions.json
 ``` 
 
-Additionally, you need to configure your AWS CodeBuild project to store the credentials for the Mondoo agent in `MONDOO_AGENT_ACCOUNT`. You can [download the credentials](../agent/configuration). For AWS CodeBuild we need to encode the [credentials as base64](#store-mondoo-credentials).
+Additionally, you need to configure your AWS CodeBuild project to store the credentials for the Mondoo agent in `MONDOO_AGENT_ACCOUNT`. You can [download the credentials](../agent/configuration). For AWS CodeBuild, you need to encode the [credentials as base64](#store-mondoo-credentials).
 
 Next, you create a new `MONDOO_AGENT_ACCOUNT` variable and paste the content of the agent credentials:
 
@@ -175,6 +175,164 @@ Also, it is easy to see the result in your Mondoo dashboard:
 ![See report in Mondoo dashboard](../assets/mondoo-cicd-awscodebuild-result-dashboard.png)
 
 Note: We prefer to store the agent credentials as secrets. By default, AWS CodeBuild supports retrieving values for environment variables via plaintext and AWS Parameter Store. It also allows  the use of AWS Secrets Manager to pass secrets via [AWS Parameter Store into the pipeline](https://docs.aws.amazon.com/systems-manager/latest/userguide/integration-ps-secretsmanager.html). Please be aware that AWS Secrets Manager comes with  an additional cost per secret.
+
+## Azure DevOps
+
+![Illustration of Azure DevOps integration](../assets/integration-azure-devops.png)
+
+To use Mondoo with Azure DevOps, you simply add another build step in `azure-pipelines.yml`. It is designed to block image push if vulnerabilities have been found. 
+
+```
+# Docker starter pipeline
+#
+# The script uses the following secrets:
+# - dockerUser - Replace with your Docker ID for Docker Hub or the admin user name for the Azure Container Registry
+# - dockerPassword - Password or Token
+# - MONDOO_AGENT_ACCOUNT - Mondoo agent credentials
+
+trigger:
+- master
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  # docker image namespace
+  imageNamespace: my-docker-id
+  # docker image name
+  imageName: my-image-name
+
+
+steps:
+- task: DockerInstaller@0
+  inputs:
+    dockerVersion: '17.09.0-ce'
+
+- script: |
+    docker build -t $(imageNamespace)/$(imageName) .
+  displayName: 'Build Docker image'
+
+- script: |
+    curl -sSL https://mondoo.io/download.sh | bash 
+    echo ${MONDOO_AGENT_ACCOUNT} | base64 -d > mondoo.json
+    ./mondoo scan -t docker://$(imageNamespace)/$(imageName) --config mondoo.json 
+  displayName: 'Run mondoo vulnerability scan'
+  env:
+    MONDOO_AGENT_ACCOUNT: $(MONDOO_AGENT_ACCOUNT)
+
+- script: |
+    docker build -t $(imageNamespace)/$(imageName) .
+    docker login -u $(dockerUser) -p $(pswd)
+    docker push $(imageNamespace)/$(imageName)
+  env:
+    pswd: $(dockerPassword)
+```
+
+Additionally, you need to configure your build to store the credentials for the Mondoo agent in `MONDOO_AGENT_ACCOUNT`. You can [download the credentials](../agent/configuration). For Azure, you need to encode the [credentials as base64](#store-mondoo-credentials). Next, you create a new `MONDOO_AGENT_ACCOUNT` [Azure secret](https://docs.microsoft.com/en-us/azure/devops/pipelines/process/variables?view=azure-devops&tabs=yaml%2Cbatch#secret-variables) and paste the content of the agent credentials:
+
+![Open Azure secrets configuration](../assets/mondoo-cicd-azuredevops-setup1.png)
+![Paste the configuration as Azure secret](../assets/mondoo-cicd-azuredevops-setup2.png)
+
+Once configured, you can see the vulnerability report as part of the CI/CD job.
+
+![Run a mondoo scan in Azure DevOps](../assets/mondoo-cicd-azuredevops-result-text.png)
+
+## Circle CI
+
+![Illustration of Circle CI integration](../assets/integration-circleci.png)
+
+CircleCI allows you to build Docker images as part of your [CI/CD pipeline](https://circleci.com/docs/2.0/building-docker-images/). Mondoo can be easily used in combination to verify the docker image before yoou push it to the registry. The following configuration runs a `docker build` and a `mondoo scan`:
+
+
+```
+version: 2
+jobs:
+  build:
+    docker:
+      - image: centos:7
+    steps:
+      - setup_remote_docker
+      - checkout
+      # use a primary image that already has Docker (recommended)
+      # or install it during a build like we do here
+      - run:
+          name: Install Docker client
+          command: |
+            set -x
+            VER="18.09.3"
+            curl -L -o /tmp/docker-$VER.tgz https://download.docker.com/linux/static/stable/x86_64/docker-$VER.tgz
+            tar -xz -C /tmp -f /tmp/docker-$VER.tgz
+            mv /tmp/docker/* /usr/bin
+      - run:
+          name: Install Mondoo agent
+          command: |
+            echo $MONDOO_AGENT_ACCOUNT > mondoo.json
+            curl -sSL https://mondoo.io/download.sh | bash
+            ./mondoo version
+      # - run: docker login -u $DOCKER_USER -p $DOCKER_PASS
+      - run: docker build -t yourorg/docker-image:0.1.$CIRCLE_BUILD_NUM .
+      - run: cat mondoo.json | ./mondoo scan -t docker://yourorg/docker-image:0.1.$CIRCLE_BUILD_NUM
+      # - run: docker push docker://yourorg/docker-image:0.1.$CIRCLE_BUILD_NUM
+```
+
+Additionally, you need to configure your Circle CI project to store the credentials for the Mondoo agent in `MONDOO_AGENT_ACCOUNT`. You can either [download the credentials](../agent/configuration) or use the CircleCI integration page. Just select Sidebar -> Apps -> CircleCI and generate new credentials. Next, you create a new `MONDOO_AGENT_ACCOUNT` variable and paste the content of the agent credentials:
+
+![Paste the configuration in Circle CI environment variables](../assets/mondoo-cicd-circleci-setup.png)
+
+You can see the vulnerability report as part of the CI/CD job.
+
+![Run a mondoo scan in Circle CI](../assets/mondoo-cicd-circleci-result-text.png)
+
+Also, it is easy to see the result in your Mondoo dashboard:
+
+![See report in Mondoo dashboard](../assets/mondoo-cicd-circleci-result-dashboard.png)
+
+## GCP Cloud Build
+
+![Illustration of GCP Cloud Build integration](../assets/integration-gcp-cloudbuild.png)
+
+GCP Cloud Build is a Docker-based pipeline where each task executes in its own Docker container. To run a vulnerability scan, we use the Mondoo's docker image and verify the image before its being uploaded to GCR.
+
+```
+# Scan Docker image with Mondoo before pushing to GCR
+substitutions:
+  _IMAGE_NAME: demoimage
+  _MONDOO_AGENT_ACCOUNT: ""
+steps:
+# build docker image
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['build', '-t', 'gcr.io/$PROJECT_ID/${_IMAGE_NAME}', '.']
+# store docker image in workspace
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['save', '-o', '/workspace/${_IMAGE_NAME}.tar', 'gcr.io/$PROJECT_ID/${_IMAGE_NAME}']
+# store mondoo credentials into workspace
+- name: 'mondoolabs/mondoo'
+  entrypoint: /bin/sh
+  args: ['-c', 'echo ${_MONDOO_AGENT_ACCOUNT} | base64 -d > /workspace/mondoo.json']
+# run mondoo config
+- name: 'mondoolabs/mondoo'
+  args: ['scan', '-t', 'docker:///workspace/${_IMAGE_NAME}.tar', '--config', '/workspace/mondoo.json']
+  # optional environment variables, those enable you to reference the mondoo report with your build
+  env:
+  - 'CLOUDBUILD=true'
+  - 'BUILD=$BUILD_ID'
+  - 'PROJECT=$PROJECT_ID'
+  - 'COMMIT_SHA=$COMMIT_SHA'
+  - 'SHORT_SHA=$SHORT_SHA'
+  - 'REPO_NAME=$REPO_NAME'
+  - 'BRANCH_NAME=$BRANCH_NAME'
+  - 'TAG_NAME=$TAG_NAME'
+  - 'REVISION_ID=$REVISION_ID'
+images: ['gcr.io/$PROJECT_ID/${_IMAGE_NAME}']
+```
+
+You need to configure a [substitution variable](https://cloud.google.com/cloud-build/docs/configuring-builds/substitute-variable-values) to store the credentials for the Mondoo agent in `_MONDOO_AGENT_ACCOUNT`. You can either [download the credentials](../agent/configuration) or use the GCP Cloud Build integration page. For GCP Code Build, you need to encode the [credentials as base64](#store-mondoo-credentials). Next, you create a new `_MONDOO_AGENT_ACCOUNT` variable and paste the content of the agent credentials:
+
+![Paste the configuration as GCP substitution variable](../assets/mondoo-cicd-cloudbuild-setup.png)
+
+You can see the vulnerability report as part of the CI/CD job.
+
+![Run a mondoo scan in GCP Cloud Build](../assets/mondoo-cicd-cloudbuild-result-text.png)
 
 ## Gitlab
 
@@ -229,54 +387,3 @@ You can see the vulnerability report as part of the CI/CD job.
 Also, it is easy to see the result in your Mondoo dashboard:
 
 ![See report in Mondoo dashboard](../assets/mondoo-cicd-gitlab-result-dashboard.png)
-
-
-## Circle CI
-
-![Illustration of Circle CI integration](../assets/integration-circleci.png)
-
-CircleCI allows you to build Docker images as part of your [CI/CD pipeline](https://circleci.com/docs/2.0/building-docker-images/). Mondoo can be easily used in combination to verify the docker image before yoou push it to the registry. The following configuration runs a `docker build` and a `mondoo scan`:
-
-
-```
-version: 2
-jobs:
-  build:
-    docker:
-      - image: centos:7
-    steps:
-      - setup_remote_docker
-      - checkout
-      # use a primary image that already has Docker (recommended)
-      # or install it during a build like we do here
-      - run:
-          name: Install Docker client
-          command: |
-            set -x
-            VER="18.09.3"
-            curl -L -o /tmp/docker-$VER.tgz https://download.docker.com/linux/static/stable/x86_64/docker-$VER.tgz
-            tar -xz -C /tmp -f /tmp/docker-$VER.tgz
-            mv /tmp/docker/* /usr/bin
-      - run:
-          name: Install Mondoo agent
-          command: |
-            echo $MONDOO_AGENT_ACCOUNT > mondoo.json
-            curl -sSL https://mondoo.io/download.sh | bash
-            ./mondoo version
-      # - run: docker login -u $DOCKER_USER -p $DOCKER_PASS
-      - run: docker build -t yourorg/docker-image:0.1.$CIRCLE_BUILD_NUM .
-      - run: cat mondoo.json | ./mondoo scan -t docker://yourorg/docker-image:0.1.$CIRCLE_BUILD_NUM
-      # - run: docker push docker://yourorg/docker-image:0.1.$CIRCLE_BUILD_NUM
-```
-
-Additionally, you need to configure your Circle CI project to store the credentials for the Mondoo agent in `MONDOO_AGENT_ACCOUNT`. You can either [download the credentials](../agent/configuration) or use the CircleCI integration page. Just select Sidebar -> Apps -> CircleCI and generate new credentials. Next, you create a new `MONDOO_AGENT_ACCOUNT` variable and paste the content of the agent credentials:
-
-![Paste the configuration in Circle CI environment variables](../assets/mondoo-cicd-circleci-setup.png)
-
-You can see the vulnerability report as part of the CI/CD job.
-
-![Run a mondoo scan in Circle CI](../assets/mondoo-cicd-circleci-result-text.png)
-
-Also, it is easy to see the result in your Mondoo dashboard:
-
-![See report in Mondoo dashboard](../assets/mondoo-cicd-circleci-result-dashboard.png)
