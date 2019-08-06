@@ -138,12 +138,12 @@ fi
 # Lets register the agent
 if [ ! -z "${MONDOO_REGISTRATION_TOKEN}" ]; then
   purple_bold "\n* Register agent with Mondoo Cloud"
-  mkdir -p /etc/opt/mondoo/
-  mondoo register --config /etc/opt/mondoo/mondoo.yml --token $MONDOO_REGISTRATION_TOKEN
+  $sudo_cmd mkdir -p /etc/opt/mondoo/
+  $sudo_cmd mondoo register --config /etc/opt/mondoo/mondoo.yml --token $MONDOO_REGISTRATION_TOKEN
 
   # set collector mode
-  if ! grep -qF "collector: http" /etc/opt/mondoo/mondoo.yml; then
-    echo "collector: http" | sudo tee -a /etc/opt/mondoo/mondoo.yml
+  if ! $sudo_cmd grep -qF "collector: http" /etc/opt/mondoo/mondoo.yml; then
+    echo "collector: http" | $sudo_cmd tee -a /etc/opt/mondoo/mondoo.yml
   fi
 else
   red "\n* Skipping agent registration since MONDOO_REGISTRATION_TOKEN was not set"
@@ -152,9 +152,9 @@ fi
 if [ -f "/etc/opt/mondoo/mondoo.yml" ]; then
   purple_bold "\n* Configuring systemd services"
   # configure systemd service
-  systemctl enable mondoo.timer
-  systemctl start mondoo.timer
-  systemctl daemon-reload
+  $sudo_cmd systemctl enable mondoo.timer
+  $sudo_cmd systemctl start mondoo.timer
+  $sudo_cmd systemctl daemon-reload
 fi
 
 # Display final message
