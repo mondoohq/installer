@@ -33,7 +33,7 @@ Once the `mondoo` command is set up properly, we can run a vulnerability scan:
 **Build**
 ```
 # run mondoo vulnerability scan
-cat mondoo.json | mondoo scan -t docker://imageid
+mondoo scan -t docker://imageid --config mondoo.json
 ```
 
 In this case, we pipe the mondoo configuration into the mondoo binary and scan a docker image. If you like to scan an ssh target you can just call `mondoo scan -t ssh://ec2-user@52.51.185.215:2222`. All available options are documented for [mondoo scan](../agent/mondoo_scan)
@@ -57,7 +57,7 @@ This allows you to implement threshold-bassed deployment blocking. The following
 
 ```
 # this will run mondoo and pass if the exit code is 0, 101 or 102
-x=$(cat mondoo.json | mondoo scan -t docker://centos:7); exitcode="$?"; echo $x; echo $exitcode; test $exitcode -eq 0 -o $exitcode -eq 101 -o $exitcode -eq 102
+x=$(mondoo scan -t docker://centos:7 --config mondoo.json); exitcode="$?"; echo $x; echo $exitcode; test $exitcode -eq 0 -o $exitcode -eq 101 -o $exitcode -eq 102
 ```
 
 ![Use custom threshold for Mondoo](../assets/mondoo-cicd-threshold.png)
@@ -150,7 +150,7 @@ phases:
       - bash -c "if [ /"$CODEBUILD_BUILD_SUCCEEDING/" == /"0/" ]; then exit 1; fi"
       - echo Build completed on `date`
       - echo Verify Docker images for vulnerabilities with Mondoo
-      - cat mondoo.json | ./mondoo scan -t docker://$ECR_REPOSITORY_URI:$IMAGE_TAG
+      - ./mondoo scan -t docker://$ECR_REPOSITORY_URI:$IMAGE_TAG --config mondoo.json
       - echo Pushing the Docker images...
       - docker push $ECR_REPOSITORY_URI:latest
       - docker push $ECR_REPOSITORY_URI:$IMAGE_TAG
@@ -271,7 +271,7 @@ jobs:
             ./mondoo version
       # - run: docker login -u $DOCKER_USER -p $DOCKER_PASS
       - run: docker build -t yourorg/docker-image:0.1.$CIRCLE_BUILD_NUM .
-      - run: cat mondoo.json | ./mondoo scan -t docker://yourorg/docker-image:0.1.$CIRCLE_BUILD_NUM
+      - run: ./mondoo scan -t docker://yourorg/docker-image:0.1.$CIRCLE_BUILD_NUM --config mondoo.json
       # - run: docker push docker://yourorg/docker-image:0.1.$CIRCLE_BUILD_NUM
 ```
 
@@ -364,7 +364,7 @@ vulnerabilities-master:
   script:
     - mkdir -p /home/mondoo/.docker/ && echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /home/mondoo/.docker/config.json
     - echo $MONDOO_AGENT_ACCOUNT > /tmp/$CI_PIPELINE_ID-mondoo.json
-    - cat /tmp/$CI_PIPELINE_ID-mondoo.json | mondoo scan -t docker://$CI_REGISTRY_IMAGE
+    - mondoo scan -t docker://$CI_REGISTRY_IMAGE --config /tmp/$CI_PIPELINE_ID-mondoo.json
   # allow_failure: true
   only:
     - master
