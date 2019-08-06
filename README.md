@@ -4,7 +4,7 @@
 
 ## Usage
 
-![Mondoo CLI](docs/assets/mondoo_cli.png)
+![Mondoo CLI](docs/assets/mondoo-cli.png)
 
 ## Quick Start
 
