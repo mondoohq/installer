@@ -1,4 +1,4 @@
-# Installing Mondoo Agent on Windows
+# Installing Mondoo Agent on Windows workstation
 
 ## Powershell
 
@@ -12,7 +12,9 @@ iex (new-object net.webclient).downloadstring('https://mondoo.io/download.ps1')
 
 Once the agent is installed, you can register the agent
 ```
-$TOKEN="pastetokenhere"                                               mondoo register --token $TOKEN                                         ✔  agent //agents.api.mondoo.app/spaces/peaceful-burnell-555533/agents/1ON7UPoNpkKxkMncKTFUcwZLVrt registered successfully
+$MONDOO_REGISTRATION_TOKEN="pastetokenhere"
+mondoo register --token $MONDOO_REGISTRATION_TOKEN
+  ✔  agent //agents.api.mondoo.app/spaces/peaceful-burnell-555533/agents/1ON7UPoNpkKxkMncKTFUcwZLVrt registered successfully
 ```
 
 ## Binary Download
