@@ -1,6 +1,6 @@
 - [Getting Started](../get-started/)
 - **Agent**
-  - [Overview](readme.md)
+  - [Overview](readme.md#the-mondoo-agent)
   - [Installation](installation.md)
   - Automatic
     - [Bash](bash.md)

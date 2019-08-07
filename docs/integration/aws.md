@@ -2,12 +2,12 @@
 
 Mondoo offers a wide range of choices to collect information about workload running in your AWS account and covers scanning vulnerabilities for the following use cases:
 
-Gather information during build-time:
+**Gather vulnerability information during build-time**
 
  - [Build AMIs with Packer](./packer)
  - [Test Docker Images in AWS CodeBuild](./cicd#aws-codebuild)
 
-Gather information during run-time:
+**Gather vulnerability information during run-time**
 
   - [Instance provisioning via CloudInit](../agent/cloudinit#aws-ec2-instance-user-data)
   - [Terraform deployment](./terraform)

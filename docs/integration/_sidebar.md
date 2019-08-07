@@ -3,7 +3,7 @@
 - **Integrations**
   - [Overview](readme.md)
   - [AWS](aws.md)
-  - [CICD](cicd.md)
+  - [CICD](cicd.md#cicd)
     - [Overview](cicd.md#cicd)
     - [AWS CodeBuild](cicd.md#aws-codebuild)
     - [Azure DevOps](cicd.md#azure-devops)

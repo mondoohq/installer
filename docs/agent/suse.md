@@ -31,7 +31,7 @@ The agent status can be displayed via:
 systemctl list-timers
 systemctl status mondoo.timer
 ```
-s
+
 ## Upgrade
 
 The mondoo agent can be easily updated via:

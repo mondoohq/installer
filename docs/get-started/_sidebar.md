@@ -1,6 +1,6 @@
 - **Get Started**
-  - [Overview](readme.md)
-  - [Quick Start](quickstart.md)
+  - [Overview](readme.md#hello-mondoo)
+  - [Quick Start](quickstart.md#quickstart)
     - [Installation](quickstart.md#installation)
     - [Registration](quickstart.md#registration)
     - [First Scan](quickstart.md#scan-your-first-target)
