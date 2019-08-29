@@ -361,8 +361,9 @@ vulnerabilities-master:
   stage: test
   image:
     name: mondoolabs/mondoo:latest
+    entrypoint: [""]
   script:
-    - mkdir -p /home/mondoo/.docker/ && echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /home/mondoo/.docker/config.json
+    - mkdir -p /root/.docker/ && echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /root/.docker/config.json
     - echo $MONDOO_AGENT_ACCOUNT > /tmp/$CI_PIPELINE_ID-mondoo.json
     - mondoo scan -t docker://$CI_REGISTRY_IMAGE --config /tmp/$CI_PIPELINE_ID-mondoo.json
   # allow_failure: true
