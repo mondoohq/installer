@@ -83,6 +83,9 @@ func (p *Provisioner) Prepare(raws ...interface{}) error {
 		}
 	}
 
+	// ensure that we disable ssh auth, since the packer proxy only allows one auth mechanism
+	p.config.MondooEnvVars = append(p.config.MondooEnvVars, "SSH_AUTH_SOCK=")
+
 	if !p.config.UseSFTP {
 		p.config.MondooEnvVars = append(p.config.MondooEnvVars, "MONDOO_SSH_SCP=on")
 	}
@@ -224,7 +227,7 @@ func (p *Provisioner) executeMondoo(ui packer.Ui, comm packer.Communicator, priv
 		envvars = append(envvars, p.config.MondooEnvVars...)
 	}
 
-	args := []string{"vuln"}
+	args := []string{"scan"}
 
 	conf := &VulnOpts{
 		Asset: &VulnOptsAsset{
