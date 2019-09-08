@@ -23,7 +23,8 @@
       }
     }
   }, {
-    "type": "mondoo"
+    "type": "mondoo",
+    "debug": true
   }],
   "builders": [{
     "type": "virtualbox-iso",

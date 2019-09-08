@@ -1,4 +1,4 @@
-.PHONY: prep/plugins build/linux build/darwin build/install build
+.PHONY: prep/plugins install build
 
 PROVISIONER_BINARY_NAME=packer-provisioner-mondoo
 PLUGINS_DIR=~/.packer.d/plugins
@@ -17,8 +17,8 @@ test:
 
 test/packer/alpine:
 	# use -debug to call step modus
-	cd test/alpine3.8 && packer build alpine-3.8-x86_64.json
+	cd test/alpine3.8 && PACKER_LOG=1 packer build alpine-3.8-x86_64.json
 
 test/packer/centos:
 	# use -debug to call step modus
-	cd test/centos7 && packer build centos-7-x86_64.json
+	cd test/centos7 && PACKER_LOG=1  packer build centos-7-x86_64.json
