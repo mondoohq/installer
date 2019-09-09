@@ -36,7 +36,7 @@ digitalocean output will be in this color.
 ==> digitalocean: Waiting for SSH to become available...
 ==> digitalocean: Connected to SSH!
 ==> digitalocean: Running mondoo vulnerability scan...
-==> digitalocean: Executing Mondoo: [mondoo vuln]
+==> digitalocean: Executing Mondoo: [mondoo scan]
     digitalocean: Start vulnerability scan:
   →  detected automated runtime environment: Packer
     digitalocean: 5:32PM INF ssh uses scp (beta) instead of sftp for file transfer transport=ssh

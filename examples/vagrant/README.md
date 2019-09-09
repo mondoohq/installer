@@ -38,7 +38,7 @@ $ sudo -i
 List Mondoo service status
 ```
 $ systemctl status mondoo
-● mondoo.service - mondoo vuln
+● mondoo.service - mondoo scan
    Loaded: loaded (/etc/systemd/system/mondoo.service; static; vendor preset: disabled)
    Active: inactive (dead)
 
@@ -51,7 +51,7 @@ Jun 14 12:35:19 localhost.localdomain mondoo[3668]: [63B blob data]
 Jun 14 12:35:19 localhost.localdomain mondoo[3668]: [27B blob data]
 Jun 14 12:35:19 localhost.localdomain mondoo[3668]: →  enabled collector
 Jun 14 12:35:24 localhost.localdomain mondoo[3668]: ✔  sent packages successfully
-Jun 14 12:35:24 localhost.localdomain systemd[1]: Started mondoo vuln.
+Jun 14 12:35:24 localhost.localdomain systemd[1]: Started mondoo scan.
 ```
 
 To see the full log, run:
@@ -59,7 +59,7 @@ To see the full log, run:
 ```
 $ journalctl -u mondoo.service
 -- Logs begin at Fri 2019-06-14 12:24:28 UTC, end at Fri 2019-06-14 12:35:24 UTC. --
-Jun 14 12:35:17 localhost.localdomain systemd[1]: Starting mondoo vuln...
+Jun 14 12:35:17 localhost.localdomain systemd[1]: Starting mondoo scan...
 Jun 14 12:35:17 localhost.localdomain mondoo[3668]: Start vulnerability scan:
 Jun 14 12:35:18 localhost.localdomain mondoo[3668]: [59B blob data]
 Jun 14 12:35:18 localhost.localdomain mondoo[3668]: [43B blob data]

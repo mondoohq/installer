@@ -31,13 +31,13 @@ Run a scan:
 
 ```
 # scan a docker image from remote registry
-mondoo vuln -t docker://centos:7
+mondoo scan -t docker://centos:7
 
 # scan docker container (get ids from docker ps)
-mondoo vuln -t docker://00fa961d6b6a
+mondoo scan -t docker://00fa961d6b6a
 
 # scan a ssh instance
-mondoo vuln -t ssh://ec2-user@54.76.229.223
+mondoo scan -t ssh://ec2-user@54.76.229.223
 ```
 
 ## Repository Structure

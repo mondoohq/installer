@@ -36,7 +36,7 @@ func run(
 	}
 
 	cmdbin := "mondoo"
-	cmdargs := []string{"vuln"}
+	cmdargs := []string{"scan"}
 
 	// we use os.Pipe instead of goroutines, see golang.org/issue/18874
 	pr, pw, err := os.Pipe()

@@ -255,7 +255,7 @@ amazon-ebs output will be in this color.
     amazon-ebs: -rw-r--r-- 1 ubuntu ubuntu  655 May  9 20:20 .profile
     amazon-ebs: drwx------ 2 ubuntu ubuntu 4096 Jul  5 11:34 .ssh
 ==> amazon-ebs: Running mondoo vulnerability scan...
-==> amazon-ebs: Executing Mondoo: [mondoo vuln]
+==> amazon-ebs: Executing Mondoo: [mondoo scan]
     amazon-ebs: Start vulnerability scan:
   →  detected automated runtime environment: Unknown CI
     amazon-ebs: 1:34PM INF ssh uses scp (beta) instead of sftp for file transfer transport=ssh

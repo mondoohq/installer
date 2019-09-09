@@ -39,7 +39,7 @@ func applyFn(ctx context.Context) error {
 		Collector: tfCollector(data),
 	}
 
-	// run mondoo vuln command
+	// run mondoo scan command
 	return run(ctx, s, data, o, conf)
 }
 
