@@ -10,5 +10,6 @@
     - [CircleCI](cicd.md#circle-ci)
     - [GCP CloudBuild](cicd.md#gcp-cloudbuild)
     - [Gitlab](cicd.md#gitlab)
+    - [Jenkins](cicd.md#jenkins)
   - [Packer](packer.md)
   - [Terraform](terraform.md)
