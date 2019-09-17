@@ -9,6 +9,7 @@
     - [Azure DevOps](cicd.md#azure-devops)
     - [CircleCI](cicd.md#circle-ci)
     - [GCP CloudBuild](cicd.md#gcp-cloudbuild)
+    - [Github Actions](cicd.md#github-actions)
     - [Gitlab](cicd.md#gitlab)
     - [Jenkins](cicd.md#jenkins)
   - [Packer](packer.md)
