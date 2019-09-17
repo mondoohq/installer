@@ -104,5 +104,13 @@ then
   purple_bold "Register agent with Mondoo Cloud"
   $(pwd)/mondoo register --token ${MONDOO_REGISTRATION_TOKEN}
 else
-  red "Skip agent registration since MONDOO_REGISTRATION_TOKEN was not set"
+  red "\nSkip agent registration since MONDOO_REGISTRATION_TOKEN was not set"
+  echo -e "
+  To register the agent later, run:
+
+  MONDOO_REGISTRATION_TOKEN=\"ey..iU\"
+  mondoo register --token \$MONDOO_REGISTRATION_TOKEN
+
+  Further information is available at https://mondoo.io/docs/agent/configuration?id=register-agent
+	"
 fi

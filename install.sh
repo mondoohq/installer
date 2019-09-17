@@ -146,7 +146,15 @@ if [ ! -z "${MONDOO_REGISTRATION_TOKEN}" ]; then
     echo "collector: http" | $sudo_cmd tee -a /etc/opt/mondoo/mondoo.yml
   fi
 else
-  red "\n* Skipping agent registration since MONDOO_REGISTRATION_TOKEN was not set"
+  red "\nSkip agent registration since MONDOO_REGISTRATION_TOKEN was not set"
+  echo -e "
+  To register the agent later, run:
+
+  MONDOO_REGISTRATION_TOKEN=\"ey..iU\"
+  mondoo register --config /etc/opt/mondoo/mondoo.yml --token \$MONDOO_REGISTRATION_TOKEN
+
+  Further information is available at https://mondoo.io/docs/agent/configuration?id=register-agent
+	"
 fi
 
 if [ -f "/etc/opt/mondoo/mondoo.yml" ]; then
@@ -155,6 +163,16 @@ if [ -f "/etc/opt/mondoo/mondoo.yml" ]; then
   $sudo_cmd systemctl enable mondoo.timer
   $sudo_cmd systemctl start mondoo.timer
   $sudo_cmd systemctl daemon-reload
+else
+  red "\nSystemd services where not enabled since the agent is not registered"
+  echo -e "
+  To enable the services later, run:
+
+  echo \"collector: http\" | tee -a /etc/opt/mondoo/mondoo.yml
+  systemctl enable mondoo.timer
+  systemctl start mondoo.timer
+  systemctl daemon-reload
+	"
 fi
 
 # Display final message
