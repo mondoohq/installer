@@ -1,4 +1,4 @@
-# Configuration
+# Agent Registration
 
 Every Mondoo agent needs to be registered to authenticate and authorize every request to Mondoo API. This ensures that all vulnerability data is securely transmitted. 
 

@@ -15,7 +15,7 @@
     - [Amazon Linux](amazonlinux.md)
     - [Suse/openSUSE](suse.md)
     - [Binaries](binaries.md)
-  - [Configuration](configuration.md)
+  - [Registration](registration.md)
   - [Diagnosing](diagnosing.md)
   - CLI Reference
     - [mondoo](mondoo.md)

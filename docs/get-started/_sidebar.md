@@ -4,7 +4,7 @@
     - [Installation](quickstart.md#installation)
     - [Registration](quickstart.md#registration)
     - [First Scan](quickstart.md#scan-your-first-target)
-    - [Try with Docker](quickstart.md#try-with-docker)
+  - [Try with Docker](try-with-docker.md#scan-docker-images-inside-the-mondoo-container)
   - [Scan Targets](targets.md)
     - [SSH](targets.md)
     - [Docker Image](targets.md)

@@ -135,7 +135,7 @@ See the [Mondoo CLI](./mondoo) instructions to get started.
 
 ## Configuration
 
-The agent uses a yaml configuration file. See the [configuration documentation](./configuration) for more details.
+The agent uses a yaml configuration file. See the [registration documentation](./registration) for more details.
 
 ## Troubleshooting
 
