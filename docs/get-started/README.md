@@ -6,13 +6,14 @@ Mondoo is designed to help you identify risk across your fleet. It [integrates v
 
 Mondoo supports vulnerability scanning for the following operating systems:
 
-- Amazon Linux 1 & 2
-- RedHat 6,7,8
-- CentOS 6,7
-- Oracle Linux 6,7,8
-- Ubuntu 14.04, 16.04, 18.04
-- Suse 12
+- Amazon Linux 1, 2
+- CentOS 6, 7
+- Debian 8, 9, 10
 - openSUSE leap
+- Oracle Linux 6, 7, 8
+- RedHat 6, 7, 8
+- Suse 12
+- Ubuntu 14.04, 16.04, 18.04
 
 Mondoo can report on terminal:
 
