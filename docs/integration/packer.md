@@ -25,7 +25,7 @@ The following simplifies the installation:
 ```
 mkdir -p ~/.packer.d/plugins
 cd ~/.packer.d/plugins
-curl https://github.com/mondoolabs/mondoo/releases/0.3.0/latest/packer-provisioner-mondoo_0.3.0_linux_amd64.tar.gz | tar -xz > packer-provisioner-mondoo
+curl -sSL https://github.com/mondoolabs/mondoo/releases/latest/download/packer-provisioner-mondoo_linux_amd64.tar.gz | tar -xz > packer-provisioner-mondoo
 chmod +x packer-provisioner-mondoo
 ```
 
@@ -34,8 +34,14 @@ chmod +x packer-provisioner-mondoo
 ```
 mkdir -p ~/.packer.d/plugins
 cd ~/.packer.d/plugins
-curl https://github.com/mondoolabs/mondoo/releases/0.3.0/latest/packer-provisioner-mondoo_0.3.0_darwin_amd64.tar.gz | tar -xz > packer-provisioner-mondoo
+curl -sSL https://github.com/mondoolabs/mondoo/releases/latest/download/packer-provisioner-mondoo_darwin_amd64.tar.gz | tar -xz > packer-provisioner-mondoo
 chmod +x packer-provisioner-mondoo
+```
+
+**Windows**
+
+```
+
 ```
 
 ### Compiling the Packer plugin from source
