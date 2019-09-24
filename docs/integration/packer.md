@@ -40,8 +40,19 @@ chmod +x packer-provisioner-mondoo
 
 **Windows**
 
-```
+Download the binary from the [Github releases page](https://github.com/mondoolabs/mondoo/releases) and put it in the same directory as your packer executable.
 
+```powershell
+# This script requires powershell
+wget 'https://github.com/mondoolabs/mondoo/releases/latest/download//packer-provisioner-mondoo_windows_amd64.zip' -UseBasicParsing -OutFile packer-provisioner-mondoo_windows_amd64.zip
+
+# extract zip and place it in the same path as packer
+Expand-Archive -LiteralPath packer-provisioner-mondoo_windows_amd64.zip
+Copy-Item .\packer-provisioner-mondoo_windows_amd64\packer-provisioner-mondoo.exe ((Get-Command packer).Source | Split-Path)
+
+# clean up
+Remove-Item -Recurse -Force .\packer-provisioner-mondoo_windows_amd64
+Remove-Item packer-provisioner-mondoo_windows_amd64.zip
 ```
 
 ### Compiling the Packer plugin from source
