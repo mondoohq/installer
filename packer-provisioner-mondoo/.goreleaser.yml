@@ -14,6 +14,7 @@ builds:
       - amd64
 archives:
   - id: releases
+    name_template: "{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}"
     format_overrides:
       - goos: windows
         format: zip
