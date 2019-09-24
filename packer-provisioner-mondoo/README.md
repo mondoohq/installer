@@ -9,7 +9,7 @@ Further documentation is available at [Mondoo Packer Integration Docs](https://m
 ## Preparation
 
 1. Install Mondoo agent on your workstation
-2. Download and install the Packer plugin and place it into `~/.packer.d/plugins`
+2. Download the Mondoo Packer provisioner and place it into a [Packer plugin directory](https://www.packer.io/docs/extending/plugins.html#installing-plugins) like `~/.packer.d/plugins` or `%APPDATA%/packer.d/plugins`
 
 ## Usage
 
@@ -27,8 +27,21 @@ The simplest setup is to add `mondoo` to your provisioners list:
       }
     }
   }, {
-    "type": "mondoo"
+    "type": "mondoo",
+    "on_failure": "continue",
   }],
+```
+
+The example above used the option `on_failure`, which allows you to pass a packer build, even if vulnerabilities have been found.
+
+If you're using WinRM as a connection type, you need to set the user and password manually (see [hashicorp/packer#7079](https://github.com/hashicorp/packer/issues/7079)):
+
+```
+    {
+      "type": "mondoo",
+      "winrm_user": "vagrant"
+      "winrm_password": "vagrant",
+    }
 ```
 
 ## Compiling the Packer plugin from source

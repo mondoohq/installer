@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -25,6 +26,7 @@ import (
 
 	"golang.org/x/crypto/ssh"
 
+	"github.com/hashicorp/packer/common"
 	"github.com/hashicorp/packer/common/adapter"
 	"github.com/hashicorp/packer/helper/config"
 	"github.com/hashicorp/packer/packer"
@@ -34,6 +36,7 @@ import (
 )
 
 type Config struct {
+	common.PackerConfig  `mapstructure:",squash"`
 	Command              string // The command to run mondoo
 	ctx                  interpolate.Context
 	HostAlias            string `mapstructure:"host_alias"`
@@ -48,6 +51,10 @@ type Config struct {
 	MondooEnvVars []string          `mapstructure:"mondoo_env_vars"`
 	OnFailure     string            `mapstructure:"on_failure"`
 	Labels        map[string]string `mapstructure:"labels"`
+
+	// WinRM
+	WinRMUser     string `mapstructure:"winrm_user"`
+	WinRMPassword string `mapstructure:"winrm_password"`
 }
 
 type Provisioner struct {
@@ -117,7 +124,7 @@ func (p *Provisioner) Prepare(raws ...interface{}) error {
 	return nil
 }
 
-func (p *Provisioner) Provision(ui packer.Ui, comm packer.Communicator) error {
+func (p *Provisioner) Provision(ctx context.Context, ui packer.Ui, comm packer.Communicator) error {
 	ui.Say("Running mondoo vulnerability scan...")
 
 	k, err := newUserKey(p.config.SSHAuthorizedKeyFile)
@@ -192,6 +199,8 @@ func (p *Provisioner) Provision(ui packer.Ui, comm packer.Communicator) error {
 		Sem: make(chan int, 1),
 		Ui:  ui,
 	}
+
+	// initialize ssh adapter
 	p.adapter = adapter.NewAdapter(p.done, localListener, config, "sftp -e", ui, comm)
 
 	defer func() {
@@ -202,7 +211,7 @@ func (p *Provisioner) Provision(ui packer.Ui, comm packer.Communicator) error {
 
 	go p.adapter.Serve()
 
-	if err := p.executeMondoo(ui, comm, k.privKeyFile); err != nil {
+	if err := p.executeMondoo(ctx, ui, comm, k.privKeyFile); err != nil {
 		return fmt.Errorf("Error executing Mondoo: %s", err)
 	}
 
@@ -220,19 +229,53 @@ func (p *Provisioner) Cancel() {
 	os.Exit(0)
 }
 
-func (p *Provisioner) executeMondoo(ui packer.Ui, comm packer.Communicator, privKeyFile string) error {
+func (p *Provisioner) executeMondoo(ctx context.Context, ui packer.Ui, comm packer.Communicator, privKeyFile string) error {
 	var envvars []string
 
 	if len(p.config.MondooEnvVars) > 0 {
 		envvars = append(envvars, p.config.MondooEnvVars...)
 	}
 
+	// Always available Packer provided env vars
+	p.config.MondooEnvVars = append(p.config.MondooEnvVars, fmt.Sprintf("PACKER_BUILD_NAME=%s", p.config.PackerBuildName))
+	p.config.MondooEnvVars = append(p.config.MondooEnvVars, fmt.Sprintf("PACKER_BUILDER_TYPE=%s", p.config.PackerBuilderType))
+
 	args := []string{"scan"}
+	conntype := "ssh"
+	// TODO: allow overwrite of host
+	host := "127.0.0.1"
+	password := ""
+	endpoint := fmt.Sprintf("%s:%d", host, p.config.LocalPort)
+
+	if len(p.config.WinRMUser) > 0 {
+		conntype = "winrm"
+		p.config.User = p.config.WinRMUser
+		password = p.config.WinRMPassword
+		privKeyFile = ""
+
+		// we need to get the ip from packer
+		// see https://github.com/hashicorp/packer/issues/7079
+		getip := "(Get-NetIPConfiguration | Where-Object { $_.IPv4DefaultGateway -ne $null -and $_.NetAdapter.Status -ne 'Disconnected'}).IPv4Address.IPAddress"
+		var b bytes.Buffer
+		stdout := bufio.NewWriter(&b)
+		cmd := &packer.RemoteCmd{
+			Command: fmt.Sprintf(`powershell -c "%s"`, getip),
+			Stdout:  stdout,
+		}
+		cmd.RunWithUi(ctx, comm, ui)
+		stdout.Flush()
+		if cmd.ExitStatus() == 0 {
+			endpoint = strings.TrimSpace(string(b.Bytes()))
+		} else {
+			return fmt.Errorf("could not gather ip for winrm. please set host via config")
+		}
+	}
 
 	conf := &VulnOpts{
 		Asset: &VulnOptsAsset{
-			Connection:   fmt.Sprintf("ssh://%s@%s", p.config.User, fmt.Sprintf("127.0.0.1:%d", p.config.LocalPort)),
+			Connection:   fmt.Sprintf("%s://%s@%s", conntype, p.config.User, endpoint),
 			IdentityFile: privKeyFile,
+			Password:     password,
 			Labels:       p.config.Labels,
 		},
 		Report: &VulnOptsReport{
@@ -331,6 +374,7 @@ type VulnOptsAsset struct {
 	AssetMrn     string            `json:"assetmrn,omitempty" mapstructure:"assetmrn"`
 	Connection   string            `json:"connection,omitempty" mapstructure:"connection"`
 	IdentityFile string            `json:"identityfile,omitempty" mapstructure:"identityfile"`
+	Password     string            `json:"password,omitempty" mapstructure:"password"`
 	Labels       map[string]string `json:"labels,omitempty" mapstructure:"labels"`
 }
 
