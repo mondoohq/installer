@@ -11,7 +11,7 @@
     - [Windows](windows.md)
     - [macOS](macos.md)
     - [RedHat/CentOS](redhat.md)
-    - [Ubuntu](ubuntu.md)
+    - [Debian/Ubuntu](ubuntu.md)
     - [Amazon Linux](amazonlinux.md)
     - [Suse/openSUSE](suse.md)
     - [Binaries](binaries.md)

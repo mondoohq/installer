@@ -1,4 +1,4 @@
-# Installing Mondoo Agent on Ubuntu & Debian
+# Installing Mondoo Agent on Debian & Ubuntu
 
 At first, add mondoo's signed apt repository:
 
