@@ -40,3 +40,20 @@ The mondoo agent can be easily updated via:
 ```bash
 yum clean expire-cache && yum update mondoo
 ```
+
+
+## FAQ
+
+**I experience an curl SSL error during installation**
+
+Mondoo is using newer TLS 1.2 and above. Therefore, you may see errors like NSS error 12190 on older systems that do not support newer TLS versions. Please make sure you have the latest `curl` and `nss` version installed via:
+
+```
+yum update curl nss -y
+```
+
+Alternatively, you can try to specify the tls protocol (if available in your curl build):
+
+```
+curl --tlsv1.2 -sSL https://mondoo.io/install.sh | bash
+```
