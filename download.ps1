@@ -108,7 +108,7 @@ function ensure_dir($dir) {
 $dir = ensure_dir ("$ENV:UserProfile\mondoo")
 
 # manual override
-# $version = '0.24.1'
+# $version = '0.26.1'
 # $arch = 'amd64'
 # $releaseurl = "https://releases.mondoo.io/mondoo/${version}/mondoo_${version}_windows_${arch}.zip"
 
