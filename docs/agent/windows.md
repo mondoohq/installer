@@ -4,14 +4,19 @@
 
 Run this powershell script to install Mondoo to its default location in `C:\Users\<user>\mondoo`.
 
-```
+```bash
+# For older Windows versions we may need to activate newer TLS config to prevent
+# "Invoke-WebRequest : The request was aborted: Could not create SSL/TLS secure channel."
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+
+# Download mondoo binary
 iex (new-object net.webclient).downloadstring('https://mondoo.io/download.ps1')
 ```
 
 ![Install Mondoo on Windows](../assets/windows_mondoo_install.png)
 
 Once the agent is installed, you can register the agent
-```
+```bash
 $MONDOO_REGISTRATION_TOKEN="pastetokenhere"
 mondoo register --token $MONDOO_REGISTRATION_TOKEN
   ✔  agent //agents.api.mondoo.app/spaces/peaceful-burnell-555533/agents/1ON7UPoNpkKxkMncKTFUcwZLVrt registered successfully
