@@ -35,7 +35,7 @@ If the environment variable is not set you can easily run the regisstration as a
 ```
 curl -sSL https://mondoo.io/install.sh | bash
 MONDOO_REGISTRATION_TOKEN='ey...ax'
-mondoo register --config /etc/opt/mondoo/mondoo.yml --token 'MONDOO_REGISTRATION_TOKEN'
+mondoo register --config /etc/opt/mondoo/mondoo.yml --token $MONDOO_REGISTRATION_TOKEN
 ```
 
 **systemd configuration**

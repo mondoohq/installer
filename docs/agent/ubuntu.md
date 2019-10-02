@@ -17,7 +17,7 @@ Register the agent with your mondoo cloud organization
 
 ```bash
 mkdir -p /etc/opt/mondoo/
-mondoo register --config /etc/opt/mondoo/mondoo.yml --token 'TOKEN'
+mondoo register --config /etc/opt/mondoo/mondoo.yml --token 'PASTE_MONDOO_REGISTRATION_TOKEN'
 ```
 
 Set collector mode for systemd

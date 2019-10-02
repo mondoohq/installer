@@ -34,7 +34,7 @@ Once you have a Mondoo registration token, you can use it to register the agent.
 
 The registration process registers the mondoo agent with Mondoo API so that you can see the agent in Mondoo's Dashboard. This approach ensures a secure and trusted communication. Data is always encrypted via HTTPS and payload is signed to ensure it is not been tampered with.
 
-Then run `mondoo register --token 'paste_token_here'`. If the registration process was successful, the CLI prints the agent resource name.
+Then run `mondoo register --token 'PASTE_MONDOO_REGISTRATION_TOKEN'`. If the registration process was successful, the CLI prints the agent resource name.
 
 ```
 mondoo register --token "eyJhbGci...6NSUwUn2DUzsppL696"

@@ -17,5 +17,5 @@ brew install mondoo
 Register the agent with your mondoo cloud organization
 
 ```bash
-mondoo register --token 'TOKEN'
+mondoo register --token 'PASTE_MONDOO_REGISTRATION_TOKEN'
 ```

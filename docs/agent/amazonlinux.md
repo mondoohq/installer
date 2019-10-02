@@ -15,7 +15,7 @@ yum install -y mondoo
 Register the agent with your mondoo cloud organization
 
 ```bash
-mondoo register --config /etc/opt/mondoo/mondoo.yml --token 'TOKEN'
+mondoo register --config /etc/opt/mondoo/mondoo.yml --token 'MONDOO_REGISTRATION_TOKEN'
 ```
 
 Start the agent:
