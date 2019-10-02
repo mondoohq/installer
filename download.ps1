@@ -102,10 +102,11 @@ info " * Downloading mondoo from $releaseurl to $releasezipfile"
 download $releaseurl $releasezipfile
 
 info ' * Extracting zip...'
+# remove older version if it is still there
+Remove-Item "$dir\mondoo.exe" -Force -ErrorAction Ignore
 Add-Type -Assembly "System.IO.Compression.FileSystem"
-[IO.Compression.ZipFile]::ExtractToDirectory($releasezipfile,"$dir\_tmp")
-Copy-Item "$dir\_tmp\*" $dir -Recurse -Force
-Remove-Item "$dir\_tmp", $releasezipfile -Recurse -Force
+[IO.Compression.ZipFile]::ExtractToDirectory($releasezipfile,$dir)
+Remove-Item $releasezipfile -Force
 
 success ' * Mondoo was downloaded successfully!'
 
@@ -119,3 +120,5 @@ If you have any questions, please reach out at Mondoo Community:
 
 # reset erroractionpreference
 $erroractionpreference = $previous_erroractionpreference
+
+ 
