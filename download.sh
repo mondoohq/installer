@@ -99,18 +99,17 @@ else
   fail "Binary hash (${binarySha}) does not match the exepected hash ${expectedSha}\nAborted download.";
 fi
 
-if [ ! -z "${MONDOO_REGISTRATION_TOKEN}" ]
-then
-  purple_bold "Register agent with Mondoo Cloud"
-  $(pwd)/mondoo register --token ${MONDOO_REGISTRATION_TOKEN}
-else
-  red "\nSkip agent registration since MONDOO_REGISTRATION_TOKEN was not set"
-  echo -e "
-  To register the agent later, run:
+# Display final message
+purple_bold "\nThank you for downloading Mondoo!"
+echo -e "
+You can register the agent via:
 
-  MONDOO_REGISTRATION_TOKEN=\"ey..iU\"
-  mondoo register --token \$MONDOO_REGISTRATION_TOKEN
+MONDOO_REGISTRATION_TOKEN=\"ey..iU\"
+mondoo register --token \$MONDOO_REGISTRATION_TOKEN
 
-  Further information is available at https://mondoo.io/docs/agent/configuration?id=register-agent
-	"
-fi
+Further information is available at https://mondoo.io/docs/agent/configuration?id=register-agent
+
+If you have any questions, please reach out at Mondoo Community:
+
+* https://spectrum.chat/mondoo
+"
