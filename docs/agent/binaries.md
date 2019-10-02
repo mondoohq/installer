@@ -12,11 +12,16 @@ For Linux and macOS, we provide a bash script that does the following:
 
 * detect the operating system
 * downloads the mondoo binary for your operating system
-* registers agent if `MONDOO_REGISTRATION_TOKEN` is provided
 
 ```
-MONDOO_REGISTRATION_TOKEN='ey...ax'
 curl -sSL https://mondoo.io/download.sh | bash
+```
+
+Once installed you can register the agent:
+
+```
+MONDOO_REGISTRATION_TOKEN="ey..iU"
+mondoo register --token $MONDOO_REGISTRATION_TOKEN
 ```
 
 > Note: we encourage you to familiarize yourself with our script before you use it.
