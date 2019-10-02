@@ -50,7 +50,7 @@ Set-ExecutionPolicy RemoteSigned -scope CurrentUser
 # we only support x86_64 at this point, stop if we got arm
 if ($env:PROCESSOR_ARCHITECTURE -ne 'AMD64') {
   fail "
-Your processor architecture $env:PROCESSOR_ARCHITECTURE is not supported yet. Please reach 
+Your processor architecture $env:PROCESSOR_ARCHITECTURE is not supported yet. Please contact 
 out at Mondoo Community:
 
   * https://spectrum.chat/mondoo
@@ -86,26 +86,7 @@ function setenv($name,$value,$global) {
   [System.Environment]::SetEnvironmentVariable($name,$value,$target)
 }
 
-function ensure_user_path($dir, $global) {
-    $path = getenv 'PATH' $global
-    $dir = $executionContext.sessionState.path.getUnresolvedProviderPathFromPSPath($dir)
-    # check if we already include the directory in path
-    if($path -notmatch [regex]::escape($dir)) {
-        # set env variable for future terminal sessions
-        setenv 'PATH' "$dir;$path"
-        # update path for current terminal sessions
-        $env:PATH = "$env:PATH;$dir"
-    }
-}
-
-function ensure_dir($dir) { 
-  if(!(Test-Path $dir)) { 
-    mkdir $dir > $null
-  }; 
-  Resolve-Path $dir 
-}
-
-$dir = ensure_dir ("$ENV:UserProfile\mondoo")
+$dir = Get-Location
 
 # manual override
 # $version = '0.26.1'
@@ -126,13 +107,10 @@ Add-Type -Assembly "System.IO.Compression.FileSystem"
 Copy-Item "$dir\_tmp\*" $dir -Recurse -Force
 Remove-Item "$dir\_tmp", $releasezipfile -Recurse -Force
 
-info " * Add mondoo binary to system PATH $dir"
-ensure_user_path($dir)
-
-success ' * Mondoo was installed successfully!'
+success ' * Mondoo was downloaded successfully!'
 
 # Display final message
-info "Thank you for installing Mondoo!"
+info "Thank you for downloading Mondoo!"
 info "
 If you have any questions, please reach out at Mondoo Community:
 

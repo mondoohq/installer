@@ -15,7 +15,7 @@ iex (new-object net.webclient).downloadstring('https://mondoo.io/download.ps1')
 
 ![Install Mondoo on Windows](../assets/windows_mondoo_install.png)
 
-Once the agent is installed, you can register the agent
+Once the agent is downloaded, you can register the agent
 ```bash
 $MONDOO_REGISTRATION_TOKEN="pastetokenhere"
 mondoo register --token $MONDOO_REGISTRATION_TOKEN
@@ -37,8 +37,9 @@ Mondoo distributes binaries for Windows. To install agent, download the [appropr
 If you are using the WSL, you can use our [Bash installer for Linux](./bash):
 
 ```
+curl -sSL https://mondoo.io/download.sh | bash
 MONDOO_REGISTRATION_TOKEN='ey...ax'
-curl -sSL https://mondoo.io/install.sh | bash
+mondoo register --token $MONDOO_REGISTRATION_TOKEN
 ```
 
 
