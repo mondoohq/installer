@@ -1,5 +1,5 @@
 FROM alpine:3.10.1
-ARG VERSION=0.28.0
+ARG VERSION=0.30.0
 RUN apk update && apk add ca-certificates && rm -rf /var/cache/apk/*
 RUN apk add curl tar rpm
 RUN curl https://releases.mondoo.io/mondoo/${VERSION}/mondoo_${VERSION}_linux_amd64.tar.gz | tar -xvzC /usr/local/bin
