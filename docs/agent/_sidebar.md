@@ -16,7 +16,6 @@
     - [Suse/openSUSE](suse.md)
     - [Binaries](binaries.md)
   - [Registration](registration.md)
-  - [Diagnosing](diagnosing.md)
   - CLI Reference
     - [mondoo](mondoo.md)
     - [mondoo register](mondoo_register.md)
