@@ -3,6 +3,6 @@
 
 - name: restart mondoo-service
   systemd:
-    name: mondoo.timer
+    name: mondoo.service
     state: restarted
   when: not ansible_check_mode

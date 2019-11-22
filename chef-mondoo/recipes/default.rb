@@ -32,19 +32,7 @@ execute 'mondoo_register' do
   creates '/etc/opt/mondoo/mondoo.yml'
 end
 
-ruby_block 'enable_collector' do
-  block do
-    data = YAML.load(IO.read("/etc/opt/mondoo/mondoo.yml"))
-    data = data["collector"] = "http"
-    File.open('/etc/opt/mondoo/mondoo.yml', "w") { |file|
-      file.write(data.to_yaml)
-    }
-  end
-  only_if { ::File.exist?('/etc/opt/mondoo/mondoo.yml') }
-  action :run
-end
-
 # enable the service
-service 'mondoo.timer' do
+service 'mondoo.service' do
   action [:start, :enable]
 end

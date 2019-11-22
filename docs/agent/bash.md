@@ -43,7 +43,7 @@ mondoo register --config /etc/opt/mondoo/mondoo.yml --token $MONDOO_REGISTRATION
 The mondoo package ships with a systemd configuration. By default, the mondoo service is not enabled. You can enable and start the service via:
 
 ```
-$ systemctl enable mondoo.timer
-$ systemctl start mondoo.timer
+$ systemctl enable mondoo.service
+$ systemctl start mondoo.service
 $ systemctl daemon-reload
 ```

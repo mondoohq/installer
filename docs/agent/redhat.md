@@ -21,15 +21,14 @@ mondoo register --config /etc/opt/mondoo/mondoo.yml --token 'PASTE_MONDOO_REGIST
 Start the agent:
 
 ```bash
-systemctl enable mondoo.timer && systemctl start mondoo.timer
+systemctl enable mondoo.service && systemctl start mondoo.service
 systemctl daemon-reload
 ```
 
 The agent status can be displayed via:
 
 ```bash
-systemctl list-timers
-systemctl status mondoo.timer
+systemctl status mondoo.service
 ```
 
 

@@ -6,7 +6,6 @@ It does:
 
  * Installs the signed `mondoo` package
  * Registers the agent with Mondoo Cloud
- * Configures the agent for collector mode
  * Enables the systemd service
 
 It supports:
