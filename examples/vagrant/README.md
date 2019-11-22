@@ -15,7 +15,7 @@ export MONDOO_REGISTRATION_TOKEN='ey..k6C1TYwOk0J'
 # on mac you can use pbpaste to read the token from clipboard
 export MONDOO_REGISTRATION_TOKEN=$(pbpaste)
 
-# ensure its set
+# ensure the registration token is set
 echo $MONDOO_REGISTRATION_TOKEN
 
 # spin up centos
@@ -38,35 +38,40 @@ $ sudo -i
 List Mondoo service status
 ```
 $ systemctl status mondoo
-● mondoo.service - mondoo scan
-   Loaded: loaded (/etc/systemd/system/mondoo.service; static; vendor preset: disabled)
-   Active: inactive (dead)
+● mondoo.service - Mondoo Service
+   Loaded: loaded (/etc/systemd/system/mondoo.service; enabled; vendor preset: disabled)
+   Active: active (running) since Fri 2019-11-22 14:53:19 UTC; 39s ago
+ Main PID: 3465 (mondoo)
+   CGroup: /system.slice/mondoo.service
+           └─3465 /usr/bin/mondoo serve --config /etc/opt/mondoo/mondoo.yml
 
-Jun 14 12:35:17 localhost.localdomain mondoo[3668]: Start vulnerability scan:
-Jun 14 12:35:18 localhost.localdomain mondoo[3668]: [59B blob data]
-Jun 14 12:35:18 localhost.localdomain mondoo[3668]: [43B blob data]
-Jun 14 12:35:18 localhost.localdomain mondoo[3668]: [32B blob data]
-Jun 14 12:35:18 localhost.localdomain mondoo[3668]: [33B blob data]
-Jun 14 12:35:19 localhost.localdomain mondoo[3668]: [63B blob data]
-Jun 14 12:35:19 localhost.localdomain mondoo[3668]: [27B blob data]
-Jun 14 12:35:19 localhost.localdomain mondoo[3668]: →  enabled collector
-Jun 14 12:35:24 localhost.localdomain mondoo[3668]: ✔  sent packages successfully
-Jun 14 12:35:24 localhost.localdomain systemd[1]: Started mondoo scan.
+Nov 22 14:53:19 localhost.localdomain mondoo[3465]: →  start mondoo background service
+Nov 22 14:53:19 localhost.localdomain mondoo[3465]: →  scan interval is 60 minute(s)
+Nov 22 14:53:20 localhost.localdomain mondoo[3465]: →  start the vulnerability scan
+Nov 22 14:53:20 localhost.localdomain mondoo[3465]: →  enabled async collector mode
+Nov 22 14:53:20 localhost.localdomain mondoo[3465]: [81B blob data]
+Nov 22 14:53:20 localhost.localdomain mondoo[3465]: [59B blob data]
+Nov 22 14:53:21 localhost.localdomain mondoo[3465]: [93B blob data]
+Nov 22 14:53:21 localhost.localdomain mondoo[3465]: [492B blob data]
+Nov 22 14:53:21 localhost.localdomain mondoo[3465]: [49B blob data]
+Nov 22 14:53:28 localhost.localdomain mondoo[3465]: ✔  sent packages successfully
 ```
 
 To see the full log, run:
 
 ```
 $ journalctl -u mondoo.service
--- Logs begin at Fri 2019-06-14 12:24:28 UTC, end at Fri 2019-06-14 12:35:24 UTC. --
-Jun 14 12:35:17 localhost.localdomain systemd[1]: Starting mondoo scan...
-Jun 14 12:35:17 localhost.localdomain mondoo[3668]: Start vulnerability scan:
-Jun 14 12:35:18 localhost.localdomain mondoo[3668]: [59B blob data]
-Jun 14 12:35:18 localhost.localdomain mondoo[3668]: [43B blob data]
-Jun 14 12:35:18 localhost.localdomain mondoo[3668]: [32B blob data]
-Jun 14 12:35:18 localhost.localdomain mondoo[3668]: [33B blob data]
-Jun 14 12:35:19 localhost.localdomain mondoo[3668]: [63B blob data]
-Jun 14 12:35:19 localhost.localdomain mondoo[3668]: [27B blob data]
-Jun 14 12:35:19 localhost.localdomain mondoo[3668]: <E2><86><92>  enabled collector
-Jun 14 12:35:24 localhost.localdomain mondoo[3668]: <E2><9C><94>  sent packages successfully
+-- Logs begin at Fri 2019-11-22 14:52:40 UTC, end at Fri 2019-11-22 14:53:59 UTC. --
+Nov 22 14:53:19 localhost.localdomain systemd[1]: Started Mondoo Service.
+Nov 22 14:53:19 localhost.localdomain systemd[1]: Starting Mondoo Service...
+Nov 22 14:53:19 localhost.localdomain mondoo[3465]: <E2><86><92>  start mondoo background service
+Nov 22 14:53:19 localhost.localdomain mondoo[3465]: <E2><86><92>  scan interval is 60 minute(s)
+Nov 22 14:53:20 localhost.localdomain mondoo[3465]: <E2><86><92>  start the vulnerability scan
+Nov 22 14:53:20 localhost.localdomain mondoo[3465]: <E2><86><92>  enabled async collector mode
+Nov 22 14:53:20 localhost.localdomain mondoo[3465]: [81B blob data]
+Nov 22 14:53:20 localhost.localdomain mondoo[3465]: [59B blob data]
+Nov 22 14:53:21 localhost.localdomain mondoo[3465]: [93B blob data]
+Nov 22 14:53:21 localhost.localdomain mondoo[3465]: [492B blob data]
+Nov 22 14:53:21 localhost.localdomain mondoo[3465]: [49B blob data]
+Nov 22 14:53:28 localhost.localdomain mondoo[3465]: <E2><9C><94>  sent packages successfully
 ```
