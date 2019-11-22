@@ -12,8 +12,6 @@ platforms:
     box: ubuntu/bionic64
   - name: centos
     box: centos/7
-  - name: suse
-    box: opensuse/openSUSE-15.0-x86_64
 provisioner:
   name: ansible
   lint:

@@ -17,4 +17,3 @@
     state: latest
   become: true
   when: not ansible_check_mode
-  notify: restart mondoo-service

@@ -58,7 +58,7 @@ molecule create
 # converge the machines with ansible
 molecule converge
 # run molecule tests
-molecule test
+molecule verify
 # for degugging, you can login to individual hosts
 molecule login --host ubuntu
 # destroy the test setup
