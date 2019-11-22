@@ -53,7 +53,7 @@ We use stove to release the cookbook:
 ```
 bundle install
 bundle exec stove login --username login --key ~/.chef/key.pem
-bundle exec stove --log-level debug
+bundle exec stove --log-level debug --no-git
 ```
 
 ## Author
