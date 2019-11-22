@@ -32,7 +32,7 @@ Mondoo distributes binaries for Windows. To install agent, download the [appropr
 5. Launch a new console to take changes in effects
 
 
-## WSL: Windows Subsystem for Linux
+## Windows Subsystem for Linux (WSL)
 
 If you are using the WSL, you can use our [Bash installer for Linux](./bash):
 
@@ -42,5 +42,62 @@ MONDOO_REGISTRATION_TOKEN='ey...ax'
 mondoo register --token $MONDOO_REGISTRATION_TOKEN
 ```
 
-
 ![Install Mondoo on Windows Subsystem for Linux (WSL)](../assets/windows_wsl_mondoo_install.png)
+
+## MSI Installer
+
+Mondoo ships with a Windows services that runs in the background. The Windows service expects the mondoo configuration to be located in `C:\ProgramData\Mondoo\mondoo.yml`. After the installation, the mondoo CLI is enabled in the system path by default.
+
+**Desktop Experience (GUI) Installation:**
+
+ * Download the mondoo agent
+ * Execute the installer as administrator
+ * Follow the steps, agree to the license agreement, and register the agent with your Mondoo Acount
+
+If you enter a registration token during the installation, the agent will be registered automatically. Be aware that the Windows service is not activated automatically. If you skip the registration in the GUI installer, use the manual regisstration processs described below.
+
+**Console Installation:**
+
+If you want to roll-out the mondoo agent, you'd like to install the agent via a script. Mondoo can be installed via cmd or Powershell: 
+
+```powershell
+# Run with Powershell
+Start-Process -Wait msiexec -ArgumentList '/qn /i mondoo.msi'
+
+# Run with Cmd
+start /wait msiexec /qn /i mondoo.msi REGISTRATIONTOKEN="token"
+```
+
+The `REGISTRATIONTOKEN` allows you to pass in the token and the MSI installer will run the registration as part of the installation step. Otherwise use the registration method described below.
+
+**Manual registration and auto enabling Mondoo service**
+
+The MSI installer registered the `mondoo` binary into the system path. The registered Windows services expect the configuration to be located at `C:\ProgramData\Mondoo\mondoo.yml`
+ 
+```
+mondoo register --config C:\ProgramData\Mondoo\mondoo.yml --token 'eyJh....tpZC'
+```
+
+Once the registration is completed, you can enable the service in Powershell via:
+
+```powerhshell
+Set-Service -Name 'Mondoo' -StartupType Automatic
+```
+
+List the Mondoo service details in Powershell: 
+
+```powerhshell
+Get-Service Mondoo | Select-Object -Property Name, StartType, Status
+```
+
+**Debugging**
+
+Msi ships with built-in debug logging. Use the `/L*vx debug.log` flag to log into the debug.log file during the installaation:
+
+```powershell
+# Run with Powershell
+Start-Process -Wait msiexec -ArgumentList '/i mondoo.msi /L*vx debug.log'
+
+# Run with Cmd
+msiexec /i mondoo.msi /L*vx debug.log
+```
