@@ -53,7 +53,7 @@ Via this process, the agent is retrieving all required configuration automatical
 | `spacemrn`| Space Mondoo Resource Name, identifies the space that the agent belongs to
 | `privatekey`| Agent's private key used to sign requests send to Mondoo API
 | `certificate`| Agent's public certificate
-| `collector`| In collector mode, the agent does not report on cli (if used it is normally "http")
+| `collector`| Overwrite the collector endpoint. Supported values are 'https' urls and 'awssns' topics
 
 
 ```

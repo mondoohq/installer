@@ -5,7 +5,7 @@ Scans an asset for known vulnerabilities
 ### Synopsis
 
 
-This command triggers a vulnerability scan. 
+This command triggers a vulnerability scan.
 
 By default, the local system is scanned:
 
@@ -14,8 +14,8 @@ By default, the local system is scanned:
 In addition, mondoo can scan remote ssh targets. Mondoo uses ssh agent and ssh 
 config as default to retrieve the credentials for the target.
 
-	$ mondoo scan -t ssh://ec2-user@52.51.185.215
-	$ mondoo scan -t ssh://ec2-user@52.51.185.215:2222
+    $ mondoo scan -t ssh://ec2-user@52.51.185.215
+    $ mondoo scan -t ssh://ec2-user@52.51.185.215:2222
 
 You can also access docker images located in docker registries:
 
@@ -53,15 +53,18 @@ mondoo scan [flags]
 ### Options
 
 ```
+      --ansible-inventory       skip inventory format detection and set the format to ansible
       --assetmrn string         Optional override of the  asset mrn for the asset
-      --collector string        The collector reports the packages to Mondoo cloud only and does not print the result on CLI. This is useful for automated environments. Supported values are 'http' and 'awssns'.
+      --async                   The async options reports the packages to Mondoo cloud-only and does not print the result on CLI. 
+      --collector string        This is useful to overwrite the collector endpoint. Supported values are 'https' urls and 'awssns' topics.
       --color string            Highlights text and vulnerability output with colors. The possible values of when can be 'never', 'always' or 'auto'. (default "always")
   -t, --connection string       The connection is the identifier a way to reach the asset. Supported connections are 'local://', 'docker://' and 'ssh://' (default "local://")
       --exit-0-on-success       Returns 0 as exit code of the scan was successful. It ignores the severity of the vulnerability assessment.
-      --format string           Set the output format for the vulnerability report. Available options are 'cli' and 'yaml'. (default "cli")
+      --format string           Set the output format for the vulnerability report. Available options are 'cli', 'yaml' & 'json'. (default "cli")
   -h, --help                    help for scan
       --id-detector string      Set the assset id detector (eg. awsec2, hostname)
   -i, --identity-file string    Selects a file from which the identity (private key) for public key authentication is read.
+      --inventory string        inventory file
       --labels stringToString   Additional labels enrich the asset with additional information. Multiple labels can be passed in via --labels key=value). (default [])
   -p, --password string         ssh password (not recommended in production)
       --referenceid string      Optional override of the reference id for the target

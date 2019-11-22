@@ -27,6 +27,7 @@ Mondoo scans operating systems for known vulnerabilities
 
 ### SEE ALSO
 
+* [mondoo migrate](mondoo_migrate.md)	 - Migrates mondoo configuration to the latest version
 * [mondoo register](mondoo_register.md)	 - Registers Mondoo agent with Mondoo Cloud
 * [mondoo scan](mondoo_scan.md)	 - Scans an asset for known vulnerabilities
 * [mondoo status](mondoo_status.md)	 - Verifies the access to Mondoo Cloud

@@ -150,7 +150,7 @@ Optional Parameters:
 
   * `report.format` (string) - The format can be set to `cli` or `yaml`
 
-  * `collector` (string) - The collector reports the packages to Mondoo cloud only and does not print the result on CLI. Supported values are `http` and `awssns` 
+  * `collector` (string) - Overwrite the collector endpoint. Supported values are 'https' urls and 'awssns' topics 
 
   * `on_failure` (string) - If on_failure is set to `continue` terraform continues even if vulnerabilities have been found
   
