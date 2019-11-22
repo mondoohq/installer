@@ -7,18 +7,21 @@ import (
 )
 
 type VulnOpts struct {
-	Asset          *VulnOptsAsset  `json:"asset,omitempty" mapstructure:"asset"`
-	Report         *VulnOptsReport `json:"report,omitempty" mapstructure:"report"`
-	Exit0OnSuccess bool            `json:"exit-0-on-success,omitempty" mapstructure:"exit-0-on-success"`
-	Collector      string          `json:"collector,omitempty" mapstructure:"collector"`
-	IdDetector     string          `json:"id-detector,omitempty" mapstructure:"id-detector"`
+	Assets         []*VulnOptsAsset `json:"assets,omitempty" mapstructure:"assets"`
+	Report         *VulnOptsReport  `json:"report,omitempty" mapstructure:"report"`
+	Exit0OnSuccess bool             `json:"exit-0-on-success,omitempty" mapstructure:"exit-0-on-success"`
+	Collector      string           `json:"collector,omitempty" mapstructure:"collector"`
+	Async          bool             `json:"async,omitempty" mapstructure:"async"`
+	IdDetector     string           `json:"id-detector,omitempty" mapstructure:"id-detector"`
 }
 
 type VulnOptsAsset struct {
-	ReferenceID  string `json:"referenceid,omitempty" mapstructure:"referenceid"`
-	AssetMrn     string `json:"assetmrn,omitempty" mapstructure:"assetmrn"`
-	Connection   string `json:"connection,omitempty" mapstructure:"connection"`
-	IdentityFile string `json:"identityfile,omitempty" mapstructure:"identityfile"`
+	ReferenceID  string            `json:"referenceid,omitempty" mapstructure:"referenceid"`
+	AssetMrn     string            `json:"assetmrn,omitempty" mapstructure:"assetmrn"`
+	Connection   string            `json:"connection,omitempty" mapstructure:"connection"`
+	IdentityFile string            `json:"identityfile,omitempty" mapstructure:"identityfile"`
+	Password     string            `json:"password,omitempty" mapstructure:"password"`
+	Labels       map[string]string `json:"labels,omitempty" mapstructure:"labels"`
 }
 
 type VulnOptsReport struct {

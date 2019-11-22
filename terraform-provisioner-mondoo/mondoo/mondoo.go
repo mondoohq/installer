@@ -32,8 +32,10 @@ func applyFn(ctx context.Context) error {
 
 	// build mondoo config
 	conf := &VulnOpts{
-		Asset: &VulnOptsAsset{
-			Connection: mondooConn,
+		Assets: []*VulnOptsAsset{
+			&VulnOptsAsset{
+				Connection: mondooConn,
+			},
 		},
 		Report:    tfReportConfig(data),
 		Collector: tfCollector(data),
