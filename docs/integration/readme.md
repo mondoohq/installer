@@ -18,6 +18,7 @@ a.integration img {
 }
 </style>
 
+<a href="/docs/integration/ansible" aria-label="Ansible Integration" class="integration"><img src="../assets/button-ansible.png" class="integration"/></a>
 <a href="/docs/integration/aws-ec2" aria-label="AWS Integration" class="integration"><img src="../assets/button-aws.png" class="integration"/></a>
 <a href="/docs/integration/cicd?id=azure-devops" aria-label="Azure Integration" class="integration"><img src="../assets/button-azure.png" /></a>
 <a href="/docs/integration/cicd?id=circle-ci" aria-label="Circle CI integration" class="integration"><img src="../assets/button-circleci.png" /></a>

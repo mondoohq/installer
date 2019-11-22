@@ -2,6 +2,7 @@
 - [Agent](../agent/)
 - **Integrations**
   - [Overview](readme.md)
+  - [Ansible](ansible.md)
   - [AWS](aws.md)
   - [CICD](cicd/#cicd)
     - [Overview](cicd/#cicd)
