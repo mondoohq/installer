@@ -50,7 +50,7 @@ Mondoo ships with a Windows services that runs in the background. The Windows se
 
 **Desktop Experience (GUI) Installation:**
 
- * Download the mondoo agent
+ * Download the [mondoo agent](https://releases.mondoo.io/mondoo/)
  * Execute the installer as administrator
  * Follow the steps, agree to the license agreement, and register the agent with your Mondoo Acount
 
