@@ -106,6 +106,7 @@ if [ $OS = "RedHat" ]; then
   $sudo_cmd yum install -y mondoo
 elif [ $OS = "Debian" ]; then
   purple_bold "\n* Installing apt-transport-https"
+  $sudo_cmd apt-get update
   $sudo_cmd apt-get install -y apt-transport-https ca-certificates gnupg
 
   purple_bold "\n* Configuring APT package sources for Mondoo at /etc/apt/sources.list.d/mondoo.list"
