@@ -47,8 +47,7 @@ function purple { echo -e "${purple}${1}${end}"; }
 function purple_bold { echo -e "${purpleb}${1}${end}"; }
 
 function on_error() {
-  red "It looks like you hit an issue when trying to install Mondoo. The 
-Mondoo Community is available at: https://spectrum.chat/mondoo"
+  red "It looks like you hit an issue when trying to install Mondoo. The Mondoo Community is available at: https://spectrum.chat/mondoo"
   exit 1;
 }
 
@@ -141,6 +140,20 @@ if [ ! -z "${MONDOO_REGISTRATION_TOKEN}" ]; then
   purple_bold "\n* Register agent with Mondoo Cloud"
   $sudo_cmd mkdir -p /etc/opt/mondoo/
   $sudo_cmd mondoo register --config /etc/opt/mondoo/mondoo.yml --token $MONDOO_REGISTRATION_TOKEN
+
+  if [ $(cat /proc/1/comm) = "init" ]
+  then
+    purple_bold "\n* Configuring upstart service"
+    $sudo_cmd start mondoo || true
+  elif [ $(cat /proc/1/comm) = "systemd" ]
+  then
+    purple_bold "\n* Configuring systemd service"
+    $sudo_cmd systemctl enable mondoo.service
+    $sudo_cmd systemctl start mondoo.service
+    $sudo_cmd systemctl daemon-reload
+  else
+    red "\nSkip service setup: could not detect a supported init system"
+  fi
 else
   red "\nSkip agent registration since MONDOO_REGISTRATION_TOKEN was not set"
   echo -e "
@@ -149,24 +162,13 @@ else
   MONDOO_REGISTRATION_TOKEN=\"ey..iU\"
   mondoo register --config /etc/opt/mondoo/mondoo.yml --token \$MONDOO_REGISTRATION_TOKEN
 
-  Further information is available at https://mondoo.io/docs/agent/configuration?id=register-agent
-	"
-fi
-
-if [ -f "/etc/opt/mondoo/mondoo.yml" ]; then
-  purple_bold "\n* Configuring systemd services"
-  # configure systemd service
-  $sudo_cmd systemctl enable mondoo.service
-  $sudo_cmd systemctl start mondoo.service
-  $sudo_cmd systemctl daemon-reload
-else
-  red "\nSystemd services where not enabled since the agent is not registered"
-  echo -e "
-  To enable the services later, run:
+  Then enable & run the service via:
 
   systemctl enable mondoo.service
   systemctl start mondoo.service
   systemctl daemon-reload
+
+  Further information is available at https://mondoo.io/docs/agent/registration
 	"
 fi
 
