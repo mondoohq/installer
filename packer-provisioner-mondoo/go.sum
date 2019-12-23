@@ -258,6 +258,8 @@ github.com/hashicorp/packer v1.4.5 h1:656GGwt/+UhEXgF4CqUYMTHb8eRCI+mn4qn1wL9NIl
 github.com/hashicorp/packer v1.4.5/go.mod h1:7cmjLET2A1wB522nbgSVl7R8VYsP9WaQRP14wDdcDm0=
 github.com/hashicorp/packer v1.5.0 h1:AiHUm3cXosLia7l6wefBTa1G087t3B2wC3AnvIVe2Js=
 github.com/hashicorp/packer v1.5.0/go.mod h1:71E644RfMJwBdvgF1M8HFDh0SoyzKpcsZOKjoCpfrxY=
+github.com/hashicorp/packer v1.5.1 h1:tBKwT5W66pS47DJaS5ec25zsETwwLm09udNbk9m3bss=
+github.com/hashicorp/packer v1.5.1/go.mod h1:71E644RfMJwBdvgF1M8HFDh0SoyzKpcsZOKjoCpfrxY=
 github.com/hashicorp/serf v0.8.2 h1:YZ7UKsJv+hKjqGVUUbtE3HNj79Eln2oQ75tniF6iPt0=
 github.com/hashicorp/serf v0.8.2/go.mod h1:6hOLApaqBFA1NXqRQAsxw9QxuDEvNxSQRwA/JwenrHc=
 github.com/hashicorp/vault v1.1.0 h1:v79NUgO5xCZnXVzUkIqFOXtP8YhpnHAi1fk3eo9cuOE=
