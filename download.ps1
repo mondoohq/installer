@@ -89,7 +89,7 @@ function setenv($name,$value,$global) {
 $dir = Get-Location
 
 # manual override
-# $version = '0.40.0'
+# $version = '0.41.0'
 # $arch = 'amd64'
 # $releaseurl = "https://releases.mondoo.io/mondoo/${version}/mondoo_${version}_windows_${arch}.zip"
 
