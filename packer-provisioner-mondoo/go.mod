@@ -1,7 +1,7 @@
 module github.com/mondoolabs/mondoo/packer-provisioner-mondoo
 
 require (
-	github.com/hashicorp/packer v1.5.0
+	github.com/hashicorp/packer v1.5.4
 	golang.org/x/crypto v0.0.0-20190605123033-f99c8df09eb5
 )
 
