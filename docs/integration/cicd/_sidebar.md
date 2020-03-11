@@ -1,10 +1,10 @@
 - [Getting Started](../../get-started/)
+- [Usage](../../usage/)
 - [Agent](../../agent/)
 - **Integrations**
   - [Overview](../readme.md)
-  - [Ansible](../ansible.md)
-  - [AWS](../aws.md)
-  - [CICD](./#cicd)
+  - [Alerting](../alerting/)
+  - **CICD**
     - [Overview](./#cicd)
     - [AWS CodeBuild](./aws-codebuild#aws-codebuild)
     - [Azure DevOps](./azure-devops#azure-devops)
@@ -13,5 +13,5 @@
     - [Github Actions](./github-actions#github-actions)
     - [Gitlab](./gitlab#gitlab)
     - [Jenkins](./jenkins)
-  - [Packer](../packer.md)
-  - [Terraform](../terraform.md)
+  - [Cloud](../cloud/)
+  - [DevOps](../devops/)

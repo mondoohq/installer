@@ -30,9 +30,14 @@
       Getting Started
     </span>
   </a>
+  <a href="/docs/usage/" class="tile">
+    <span >
+      Usage
+    </span>
+  </a>
   <a href="/docs/agent/" class="tile">
     <span class="tile">
-      Agent
+      Mondoo Agent
     </span>
   </a>
   <a href="/docs/integration/" class="tile">

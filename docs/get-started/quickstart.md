@@ -11,7 +11,7 @@ The easiest way to try Mondoo is by installing the agent locally on your worksta
 
 **Windows workstation**
 
-<img src="../assets/windows_mondoo_install.png">
+![Mondoo Agent installation on Windows](../assets/windows_mondoo_install.png)
 
 ```powershell
 iex (new-object net.webclient).downloadstring('https://mondoo.io/download.ps1')
@@ -20,7 +20,7 @@ See [Installing Mondoo Agent on Windows workstation](../agent/windows) for furth
 
 **macOS Workstation**
 
-<img src="../assets/videos/mondoo-setup-macos.gif">
+![Mondoo Agent installation on macOS](../assets/videos/mondoo-setup-macos.gif)
 
 ```
 brew tap mondoolabs/mondoo

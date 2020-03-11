@@ -1,0 +1,22 @@
+- [Getting Started](../../get-started/)
+- [Usage](../../usage/)
+- [Mondoo Agent](../agent/)
+  - [Overview](../#the-mondoo-agent)
+  - **Installation**
+    - DevOps
+      - [Bash](bash.md)
+      - [Cloudinit](cloudinit.md)
+      - [Ansible](ansible.md)
+      - [Chef](chef.md)
+    - Manual
+      - [Windows](windows.md)
+      - [macOS](macos.md)
+      - [RedHat/CentOS](redhat.md)
+      - [Debian/Ubuntu](ubuntu.md)
+      - [Amazon Linux](amazonlinux.md)
+      - [Suse/openSUSE](suse.md)
+      - [Binaries](binaries.md)
+    - [Registration](registration.md)
+  - [Mondoo CLI](../cli/)
+- [Integration](../../integration/)
+- [Help](../../help)

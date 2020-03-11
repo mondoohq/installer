@@ -22,7 +22,7 @@ $ mondoo scan -t ssh://ec2-user@52.51.185.215
 $ mondoo scan -t ssh://ec2-user@52.51.185.215:2222
 ```
 
-<img src="../assets/videos/ssh-scan.gif">
+![Mondoo SSH scan from CLI](../assets/videos/ssh-scan.gif)
 
 Definitions from ` ~/.ssh/config` are used by the mondoo agent. The following defines the host `shorty` for ssh:
 
@@ -68,7 +68,7 @@ mondoo scan -t ssh://vagrant:vagrant@192.168.100.70
 
 ## Docker Images
 
-<img src="../assets/videos/docker-image-scan.gif">
+![Mondoo Docker image scan from CLI](../assets/videos/docker-image-scan.gif)
 
 Mondoo can scan Docker container images directly via their registry name: 
 
@@ -87,7 +87,7 @@ $ mondoo scan -t docker://docker-image-id
 
 ## Docker Container
 
-<img src="../assets/videos/docker-container-scan.gif">
+![Mondoo Docker container scan from CLI](../assets/videos/docker-container-scan.gif)
 
 You can easily scan running containers by their id:
 
@@ -97,7 +97,7 @@ $ mondoo scan -t docker://docker-container-id
 
 Scans also work for stopped containers.
 
-<img src="../assets/videos/docker-stopped-container-scan.gif">
+![Mondoo stopped Docker container scan from CLI](../assets/videos/docker-stopped-container-scan.gif)
 
 > Note: Docker container can only be scanned if the Docker engine is installed
 

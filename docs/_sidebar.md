@@ -1,4 +1,5 @@
 - [Getting Started](get-started/)
-- [Agent](agent/)
-- [Integration](integration/)
+- [Usage](usage/)
+- [Mondoo Agent](agent/)
+- [Integrations](integration/)
 - [Help](help)

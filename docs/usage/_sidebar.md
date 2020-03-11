@@ -1,0 +1,9 @@
+- [Get Started](../get-started/)
+- **Usage**
+  - [Scan Targets](targets.md#scan-targets-from-your-workstation)
+    - [SSH](targets.md#ssh-targets)
+    - [Docker Images](targets.md#docker-images)
+    - [Docker Container](targets.md#docker-container)
+- [Agent](../agent/)
+- [Integrations](../integration/)
+- [Help](../help)
