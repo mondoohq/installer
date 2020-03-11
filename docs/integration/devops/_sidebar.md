@@ -9,5 +9,5 @@
   - **DevOps**
     - [Overview](./#devops-integration)
     - [Ansible Inventory](./ansible#ansible)
-    - [Packer](./packer#packer)
-    - [Terraform](./terraform#terraform)
+    - [Packer](./packer#mondoo-packer-provisioner)
+    - [Terraform](./terraform#mondoo-terraform-provisioner)

@@ -1,6 +1,6 @@
 - [Getting Started](../../get-started/)
 - [Usage](../../usage/)
-- [Mondoo Agent](../agent/)
+- **Agent**
   - [Overview](../#the-mondoo-agent)
   - **Installation**
     - DevOps
