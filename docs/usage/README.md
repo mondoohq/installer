@@ -75,7 +75,7 @@ mondoo scan -t ssh://vagrant:vagrant@192.168.100.70
 
 Ansible inventory is a list of hosts that is mostly stored in the two common formats `ini` and `yaml`. 
 
-![Mondoo using Ansible inventory](../../assets/ansible-inventory.png)
+![Mondoo using Ansible inventory](../assets/ansible-inventory.png)
 
 The ini format allows grouping and easy configuration of additional properties:
 
