@@ -45,7 +45,8 @@ local SSH config to determine the required username for each individual EC2 inst
 To scan a your GCP project, you'll to setup the GCP credentials configure SSH access to all
 instances:
 
-	$ mondoo scan -t gcp://project
+	$ mondoo scan -t gcp://project/projectid
+    $ mondoo scan -t gcp://user/ec2-user
 
 For Azure Compute, you need to configure your Azure credentials and have SSH access to your 
 instances:

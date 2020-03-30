@@ -1,9 +1,24 @@
 - [Get Started](../get-started/)
 - **Usage**
-  - [Scan Targets](targets.md#scan-targets-from-your-workstation)
-    - [SSH](targets.md#ssh-targets)
-    - [Docker Images](targets.md#docker-images)
-    - [Docker Container](targets.md#docker-container)
+  - [Overview](./#scan-targets-from-your-workstation)
+  - **Inventory**
+  - [Scan SSH](./#ssh-targets)
+  - [Scan Ansible Inventory](./#ansible-inventory)
+  - [Scan Your System](./#local-system)
+  - **Cloud**
+  - [Scan Azure Instances](./#azure-instances)
+  - [Scan AWS EC2 Instances](./#aws-ec2-instances)
+  - [Scan GCP Instances](./#gcp-instances)
+  - **Container**
+  - [Scan Kubernetes](./#kubernetes)
+  - [Scan Docker Images](./#docker-images)
+  - [Scan Docker Container](./#docker-container)
+  - **Container Registry**
+  - [Scan Azure Container Registry](./#azure-container-registry)
+  - [Scan AWS Elastic Container Registry](./#aws-elastic-container-registry)
+  - [Scan Docker Hub Repository](./#aws-elastic-container-registry)
+  - [Scan Google Cloud Container Registry](./#google-cloud-container-registry)
+  - [Scan Harbor Registry](./#harbor-registry)
 - [Agent](../agent/)
 - [Integrations](../integration/)
 - [Help](../help)

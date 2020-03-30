@@ -10,4 +10,6 @@
     - [AWS](./aws#aws)
     - [Azure](./azure#azure)
     - [Google Cloud Platform](./gcp)
+    - [Kubernetes](./k8s)
+  - [Container Registry](../registry/)
   - [DevOps](../devops/)

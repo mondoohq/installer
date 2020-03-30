@@ -12,4 +12,5 @@
     - [API Webhook](api-webhook#api-webhook)
   - [CICD](../cicd/)
   - [Cloud](../cloud/)
+  - [Container Registry](../registry/)
   - [DevOps](../devops/)

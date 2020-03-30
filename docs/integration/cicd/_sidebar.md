@@ -14,4 +14,5 @@
     - [Gitlab](./gitlab#gitlab)
     - [Jenkins](./jenkins)
   - [Cloud](../cloud/)
+  - [Container Registry](../registry/)
   - [DevOps](../devops/)

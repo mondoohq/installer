@@ -6,6 +6,7 @@
   - [Alerting](../alerting/)
   - [CICD](../cicd/)
   - [Cloud](../cloud/)
+  - [Container Registry](../registry/)
   - **DevOps**
     - [Overview](./#devops-integration)
     - [Ansible Inventory](./ansible#ansible)
