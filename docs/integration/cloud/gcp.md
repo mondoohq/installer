@@ -48,7 +48,7 @@ $ mondoo scan -t gcp://project/mondoo-demo-1234/user/chris
 
 > Note: mondoo uses `~/.ssh/config` to determine the users for each detected public IP
 
-Instead of using the same login name for all instances, you can also configure the SSH config and add each individual instance with their username:
+Instead of using the same ssh username for all instances, you can also configure the SSH config and configure the username for each instance with their username:
 
 ```bash
 Host 123.123.123.123 

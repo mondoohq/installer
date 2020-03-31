@@ -5,7 +5,6 @@ The easiest way to try Mondoo is by installing the agent locally on your worksta
 - [Installation](#installation)
 - [Registration](#registration)
 - [First Scan](#scan-your-first-target)
-- [Try with Docker](#try-with-docker)
 
 ## Installation
 

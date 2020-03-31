@@ -80,7 +80,7 @@ mondoo scan -t ssh://vagrant@192.168.100.70
 
 **Password Authentication**
 
-NOTE: We do not recommended this method for any production workloads, since it may expose your password as cleartext in logs
+> NOTE: We do not recommend this method for any production workloads, since it may expose your password as cleartext in logs
 
 ```
 mondoo scan -t ssh://vagrant:vagrant@192.168.100.70
@@ -163,7 +163,7 @@ $ mondoo scan -t az://subscriptions/subscriptionid/resourceGroups/groupname
 
 This will determine all instances running in Azure and try to connect via SSH. 
 
-> Note: we recommend to use ssh config to configure the login names and ssh agent to manage your credentials 
+> Note: we recommend to use ssh config to configure the login usernames and ssh-agent to manage your credentials 
 
 Further information is available at [Integration/Cloud/Azure](../integration/cloud/azure#azure-integration)
 
@@ -201,7 +201,7 @@ $ mondoo scan -t ssh://ec2-user@52.51.185.215
 $ mondoo scan -t ssh://ec2-user@52.51.185.215:2222
 ```
 
-> Note: we recommend to use ssh config to configure the login names and ssh agent to manage your credentials 
+> Note: we recommend to use ssh config to configure the login usernames and ssh-agent to manage your credentials 
 
 Further information is available at [Integration/Cloud/AWS](../integration/cloud/aws#aws-integration)
 
@@ -209,7 +209,7 @@ Further information is available at [Integration/Cloud/AWS](../integration/cloud
 
 ![Mondoo GCP instances scan from CLI](../assets/videos/gcp-compute-scan.gif)
 
-Install the [gcloud](https://cloud.google.com/sdk/install) CLI and [login](https://cloud.google.com/sdk/gcloud/reference/auth/login) via `gcloud auth login`. Then set your project:
+Install the [gcloud](https://cloud.google.com/sdk/install) CLI and [log in](https://cloud.google.com/sdk/gcloud/reference/auth/login) via `gcloud auth login`. Then set your project:
 
 ```bash
 $ gcloud config set project <projectID>
@@ -241,7 +241,7 @@ $ mondoo scan -t ssh://user@52.51.185.215
 $ mondoo scan -t ssh://user@52.51.185.215:2222
 ```
 
-> Note: we recommend to use ssh config to configure the login names and ssh agent to manage your credentials 
+> Note: we recommend to use ssh config to configure the login usernames and ssh-agent to manage your credentials 
 
 
 Further information is available at [Integration/Cloud/GCP](../integration/cloud/gcp#gcp-integration)
@@ -314,7 +314,7 @@ Scans also work for stopped containers.
 
 ![Mondoo Azure Container Registry scan from CLI](../assets/videos/azure-acr-scan.gif)
 
-Login to the registry via:
+Log in to the registry via:
 
 ```bash
 az acr login --name <acrName>
@@ -332,7 +332,7 @@ Further information is available at [Integration/Registry/Azure](../integration/
 
 ![Mondoo AWS Elastic Container Registry scan from CLI](../assets/videos/aws-ec2-scan.gif)
 
-Login to the registry via:
+Log in to the registry via:
 
 ```bash
 $ aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 123101453137.dkr.ecr.us-east-1.amazonaws.com
@@ -351,7 +351,7 @@ Further information is available at [Integration/Registry/AWS](../integration/re
 
 ![Mondoo Docker Hub scan from CLI](../assets/videos/docker-hub-scan.gif)
 
-Install the `docker` CLI and [login to the registry](https://docs.docker.com/engine/reference/commandline/login/):
+Install the `docker` CLI and [log in to the registry](https://docs.docker.com/engine/reference/commandline/login/):
 
 ```bash
 docker login
@@ -369,7 +369,7 @@ Further information is available at [Integration/Registry/DockerHub](../integrat
 
 ![Mondoo Google Cloud Container Registry scan from CLI](../assets/videos/gcp-gcr-scan.gif)
 
-To authenticate with the registry, [login with gcloud](https://cloud.google.com/container-registry/docs/advanced-authentication#standalone-helper)
+To authenticate with the registry, [log in with gcloud](https://cloud.google.com/container-registry/docs/advanced-authentication#standalone-helper)
 
 ```
 gcloud auth configure-docker
@@ -387,7 +387,7 @@ Further information is available at [Integration/Registry/GCP](../integration/re
 
 ![Mondoo Harbor Container Registry scan from CLI](../assets/videos/harbor-scan.gif)
 
-To authenticate with the registry, login with docker:
+To authenticate with the registry, log in with docker:
 
 ```bash
 docker login -u admin -p Harbor12345 harbor.yourdomain.com

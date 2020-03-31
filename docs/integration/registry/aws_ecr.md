@@ -1,6 +1,6 @@
 # Amazon Elastic Container Registry (ECR)
 
-The [Amazon Elastic Container Registry](https://aws.amazon.com/ecr/) allows you to store container images within AWS. To get familiar with the AWS container registry, folllow their [Get Started Guide](https://aws.amazon.com/ecr/getting-started/).
+The [Amazon Elastic Container Registry](https://aws.amazon.com/ecr/) allows you to store container images within AWS. To get familiar with the AWS container registry, follow their [Get Started Guide](https://aws.amazon.com/ecr/getting-started/).
 
 ![Mondoo AWS Elastic Container Registry scan from CLI](../../assets/videos/aws-ec2-scan.gif)
 

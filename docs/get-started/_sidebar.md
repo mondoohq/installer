@@ -4,7 +4,6 @@
     - [Install CLI](quickstart#installation)
     - [Configure CLI](quickstart#registration)
     - [First Scan](quickstart#scan-your-first-target)
-    - [Try with Docker](try-with-docker.md#scan-docker-images-inside-the-mondoo-container)
   - [Scan Your Environment](usage#scan-targets-from-your-workstation)
     - *Inventory*
     - [SSH Targets](usage#ssh-targets)

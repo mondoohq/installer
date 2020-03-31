@@ -1,6 +1,6 @@
 # Azure Container Registry
 
-The [Azure Container Registry](https://azure.microsoft.com/en-us/services/container-registry/) allows you to store container images within Azure. To get familiar with the Azure registry, folllow their [Get Started Guide](https://docs.microsoft.com/en-us/azure/container-registry/container-registry-get-started-docker-cli).
+The [Azure Container Registry](https://azure.microsoft.com/en-us/services/container-registry/) allows you to store container images within Azure. To get familiar with the Azure registry, follow their [Get Started Guide](https://docs.microsoft.com/en-us/azure/container-registry/container-registry-get-started-docker-cli).
 
 ![Mondoo Azure Container Registry scan from CLI](../../assets/videos/azure-acr-scan.gif)
 
@@ -32,7 +32,7 @@ hello-world
 ubuntu
 ```
 
-Login to docker to ensure the azure cli creates the docker configuration. Mondoo uses the docker configuration to connect to Azure as well. 
+Login to `docker` to ensure the Azure CLI creates the correct docker configuration. Mondoo uses the `docker` configuration to connect to Azure as well.
 
 ```bash
 az acr login --name <acrName>

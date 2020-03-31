@@ -1,6 +1,6 @@
 # Google Cloud Platform Container Registry (GCR)
 
-The [Container Registry](https://cloud.google.com/container-registry) allows you to store container images within GCP. To get familiar with the GCP container registry, folllow their [Get Started Guide](https://cloud.google.com/container-registry/docs/quickstart).
+The [Container Registry](https://cloud.google.com/container-registry) allows you to store container images within GCP. To get familiar with the GCP container registry, follow their [Get Started Guide](https://cloud.google.com/container-registry/docs/quickstart).
 
 ![Mondoo Google Cloud Container Registry scan from CLI](../../assets/videos/gcp-gcr-scan.gif)
 
@@ -42,7 +42,7 @@ gcloud auth configure-docker
 
 # Scan
 
-To scan the an individual repository, use:
+To scan an individual repository, use:
 
 ```bash
 mondoo scan -t cr://gcr.io/<projectID>/<repoName>
@@ -81,7 +81,7 @@ Advisory Reports Overview
   ■  0.0    e5dd9dbb37df  ══════════  
 ```
 
-GCP also ships with non-standard extensions to search images on project level. To leverage those extensions, use the `gcr://` prefix:
+GCP also ships with non-standard extensions to search images on your project level. To leverage those extensions, use the `gcr://` prefix:
 
 ```bash
 mondoo scan -t gcr://gcr.io/<projectID>

@@ -1,6 +1,6 @@
 # Docker Hub
 
-The [Docker Hub](https://hub.docker.com/) is a well-known registry, where the major public container images are listed. To get familiar with the Docker Hub, folllow their [Get Started Guide](https://docs.docker.com/docker-hub/).
+The [Docker Hub](https://hub.docker.com/) is a well-known registry, where the major public container images are listed. To get familiar with the Docker Hub, follow their [Get Started Guide](https://docs.docker.com/docker-hub/).
 
 ![Mondoo Docker Hub scan from CLI](../../assets/videos/docker-hub-scan.gif)
 

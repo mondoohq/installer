@@ -26,6 +26,7 @@ a.integration img {
 <a href="/docs/integration/cicd/github" aria-label="Github Integration" class="integration"><img src="../assets/button-github.png"/></a>
 <a href="/docs/integration/cicd/gitlab" aria-label="Gitlab Integration" class="integration"><img src="../assets/button-gitlab.png"/></a>
 <a href="/docs/integration/cicd/jenkins" aria-label="Jenkins Integration" class="integration"><img src="../assets/button-cloudbees.png"/></a>
+<a href="/docs/integration/cloud/k8s" aria-label="Kubernetes Integration" class="integration"><img src="../assets/button-k8s.png"/></a>
 <a href="/docs/integration/alerting/?id=microsoft-teams" aria-label="MS Teams Integration" class="integration"><img src="../assets/button-msteams.png"/></a>
 <a href="/docs/integration/alerting/?id=slack" aria-label="Slack Integration" class="integration"><img src="../assets/button-slack.png"/></a>
 <a href="/docs/integration/devops/packer" aria-label="Packer integration" class="integration"><img src="../assets/button-packer.png" /></a>
