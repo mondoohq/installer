@@ -1,6 +1,6 @@
 # CI/CD
 
-Mondoo's vulnerability risk management solution is optimized for [runtime and build-time](../get-started/introduction-mondoo) analysis. Mondoo can be easily used in all CI/CD environments. The general workflow is as follows:
+Mondoo's vulnerability risk management solution is optimized for [runtime and build-time](../../get-started/quickstart#quickstart) analysis. Mondoo can be easily used in all CI/CD environments. The general workflow is as follows:
 
  - Developers push code into the source repository
  - CI/CD retrieves a trigger and starts building VM or container image
@@ -16,7 +16,7 @@ The setup can be used in various scenarios:
 
 ## General Setup in CI/CD
 
-No matter if you want to scan a container image, a VM or a deployed machine, the setup is always the same. In pre-build, we retrieve the [agent credentials](../agent/credentials) that are passed into the CI/CD job via an environment variable. To verify that everything worked, we run `mondoo version`:
+No matter if you want to scan a container image, a VM or a deployed machine, the setup is always the same. In pre-build, we retrieve the [agent credentials](../../agent/installation/registration) that are passed into the CI/CD job via an environment variable. To verify that everything worked, we run `mondoo version`:
 
 **Pre-Build**
 ```bash
@@ -26,7 +26,7 @@ curl -sSL https://mondoo.io/download.sh | bash
 ./mondoo version 
 ```
 
-More information about `download.sh` script is available at our [binary installation](../agent/binaries) documentation. Alternatively, we provide the alpine-based [mondoolabs/mondoo:latest](https://hub.docker.com/r/mondoolabs/mondoo) docker image which includes the mondoo binary already.
+More information about `download.sh` script is available at our [binary installation](../../agent/installation/) documentation. Alternatively, we provide the alpine-based [mondoolabs/mondoo:latest](https://hub.docker.com/r/mondoolabs/mondoo) docker image which includes the mondoo binary already.
 
 Once the `mondoo` command is set up properly, we can run a vulnerability scan:
 
@@ -36,7 +36,7 @@ Once the `mondoo` command is set up properly, we can run a vulnerability scan:
 mondoo scan -t docker://imageid --config mondoo.json
 ```
 
-In this case, we pipe the mondoo configuration into the mondoo binary and scan a docker image. If you like to scan an ssh target you can just call `mondoo scan -t ssh://ec2-user@52.51.185.215:2222`. All available options are documented for [mondoo scan](../agent/mondoo_scan)
+In this case, we pipe the mondoo configuration into the mondoo binary and scan a docker image. If you like to scan an ssh target you can just call `mondoo scan -t ssh://ec2-user@52.51.185.215:2222`. All available options are documented for [mondoo scan](../../agent/cli/mondoo_scan#mondoo-scan)
 
 ### Exit Code Handling
 
@@ -60,7 +60,7 @@ This allows you to implement threshold-bassed deployment blocking. The following
 x=$(mondoo scan -t docker://centos:7 --config mondoo.json); exitcode="$?"; echo $x; echo $exitcode; test $exitcode -eq 0 -o $exitcode -eq 101 -o $exitcode -eq 102
 ```
 
-![Use custom threshold for Mondoo](../assets/mondoo-cicd-threshold.png)
+![Use custom threshold for Mondoo](../../assets/mondoo-cicd-threshold.png)
 
 **Pass on successful scan**
 
@@ -70,11 +70,11 @@ Another use case is to assess the vulnerability risk only. Instead of blocking t
 mondoo scan -t docker://a3592cc01fdf --exit-0-on-success
 ```
 
-![Always pass if the mondoo scan was successful](../assets/mondoo-cicd-exit0.png)
+![Always pass if the mondoo scan was successful](../../assets/mondoo-cicd-exit0.png)
 
 ### Store mondoo credentials
 
-Mondoo agents uses a private key to encrypt all communication with Mondoo API. Since CI/CD do not allow persistent configuration on the build nodes, the configuration needs to be passed into the CI/CD job. All CI/CD environments have a method to store environment variables. Some provide extra capabilities to store secrets (preferred if available). Set the `MONDOO_AGENT_ACCOUNT` environment variable with the content of the [agent credentials file](../agent/configuration?id=retrieve-agent-credentials):
+Mondoo agents uses a private key to encrypt all communication with Mondoo API. Since CI/CD do not allow persistent configuration on the build nodes, the configuration needs to be passed into the CI/CD job. All CI/CD environments have a method to store environment variables. Some provide extra capabilities to store secrets (preferred if available). Set the `MONDOO_AGENT_ACCOUNT` environment variable with the content of the [agent credentials file](../../agent/configuration?id=retrieve-agent-credentials):
 
 
 ```
@@ -92,7 +92,7 @@ echo $MONDOO_AGENT_ACCOUNT > mondoo.json
 
 The JSON configuration file includes the agent's private key and certificate. The pem format requires proper newlines and some CI/CD systems interpret the newline. In those cases you recieve an error like `cannot configure certificate authentication`. The following illustrates that error in AWS CodePipeline:
 
-![Certificate authentication error in CI/CD](../assets/mondoo-cicd-missingbase64.png)
+![Certificate authentication error in CI/CD](../../assets/mondoo-cicd-missingbase64.png)
 
 To prevent the CI/CD system from interpreting the configuration content, you can encode the file as base64:
 

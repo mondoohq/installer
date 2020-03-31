@@ -168,7 +168,7 @@ else
   systemctl start mondoo.service
   systemctl daemon-reload
 
-  Further information is available at https://mondoo.io/docs/agent/registration
+  Further information is available at https://mondoo.io/docs/agent/installation/registration
 	"
 fi
 

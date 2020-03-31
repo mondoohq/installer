@@ -1,5 +1,4 @@
 - [Getting Started](../../get-started/)
-- [Usage](../../usage/)
 - [Agent](../../agent/)
 - **Integrations**
   - [Overview](../)
@@ -13,3 +12,4 @@
     - [Google Cloud Container Registry](gcp_gcr#google-cloud-container-registry)
     - [Harbor Registry](harbor#harbor-registry)
   - [DevOps](../devops/)
+- [Help](../../help)

@@ -1,5 +1,4 @@
 - [Getting Started](../../get-started/)
-- [Usage](../../usage/)
 - [Agent](../../agent/)
 - **Integrations**
   - [Overview](../readme.md)
@@ -16,3 +15,4 @@
   - [Cloud](../cloud/)
   - [Container Registry](../registry/)
   - [DevOps](../devops/)
+- [Help](../../help)

@@ -4,6 +4,8 @@ Mondoo offers a wide range of choices to collect risk information about workload
 
 **Gather vulnerability information during build-time**
 
+ - [Risk assessment in Azure DevOps](../cicd/azure-devops#azure-devops)
+ - [Risk assessment for Azure Container Registry](../registry/azure_acr#azure-container-registry)
  - [Build AMIs with Packer](../devops/packer)
  - [Test Docker Images in Azure DevOps](../cicd/azure-devops)
 

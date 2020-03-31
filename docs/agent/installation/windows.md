@@ -13,7 +13,7 @@ Run this powershell script to install Mondoo to its default location in `C:\User
 iex (new-object net.webclient).downloadstring('https://mondoo.io/download.ps1')
 ```
 
-![Install Mondoo on Windows](../assets/windows_mondoo_install.png)
+![Install Mondoo on Windows](../../assets/windows_mondoo_install.png)
 
 Once the agent is downloaded, you can register the agent
 ```bash

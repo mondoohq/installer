@@ -4,6 +4,8 @@ Mondoo offers a wide range of choices to collect risk information about workload
 
 **Gather vulnerability information during build-time**
 
+ - [Risk assessment in AWS Codebuild](../cicd/aws-codebuild#aws-codebuild)
+ - [Risk assessment for AWS ECR](../registry/aws_ecr#aws-elastic-container-registry)
  - [Build AMIs with Packer](../devops/packer)
  - [Test Docker Images in AWS CodeBuild](../cicd/aws-codebuild)
 

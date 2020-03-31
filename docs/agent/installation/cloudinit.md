@@ -33,11 +33,11 @@ EOF
 aws ec2 run-instances --region us-east-1 --image-id  ami-0ad82a384c06c911e --security-group-ids sg-903004f8 --count 1 --instance-type t2.micro --key-name chris-rock --user-data file://mondoo-cloudinit.sh 
 ```
 
-<img src="../assets/videos/mondoo-ec2-cloudinit-cli.gif">
+![Installing Mondoo Agent via cloudinit](../../assets/videos/mondoo-ec2-cloudinit-cli.gif)
 
 You can see the results of the vulnerability scan in your Mondoo dashboard once the installation is complete:
 
-<img src="../assets/mondoo-ec2-cloudinit-cli.png">
+![See agent in dashboard](../../assets/mondoo-ec2-cloudinit-cli.png)
 
 Once the machine is up and running, it will report vulnerabilities to Mondoo automatically. Further documentation for the AWS CLI is available at [Launch, List, and Terminate Amazon EC2 Instances](https://docs.aws.amazon.com/cli/latest/userguide/cli-services-ec2-instances.html) and [Running Commands on Your Linux Instance at Launch](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/user-data.html)
 

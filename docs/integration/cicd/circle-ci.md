@@ -36,7 +36,7 @@ jobs:
       # - run: docker push docker://yourorg/docker-image:0.1.$CIRCLE_BUILD_NUM
 ```
 
-Additionally, you need to configure your Circle CI project to store the credentials for the Mondoo agent in `MONDOO_AGENT_ACCOUNT`. You can either [download the credentials](../agent/configuration) or use the CircleCI integration page. Just select Sidebar -> Apps -> CircleCI and generate new credentials. Next, you create a new `MONDOO_AGENT_ACCOUNT` variable and paste the content of the agent credentials:
+Additionally, you need to configure your Circle CI project to store the credentials for the Mondoo agent in `MONDOO_AGENT_ACCOUNT`. You can either [download the credentials](../../agent/installation/registration) or use the CircleCI integration page. Just select Sidebar -> Apps -> CircleCI and generate new credentials. Next, you create a new `MONDOO_AGENT_ACCOUNT` variable and paste the content of the agent credentials:
 
 ![Paste the configuration in Circle CI environment variables](../../assets/mondoo-cicd-circleci-setup.png)
 

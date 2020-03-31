@@ -4,6 +4,8 @@ Mondoo offers a wide range of choices to collect risk information about workload
 
 **Gather vulnerability information during build-time**
 
+ - [Risk assessment in GCP CloudBuild](../cicd/gcp-cloudbuild#gcp-cloudbuild)
+ - [Risk assessment for GCP Container Registry](../registry/gcp_gcr#google-cloud-container-registry)
  - [Build AMIs with Packer](../devops/packer)
  - [Test Docker Images in GCP Cloudbuild](../cicd/gcp-cloudbuild)
 

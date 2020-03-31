@@ -37,7 +37,7 @@ vulnerabilities-master:
     - build-master
 ```
 
-Additionally, you need to configure your Gitlab project to store the credentials for the Mondoo agent in `MONDOO_AGENT_ACCOUNT`. You can either [download the credentials](../agent/configuration) or use the Gitlab integration page. Just select Sidebar -> Apps -> Gitlab and generate new credentials:
+Additionally, you need to configure your Gitlab project to store the credentials for the Mondoo agent in `MONDOO_AGENT_ACCOUNT`. You can either [download the credentials](../../agent/installation/registration) or use the Gitlab integration page. Just select Sidebar -> Apps -> Gitlab and generate new credentials:
  
 ![Generate Gitlab agent credentials in Mondoo](../../assets/mondoo-cicd-gitlab-config-token.png)
 

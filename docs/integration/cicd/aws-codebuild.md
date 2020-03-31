@@ -50,7 +50,7 @@ artifacts:
   files: imagedefinitions.json
 ``` 
 
-Additionally, you need to configure your AWS CodeBuild project to store the credentials for the Mondoo agent in `MONDOO_AGENT_ACCOUNT`. You can [download the credentials](../agent/configuration). For AWS CodeBuild, you need to encode the [credentials as base64](#store-mondoo-credentials).
+Additionally, you need to configure your AWS CodeBuild project to store the credentials for the Mondoo agent in `MONDOO_AGENT_ACCOUNT`. You can [download the credentials](../../agent/installation/registration). For AWS CodeBuild, you need to encode the [credentials as base64](#store-mondoo-credentials).
 
 Next, you create a new `MONDOO_AGENT_ACCOUNT` variable and paste the content of the agent credentials:
 

@@ -1,5 +1,4 @@
 - [Getting Started](../../get-started/)
-- [Usage](../../usage/)
 - [Agent](../../agent/)
 - **Integrations**
   - [Overview](../readme.md)
@@ -13,3 +12,4 @@
     - [Kubernetes](./k8s)
   - [Container Registry](../registry/)
   - [DevOps](../devops/)
+- [Help](../../help)

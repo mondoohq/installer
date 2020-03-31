@@ -37,7 +37,7 @@ steps:
 images: ['gcr.io/$PROJECT_ID/${_IMAGE_NAME}']
 ```
 
-You need to configure a [substitution variable](https://cloud.google.com/cloud-build/docs/configuring-builds/substitute-variable-values) to store the credentials for the Mondoo agent in `_MONDOO_AGENT_ACCOUNT`. You can either [download the credentials](../agent/configuration) or use the GCP Cloud Build integration page. For GCP Code Build, you need to encode the [credentials as base64](#store-mondoo-credentials). Next, you create a new `_MONDOO_AGENT_ACCOUNT` variable and paste the content of the agent credentials:
+You need to configure a [substitution variable](https://cloud.google.com/cloud-build/docs/configuring-builds/substitute-variable-values) to store the credentials for the Mondoo agent in `_MONDOO_AGENT_ACCOUNT`. You can either [download the credentials](../../agent/installation/registration) or use the GCP Cloud Build integration page. For GCP Code Build, you need to encode the [credentials as base64](#store-mondoo-credentials). Next, you create a new `_MONDOO_AGENT_ACCOUNT` variable and paste the content of the agent credentials:
 
 ![Paste the configuration as GCP substitution variable](../../assets/mondoo-cicd-cloudbuild-setup.png)
 

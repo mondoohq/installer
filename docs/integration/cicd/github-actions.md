@@ -28,7 +28,7 @@ jobs:
         ./mondoo scan -t docker://my-image-name:${GITHUB_SHA} --config mondoo.json
 ```
 
-The Mondoo agent requires a secret to authenticate. Generate the base64-encoded secret in Mondoo Dashboard and store it as a [Github Actions Secret](https://help.github.com/en/articles/virtual-environments-for-github-actions#creating-and-using-secrets-encrypted-variables) `MONDOO_AGENT_ACCOUNT`. You can either [download the credentials](../agent/configuration) or use the CI/CD integration page. For Github Actions, you need to encode the [credentials as base64](#store-mondoo-credentials).
+The Mondoo agent requires a secret to authenticate. Generate the base64-encoded secret in Mondoo Dashboard and store it as a [Github Actions Secret](https://help.github.com/en/articles/virtual-environments-for-github-actions#creating-and-using-secrets-encrypted-variables) `MONDOO_AGENT_ACCOUNT`. You can either [download the credentials](../../agent/installation/registration) or use the CI/CD integration page. For Github Actions, you need to encode the [credentials as base64](#store-mondoo-credentials).
 
 ![Paste the configuration as GCP substitution variable](../../assets/mondoo-cicd-githubactions-credentials.png)
 

@@ -2,7 +2,7 @@
 
 > Note: Binary installation is mostly suited for workstation and CI/CD installation. For server installations, we recommend our package-based installation since it allows upgrades of the Mondoo agent via operating system package managers  
 
-<img src="../assets/videos/mondoo-download.gif">
+![Download Mondoo CLI](../../assets/videos/mondoo-download.gif)
 
 Mondoo distributes binaries for all supported platform and architectures. To install agent, download the [appropriate package](https://releases.mondoo.io/mondoo/). Archives for unix systems are packaged as `.tar.gz`, for Windows systems we use `.zip`. After the download is complete, extract the content. The Mondoo agent is a single binary named `mondoo`. The last step is to add the `mondoo` binary to the path.
 

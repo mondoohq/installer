@@ -11,7 +11,7 @@ Mondoo offers two ways to register agents:
 
 In most cases, the registration token is the best and easiest way to register a new agent. This approach has the advantage that it includes a secure way to transmit the credentials. If you need the agent credentials upfront (eg. for CI/CD environments), download agent credentials. Both options are available in our navigation pane:
 
-![Navigation bar with agent credentials option](../assets/mondoo-agents-credentials-download.png)
+![Navigation bar with agent credentials option](../../assets/mondoo-agents-credentials-download.png)
 
 **Retrieve Mondoo agent registration token**
 
@@ -19,14 +19,14 @@ In most cases, the registration token is the best and easiest way to register a 
 2. In the navigation pane, select the plus icon (+)
 3. Copy the registration token
 
-![Copy registration token](../assets/mondoo-agents-registrationtoken.png)
+![Copy registration token](../../assets/mondoo-agents-registrationtoken.png)
 
 **Retrieve Mondoo agent credentials**
 
 1. Open the Mondoo Dashboard
 2. In the navigation pane, select the download icon
 
-This will download a JSON file which includes the agent private key. This approach is best for [CI/CD environments](../integration/cicd).
+This will download a JSON file which includes the agent private key. This approach is best for [CI/CD environments](../../integration/cicd/).
 
 ## Register Agent
 

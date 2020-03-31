@@ -1,5 +1,4 @@
 - [Getting Started](../../get-started/)
-- [Usage](../../usage/)
 - [Mondoo Agent](../agent/)
   - [Overview](../#the-mondoo-agent)
   - [Installation](../installation/)

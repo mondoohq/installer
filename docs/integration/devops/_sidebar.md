@@ -1,5 +1,4 @@
 - [Getting Started](../../get-started/)
-- [Usage](../../usage/)
 - [Agent](../../agent/)
 - **Integrations**
   - [Overview](../)
@@ -12,3 +11,4 @@
     - [Ansible Inventory](./ansible#ansible)
     - [Packer](./packer#mondoo-packer-provisioner)
     - [Terraform](./terraform#mondoo-terraform-provisioner)
+- [Help](../../help)

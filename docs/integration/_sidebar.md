@@ -1,5 +1,4 @@
 - [Getting Started](../get-started/)
-- [Usage](../usage/)
 - [Agent](../agent/)
 - **Integrations**
   - [Overview](readme.md)
@@ -34,3 +33,4 @@
     - [Ansible Inventory](devops/ansible.md)
     - [Packer](devops/packer.md)
     - [Terraform](devops/terraform.md)
+- [Help](../help)

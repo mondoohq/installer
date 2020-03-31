@@ -40,7 +40,7 @@ Use "mondoo [command] --help" for more information about a command.
 
 2. Register the agent
 
-All agents use a secure private key to sign their data. Via a registration token, the agent is able to retrieve its credentials securely. Use the [dashboard](../agent/registration#agent-registration) to gather a new registration token.
+All agents use a secure private key to sign their data. Via a registration token, the agent is able to retrieve its credentials securely. Use the [dashboard](../agent/installation/registration#agent-registration) to gather a new registration token.
 
 ```
 / $ mondoo register --token 'ey...FlP'
