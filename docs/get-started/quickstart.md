@@ -15,7 +15,7 @@ The easiest way to try Mondoo is by installing the agent locally on your worksta
 ```powershell
 iex (new-object net.webclient).downloadstring('https://mondoo.io/download.ps1')
 ```
-See [Installing Mondoo Agent on Windows workstation](../agent/windows) for further information. 
+See [Installing Mondoo Agent on Windows workstation](../agent/installation/windows) for further information. 
 
 **macOS Workstation**
 
@@ -26,7 +26,7 @@ brew tap mondoolabs/mondoo
 brew install mondoo
 ```
 
-See [Installing Mondoo Agent on macOS workstation](../agent/macos) for further information. 
+See [Installing Mondoo Agent on macOS workstation](../agent/installation/macos) for further information. 
 
 **Linux Workstation**
 
@@ -34,7 +34,7 @@ See [Installing Mondoo Agent on macOS workstation](../agent/macos) for further i
 curl -sSL https://mondoo.io/download.sh | bash
 ```
 
-> Note: We support a wide range of [Linux operating systems(../agent) . We recommend our [package installation](../agent/bash) for server environments to ensure you always retrieve the latest updates. For workstations, we also provide a [script that just ships with the mondoo binary]((../agent/binaries)). 
+> Note: We support a wide range of [Linux operating systems(../agent) . We recommend our [package installation](../agent/installation/bash#installing-mondoo-agent-via-bash-script) for server environments to ensure you always retrieve the latest updates. For workstations, we also provide a [script that just ships with the mondoo binary]((../agent/installation/binaries)). 
 
 ## Registration
 

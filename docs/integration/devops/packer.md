@@ -7,7 +7,7 @@ Mondoo ships an integration for [Packer](https://www.packer.io) to ease the asse
 The Mondoo Packer Provisioner depends on:
 
   * [Packer CLI installed on workstation](https://www.packer.io/intro/getting-started/install.html)
-  * [Mondoo CLI installed on workstation](../agent/installation)
+  * [Mondoo CLI installed on workstation](../agent/installation/)
 
 The provisioner plugin may be installed via:
 

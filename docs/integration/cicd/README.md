@@ -74,7 +74,7 @@ mondoo scan -t docker://a3592cc01fdf --exit-0-on-success
 
 ### Store mondoo credentials
 
-Mondoo agents uses a private key to encrypt all communication with Mondoo API. Since CI/CD do not allow persistent configuration on the build nodes, the configuration needs to be passed into the CI/CD job. All CI/CD environments have a method to store environment variables. Some provide extra capabilities to store secrets (preferred if available). Set the `MONDOO_AGENT_ACCOUNT` environment variable with the content of the [agent credentials file](../../agent/configuration?id=retrieve-agent-credentials):
+Mondoo agents uses a private key to encrypt all communication with Mondoo API. Since CI/CD do not allow persistent configuration on the build nodes, the configuration needs to be passed into the CI/CD job. All CI/CD environments have a method to store environment variables. Some provide extra capabilities to store secrets (preferred if available). Set the `MONDOO_AGENT_ACCOUNT` environment variable with the content of the [agent credentials file](../../agent/installation/registration?id=retrieve-agent-credentials):
 
 
 ```

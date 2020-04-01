@@ -7,7 +7,7 @@ Mondoo ships an integration for [Terraform](https://www.terraform.io/) to ease t
 The Mondoo Packer Provisioner depends on:
 
   * [Terraform CLI installed on workstation](https://learn.hashicorp.com/terraform/getting-started/install.html)
-  * [Mondoo CLI installed on workstation](../agent/installation)
+  * [Mondoo CLI installed on workstation](../agent/installation/)
 
 The provisioner plugin may be installed via:
 
