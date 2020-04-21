@@ -6,7 +6,7 @@ Since Gitlab makes heavy use of Docker containers as a runtime environment, it i
 
 ```yaml
 # Build docker image
-build-master:
+build:
   image: docker:latest
   stage: build
   services:
@@ -14,34 +14,29 @@ build-master:
   before_script:
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
   script:
-    - docker build --pull -t "$CI_REGISTRY_IMAGE" .
-    - docker push "$CI_REGISTRY_IMAGE"
-
-  only:
-    - master
+    - docker build --pull -t "$CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG" .
+    - docker push "$CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG"
 
 # Scan docker image
-vulnerabilities-master:
+vulnerabilities:
   stage: test
   image:
     name: mondoolabs/mondoo:latest
     entrypoint: [""]
   script:
     - mkdir -p /root/.docker/ && echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /root/.docker/config.json
-    - echo $MONDOO_AGENT_ACCOUNT > /tmp/$CI_PIPELINE_ID-mondoo.json
-    - mondoo scan -t docker://$CI_REGISTRY_IMAGE --config /tmp/$CI_PIPELINE_ID-mondoo.json
+    - echo $MONDOO_AGENT_ACCOUNT | base64 -d > /tmp/${CI_PIPELINE_ID}-mondoo.json
+    - mondoo scan --config /tmp/${CI_PIPELINE_ID}-mondoo.json -t docker://${CI_REGISTRY_IMAGE}:${CI_COMMIT_REF_SLUG}
   # allow_failure: true
-  only:
-    - master
   dependencies:
-    - build-master
+    - build
 ```
 
 Additionally, you need to configure your Gitlab project to store the credentials for the Mondoo agent in `MONDOO_AGENT_ACCOUNT`. You can either [download the credentials](../../agent/installation/registration) or use the Gitlab integration page. Just select Sidebar -> Apps -> Gitlab and generate new credentials:
  
 ![Generate Gitlab agent credentials in Mondoo](../../assets/mondoo-cicd-gitlab-config-token.png)
 
-Next, you create a new `MONDOO_AGENT_ACCOUNT` variable and paste the content of the agent credentials:
+Next, you create a new `MONDOO_AGENT_ACCOUNT` variable and paste the base64 content of the agent credentials:
 
 ![Paste the configuration in Gitlab CI environment variables](../../assets/mondoo-cicd-gitlab-config.png)
 
@@ -52,3 +47,37 @@ You can see the vulnerability report as part of the CI/CD job.
 Also, it is easy to see the result in your Mondoo dashboard:
 
 ![See report in Mondoo dashboard](../../assets/mondoo-cicd-gitlab-result-dashboard.png)
+
+
+## JUnit Report
+
+If you like to store the report as junit file to leverage Githab's Junit Report view feature, you can use:
+
+```yaml
+vulnerabilities:
+  stage: test
+  image:
+    name: mondoolabs/mondoo:latest
+    entrypoint: [""]
+  script:
+    - mkdir -p /root/.docker/ && echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /root/.docker/config.json
+    - echo $MONDOO_AGENT_ACCOUNT | base64 -d > /tmp/${CI_PIPELINE_ID}-mondoo.json
+    # pipe report into file
+    - mondoo scan --config /tmp/${CI_PIPELINE_ID}-mondoo.json -t docker://${CI_REGISTRY_IMAGE}:${CI_COMMIT_REF_SLUG} --exit-0-on-success --format yaml > mondoo-report.yml
+    # generate junit output for gitlab
+    - mondoo report view mondoo-report.yml --exit-0-on-success --format junit > mondoo-junit.xml
+    # display report on cli
+    - mondoo report view mondoo-report.yml
+  artifacts:
+    paths:
+      - mondoo-junit.xml
+    expire_in: 1 week
+    reports:
+      junit: mondoo-junit.xml
+  # allow_failure: true
+  dependencies:
+    - build
+```
+
+
+![Mondoo Junit report Gitlab](../../assets/mondoo-cicd-gitlab-result-junit.png)
