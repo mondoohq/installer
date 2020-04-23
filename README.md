@@ -43,8 +43,8 @@ mondoo scan -t ssh://ec2-user@54.76.229.223
 ## Repository Structure
 
 **Mondoo Deployment**
-- [ansible-mondoo](./ansible-mondoo) - Ansible role for Mondoo
-- [chef-mondoo](./chef-mondoo) - Chef cookbook for Mondoo
+- [ansible-mondoo](./deployment/ansible-mondoo) - Ansible role for Mondoo
+- [chef-mondoo](./deployment/chef-mondoo) - Chef cookbook for Mondoo
 - [install.sh](./install.sh) - Mondoo Agent Bash Installer for Servers
 - [download.sh](./download.sh) - Mondoo Agent Bash Downloader for Workstation
 - [Dockerfile](./Dockerfile) - Build script for official Mondoo container
