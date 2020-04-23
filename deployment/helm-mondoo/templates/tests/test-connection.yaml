@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "{{ include "mondoo.fullname" . }}-test-connection"
+  labels:
+    {{- include "mondoo.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": test-success
+spec:
+  containers:
+    - name: wget
+      image: busybox
+      command: ['wget']
+      args: ['{{ include "mondoo.fullname" . }}:{{ .Values.service.port }}']
+  restartPolicy: Never
