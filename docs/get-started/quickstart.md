@@ -2,20 +2,27 @@
 
 The easiest way to try Mondoo is by installing the agent locally on your workstation or use our  Docker container `mondoolabs/mondoo`. You can easily try out
 
-- [Installation](#installation)
-- [Registration](#registration)
-- [First Scan](#scan-your-first-target)
+* [Registration](#registration)
+* [Install Mondoo CLI](#install-mondoo-cli)
+* [Do your first scan](#do-your-first-scan)
 
-## Installation
+## Registration
 
-**Windows workstation**
+Go to [Mondoo Dashboard](https://mondoo.app) and register for a new account
 
-![Mondoo Agent installation on Windows](../assets/windows_mondoo_install.png)
+![Mondoo Registration](../assets/quickstart/register.png)
 
-```powershell
-iex (new-object net.webclient).downloadstring('https://mondoo.io/download.ps1')
-```
-See [Installing Mondoo Agent on Windows workstation](../agent/installation/windows) for further information. 
+Once registered, you see the welcome screen
+
+![Create a new organization](../assets/quickstart/welcome.png)
+
+Then create a new organization and space
+
+![Create a new organization](../assets/quickstart/createorganization.png)
+
+![Create a new space](../assets/quickstart/createspace.png)
+
+## Install Mondoo CLI
 
 **macOS Workstation**
 
@@ -34,20 +41,36 @@ See [Installing Mondoo Agent on macOS workstation](../agent/installation/macos) 
 curl -sSL https://mondoo.io/download.sh | bash
 ```
 
-> Note: We support a wide range of [Linux operating systems(../agent) . We recommend our [package installation](../agent/installation/bash#installing-mondoo-agent-via-bash-script) for server environments to ensure you always retrieve the latest updates. For workstations, we also provide a [script that just ships with the mondoo binary]((../agent/installation/binaries)). 
+> Note: We support a wide range of [Linux operating systems(../agent) . We recommend our [package installation](../agent/installation/bash#installing-mondoo-agent-via-bash-script) for server environments to ensure you always retrieve the latest updates. For workstations, we also provide a [script that just ships with the mondoo binary]((../agent/installation/binaries)).
 
-## Registration
+**Windows workstation**
 
-All agents use a secure private key to sign their data. Via a registration token, the agent is able to retrieve its credentials securely. Use the [dashboard](../agent/installation/registration#agent-registration) to gather a new registration token.
+![Mondoo Agent installation on Windows](../assets/windows_mondoo_install.png)
+
+```powershell
+iex (new-object net.webclient).downloadstring('https://mondoo.io/download.ps1')
+```
+See [Installing Mondoo Agent on Windows workstation](../agent/installation/windows) for further information. 
+
+### Create CLI credentials
+
+![Create a new agent](../assets/quickstart/spacedashboard.png)
+
+The Mondoo CLI use a secure private key to sign their data. Via a registration token, the agent is able to retrieve its credentials securely. 
+
+Use the [dashboard](../agent/installation/registration#agent-registration) to gather a new registration token.
+
+![Create a new agent](../assets/quickstart/addagent.png)
+
 
 ```
 mondoo register --token 'ey...FlP'
   ✔  agent //agents.api.mondoo.app/spaces/dazzling-hermann-857694/agents/1NmZG4Mt2fKXRrYGvUPiyLG7JyQ registered successfully
 ```
 
-## Scan your first target
+## Do your first scan
 
-**ssh target**
+Scan a SSH target:
 
 ```
 mondoo scan -t ssh://ec2-user@54.205.49.51
@@ -69,7 +92,7 @@ Advisory Report:
   →  report is available at https://mondoo.app/v/tender-elbakyan-495615/gallant-kilby-587371/reports/1P4JUZrB1n6rkKU5J5JthPtP42Q
   ```
 
-**docker image**
+Scan a Docker image:
 
 ```
 mondoo scan -t docker://ubuntu:18.04          
