@@ -1,6 +1,0 @@
-dist/*
-vendor
-.terraform
-id_rsa*
-*.tfstate
-*.tfstate.backup
