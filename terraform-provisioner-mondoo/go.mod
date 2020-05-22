@@ -7,7 +7,7 @@ require (
 	github.com/hashicorp/hil v0.0.0-20190212132231-97b3a9cdfa93 // indirect
 	github.com/hashicorp/terraform v0.12.20
 	github.com/mitchellh/go-linereader v0.0.0-20190213213312-1b945b3263eb
-	github.com/mitchellh/mapstructure v1.1.2
+	github.com/mitchellh/mapstructure v1.3.1
 	github.com/olekukonko/tablewriter v0.0.3 // indirect
 	github.com/psampaz/go-mod-outdated v0.5.0 // indirect
 	golang.org/x/build v0.0.0-20190111050920-041ab4dc3f9d // indirect
