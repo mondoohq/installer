@@ -16,7 +16,7 @@ The provisioner plugin may be installed via:
 
 ### Install packer plugin from binary
 
-To install the precompiled binary, download the appropriate package from [Github](https://github.com/mondoolabs/mondoo/releases/latest) and place the binary in the Packer's plugin directory `~/.packer.d/plugins` (Linux, Mac) or `%USERPROFILE%/packer.d/plugins` (Windows). Other locations that Packer searches for are [documented on their website](https://www.packer.io/docs/extending/plugins.html#installing-plugins).
+To install the precompiled binary, download the appropriate package from [Github](https://github.com/mondoolabs/packer-provisioner-mondoo/releases/latest) and place the binary in the Packer's plugin directory `~/.packer.d/plugins` (Linux, Mac) or `%USERPROFILE%/packer.d/plugins` (Windows). Other locations that Packer searches for are [documented on their website](https://www.packer.io/docs/extending/plugins.html#installing-plugins).
 
 The following simplifies the installation:
 
@@ -25,7 +25,7 @@ The following simplifies the installation:
 ```
 mkdir -p ~/.packer.d/plugins
 cd ~/.packer.d/plugins
-curl -sSL https://github.com/mondoolabs/mondoo/releases/latest/download/packer-provisioner-mondoo_linux_amd64.tar.gz | tar -xz > packer-provisioner-mondoo
+curl -sSL https://github.com/mondoolabs/packer-provisioner-mondoo/releases/latest/download/packer-provisioner-mondoo_linux_amd64.tar.gz | tar -xz > packer-provisioner-mondoo
 chmod +x packer-provisioner-mondoo
 ```
 
@@ -34,21 +34,21 @@ chmod +x packer-provisioner-mondoo
 ```
 mkdir -p ~/.packer.d/plugins
 cd ~/.packer.d/plugins
-curl -sSL https://github.com/mondoolabs/mondoo/releases/latest/download/packer-provisioner-mondoo_darwin_amd64.tar.gz | tar -xz > packer-provisioner-mondoo
+curl -sSL https://github.com/mondoolabs/packer-provisioner-mondoo/releases/latest/download/packer-provisioner-mondoo_darwin_amd64.tar.gz | tar -xz > packer-provisioner-mondoo
 chmod +x packer-provisioner-mondoo
 ```
 
 **Windows**
 
-Download the binary from the [Github releases page](https://github.com/mondoolabs/mondoo/releases) and put it in the same directory as your packer executable.
+Download the binary from the [Github releases page](https://github.com/mondoolabs/packer-provisioner-mondoo/releases) and put it in the same directory as your packer executable.
 
 ```powershell
 # This script requires powershell
-wget 'https://github.com/mondoolabs/mondoo/releases/latest/download//packer-provisioner-mondoo_windows_amd64.zip' -UseBasicParsing -OutFile packer-provisioner-mondoo_windows_amd64.zip
+Invoke-WebRequest 'https://github.com/mondoolabs/packer-provisioner-mondoo/releases/latest/download/packer-provisioner-mondoo_windows_amd64.zip' -O 'packer-provisioner-mondoo_windows_amd64.zip'
 
 # extract zip and place it in the same path as packer
 Expand-Archive -LiteralPath packer-provisioner-mondoo_windows_amd64.zip
-Copy-Item .\packer-provisioner-mondoo_windows_amd64\packer-provisioner-mondoo.exe ((Get-Command packer).Source | Split-Path)
+Copy-Item ./packer-provisioner-mondoo_windows_amd64/packer-provisioner-mondoo.exe ((Get-Command packer).Source | Split-Path)
 
 # clean up
 Remove-Item -Recurse -Force .\packer-provisioner-mondoo_windows_amd64
@@ -57,21 +57,7 @@ Remove-Item packer-provisioner-mondoo_windows_amd64.zip
 
 ### Compiling the Packer plugin from source
 
-If you wish to compile from source, you need to have [Go](https://golang.org/) installed and configured.
-
-1. Clone the mondoo repository from GitHub into your $GOPATH:
-
-```
-$ mkdir -p $(go env GOPATH)/src/github.com/mondoolabs && cd $_
-$ git clone https://github.com/mondoolabs/mondoo.git
-$ cd mondoo/packer-provisioner-mondoo
-```
-
-2. Build the plugin for your current system and place the binary in the packer plugin directory
-
-```
-make install
-```
+If you wish to compile from source, follow our [instructions](https://github.com/mondoolabs/packer-provisioner-mondoo/releases) 
 
 ### Verifying the Installation 
 

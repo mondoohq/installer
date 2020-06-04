@@ -5,12 +5,6 @@ build/docker:
 	docker push mondoolabs/mondoo:$(shell cat VERSION)
 	docker push mondoolabs/mondoo:latest
 
-release/terraform:
-	cd terraform-provisioner-mondoo && goreleaser --rm-dist
-
-release/packer:
-	cd packer-provisioner-mondoo && goreleaser --rm-dist
-
 .PHONY: test/install_bash
 test/install_bash:
 	cp install.sh test/install_bash

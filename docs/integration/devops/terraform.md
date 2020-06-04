@@ -16,7 +16,7 @@ The provisioner plugin may be installed via:
 
 ### Install packer plugin from binary
 
-To install the precompiled binary, download the appropriate package from [Github](https://github.com/mondoolabs/mondoo/releases/latest) and place the binary in Terraform's plugin directory `~/.terraform.d/plugins` (Linux, Mac) or `%USERPROFILE%/terraform.d/plugins` (Windows). Other locations that Terraform searches for are [documented on their website](https://www.terraform.io/docs/extend/how-terraform-works.html#plugin-locationss).
+To install the precompiled binary, download the appropriate package from [Github](https://github.com/mondoolabs/terraform-provisioner-mondoo/releases) and place the binary in Terraform's plugin directory `~/.terraform.d/plugins` (Linux, Mac) or `%USERPROFILE%/terraform.d/plugins` (Windows). Other locations that Terraform searches for are [documented on their website](https://www.terraform.io/docs/extend/how-terraform-works.html#plugin-locationss).
 
 The following simplifies the installation:
 
@@ -25,7 +25,7 @@ The following simplifies the installation:
 ```
 mkdir -p ~/.terraform.d/plugins
 cd ~/.terraform.d/plugins
-curl https://github.com/mondoolabs/mondoo/releases/0.3.0/latest/terraform-provisioner-mondoo_0.3.0_linux_amd64.tar.gz | tar -xz > terraform-provisioner-mondoo
+curl -L https://github.com/mondoolabs/terraform-provisioner-mondoo/releases/latest/download/terraform-provisioner-mondoo_linux_amd64.tar.gz | tar -xz > terraform-provisioner-mondoo
 chmod +x terraform-provisioner-mondoo
 ```
 
@@ -34,28 +34,30 @@ chmod +x terraform-provisioner-mondoo
 ```
 mkdir -p ~/.terraform.d/plugins
 cd ~/.terraform.d/plugins
-curl https://github.com/mondoolabs/mondoo/releases/0.3.0/latest/terraform-provisioner-mondoo_0.3.0_darwin_amd64.tar.gz | tar -xz > terraform-provisioner-mondoo
+curl -L https://github.com/mondoolabs/terraform-provisioner-mondoo/releases/latest/download/terraform-provisioner-mondoo_darwin_amd64.tar.gz | tar -xz > terraform-provisioner-mondoo
 chmod +x terraform-provisioner-mondoo
+```
+
+**Windows**
+
+Download the binary from the [Github releases page](https://github.com/mondoolabs/terraform-provisioner-mondoo/releases/) and put it in the same directory as your packer executable.
+
+```powershell
+# This script requires powershell
+Invoke-WebRequest 'https://github.com/mondoolabs/terraform-provisioner-mondoo/releases/latest/download/terraform-provisioner-mondoo_windows_amd64.zip' -O 'terraform-provisioner-mondoo_windows_amd64.zip'
+
+# extract zip and place it in the same path as packer
+Expand-Archive -LiteralPath terraform-provisioner-mondoo_windows_amd64.zip
+Copy-Item ./terraform-provisioner-mondoo_windows_amd64/terraform-provisioner-mondoo.exe ((Get-Command terraform).Source | Split-Path)
+
+# clean up
+Remove-Item -Recurse -Force .\terraform-provisioner-mondoo_windows_amd64
+Remove-Item terraform-provisioner-mondoo_windows_amd64.zip
 ```
 
 ### Compiling the Terraform plugin from source
 
-If you wish to compile from source, you need to have [Go](https://golang.org/) installed and configured.
-
-1. Clone the mondoo repository from GitHub into your $GOPATH:
-
-```
-$ mkdir -p $(go env GOPATH)/src/github.com/mondoolabs && cd $_
-$ git clone https://github.com/mondoolabs/mondoo.git
-$ cd mondoo/terraform-provisioner-mondoo
-```
-
-2. Build the plugin for your current system and place the binary in the packer plugin directory
-
-```
-make install
-```
-
+If you wish to compile from source, follow our [instructions](https://github.com/mondoolabs/terraform-provisioner-mondoo/releases) 
 ### Verifying the Installation 
 
 After installing Terraform, Mondoo Agent and the Mondoo Terraform Provisioning Plugin run the following commands to check that everything is configured properly:

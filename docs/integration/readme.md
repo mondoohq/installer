@@ -23,7 +23,7 @@ a.integration img {
 <a href="/docs/integration/cloud/azure" aria-label="Azure Integration" class="integration"><img src="../assets/button-azure.png" /></a>
 <a href="/docs/integration/cicd/circle-ci" aria-label="Circle CI integration" class="integration"><img src="../assets/button-circleci.png" /></a>
 <a href="/docs/integration/cloud/gcp" aria-label="GCP integration" class="integration"><img src="../assets/button-gcp.png" /></a>
-<a href="/docs/integration/cicd/github" aria-label="Github Integration" class="integration"><img src="../assets/button-github.png"/></a>
+<a href="/docs/integration/cicd/github-actions?id=github-actions" aria-label="Github Integration" class="integration"><img src="../assets/button-github.png"/></a>
 <a href="/docs/integration/cicd/gitlab" aria-label="Gitlab Integration" class="integration"><img src="../assets/button-gitlab.png"/></a>
 <a href="/docs/integration/cicd/jenkins" aria-label="Jenkins Integration" class="integration"><img src="../assets/button-cloudbees.png"/></a>
 <a href="/docs/integration/cloud/k8s" aria-label="Kubernetes Integration" class="integration"><img src="../assets/button-k8s.png"/></a>

@@ -50,8 +50,8 @@ mondoo scan -t ssh://ec2-user@54.76.229.223
 - [Dockerfile](./Dockerfile) - Build script for official Mondoo container
 
 **Mondoo Integration**
-- [packer-provisioner-mondoo](./packer-provisioner-mondoo) - Mondoo Packer Provisioner
-- [terraform-provisioner-mondoo](./terraform-provisioner-mondoo) - Mondoo Terrafrom Provisioner
+- [packer-provisioner-mondoo](https://github.com/mondoolabs/packer-provisioner-mondoo) - Mondoo Packer Provisioner
+- [terraform-provisioner-mondoo](https://github.com/mondoolabs/terraform-provisioner-mondoo) - Mondoo Terrafrom Provisioner
 
 **Examples**
 
