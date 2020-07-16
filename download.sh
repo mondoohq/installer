@@ -84,7 +84,7 @@ purple_bold "Downloading ${url}"
 binarySha=$(curl -fsSL ${url} | tee ${filename} | ${sha256bin} | cut -b 1-64)
 
 # download the checksum
-expectedSha=$(curl ${base_url}/${product}/${version}/checksums.txt | grep ${filename} | cut -b 1-64)
+expectedSha=$(curl ${base_url}/${product}/${version}/checksums.${os}.txt | grep ${filename} | cut -b 1-64)
 
 # extract binary
 if [ $binarySha = $expectedSha ]; then
