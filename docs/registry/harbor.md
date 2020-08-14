@@ -2,7 +2,7 @@
 
 The [Harbor Registry](https://goharbor.io/) is an open-source container registry. To set-up, the registry, follow the official [Harbor Installation and Configuration](https://goharbor.io/docs/1.10/install-config/).
 
-![Mondoo Harbor Container Registry scan from CLI](../../assets/videos/harbor-scan.gif)
+![Mondoo Harbor Container Registry scan from CLI](../static/videos/harbor-scan.gif)
 
 ## Precondition
 

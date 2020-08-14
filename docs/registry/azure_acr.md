@@ -2,7 +2,7 @@
 
 The [Azure Container Registry](https://azure.microsoft.com/en-us/services/container-registry/) allows you to store container images within Azure. To get familiar with the Azure registry, follow their [Get Started Guide](https://docs.microsoft.com/en-us/azure/container-registry/container-registry-get-started-docker-cli).
 
-![Mondoo Azure Container Registry scan from CLI](../../assets/videos/azure-acr-scan.gif)
+![Mondoo Azure Container Registry scan from CLI](../static/videos/azure-acr-scan.gif)
 
 ## Precondition
 

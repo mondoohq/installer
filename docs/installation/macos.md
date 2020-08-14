@@ -1,6 +1,6 @@
 # Installing Mondoo Agent on macOS workstation
 
-![Installing Mondoo Agent on macOS workstation](../../assets/videos/mondoo-setup-macos.gif)
+![Installing Mondoo Agent on macOS workstation](../static/videos/mondoo-setup-macos.gif)
 
 At first, add mondoo brew tap:
 

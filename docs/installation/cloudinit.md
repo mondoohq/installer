@@ -33,7 +33,7 @@ EOF
 aws ec2 run-instances --region us-east-1 --image-id  ami-0ad82a384c06c911e --security-group-ids sg-903004f8 --count 1 --instance-type t2.micro --key-name chris-rock --user-data file://mondoo-cloudinit.sh
 ```
 
-![Installing Mondoo Agent via cloudinit](../../assets/videos/mondoo-ec2-cloudinit-cli.gif)
+![Installing Mondoo Agent via cloudinit](../static/videos/mondoo-ec2-cloudinit-cli.gif)
 
 You can see the results of the vulnerability scan in your Mondoo dashboard once the installation is complete:
 

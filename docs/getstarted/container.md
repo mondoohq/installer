@@ -1,3 +1,5 @@
+# Container Security
+
 ## Kubernetes
 
 ![Mondoo Kubernetes scan from CLI](../assets/videos/k8s-scan.gif)
@@ -29,7 +31,7 @@ Further information is available at [Integration/Cloud/K8S](../integration/cloud
 
 ## Docker Images
 
-![Mondoo Docker image scan from CLI](../assets/videos/docker-image-scan.gif)
+![Mondoo Docker image scan from CLI](../static/videos/docker-image-scan.gif)
 
 Mondoo can scan Docker container images directly via their registry name:
 
@@ -48,7 +50,7 @@ $ mondoo scan -t docker://docker-image-id
 
 ## Docker Container
 
-![Mondoo Docker container scan from CLI](../assets/videos/docker-container-scan.gif)
+![Mondoo Docker container scan from CLI](../static/videos/docker-container-scan.gif)
 
 You can easily scan running containers by their id:
 
@@ -58,6 +60,7 @@ $ mondoo scan -t docker://docker-container-id
 
 Scans also work for stopped containers.
 
-![Mondoo stopped Docker container scan from CLI](../assets/videos/docker-stopped-container-scan.gif)
+![Mondoo stopped Docker container scan from CLI](../static/videos/docker-stopped-container-scan.gif)
 
 > Note: Docker container can only be scanned if the Docker engine is installed
+

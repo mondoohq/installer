@@ -1,3 +1,4 @@
+# Cloud Workload Security
 
 ## Azure Instances
 
@@ -37,7 +38,7 @@ Further information is available at [Integration/Cloud/Azure](../integration/clo
 
 ## AWS EC2 Instances
 
-![Mondoo EC2 instances scan from CLI](../assets/videos/aws-ec2-scan.gif)
+![Mondoo EC2 instances scan from CLI](../static/videos/aws-ec2-scan.gif)
 
 Configure your AWS credentials in `~/.aws/credentials`. If required, set the `AWS_PROFILE` and `AWS_REGION`:
 
@@ -75,7 +76,7 @@ Further information is available at [Integration/Cloud/AWS](../integration/cloud
 
 ## GCP Instances
 
-![Mondoo GCP instances scan from CLI](../assets/videos/gcp-compute-scan.gif)
+![Mondoo GCP instances scan from CLI](../static/videos/gcp-compute-scan.gif)
 
 Install the [gcloud](https://cloud.google.com/sdk/install) CLI and [log in](https://cloud.google.com/sdk/gcloud/reference/auth/login) via `gcloud auth login`. Then set your project:
 

@@ -1,6 +1,6 @@
 # Installing Mondoo Agent via Bash Script
 
-![Mondoo CLI Installation via Bash](../../assets/videos/mondoo-install.gif)
+![Mondoo CLI Installation via Bash](../static/videos/mondoo-install.gif)
 
 This one-line script installation is installing and configuring Mondoo agent for Servers. During its execution it does the following:
 

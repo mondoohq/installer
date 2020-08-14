@@ -1,6 +1,6 @@
 ## Circle CI
 
-![Illustration of Circle CI integration](../../assets/integration-circleci.png)
+![Illustration of Circle CI integration](./assets/integration-circleci.png)
 
 CircleCI allows you to build Docker images as part of your [CI/CD pipeline](https://circleci.com/docs/2.0/building-docker-images/). Mondoo can be easily used in combination to verify the docker image before yoou push it to the registry. The following configuration runs a `docker build` and a `mondoo scan`:
 
@@ -38,12 +38,12 @@ jobs:
 
 Additionally, you need to configure your Circle CI project to store the credentials for the Mondoo agent in `MONDOO_AGENT_ACCOUNT`. You can either [download the credentials](../../agent/installation/registration) or use the CircleCI integration page. Just select Sidebar -> Apps -> CircleCI and generate new credentials. Next, you create a new `MONDOO_AGENT_ACCOUNT` variable and paste the content of the agent credentials:
 
-![Paste the configuration in Circle CI environment variables](../../assets/mondoo-cicd-circleci-setup.png)
+![Paste the configuration in Circle CI environment variables](./assets/mondoo-cicd-circleci-setup.png)
 
 You can see the vulnerability report as part of the CI/CD job.
 
-![Run a mondoo scan in Circle CI](../../assets/mondoo-cicd-circleci-result-text.png)
+![Run a mondoo scan in Circle CI](./assets/mondoo-cicd-circleci-result-text.png)
 
 Also, it is easy to see the result in your Mondoo dashboard:
 
-![See report in Mondoo dashboard](../../assets/mondoo-cicd-circleci-result-dashboard.png)
+![See report in Mondoo dashboard](./assets/mondoo-cicd-circleci-result-dashboard.png)

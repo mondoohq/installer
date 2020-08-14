@@ -54,7 +54,7 @@ $ mondoo scan -t ec2://user/ec2-user
 $ mondoo scan -t ec2://profile/mondoo/region/us-east-1/user/ec2-user
 ```
 
-![Mondoo AWS EC2 instances scan from CLI](../../assets/videos/aws-ec2-scan.gif)
+![Mondoo AWS EC2 instances scan from CLI](../static/videos/aws-ec2-scan.gif)
 
 > Note: mondoo uses `~/.ssh/config` to determine the users for each detected public IP
 

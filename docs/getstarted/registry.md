@@ -1,6 +1,8 @@
+# Container Registry Security
+
 ## Azure Container Registry
 
-![Mondoo Azure Container Registry scan from CLI](../assets/videos/azure-acr-scan.gif)
+![Mondoo Azure Container Registry scan from CLI](../static/videos/azure-acr-scan.gif)
 
 Log in to the registry via:
 
@@ -18,7 +20,7 @@ Further information is available at [Integration/Registry/Azure](../integration/
 
 ## AWS Elastic Container Registry
 
-![Mondoo AWS Elastic Container Registry scan from CLI](../assets/videos/aws-ec2-scan.gif)
+![Mondoo AWS Elastic Container Registry scan from CLI](../static/videos/aws-ec2-scan.gif)
 
 Log in to the registry via:
 
@@ -37,9 +39,9 @@ Further information is available at [Integration/Registry/AWS](../integration/re
 
 
 
-## Docker Hub
+## Docker Hub Repository
 
-![Mondoo Docker Hub scan from CLI](../assets/videos/docker-hub-scan.gif)
+![Mondoo Docker Hub scan from CLI](../static/videos/videos/docker-hub-scan.gif)
 
 Install the `docker` CLI and [log in to the registry](https://docs.docker.com/engine/reference/commandline/login/):
 
@@ -57,7 +59,7 @@ Further information is available at [Integration/Registry/DockerHub](../integrat
 
 ## Google Cloud Container Registry
 
-![Mondoo Google Cloud Container Registry scan from CLI](../assets/videos/gcp-gcr-scan.gif)
+![Mondoo Google Cloud Container Registry scan from CLI](../static/videos/gcp-gcr-scan.gif)
 
 To authenticate with the registry, [log in with gcloud](https://cloud.google.com/container-registry/docs/advanced-authentication#standalone-helper)
 
@@ -75,7 +77,7 @@ Further information is available at [Integration/Registry/GCP](../integration/re
 
 ## Harbor Registry
 
-![Mondoo Harbor Container Registry scan from CLI](../assets/videos/harbor-scan.gif)
+![Mondoo Harbor Container Registry scan from CLI](../static/videos/harbor-scan.gif)
 
 To authenticate with the registry, log in with docker:
 

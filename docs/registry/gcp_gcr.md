@@ -2,7 +2,7 @@
 
 The [Container Registry](https://cloud.google.com/container-registry) allows you to store container images within GCP. To get familiar with the GCP container registry, follow their [Get Started Guide](https://cloud.google.com/container-registry/docs/quickstart).
 
-![Mondoo Google Cloud Container Registry scan from CLI](../../assets/videos/gcp-gcr-scan.gif)
+![Mondoo Google Cloud Container Registry scan from CLI](../static/videos/gcp-gcr-scan.gif)
 
 ## Precondition
 

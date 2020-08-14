@@ -2,7 +2,7 @@
 
 Mondoo makes it very easy to scan all your running pods.
 
-![Mondoo Kubernetes scan from CLI](../../assets/videos/k8s-scan.gif)
+![Mondoo Kubernetes scan from CLI](../static/videos/k8s-scan.gif)
 
 > NOTE: To ensure the maximum security, we recommend to scan container images before they are deployed into production e.g. within a CI/CD run or within a container registry
 
