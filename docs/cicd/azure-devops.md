@@ -1,6 +1,6 @@
 ## Azure DevOps
 
-![Illustration of Azure DevOps integration](./assets/integration-azure-devops.png)
+![Illustration of Azure DevOps integration](./integration-azure-devops.png)
 
 To use Mondoo with Azure DevOps, you simply add another build step in `azure-pipelines.yml`. It is designed to block image push if vulnerabilities have been found.
 
@@ -52,9 +52,9 @@ steps:
 
 Additionally, you need to configure your build to store the credentials for the Mondoo agent in `MONDOO_AGENT_ACCOUNT`. You can [download the credentials](../../agent/installation/registration). For Azure, you need to encode the [credentials as base64](#store-mondoo-credentials). Next, you create a new `MONDOO_AGENT_ACCOUNT` [Azure secret](https://docs.microsoft.com/en-us/azure/devops/pipelines/process/variables?view=azure-devops&tabs=yaml%2Cbatch#secret-variables) and paste the content of the agent credentials:
 
-![Open Azure secrets configuration](./assets/mondoo-cicd-azuredevops-setup1.png)
-![Paste the configuration as Azure secret](./assets/mondoo-cicd-azuredevops-setup2.png)
+![Open Azure secrets configuration](./mondoo-cicd-azuredevops-setup1.png)
+![Paste the configuration as Azure secret](./mondoo-cicd-azuredevops-setup2.png)
 
 Once configured, you can see the vulnerability report as part of the CI/CD job.
 
-![Run a mondoo scan in Azure DevOps](./assets/mondoo-cicd-azuredevops-result-text.png)
+![Run a mondoo scan in Azure DevOps](./mondoo-cicd-azuredevops-result-text.png)

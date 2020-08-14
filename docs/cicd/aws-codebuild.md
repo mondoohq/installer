@@ -1,6 +1,6 @@
 ## AWS CodeBuild
 
-![Illustration of AWS CodePipeline integration](./assets/integration-aws-codepipeline.png)
+![Illustration of AWS CodePipeline integration](./integration-aws-codepipeline.png)
 
 The following example illustrates how to scan a Docker image before its being pushed to ECR. At first, we install the agent, then we scan the freshly built image by Docker. If `mondoo scan` passes successfully, the image is pushed ECR. Based on your pipeline configuration, you can auto-deploy it to ECS then.
 
@@ -54,14 +54,14 @@ Additionally, you need to configure your AWS CodeBuild project to store the cred
 
 Next, you create a new `MONDOO_AGENT_ACCOUNT` variable and paste the content of the agent credentials:
 
-![Paste the configuration in AWS CodeBuild environment variables](./assets/mondoo-cicd-awscodebuild-setup.png)
+![Paste the configuration in AWS CodeBuild environment variables](./mondoo-cicd-awscodebuild-setup.png)
 
 You can see the vulnerability report as part of the CI/CD job.
 
-![Run a mondoo scan in AWS CodeBuild](../assets/mondoo-cicd-awscodebuild-result-text.png)
+![Run a mondoo scan in AWS CodeBuild](./mondoo-cicd-awscodebuild-result-text.png)
 
 Also, it is easy to see the result in your Mondoo dashboard:
 
-![See report in Mondoo dashboard](./assets/mondoo-cicd-awscodebuild-result-dashboard.png)
+![See report in Mondoo dashboard](./mondoo-cicd-awscodebuild-result-dashboard.png)
 
 Note: We prefer to store the agent credentials as secrets. By default, AWS CodeBuild supports retrieving values for environment variables via plaintext and AWS Parameter Store. It also allows  the use of AWS Secrets Manager to pass secrets via [AWS Parameter Store into the pipeline](https://docs.aws.amazon.com/systems-manager/latest/userguide/integration-ps-secretsmanager.html). Please be aware that AWS Secrets Manager comes with  an additional cost per secret.

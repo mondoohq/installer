@@ -1,6 +1,6 @@
 ## Jenkins
 
-![Illustration of Jenkins CI integration](./assets/integration-jenkins.png)
+![Illustration of Jenkins CI integration](./integration-jenkins.png)
 
 Mondoo works great in [Open Source Jenkins](https://jenkins.io/) and [Cloudbees Jenkins Distribution](https://www.cloudbees.com/products/cloudbees-jenkins-distribution). It is straight-forward to integrate Mondoo into [Jenkins Pipeline](https://jenkins.io/doc/book/pipeline/):
 
@@ -61,8 +61,8 @@ pipeline {
 
 The Mondoo agent requires a secret to authenticate. Generate the base64-encoded secret in Mondoo Dashboard and store it as a [Jenkins Credentials](https://jenkins.io/doc/book/using/using-credentials/) `MONDOO_AGENT_ACCOUNT`. You can either [download the credentials](../../agent/installation/registration) or use the CI/CD integration page. For Jenkins we recommend to encode the [credentials as base64](#store-mondoo-credentials).
 
-![Paste the configuration as GCP substitution variable](./assets/mondoo-cicd-jenkins-credentials.png)
+![Paste the configuration as GCP substitution variable](./mondoo-cicd-jenkins-credentials.png)
 
 You can see the vulnerability report as part of the CI/CD job.
 
-![Run a mondoo scan in Jenkins](./assets/mondoo-cicd-jenkins-result-text.png)
+![Run a mondoo scan in Jenkins](./mondoo-cicd-jenkins-result-text.png)
