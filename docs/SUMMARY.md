@@ -51,12 +51,12 @@
 ### 🖥 Mondoo CLI
 
   * [Overview](cli/README.md)
-  * [scan](cli/mondoo_scan.md)
-  * [status](cli/mondoo_status.md)
-  * [register](cli/mondoo_register.md)
-  * [unregister](cli/mondoo_unregister.md)
-  * [migrate](cli/mondoo_migrate.md)
-  * [version](cli/mondoo_version.md)
+  * [mondoo scan](cli/mondoo_scan.md)
+  * [mondoo status](cli/mondoo_status.md)
+  * [mondoo register](cli/mondoo_register.md)
+  * [mondoo unregister](cli/mondoo_unregister.md)
+  * [mondoo migrate](cli/mondoo_migrate.md)
+  * [mondoo version](cli/mondoo_version.md)
   * [Registration](cli/registration.md)
 
 ### 🏗 Integrations
