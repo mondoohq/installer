@@ -2,9 +2,11 @@
 
 The Mondoo agent is a small & cross-platform binary that makes it easy to assess system vulnerabilities. Its main responsibility is to determine installed packages and send the package list including their versions for further analysis to Mondoo's vulnerability database.
 
-![Mondoo CLI](../assets/mondoo-cli.png)
+![Mondoo CLI](../static/mondoo-cli.png)
 
 ## Installation
+
+The agent can be installed onto various operating systems. We provide installers to make it easy to run and manage Mondoo agents.
 
 <style>
 a.agents {
@@ -22,18 +24,35 @@ a.agents img {
 }
 </style>
 
-<a href="/docs/agent/windows" class="agents"><img src="../static/buttons/button-windows.png" class="agents"/></a>
-<a href="/docs/agent/macos" class="agents"><img src="../static/buttons/button-macos.png"/></a>
-<a href="/docs/agent/redhat" class="agents"><img src="../static/buttons/button-redhat.png"/></a>
-<a href="/docs/agent/amazonlinux" class="agents"><img src="../static/buttons/button-amzn.png" /></a>
+<a href="./windows.md" class="agents"><img src="../static/buttons/button-windows.png" class="agents"/></a>
+<a href="./macos.md" class="agents"><img src="../static/buttons/button-macos.png"/></a>
+<a href="./redhat.md" class="agents"><img src="../static/buttons/button-redhat.png"/></a>
+<a href="./amazonlinux.md" class="agents"><img src="../static/buttons/button-amzn.png" /></a>
 
-<a href="/docs/agent/ubuntu" class="agents"><img src="../static/buttons/button-ubuntu.png"/></a>
-<a href="/docs/agent/redhat" class="agents"><img src="../static/buttons/button-centos.png" class="agents"/></a>
-<a href="/docs/agent/ubuntu" class="agents"><img src="../static/buttons/button-debian.png" class="agents"/></a>
-<a href="/docs/agent/suse" class="agents"><img src="../static/buttons/button-suse.png" class="agents"/></a>
+<a href="./ubuntu.md" class="agents"><img src="../static/buttons/button-ubuntu.png"/></a>
+<a href="./redhat.md" class="agents"><img src="../static/buttons/button-centos.png" class="agents"/></a>
+<a href="./ubuntu.md" class="agents"><img src="../static/buttons/button-debian.png" class="agents"/></a>
+<a href="./suse.md" class="agents"><img src="../static/buttons/button-suse.png" class="agents"/></a>
 
-<a href="/docs/agent/ansible" class="agents"><img src="../static/buttons/button-ansible.png"/></a>
-<a href="/docs/agent/chef" class="agents"><img src="../static/buttons/button-chef.png"/></a>
+<a href="./ansible.md" class="agents"><img src="../static/buttons/button-ansible.png"/></a>
+<a href="./chef.md" class="agents"><img src="../static/buttons/button-chef.png"/></a>
+
+We provide the Mondoo binaries via our [release page](https://releases.mondoo.io/mondoo/). While you can install the binary manually, we recommend the automated methods since they implement best-practices for the respective operating system.
+
+- [Bash Script](bash.md) or [Cloudinit](cloudinit.md) (recommended)
+- [Ansible](ansible.md) (recommended)
+- [Chef](chef.md) (recommended)
+
+If you need to install the agent manually, follow these instructions:
+
+- System Package manager
+  - [RedHat/CentOS](redhat.md)
+  - [Ubuntu](ubuntu.md)
+  - [Amazon Linux](amazonlinux.md)
+  - [Suse/openSUSE](suse.md)
+  - [macOS](macos.md)
+  - [Windows](windows.md)
+- [Binaries](binaries.md)
 
 ## How it works
 
@@ -99,10 +118,6 @@ The agent can scan the following assets:
 * Docker images (local or remote)
 * Docker containers (running or stopped)
 
-## Installation
-
-The agent can be installed onto various operating systems. We provide [installers](./installation) to make it easy to run and manage Mondoo agents.
-
 ## Usage
 
 ```
@@ -141,27 +156,4 @@ See the [Mondoo CLI](./mondoo) instructions to get started.
 
 ## Configuration
 
-The agent uses a yaml configuration file. See the [registration documentation](./registration) for more details.
-
-## Troubleshooting
-
-For help with the installation, visit the [diagnosing documentation](./diagnosing) or contact [Mondoo Support](../help).
-
-## How to Install Mondoo Agent
-
-We provide the Mondoo binaries via our [release page](https://releases.mondoo.io/mondoo/). While you can install the binary manually, we recommend the automated methods since they implement best-practices:
-
-- [Bash Script](bash.md) or [Cloudinit](cloudinit.md) (recommended)
-- [Ansible](ansible.md) (recommended)
-- [Chef](chef.md) (recommended)
-
-If you need to install the agent manually, the following instructions illustrate the workflow.
-
-- System Package manager
-  - [RedHat/CentOS](redhat.md)
-  - [Ubuntu](ubuntu.md)
-  - [Amazon Linux](amazonlinux.md)
-  - [Suse/openSUSE](suse.md)
-  - [macOS](macos.md)
-  - [Windows](windows.md)
-- [Binaries](binaries.md)
+The agent uses a yaml configuration file. See the [registration documentation](./registration.md) for more details.

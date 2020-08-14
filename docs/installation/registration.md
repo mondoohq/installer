@@ -26,7 +26,7 @@ In most cases, the registration token is the best and easiest way to register a 
 1. Open the Mondoo Dashboard
 2. In the navigation pane, select the download icon
 
-This will download a JSON file which includes the agent private key. This approach is best for [CI/CD environments](../../integration/cicd/).
+This will download a JSON file which includes the agent private key. This approach is best for [CI/CD environments](../../cicd/).
 
 ## Register Agent
 

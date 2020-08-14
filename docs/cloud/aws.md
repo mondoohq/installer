@@ -4,18 +4,18 @@ Mondoo offers a wide range of choices to collect risk information about workload
 
 **Gather vulnerability information during build-time**
 
- - [Risk assessment in AWS Codebuild](../cicd/aws-codebuild#aws-codebuild)
- - [Risk assessment for AWS ECR](../registry/aws_ecr#aws-elastic-container-registry)
- - [Build AMIs with Packer](../devops/packer)
- - [Test Docker Images in AWS CodeBuild](../cicd/aws-codebuild)
+ - [Risk assessment in AWS Codebuild](../cicd/aws-codebuild.md#aws-codebuild)
+ - [Risk assessment for AWS ECR](../registry/aws_ecr.md#aws-elastic-container-registry)
+ - [Build AMIs with Packer](../devops/packer.md)
+ - [Test Docker Images in AWS CodeBuild](../cicd/aws-codebuild.md)
 
 **Gather vulnerability information during run-time**
 
   - [Scan AWS EC2 instances from your workstation](#scan-from-workstation)
-  - [Install mondoo agent via CloudInit](../../agent/installation/cloudinit#aws-ec2-instance-user-data)
-  - [Terraform deployment](../devops/terraform)
-  - [Verify instances managed by Chef/AWS OpsWorks](../../agent/installation/chef)
-  - [Verify instances managed by Ansible](../../agent/installation/ansible)
+  - [Install mondoo agent via CloudInit](../installation/cloudinit.md#aws-ec2-instance-user-data)
+  - [Terraform deployment](../devops/terraform.md)
+  - [Verify instances managed by Chef/AWS OpsWorks](../installation/chef.md)
+  - [Verify instances managed by Ansible](../installation/ansible.md)
   - Assess risk of newly deployed EC2 instances automatically
 
 ## Scan from Workstation
@@ -68,4 +68,4 @@ Host yourdomain.com
   IdentityFile /your/path/keyname
 ````
 
-If you require a specific list of instances with more detailed configuration, consider the use of an [Ansible inventory](../devops/ansible)
+If you require a specific list of instances with more detailed configuration, consider the use of an [Ansible inventory](../devops/ansible.md)

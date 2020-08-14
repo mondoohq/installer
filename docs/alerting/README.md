@@ -9,11 +9,11 @@ Mondoo's alert notifications are delivered via email by default but can be confi
 
 User Settings
 
-* [Email](./email)
+* [Email](./email.md)
 
 Space Settings
 
-* [Microsoft Teams](./msteams#microsoft-teams)
-* [Slack](./slack#slack)
-* [Telegram](./telegram#telegram)
-* [API Webhook](./api-webhook#api-webhook)
+* [Microsoft Teams](./msteams.md#microsoft-teams)
+* [Slack](./slack.md#slack)
+* [Telegram](./telegram.md#telegram)
+* [API Webhook](./webhook.md#api-webhook)

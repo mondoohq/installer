@@ -91,7 +91,7 @@ Then use `ansible-inventory` with Mondoo:
 ansible-inventory -i hosts.ini --list | mondoo scan --ansible-inventory
 ```
 
-Further information is available at [Integration/DevOps/Ansible](../integration/devops/ansible#ansible-and-mondoo)
+Further information is available at [Integration/DevOps/Ansible](../devops/ansible.md#ansible-and-mondoo)
 
 ## Local System
 

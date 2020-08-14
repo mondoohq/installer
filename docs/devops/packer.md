@@ -1,13 +1,13 @@
 # Mondoo Packer Provisioner
 
-Mondoo ships an integration for [Packer](https://www.packer.io) to ease the assessment of vulnerabilities during an image build process. The integration is open source and available in our [Mondoo GitHub repository](https://github.com/mondoolabs/mondoo)
+Mondoo ships an integration for [Packer](https://www.packer.io) to ease the assessment of vulnerabilities during an image build process. The integration is open source and available in our [Mondoo GitHub repository](https://github.com/mondoolabs/packer-provisioner-mondoo)
 
 ## Install Mondoo Packer Provisioner
 
 The Mondoo Packer Provisioner depends on:
 
   * [Packer CLI installed on workstation](https://www.packer.io/intro/getting-started/install.html)
-  * [Mondoo CLI installed on workstation](../agent/installation/)
+  * [Mondoo CLI installed on workstation](../installation/)
 
 The provisioner plugin may be installed via:
 

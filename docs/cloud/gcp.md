@@ -4,18 +4,18 @@ Mondoo offers a wide range of choices to collect risk information about workload
 
 **Gather vulnerability information during build-time**
 
- - [Risk assessment in GCP CloudBuild](../cicd/gcp-cloudbuild#gcp-cloudbuild)
- - [Risk assessment for GCP Container Registry](../registry/gcp_gcr#google-cloud-container-registry)
- - [Build AMIs with Packer](../devops/packer)
- - [Test Docker Images in GCP Cloudbuild](../cicd/gcp-cloudbuild)
+ - [Risk assessment in GCP CloudBuild](../cicd/gcp-cloudbuild.md#gcp-cloudbuild)
+ - [Risk assessment for GCP Container Registry](../registry/gcp_gcr.md#google-cloud-container-registry)
+ - [Build AMIs with Packer](../devops/packer.md)
+ - [Test Docker Images in GCP Cloudbuild](../cicd/gcp-cloudbuild.md)
 
 **Gather vulnerability information during run-time**
 
   - [Scan GCP compute instances from your workstation](#scan-from-workstation)
-  - [Install mondoo agent via CloudInit](../../agent/installation/cloudinit)
-  - [Terraform deployment](../devops/terraform)
-  - [Verify instances managed by Chef/AWS OpsWorks](../../agent/installation/chef)
-  - [Verify instances managed by Ansible](../../agent/installation/ansible)
+  - [Install mondoo agent via CloudInit](../installation/cloudinit.md)
+  - [Terraform deployment](../devops/terraform.md)
+  - [Verify instances managed by Chef/AWS OpsWorks](../installation/chef.md)
+  - [Verify instances managed by Ansible](../installation/ansible.md)
 
 ## Scan from Workstation
 
@@ -58,4 +58,4 @@ Host yourdomain.com
   IdentityFile /your/path/keyname
 ````
 
-If you require a specific list of instances with more detailed configuration, consider the use of an [Ansible inventory](../devops/ansible)
+If you require a specific list of instances with more detailed configuration, consider the use of an [Ansible inventory](../devops/ansible.md)

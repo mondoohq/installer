@@ -2,7 +2,7 @@
 
 Mondoo supports a wide-range of Docker registries:
 
-- [Azure Container Registry](azure_acr#azure-container-registry)
+- [Azure Container Registry](azure_acr.md#azure-container-registry)
 - [AWS Elastic Container Registry](aws_ecr#aws-elastic-container-registry)
 - [Docker Hub](docker_hub#docker-hub)
 - [Google Cloud Container Registry](gcp_gcr#google-cloud-container-registry)

@@ -1,6 +1,6 @@
 # CI/CD
 
-Mondoo's vulnerability risk management solution is optimized for [runtime and build-time](../../get-started/quickstart#quickstart) analysis. Mondoo can be easily used in all CI/CD environments. The general workflow is as follows:
+Mondoo's vulnerability risk management solution is optimized for runtime and build-time analysis. Mondoo can be easily used in all CI/CD environments. The general workflow is as follows:
 
  - Developers push code into the source repository
  - CI/CD retrieves a trigger and starts building VM or container image
@@ -11,12 +11,12 @@ Mondoo's vulnerability risk management solution is optimized for [runtime and bu
 The setup can be used in various scenarios:
 
  - Scan machines that are deployed via CI/CD (eg. via SSH)
- - Scan AMI images uses (e.g. via [Mondoo's Packer integration](./packer))
+ - Scan AMI images uses (e.g. via [Mondoo's Packer integration](../devops/packer.md))
  - Scan container images
 
 ## General Setup in CI/CD
 
-No matter if you want to scan a container image, a VM or a deployed machine, the setup is always the same. In pre-build, we retrieve the [agent credentials](../../agent/installation/registration) that are passed into the CI/CD job via an environment variable. To verify that everything worked, we run `mondoo version`:
+No matter if you want to scan a container image, a VM or a deployed machine, the setup is always the same. In pre-build, we retrieve the [agent credentials](../installation/registration.md) that are passed into the CI/CD job via an environment variable. To verify that everything worked, we run `mondoo version`:
 
 **Pre-Build**
 ```bash
@@ -26,7 +26,7 @@ curl -sSL https://mondoo.io/download.sh | bash
 ./mondoo version
 ```
 
-More information about `download.sh` script is available at our [binary installation](../../agent/installation/) documentation. Alternatively, we provide the alpine-based [mondoolabs/mondoo:latest](https://hub.docker.com/r/mondoolabs/mondoo) docker image which includes the mondoo binary already.
+More information about `download.sh` script is available at our [binary installation](../installation/binaries.md) documentation. Alternatively, we provide the alpine-based [mondoolabs/mondoo:latest](https://hub.docker.com/r/mondoolabs/mondoo) docker image which includes the mondoo binary already.
 
 Once the `mondoo` command is set up properly, we can run a vulnerability scan:
 
@@ -36,7 +36,7 @@ Once the `mondoo` command is set up properly, we can run a vulnerability scan:
 mondoo scan -t docker://imageid --config mondoo.json
 ```
 
-In this case, we pipe the mondoo configuration into the mondoo binary and scan a docker image. If you like to scan an ssh target you can just call `mondoo scan -t ssh://ec2-user@52.51.185.215:2222`. All available options are documented for [mondoo scan](../../agent/cli/mondoo_scan#mondoo-scan)
+In this case, we pipe the mondoo configuration into the mondoo binary and scan a docker image. If you like to scan an ssh target you can just call `mondoo scan -t ssh://ec2-user@52.51.185.215:2222`. All available options are documented for [mondoo scan](../cli/mondoo_scan.md#mondoo-scan)
 
 ### Exit Code Handling
 
@@ -74,7 +74,7 @@ mondoo scan -t docker://a3592cc01fdf --exit-0-on-success
 
 ### Store mondoo credentials
 
-Mondoo agents uses a private key to encrypt all communication with Mondoo API. Since CI/CD do not allow persistent configuration on the build nodes, the configuration needs to be passed into the CI/CD job. All CI/CD environments have a method to store environment variables. Some provide extra capabilities to store secrets (preferred if available). Set the `MONDOO_AGENT_ACCOUNT` environment variable with the content of the [agent credentials file](../../agent/installation/registration?id=retrieve-agent-credentials):
+Mondoo agents uses a private key to encrypt all communication with Mondoo API. Since CI/CD do not allow persistent configuration on the build nodes, the configuration needs to be passed into the CI/CD job. All CI/CD environments have a method to store environment variables. Some provide extra capabilities to store secrets (preferred if available). Set the `MONDOO_AGENT_ACCOUNT` environment variable with the content of the [agent credentials file](../installation/registration.md#retrieve-agent-credentials):
 
 
 ```
