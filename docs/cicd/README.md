@@ -60,7 +60,7 @@ This allows you to implement threshold-bassed deployment blocking. The following
 x=$(mondoo scan -t docker://centos:7 --config mondoo.json); exitcode="$?"; echo $x; echo $exitcode; test $exitcode -eq 0 -o $exitcode -eq 101 -o $exitcode -eq 102
 ```
 
-![Use custom threshold for Mondoo](./assets/mondoo-cicd-threshold.png)
+![Use custom threshold for Mondoo](./mondoo-cicd-threshold.png)
 
 **Pass on successful scan**
 
@@ -70,7 +70,7 @@ Another use case is to assess the vulnerability risk only. Instead of blocking t
 mondoo scan -t docker://a3592cc01fdf --exit-0-on-success
 ```
 
-![Always pass if the mondoo scan was successful](./assets/mondoo-cicd-exit0.png)
+![Always pass if the mondoo scan was successful](./mondoo-cicd-exit0.png)
 
 ### Store mondoo credentials
 

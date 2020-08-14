@@ -1,6 +1,6 @@
 ## Gitlab
 
-![Illustration of Gitlab CI integration](./assets/integration-gitlabci.png)
+![Illustration of Gitlab CI integration](./integration-gitlabci.png)
 
 Since Gitlab makes heavy use of Docker containers as a runtime environment, it is the easiest to use Mondoo's docker image. It is very easy to add a vulnerability job in your `.gitlab-ci.yml`:
 
@@ -34,19 +34,19 @@ vulnerabilities:
 
 Additionally, you need to configure your Gitlab project to store the credentials for the Mondoo agent in `MONDOO_AGENT_ACCOUNT`. You can either [download the credentials](../../agent/installation/registration) or use the Gitlab integration page. Just select Sidebar -> Apps -> Gitlab and generate new credentials:
 
-![Generate Gitlab agent credentials in Mondoo](./assets/mondoo-cicd-gitlab-config-token.png)
+![Generate Gitlab agent credentials in Mondoo](./mondoo-cicd-gitlab-config-token.png)
 
 Next, you create a new `MONDOO_AGENT_ACCOUNT` variable and paste the base64 content of the agent credentials:
 
-![Paste the configuration in Gitlab CI environment variables](./assets/mondoo-cicd-gitlab-config.png)
+![Paste the configuration in Gitlab CI environment variables](./mondoo-cicd-gitlab-config.png)
 
 You can see the vulnerability report as part of the CI/CD job.
 
-![Run a mondoo scan in Gitlab](./assets/mondoo-cicd-gitlab-result-text.png)
+![Run a mondoo scan in Gitlab](./mondoo-cicd-gitlab-result-text.png)
 
 Also, it is easy to see the result in your Mondoo dashboard:
 
-![See report in Mondoo dashboard](./assets/mondoo-cicd-gitlab-result-dashboard.png)
+![See report in Mondoo dashboard](./mondoo-cicd-gitlab-result-dashboard.png)
 
 
 ## JUnit Report
@@ -80,4 +80,4 @@ vulnerabilities:
 ```
 
 
-![Mondoo Junit report Gitlab](./assets/mondoo-cicd-gitlab-result-junit.png)
+![Mondoo Junit report Gitlab](./mondoo-cicd-gitlab-result-junit.png)
