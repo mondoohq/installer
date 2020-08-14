@@ -1,39 +1,39 @@
 # Summary
 
-* [Introduction](README.md)
+### Introduction
 
 * [Quick Start](quickstart/README.md#quickstart)
   * [Install CLI](quickstart/README.md#install-mondoo-cli)
   * [Register CLI](quickstart/README.md#create-cli-credentials)
   * [First Scan](quickstart/README.md#scan-your-first-target)
 
-### PART 1
+### Getting Started
 
 * [Getting Started](getstarted/README.md#hello-mondoo)
 
 * [Server Security](getstarted/server.md#server-security)
-  * [SSH Targets](getstarted/server.md#ssh-targets)
-  * [Ansible Inventory](getstarted/server.md#ansible-inventory)
-  * [Local System](getstarted/server.md#local-system)
+    * [SSH Targets](getstarted/server.md#ssh-targets)
+    * [Ansible Inventory](getstarted/server.md#ansible-inventory)
+    * [Local System](getstarted/server.md#local-system)
 
 * [Cloud Workload Security](getstarted/cloud-workload.md#cloud-workload-security)
-  * [Azure Instances](getstarted/cloud-workload.md#azure-instances)
-  * [AWS EC2 Instances](getstarted/cloud-workload.md#aws-ec2-instances)
-  * [GCP Instances](getstarted/cloud-workload.md#gcp-instances)
+    * [Azure Instances](getstarted/cloud-workload.md#azure-instances)
+    * [AWS EC2 Instances](getstarted/cloud-workload.md#aws-ec2-instances)
+    * [GCP Instances](getstarted/cloud-workload.md#gcp-instances)
 
 * [Container Security](getstarted/container.md#container-security)
-  * [Kubernetes](getstarted/container.md#kubernetes)
-  * [Docker Images](getstarted/container.md#docker-images)
-  * [Docker Container](getstarted/container.md#docker-container)
+    * [Kubernetes](getstarted/container.md#kubernetes)
+    * [Docker Images](getstarted/container.md#docker-images)
+    * [Docker Container](getstarted/container.md#docker-container)
 
 * [Container Registry Security](getstarted/registry.md#container-registry-security)
-  * [Azure Container Registry](getstarted/registry.md#azure-container-registry)
-  * [AWS Elastic Container Registry](getstarted/registry.md#aws-elastic-container-registry)
-  * [Docker Hub Repository](getstarted/registry.md#docker-hub-repository)
-  * [Google Cloud Container Registry](getstarted/registry.md#google-cloud-container-registry)
-  * [Harbor Registry](getstarted/registry.md#harbor-registry)
+    * [Azure Container Registry](getstarted/registry.md#azure-container-registry)
+    * [AWS Elastic Container Registry](getstarted/registry.md#aws-elastic-container-registry)
+    * [Docker Hub Repository](getstarted/registry.md#docker-hub-repository)
+    * [Google Cloud Container Registry](getstarted/registry.md#google-cloud-container-registry)
+    * [Harbor Registry](getstarted/registry.md#harbor-registry)
 
-### PART 2
+### Installation
 
 * [Installation](installation/README.md)
   * [Bash](installation/bash.md)
@@ -57,7 +57,7 @@
   * [version](cli/mondoo_version.md)
   * [Registration](cli/registration.md)
 
-### PART 3
+### Integrations
 
 * [CI/CD Integration](cicd/README.md#cicd)
   * [AWS CodeBuild](cicd/aws-codebuild.md#aws-codebuild)
@@ -92,5 +92,7 @@
   * [Slack](alerting/slack.md#slack)
   * [Telegram](alerting/telegram.md#telegram)
   * [API Webhook](alerting/webhook.md#api-webhook)
+
+### Support
 
 * [Help](help)
