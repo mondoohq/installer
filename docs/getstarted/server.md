@@ -1,3 +1,5 @@
+# Server Security
+
 ## SSH Targets
 
 The mondoo agent has full ssh support and picks up configuration from ssh config and credentials from the ssh-agent automatically. Therefore, you do not need to pass in secrets as clear text which prevents storing credentials in shell history. Plus, it is way more convenient :-)
@@ -10,7 +12,7 @@ $ mondoo scan -t ssh://ec2-user@52.51.185.215
 $ mondoo scan -t ssh://ec2-user@52.51.185.215:2222
 ```
 
-![Mondoo SSH scan from CLI](../assets/videos/ssh-scan.gif)
+![Mondoo SSH scan from CLI](../static/videos/ssh-scan.gif)
 
 Definitions from ` ~/.ssh/config` are used by the mondoo agent. The following defines the host `shorty` for ssh:
 
@@ -58,7 +60,7 @@ mondoo scan -t ssh://vagrant:vagrant@192.168.100.70
 
 Ansible inventory is a list of hosts that is mostly stored in the two common formats `ini` and `yaml`.
 
-![Mondoo using Ansible inventory](../assets/ansible-inventory.png)
+![Mondoo using Ansible inventory](../static/ansible-inventory.png)
 
 The ini format allows grouping and easy configuration of additional properties:
 

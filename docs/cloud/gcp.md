@@ -34,7 +34,7 @@ gcloud compute instances list
 
 Mondoo uses the instance information from GCP and tries to connect via SSH to each instance. Make sure you are able to connect to all instances via SSH. e.g. use [SSH keys in metadata](https://cloud.google.com/compute/docs/instances/adding-removing-ssh-keys)
 
-![Mondoo GCP instances scan from CLI](../../assets/videos/gcp-compute-scan.gif)
+![Mondoo GCP instances scan from CLI](../static/videos/gcp-compute-scan.gif)
 
 Once, the ssh key is configured, run `mondoo scan`
 

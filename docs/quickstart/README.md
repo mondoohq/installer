@@ -10,30 +10,30 @@ The easiest way to try Mondoo is by installing the agent locally on your worksta
 
 Go to [Mondoo Dashboard](https://mondoo.app) and register for a new account
 
-![Mondoo Registration](../assets/quickstart/register.png)
+![Mondoo Registration](./register.png)
 
 Once registered, you see the welcome screen
 
-![Create a new organization](../assets/quickstart/welcome.png)
+![Create a new organization](./welcome.png)
 
 Then create a new organization and space
 
-![Create a new organization](../assets/quickstart/createorganization.png)
+![Create a new organization](./createorganization.png)
 
-![Create a new space](../assets/quickstart/createspace.png)
+![Create a new space](./createspace.png)
 
 ## Install Mondoo CLI
 
 **macOS Workstation**
 
-![Mondoo Agent installation on macOS](../assets/videos/mondoo-setup-macos.gif)
+![Mondoo Agent installation on macOS](./static/videos/mondoo-setup-macos.gif)
 
 ```
 brew tap mondoolabs/mondoo
 brew install mondoo
 ```
 
-See [Installing Mondoo Agent on macOS workstation](../agent/installation/macos) for further information.
+See [Installing Mondoo Agent on macOS workstation](../installation/macos.md) for further information.
 
 **Linux Workstation**
 

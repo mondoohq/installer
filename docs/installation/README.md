@@ -22,12 +22,18 @@ a.agents img {
 }
 </style>
 
-<a href="/docs/agent/windows" class="agents"><img src="../assets/button-windows.png" class="agents"/></a><a href="/docs/agent/macos" class="agents"><img src="../assets/button-macos.png"/></a><a href="/docs/agent/redhat" class="agents"><img src="../assets/button-redhat.png"/></a><a href="/docs/agent/amazonlinux" class="agents"><img src="../assets/button-amzn.png" /></a>
+<a href="/docs/agent/windows" class="agents"><img src="../static/buttons/button-windows.png" class="agents"/></a>
+<a href="/docs/agent/macos" class="agents"><img src="../static/buttons/button-macos.png"/></a>
+<a href="/docs/agent/redhat" class="agents"><img src="../static/buttons/button-redhat.png"/></a>
+<a href="/docs/agent/amazonlinux" class="agents"><img src="../static/buttons/button-amzn.png" /></a>
 
-<a href="/docs/agent/ubuntu" class="agents"><img src="../assets/button-ubuntu.png"/></a><a href="/docs/agent/redhat" class="agents"><img src="../assets/button-centos.png" class="agents"/></a><a href="/docs/agent/ubuntu" class="agents"><img src="../assets/button-debian.png" class="agents"/></a><a href="/docs/agent/suse" class="agents"><img src="../assets/button-suse.png" class="agents"/></a>
+<a href="/docs/agent/ubuntu" class="agents"><img src="../static/buttons/button-ubuntu.png"/></a>
+<a href="/docs/agent/redhat" class="agents"><img src="../static/buttons/button-centos.png" class="agents"/></a>
+<a href="/docs/agent/ubuntu" class="agents"><img src="../static/buttons/button-debian.png" class="agents"/></a>
+<a href="/docs/agent/suse" class="agents"><img src="../static/buttons/button-suse.png" class="agents"/></a>
 
-<a href="/docs/agent/ansible" class="agents"><img src="../assets/button-ansible.png"/></a><a href="/docs/agent/chef" class="agents"><img src="../assets/button-chef.png"/></a>
-
+<a href="/docs/agent/ansible" class="agents"><img src="../static/buttons/button-ansible.png"/></a>
+<a href="/docs/agent/chef" class="agents"><img src="../static/buttons/button-chef.png"/></a>
 
 ## How it works
 
@@ -140,8 +146,6 @@ The agent uses a yaml configuration file. See the [registration documentation](.
 ## Troubleshooting
 
 For help with the installation, visit the [diagnosing documentation](./diagnosing) or contact [Mondoo Support](../help).
-
-
 
 ## How to Install Mondoo Agent
 

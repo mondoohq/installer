@@ -49,7 +49,7 @@ Provided with those values, you can trigger a scan via `mondoo`:
 $ mondoo scan -t az://subscriptions/subscriptionid/resourceGroups/groupname
 ```
 
-![Mondoo Azure instances scan from CLI](../../assets/videos/azure-compute-scan.gif)
+![Mondoo Azure instances scan from CLI](../static/videos/azure-compute-scan.gif)
 
 > Note: mondoo uses `~/.ssh/config` to determine the users for each detected public IP
 

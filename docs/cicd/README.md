@@ -60,7 +60,7 @@ This allows you to implement threshold-bassed deployment blocking. The following
 x=$(mondoo scan -t docker://centos:7 --config mondoo.json); exitcode="$?"; echo $x; echo $exitcode; test $exitcode -eq 0 -o $exitcode -eq 101 -o $exitcode -eq 102
 ```
 
-![Use custom threshold for Mondoo](../../assets/mondoo-cicd-threshold.png)
+![Use custom threshold for Mondoo](./assets/mondoo-cicd-threshold.png)
 
 **Pass on successful scan**
 
@@ -70,7 +70,7 @@ Another use case is to assess the vulnerability risk only. Instead of blocking t
 mondoo scan -t docker://a3592cc01fdf --exit-0-on-success
 ```
 
-![Always pass if the mondoo scan was successful](../../assets/mondoo-cicd-exit0.png)
+![Always pass if the mondoo scan was successful](./assets/mondoo-cicd-exit0.png)
 
 ### Store mondoo credentials
 
@@ -92,7 +92,7 @@ echo $MONDOO_AGENT_ACCOUNT > mondoo.json
 
 The JSON configuration file includes the agent's private key and certificate. The pem format requires proper newlines and some CI/CD systems interpret the newline. In those cases you recieve an error like `cannot configure certificate authentication`. The following illustrates that error in AWS CodePipeline:
 
-![Certificate authentication error in CI/CD](../../assets/mondoo-cicd-missingbase64.png)
+![Certificate authentication error in CI/CD](./assets/mondoo-cicd-missingbase64.png)
 
 To prevent the CI/CD system from interpreting the configuration content, you can encode the file as base64:
 
