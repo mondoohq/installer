@@ -1,1 +1,0 @@
-This section moved to [getting started](../get-started/)

@@ -67,5 +67,5 @@ mondoo scan -t ssh://ec2-user@54.76.229.223
 
  **Docs**
 
-  - [docs](./docs) - Source for Mondoo documentation (uses [docsify](https://docsify.js.org/#/quickstart))
+  - [docs](./docs) - Source for Mondoo documentation
 
