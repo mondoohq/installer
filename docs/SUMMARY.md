@@ -1,13 +1,13 @@
 # Summary
 
-### Introduction
+### 👋 Introduction
 
 * [Quick Start](quickstart/README.md#quickstart)
   * [Install CLI](quickstart/README.md#install-mondoo-cli)
   * [Register CLI](quickstart/README.md#create-cli-credentials)
   * [First Scan](quickstart/README.md#scan-your-first-target)
 
-### Getting Started
+### 🏁 Getting Started
 
 * [Getting Started](getstarted/README.md#hello-mondoo)
 
@@ -33,7 +33,7 @@
     * [Google Cloud Container Registry](getstarted/registry.md#google-cloud-container-registry)
     * [Harbor Registry](getstarted/registry.md#harbor-registry)
 
-### Installation
+### 📦 Installation
 
 * [Installation](installation/README.md)
   * [Bash](installation/bash.md)
@@ -48,7 +48,9 @@
   * [Suse/openSUSE](installation/suse.md)
   * [Binaries](installation/binaries.md)
 
-* [Mondoo CLI](cli/README.md)
+### 🖥 Mondoo CLI
+
+  * [Overview](cli/README.md)
   * [scan](cli/mondoo_scan.md)
   * [status](cli/mondoo_status.md)
   * [register](cli/mondoo_register.md)
@@ -57,7 +59,7 @@
   * [version](cli/mondoo_version.md)
   * [Registration](cli/registration.md)
 
-### Integrations
+### 🏗 Integrations
 
 * [CI/CD Integration](cicd/README.md#cicd)
   * [AWS CodeBuild](cicd/aws-codebuild.md#aws-codebuild)
@@ -93,6 +95,6 @@
   * [Telegram](alerting/telegram.md#telegram)
   * [API Webhook](alerting/webhook.md#api-webhook)
 
-### Support
+### 🪂 Support
 
 * [Help](help)
