@@ -34,7 +34,7 @@ This will determine all instances running in Azure and try to connect via SSH.
 
 > Note: we recommend to use ssh config to configure the login usernames and ssh-agent to manage your credentials
 
-Further information is available at [Integration/Cloud/Azure](../integration/cloud/azure#azure-integration)
+Further information is available at [Integration/Cloud/Azure](../cloud/azure.md#azure-integration)
 
 ## AWS EC2 Instances
 
@@ -72,7 +72,7 @@ $ mondoo scan -t ssh://ec2-user@52.51.185.215:2222
 
 > Note: we recommend to use ssh config to configure the login usernames and ssh-agent to manage your credentials
 
-Further information is available at [Integration/Cloud/AWS](../integration/cloud/aws#aws-integration)
+Further information is available at [Integration/Cloud/AWS](../cloud/aws.md#aws-integration)
 
 ## GCP Instances
 
@@ -113,4 +113,4 @@ $ mondoo scan -t ssh://user@52.51.185.215:2222
 > Note: we recommend to use ssh config to configure the login usernames and ssh-agent to manage your credentials
 
 
-Further information is available at [Integration/Cloud/GCP](../integration/cloud/gcp#gcp-integration)
+Further information is available at [Integration/Cloud/GCP](../cloud/gcp.md#gcp-integration)

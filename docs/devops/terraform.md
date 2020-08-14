@@ -1,6 +1,6 @@
 # Mondoo Terraform Provisioner
 
-Mondoo ships an integration for [Terraform](https://www.terraform.io/) to ease the assessment of vulnerabilities during an image build process. The integration is open source and available in our [Mondoo GitHub repository](https://github.com/mondoolabs/mondoo)
+Mondoo ships an integration for [Terraform](https://www.terraform.io/) to ease the assessment of vulnerabilities during an image build process. The integration is open source and available in our [Mondoo GitHub repository](https://github.com/mondoolabs/terraform-provisioner-mondoo)
 
 ## Install Mondoo Packer Provisioner
 

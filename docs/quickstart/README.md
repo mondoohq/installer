@@ -2,11 +2,11 @@
 
 The easiest way to try Mondoo is by installing the agent locally on your workstation or use our  Docker container `mondoolabs/mondoo`. You can easily try out
 
-* [Registration](#registration)
+* [Sign Up](#sign-up)
 * [Install Mondoo CLI](#install-mondoo-cli)
-* [Do your first scan](#do-your-first-scan)
+* [Do your first scan](#first-scan)
 
-## Registration
+## Sign Up
 
 Go to [Mondoo Dashboard](https://mondoo.app) and register for a new account
 
@@ -23,6 +23,8 @@ Then create a new organization and space
 ![Create a new space](./createspace.png)
 
 ## Install Mondoo CLI
+
+To quickly assess the state of a your systems, install the Mondoo CLI on your workstation.
 
 **macOS Workstation**
 
@@ -41,7 +43,7 @@ See [Installing Mondoo Agent on macOS workstation](../installation/macos.md) for
 curl -sSL https://mondoo.io/download.sh | bash
 ```
 
-> Note: We support a wide range of [Linux operating systems(../agent) . We recommend our [package installation](../agent/installation/bash#installing-mondoo-agent-via-bash-script) for server environments to ensure you always retrieve the latest updates. For workstations, we also provide a [script that just ships with the mondoo binary]((../agent/installation/binaries)).
+> Note: We support a wide range of [Linux operating systems](../installation) . We recommend our [package installation](../installation/bash.md#installing-mondoo-agent-via-bash-script) for server environments to ensure you always retrieve the latest updates. For workstations, we also provide a [script that just ships with the mondoo binary](../installation/binaries.md).
 
 **Windows workstation**
 
@@ -50,17 +52,17 @@ curl -sSL https://mondoo.io/download.sh | bash
 ```powershell
 iex (new-object net.webclient).downloadstring('https://mondoo.io/download.ps1')
 ```
-See [Installing Mondoo Agent on Windows workstation](../agent/installation/windows) for further information.
+See [Installing Mondoo Agent on Windows workstation](../installation/windows.md) for further information.
 
 ### Create CLI credentials
 
 ![Create a new agent](../assets/quickstart/spacedashboard.png)
 
-The Mondoo CLI use a secure private key to sign their data. Via a registration token, the agent is able to retrieve its credentials securely.
+The Mondoo CLI use a secure private key to sign the communication with an individual key. Via a registration token, the agent is able to retrieve its credentials securely.
 
-Use the [dashboard](../agent/installation/registration#agent-registration) to gather a new registration token.
+Use the [dashboard](../installation/registration.md#agent-registration) to gather a new registration token.
 
-![Create a new agent](../assets/quickstart/addagent.png)
+![Create a new agent](../quickstart/addagent.png)
 
 
 ```
@@ -68,7 +70,7 @@ mondoo register --token 'ey...FlP'
   ✔  agent //agents.api.mondoo.app/spaces/dazzling-hermann-857694/agents/1NmZG4Mt2fKXRrYGvUPiyLG7JyQ registered successfully
 ```
 
-## Scan your first target
+## First scan
 
 Scan a SSH target:
 

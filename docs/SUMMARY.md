@@ -3,9 +3,9 @@
 ### 👋 Introduction
 
 * [Quick Start](quickstart/README.md#quickstart)
+  * [Sign Up](quickstart/README.md#create-cli-credentials)
   * [Install CLI](quickstart/README.md#install-mondoo-cli)
-  * [Register CLI](quickstart/README.md#create-cli-credentials)
-  * [First Scan](quickstart/README.md#scan-your-first-target)
+  * [First Scan](quickstart/README.md#first-scan)
 
 ### 🏁 Getting Started
 
@@ -35,7 +35,7 @@
 
 ### 📦 Installation
 
-* [Installation](installation/README.md)
+  * [Overview](installation/README.md)
   * [Bash](installation/bash.md)
   * [Cloudinit](installation/cloudinit.md)
   * [Ansible](installation/ansible.md)
@@ -47,6 +47,7 @@
   * [Amazon Linux](installation/amazonlinux.md)
   * [Suse/openSUSE](installation/suse.md)
   * [Binaries](installation/binaries.md)
+  * [Registration](installation/registration.md)
 
 ### 🖥 Mondoo CLI
 
@@ -57,9 +58,10 @@
   * [mondoo unregister](cli/mondoo_unregister.md)
   * [mondoo migrate](cli/mondoo_migrate.md)
   * [mondoo version](cli/mondoo_version.md)
-  * [Registration](cli/registration.md)
 
 ### 🏗 Integrations
+
+* [Overview](integration.md)
 
 * [CI/CD Integration](cicd/README.md#cicd)
   * [AWS CodeBuild](cicd/aws-codebuild.md#aws-codebuild)
@@ -97,4 +99,4 @@
 
 ### 🪂 Support
 
-* [Help](help)
+* [Help](help.md)

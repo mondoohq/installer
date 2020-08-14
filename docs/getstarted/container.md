@@ -27,7 +27,7 @@ $ mondoo scan -t k8s://context/c1/namespace/n1
 $ mondoo scan -t k8s://namespace/n1
 ```
 
-Further information is available at [Integration/Cloud/K8S](../integration/cloud/k8s#k8s-integration)
+Further information is available at [Integration/Cloud/K8S](../cloud/k8s.md#k8s-integration)
 
 ## Docker Images
 
