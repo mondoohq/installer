@@ -1,7 +1,0 @@
-- [Getting Started](../get-started/)
-- **Agent**
-  - [Overview](readme.md#the-mondoo-agent)
-  - [Installation](installation/)
-  - [Mondoo CLI](cli/)
-- [Integration](../integration/)
-- [Help](../help)

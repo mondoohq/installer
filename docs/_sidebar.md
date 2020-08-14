@@ -1,4 +1,0 @@
-- [Getting Started](get-started/#hello-mondoo)
-- [Mondoo Agent](agent/)
-- [Integrations](integration/)
-- [Help](help)

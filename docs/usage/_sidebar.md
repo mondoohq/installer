@@ -1,4 +1,0 @@
-- [Get Started](../get-started/)
-- [Agent](../agent/)
-- [Integrations](../integration/)
-- [Help](../help)

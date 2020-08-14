@@ -1,1 +1,0 @@
-This content moved to [integration/devops/terraform]()
