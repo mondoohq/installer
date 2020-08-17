@@ -1,4 +1,4 @@
-## Gitlab
+# Gitlab
 
 ![Illustration of Gitlab CI integration](./integration-gitlabci.png)
 

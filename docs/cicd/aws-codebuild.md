@@ -1,4 +1,4 @@
-## AWS CodeBuild
+# AWS CodeBuild
 
 ![Illustration of AWS CodePipeline integration](./integration-aws-codepipeline.png)
 

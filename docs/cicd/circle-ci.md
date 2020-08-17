@@ -1,4 +1,4 @@
-## Circle CI
+# Circle CI
 
 ![Illustration of Circle CI integration](./integration-circleci.png)
 

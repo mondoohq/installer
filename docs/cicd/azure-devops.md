@@ -1,4 +1,4 @@
-## Azure DevOps
+# Azure DevOps
 
 ![Illustration of Azure DevOps integration](./integration-azure-devops.png)
 

@@ -1,4 +1,4 @@
-## Jenkins
+# Jenkins
 
 ![Illustration of Jenkins CI integration](./integration-jenkins.png)
 

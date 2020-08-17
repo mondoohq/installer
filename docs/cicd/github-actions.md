@@ -1,4 +1,4 @@
-## Github Actions
+# Github Actions
 
 ![Illustration of Github Actions integration](./integration-github-actions.png)
 

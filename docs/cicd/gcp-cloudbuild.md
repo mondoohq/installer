@@ -1,4 +1,4 @@
-## GCP Cloud Build
+# GCP Cloud Build
 
 ![Illustration of GCP Cloud Build integration](./integration-gcp-cloudbuild.png)
 
