@@ -2,7 +2,6 @@
 
 ![Hi](./static/hello.png)
 
-
 <style>
 .tile {
   display:block;
@@ -13,6 +12,7 @@
   color: white !important;
   font-size: 20px;
   margin-right: 10px;
+  margin-bottom: 10px;
   line-height: 200px;
   text-align:center;
 }
@@ -27,6 +27,7 @@
 }
 </style>
 
+<p>
 <div class="flex-container">
   <a href="./getstarted/" class="tile">
     <spans>
@@ -38,6 +39,8 @@
       Installation
     </span>
   </a>
+</div>
+<div class="flex-container">
   <a href="./cli/" class="tile">
     <span class="tile">
       Mondoo CLI
@@ -49,3 +52,4 @@
     </span>
   </a>
 </div>
+<p>
