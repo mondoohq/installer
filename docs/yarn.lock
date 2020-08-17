@@ -921,10 +921,10 @@ highlight.js@9.8.0:
   resolved "https://registry.yarnpkg.com/highlight.js/-/highlight.js-9.8.0.tgz#38eeef40cd45eaddbec8c9e5238fb7a783a3b685"
   integrity sha1-OO7vQM1F6t2+yMnlI4+3p4OjtoU=
 
-honkit@^3.6.0:
-  version "3.6.0"
-  resolved "https://registry.yarnpkg.com/honkit/-/honkit-3.6.0.tgz#07e33219da47a680a3ad3a878a6d77697826e73a"
-  integrity sha512-x7aAbNXG3SdN7u4JlG6lw9j7WzQyJyTPvwxGzF6fYcDaW8pEGzJ7B4vrT+7y/PYLOP9OTNMxSpGzpncEWFOzeg==
+honkit@^3.6.1:
+  version "3.6.1"
+  resolved "https://registry.yarnpkg.com/honkit/-/honkit-3.6.1.tgz#c0cb2127db34bb3da5681616ae47b75bf927af7c"
+  integrity sha512-OSOm7Yq8PffC0S6gAtQkHQfdUIv+HA1v0VQpltOrqCN7jXnKP9DpTsMcTPz5alR8/Uu9irgyBjnpRO+WXDXrng==
   dependencies:
     "@honkit/asciidoc" "^3.5.5"
     "@honkit/honkit-plugin-theme-default" "^3.5.2"
