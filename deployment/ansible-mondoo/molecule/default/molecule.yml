@@ -5,8 +5,10 @@ driver:
   name: vagrant
   provider:
     name: virtualbox
-lint:
-  name: yamllint
+lint: |
+  yamllint
+  ansible-lint
+  flake8
 platforms:
   - name: ubuntu
     box: ubuntu/bionic64
@@ -14,14 +16,10 @@ platforms:
     box: centos/7
 provisioner:
   name: ansible
-  lint:
-    name: ansible-lint
 verifier:
   name: testinfra
   env:
     PYTHONWARNINGS: "ignore:.*U.*mode is deprecated:DeprecationWarning"
-  lint:
-    name: flake8
   options:
     # show which tests where executed in test output
     v: 1

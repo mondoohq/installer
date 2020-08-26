@@ -47,7 +47,7 @@ For testing, this role uses molecule. You can install the dependencies via:
 ```bash
 pip install molecule
 pip install python-vagrant
-pip install 'molecule[vagrant]'
+pip install molecule-vagrant
 ```
 
 The `molecule` cli covers the test lifecycle: 
