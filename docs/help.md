@@ -9,8 +9,8 @@ a.help {
 
 | Email  | Community Forum  | Found a Bug? |
 | --- | --- | --- |
-| <a href="mailto:hello@mondoo.io" class="help" >![Mondoo Email Contact](./static/buttons/button-help-email.png)</a> | <a href="https://spectrum.chat/mondoo" target="_blank" class="help">![Mondoo Community](./static/buttons/button-help-community.png)</a> | <a href="https://github.com/mondoolabs/mondoo/issues" target="_blank" class="help">![Mondoo Bug Report](./static/buttons/button-help-github.png)  |
-| Contact us via email at <br/>[hello@mondoo.io](mailto:hello@mondoo.io) | [Post a question](https://spectrum.chat/mondoo) | [Submit an issue](https://github.com/mondoolabs/mondoo/issues) |
+| <a href="mailto:hello@mondoo.io" class="help" >![Mondoo Email Contact](./static/buttons/button-help-email.png)</a> | <a href="https://github.com/mondoolabs/mondoo/issues" target="_blank" class="help">![Mondoo Bug Report](./static/buttons/button-help-github.png)  |
+| Contact us via email at <br/>[hello@mondoo.io](mailto:hello@mondoo.io) | [Submit an issue](https://github.com/mondoolabs/mondoo/issues) |
 
 
 # Frequently Asked Questions

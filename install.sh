@@ -47,7 +47,7 @@ function purple { echo -e "${purple}${1}${end}"; }
 function purple_bold { echo -e "${purpleb}${1}${end}"; }
 
 function on_error() {
-  red "It looks like you hit an issue when trying to install Mondoo. The Mondoo Community is available at: https://spectrum.chat/mondoo"
+  red "It looks like you hit an issue when trying to install Mondoo. The Mondoo Community is available at: https://github.com/mondoolabs/mondoo"
   exit 1;
 }
 
@@ -68,7 +68,7 @@ echo -e "\nWelcome to the Mondoo Install Script. It tries to auto-detect your
 operating system and determines the appropriate package manager. If you are 
 experiencing any issues, please do not hesitate to reach out: 
 
-  * Mondoo Community https://spectrum.chat/mondoo
+  * Mondoo Community https://github.com/mondoolabs
 
 This script source is available at: https://github.com/mondoolabs/mondoo
 "
@@ -123,14 +123,14 @@ elif [ $OS = "Suse" ]; then
 elif [ $OS = "macOS" ]; then
   red "macOS is not supported yet. Please reach out at Mondoo Community:
 
-  * https://spectrum.chat/mondoo
+  * https://github.com/mondoolabs/mondoo
 "
   exit 1;
 else
   red "Your operating system is not supported yet. Please reach out at 
 Mondoo Community:
 
-  * https://spectrum.chat/mondoo
+  * https://github.com/mondoolabs/mondoo
 "
   exit 1;
 fi
@@ -177,6 +177,6 @@ purple_bold "\nThank you for installing Mondoo!"
 purple "
 If you have any questions, please reach out at Mondoo Community:
 
-  * https://spectrum.chat/mondoo
+  * https://github.com/mondoolabs/mondoo
 "
 

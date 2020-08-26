@@ -50,7 +50,7 @@ echo -e "\nWelcome to the Mondoo Binary Download Script. It tries to auto-detect
 operating system and determines the appropriate binnary for your platform. If you are 
 experiencing any issues, please do not hesitate to reach out: 
 
-  * Mondoo Community https://spectrum.chat/mondoo
+  * Mondoo Community https://github.com/mondoolabs/mondoo
 
 This script source is available at: https://github.com/mondoolabs/mondoo
 "
@@ -127,5 +127,5 @@ Further information is available at https://mondoo.io/docs
 
 If you have any questions, please reach out at Mondoo Community:
 
-* https://spectrum.chat/mondoo
+* https://github.com/mondoolabs/mondoo
 "
