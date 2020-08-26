@@ -1,6 +1,12 @@
 ---
 # defaults file for mondoo
 
+
+# we support 'manual' and 'cli'
+# if 'manual' is set, the user need to set `registration_token`
+# if 'cli' is set, the user need to have a local mondoo agent installed
+registration_token_retrieval: "manual"
+
 # deb repo
 mondoo_deb_repo: "deb https://releases.mondoo.io/debian/ stable main"
 mondoo_deb_gpgkey: "https://releases.mondoo.io/debian/pubkey.gpg"

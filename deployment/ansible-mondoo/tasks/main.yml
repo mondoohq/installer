@@ -18,8 +18,21 @@
   become: true
   when: not ansible_check_mode
 
+- name: runs mondoo agent to retrieve a new token
+  command: mondoo agents generate-token --expiresin 120
+  connection: local
+  register: retrievedRegistrationToken
+  when: registration_token_retrieval == "cli"
+
+- set_fact:
+    registration_token={{ retrievedRegistrationToken.stdout }}
+  when: registration_token_retrieval == "cli"
+
+- debug: var=registration_token
+  run_once: true
+
 - name: Register Mondoo Agent
-  command: mondoo register --config /etc/opt/mondoo/mondoo.yml --token {{ mondoo_registration_token | default('setregistrationtoken') }}
+  command: mondoo register --config /etc/opt/mondoo/mondoo.yml --token {{ registration_token }}
   args:
     # only run the command if no config file exists
     creates: /etc/opt/mondoo/mondoo.yml
