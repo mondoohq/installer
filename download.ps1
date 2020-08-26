@@ -22,7 +22,7 @@ info "Welcome to the Mondoo Binary Download Script. It downloads the Mondoo bina
 Windows into $ENV:UserProfile\mondoo and adds the path to the user's environment PATH. If 
 you are experiencing any issues, please do not hesitate to reach out: 
 
-  * Mondoo Community https://spectrum.chat/mondoo
+  * Mondoo Community https://github.com/mondoolabs/mondoo
 
 This script source is available at: https://github.com/mondoolabs/mondoo
 "
@@ -53,7 +53,7 @@ if ($env:PROCESSOR_ARCHITECTURE -ne 'AMD64') {
 Your processor architecture $env:PROCESSOR_ARCHITECTURE is not supported yet. Please contact 
 out at Mondoo Community:
 
-  * https://spectrum.chat/mondoo
+  * https://github.com/mondoolabs/mondoo
 "
 }
 
@@ -115,7 +115,7 @@ info "Thank you for downloading Mondoo!"
 info "
 If you have any questions, please reach out at Mondoo Community:
 
-  * https://spectrum.chat/mondoo
+  * https://github.com/mondoolabs/mondoo
 "
 
 # reset erroractionpreference
