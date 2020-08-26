@@ -24,7 +24,8 @@ It supports:
 
 | Name           | Default Value | Description                        |
 | -------------- | ------------- | -----------------------------------|
-| `mondoo_registration_token`| `changeme` | Mondoo Registration Token that is used to retrieve agent credentials
+| `registration_token_retrieval` | `manual` | `manual` requires to set ``registration_token`. `cli` call a local mondoo agent to automatically retrieve a new registration token |
+| `registration_token`|  n/a | manually set the Mondoo Registration Token that is used to register new agents
 
 ## Dependencies
 
@@ -32,12 +33,12 @@ This role has no role dependencies
 
 ## Example Playbook
 
-This is an example of how to use the mondoo role with the `mondoo_registration_token` variable in an ansible playbook:
+This is an example of how to use the mondoo role with the `registration_token` variable in an ansible playbook:
 
 ```
     - hosts: servers
       roles:
-         - { role: mondoo, mondoo_registration_token: "changeme" }
+         - { role: mondoo, registration_token: "changeme" }
 ```
 
 ## Testing
