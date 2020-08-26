@@ -72,7 +72,7 @@ function determine_latest() {
   $wc = New-Object Net.Webclient
   $wc.Headers.Add('User-Agent', (Get-UserAgent))
   $latest = $wc.DownloadString($url) | ConvertFrom-Json 
-  $entry = $latest.files | where { $_.platform -eq "windows" } 
+  $entry = $latest.files | where { $_.platform -eq "windows" -and $_.filename -match 'zip$' }
   $entry.filename
 }
 
