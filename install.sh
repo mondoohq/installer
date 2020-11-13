@@ -137,6 +137,17 @@ fi
 
 # Lets register the agent
 if [ ! -z "${MONDOO_REGISTRATION_TOKEN}" ]; then
+
+  if [ $(cat /proc/1/comm) = "init" ]
+  then
+    echo " -> Stop mondoo upstart service"
+    $sudo_cmd stop mondoo || true
+  elif [ $(cat /proc/1/comm) = "systemd" ]
+  then
+    echo " -> Stop mondoo systemd service"
+    $sudo_cmd systemctl stop mondoo
+  fi
+
   purple_bold "\n* Register agent with Mondoo Cloud"
   $sudo_cmd mkdir -p /etc/opt/mondoo/
   $sudo_cmd mondoo register --config /etc/opt/mondoo/mondoo.yml --token $MONDOO_REGISTRATION_TOKEN
