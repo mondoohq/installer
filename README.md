@@ -49,10 +49,6 @@ mondoo scan -t ssh://ec2-user@54.76.229.223
 - [download.sh](./download.sh) - Mondoo Agent Bash Downloader for Workstation
 - [Dockerfile](./Dockerfile) - Build script for official Mondoo container
 
-**Mondoo Integration**
-- [packer-provisioner-mondoo](https://github.com/mondoolabs/packer-provisioner-mondoo) - Mondoo Packer Provisioner
-- [terraform-provisioner-mondoo](https://github.com/mondoolabs/terraform-provisioner-mondoo) - Mondoo Terrafrom Provisioner
-
 **Examples**
 
  - [ansible-aws-ec2](./examples/ansible-aws-ec2) - Ansible Playbook to deploy Mondoo Agents

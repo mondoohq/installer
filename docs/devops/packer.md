@@ -1,6 +1,6 @@
 # Mondoo Packer Provisioner
 
-Mondoo ships an integration for [Packer](https://www.packer.io) to ease the assessment of vulnerabilities during an image build process. The integration is open source and available in our [Mondoo GitHub repository](https://github.com/mondoolabs/packer-provisioner-mondoo)
+Mondoo ships an integration for [Packer](https://www.packer.io) to ease the assessment of vulnerabilities during an image build process.
 
 ## Install Mondoo Packer Provisioner
 
@@ -11,40 +11,55 @@ The Mondoo Packer Provisioner depends on:
 
 The provisioner plugin may be installed via:
 
-  * Precompiled binary (recommended)
-  * From Source (advanced)
+  * Precompiled binary
 
 ### Install packer plugin from binary
 
-To install the precompiled binary, download the appropriate package from [Github](https://github.com/mondoolabs/packer-provisioner-mondoo/releases/latest) and place the binary in the Packer's plugin directory `~/.packer.d/plugins` (Linux, Mac) or `%USERPROFILE%/packer.d/plugins` (Windows). Other locations that Packer searches for are [documented on their website](https://www.packer.io/docs/extending/plugins.html#installing-plugins).
+To install the precompiled binary, download the appropriate package from [Mondoo](https://releases.mondoo.io/packer-provisioner-mondoo/) and place the binary in the Packer's plugin directory `~/.packer.d/plugins` (Linux, Mac) or `%USERPROFILE%/packer.d/plugins` (Windows). Other locations that Packer searches for are [documented on their website](https://www.packer.io/docs/extending/plugins.html#installing-plugins).
 
 The following simplifies the installation:
 
 **Linux**
 
-```
+```bash
+# ensure packer plugin directory
 mkdir -p ~/.packer.d/plugins
 cd ~/.packer.d/plugins
-curl -sSL https://github.com/mondoolabs/packer-provisioner-mondoo/releases/latest/download/packer-provisioner-mondoo_linux_amd64.tar.gz | tar -xz > packer-provisioner-mondoo
+
+# download the latest
+curl https://releases.mondoo.io/packer-provisioner-mondoo/latest.json | jq -r '.files[] | select (.platform=="linux").filename' | xargs -n 1 curl | tar -xz > packer-provisioner-mondoo
+
+# download a specific version
+curl -sSL https://releases.mondoo.io/packer-provisioner-mondoo/0.14.0/packer-provisioner-mondoo_linux_amd64.tar.gz | tar -xz > packer-provisioner-mondoo
+
+# set the permissions
 chmod +x packer-provisioner-mondoo
 ```
 
 **Mac**
 
-```
+```bash
+# ensure packer plugin directory
 mkdir -p ~/.packer.d/plugins
 cd ~/.packer.d/plugins
-curl -sSL https://github.com/mondoolabs/packer-provisioner-mondoo/releases/latest/download/packer-provisioner-mondoo_darwin_amd64.tar.gz | tar -xz > packer-provisioner-mondoo
+
+# download the latest
+curl https://releases.mondoo.io/packer-provisioner-mondoo/latest.json | jq -r '.files[] | select (.platform=="darwin").filename' | xargs -n 1 curl | tar -xz > packer-provisioner-mondoo
+
+# download a specific version
+curl -sSL https://releases.mondoo.io/packer-provisioner-mondoo/0.14.0/packer-provisioner-mondoo_darwin_amd64.tar.gz | tar -xz > packer-provisioner-mondoo
+
+# set the permissions
 chmod +x packer-provisioner-mondoo
 ```
 
 **Windows**
 
-Download the binary from the [Github releases page](https://github.com/mondoolabs/packer-provisioner-mondoo/releases) and put it in the same directory as your packer executable.
+Download the binary from the [Mondoo releases page](https://releases.mondoo.io/packer-provisioner-mondoo) and put it in the same directory as your packer executable.
 
 ```powershell
 # This script requires powershell
-Invoke-WebRequest 'https://github.com/mondoolabs/packer-provisioner-mondoo/releases/latest/download/packer-provisioner-mondoo_windows_amd64.zip' -O 'packer-provisioner-mondoo_windows_amd64.zip'
+Invoke-WebRequest 'https://releases.mondoo.io/packer-provisioner-mondoo/0.14.0/packer-provisioner-mondoo_windows_amd64.zip' -O 'packer-provisioner-mondoo_windows_amd64.zip'
 
 # extract zip and place it in the same path as packer
 Expand-Archive -LiteralPath packer-provisioner-mondoo_windows_amd64.zip
@@ -54,10 +69,6 @@ Copy-Item ./packer-provisioner-mondoo_windows_amd64/packer-provisioner-mondoo.ex
 Remove-Item -Recurse -Force .\packer-provisioner-mondoo_windows_amd64
 Remove-Item packer-provisioner-mondoo_windows_amd64.zip
 ```
-
-### Compiling the Packer plugin from source
-
-If you wish to compile from source, follow our [instructions](https://github.com/mondoolabs/packer-provisioner-mondoo/releases)
 
 ### Verifying the Installation
 

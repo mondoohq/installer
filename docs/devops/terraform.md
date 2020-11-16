@@ -1,6 +1,6 @@
 # Mondoo Terraform Provisioner
 
-Mondoo ships an integration for [Terraform](https://www.terraform.io/) to ease the assessment of vulnerabilities during an image build process. The integration is open source and available in our [Mondoo GitHub repository](https://github.com/mondoolabs/terraform-provisioner-mondoo)
+Mondoo ships an integration for [Terraform](https://www.terraform.io/) to ease the assessment of vulnerabilities during an image build process.
 
 ## Install Mondoo Packer Provisioner
 
@@ -11,8 +11,7 @@ The Mondoo Packer Provisioner depends on:
 
 The provisioner plugin may be installed via:
 
-  * Pre-compiled binary (recommended)
-  * From Source (advanced)
+  * Pre-compiled binary
 
 ### Install packer plugin from binary
 
@@ -44,7 +43,7 @@ Download the binary from the [Github releases page](https://github.com/mondoolab
 
 ```powershell
 # This script requires powershell
-Invoke-WebRequest 'https://github.com/mondoolabs/terraform-provisioner-mondoo/releases/latest/download/terraform-provisioner-mondoo_windows_amd64.zip' -O 'terraform-provisioner-mondoo_windows_amd64.zip'
+Invoke-WebRequest 'https://releases.mondoo.io/terraform-provisioner-mondoo/0.8.0/terraform-provisioner-mondoo_windows_amd64.zip' -O 'terraform-provisioner-mondoo_windows_amd64.zip'
 
 # extract zip and place it in the same path as packer
 Expand-Archive -LiteralPath terraform-provisioner-mondoo_windows_amd64.zip
@@ -55,9 +54,6 @@ Remove-Item -Recurse -Force .\terraform-provisioner-mondoo_windows_amd64
 Remove-Item terraform-provisioner-mondoo_windows_amd64.zip
 ```
 
-### Compiling the Terraform plugin from source
-
-If you wish to compile from source, follow our [instructions](https://github.com/mondoolabs/terraform-provisioner-mondoo/releases)
 ### Verifying the Installation
 
 After installing Terraform, Mondoo Agent and the Mondoo Terraform Provisioning Plugin run the following commands to check that everything is configured properly:
