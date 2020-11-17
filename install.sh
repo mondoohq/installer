@@ -104,16 +104,21 @@ if [ $OS = "RedHat" ]; then
   purple_bold "\n* Installing the Mondoo agent package"
   $sudo_cmd yum install -y mondoo
 elif [ $OS = "Debian" ]; then
-  purple_bold "\n* Installing apt-transport-https"
-  $sudo_cmd apt-get update
-  $sudo_cmd apt-get install -y apt-transport-https ca-certificates gnupg
+  if type mondoo >nul 2>&1; then
+    purple_bold "\n* Mondoo already installed. Installing updates if available"
+    $sudo_cmd apt-get update -y && $sudo_cmd apt-get upgrade -y mondoo
+  else  
+    purple_bold "\n* Installing apt-transport-https"
+    $sudo_cmd apt-get update
+    $sudo_cmd apt-get install -y apt-transport-https ca-certificates gnupg
 
-  purple_bold "\n* Configuring APT package sources for Mondoo at /etc/apt/sources.list.d/mondoo.list"
-  curl --retry 3 --retry-delay 10 -sSL https://releases.mondoo.io/debian/pubkey.gpg | $sudo_cmd apt-key add - 
-  echo "deb https://releases.mondoo.io/debian/ stable main" | $sudo_cmd tee /etc/apt/sources.list.d/mondoo.list
+    purple_bold "\n* Configuring APT package sources for Mondoo at /etc/apt/sources.list.d/mondoo.list"
+    curl --retry 3 --retry-delay 10 -sSL https://releases.mondoo.io/debian/pubkey.gpg | $sudo_cmd apt-key add - 
+    echo "deb https://releases.mondoo.io/debian/ stable main" | $sudo_cmd tee /etc/apt/sources.list.d/mondoo.list
 
-  purple_bold "\n* Installing the Mondoo agent package"
-  $sudo_cmd apt-get update -y && $sudo_cmd apt-get install -y mondoo
+    purple_bold "\n* Installing the Mondoo agent package"
+    $sudo_cmd apt-get update -y && $sudo_cmd apt-get install -y mondoo
+  fi
 elif [ $OS = "Suse" ]; then
   purple_bold "\n* Configuring ZYPPER sources for Mondoo at /etc/zypp/repos.d/mondoo.repo"
   curl --retry 3 --retry-delay 10 -sSL https://releases.mondoo.io/rpm/mondoo.repo | $sudo_cmd tee /etc/zypp/repos.d/mondoo.repo
