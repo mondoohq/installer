@@ -82,7 +82,6 @@ if [ $DISTRIBUTION = "Darwin" ]; then
   OS="macOS"
 elif [ -f /etc/debian_version -o "$DISTRIBUTION" == "Debian" -o "$DISTRIBUTION" == "Ubuntu" ]; then
   OS="Debian"
-  FILE=/etc/opt/mondoo/mondoo.yml
 elif [ -f /etc/redhat-release -o "$DISTRIBUTION" == "RedHat" -o "$DISTRIBUTION" == "CentOS" -o "$DISTRIBUTION" == "Amazon" ]; then
   OS="RedHat"
 # openSUSE and SUSE use /etc/SuSE-release
@@ -143,8 +142,12 @@ fi
 
 # Lets register the agent
 if [ ! -z "${MONDOO_REGISTRATION_TOKEN}" ]; then
-  # if mondoo creds file does not exist, register the token
-  if ! test -f "$FILE"; then
+  # check the exit code of mondoo status command
+  if [ $(mondoo status >nul 2>&1; echo $?) -eq "0" ]; then
+    # expect 0 if agent registered, 1 if not
+    purple_bold "\n* Agent already registered. Skipping registration."
+    is_registered=true
+  else
     if [ $(cat /proc/1/comm) = "init" ]
     then
       echo " -> Stop mondoo upstart service"
@@ -172,9 +175,6 @@ if [ ! -z "${MONDOO_REGISTRATION_TOKEN}" ]; then
     else
       red "\nSkip service setup: could not detect a supported init system"
     fi
-  else
-    purple_bold "\n* Agent already registered. Skipping registration."
-    is_registered=true
   fi
 else
   red "\nSkip agent registration since MONDOO_REGISTRATION_TOKEN was not set"
