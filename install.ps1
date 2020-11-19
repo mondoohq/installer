@@ -16,7 +16,7 @@
 #>
 [CmdletBinding()]
 Param(
-    [string]   $RegistrationToken,
+    [string]   $RegistrationToken = '',
     [string]   $DownloadType = 'msi',
     [string]   $Version = ''
 )
@@ -115,6 +115,12 @@ us via https://github.com/mondoolabs/mondoo or hello@mondoo.io
 "
 }
 
+info "Arguments:"
+info ("  RegistrationToken: {0}" -f $RegistrationToken)
+info ("  DownloadType:      {0}" -f $DownloadType)
+info ("  Version:           {0}" -f $Version)
+info ""
+
 # determine download url
 $filetype = $DownloadType
 $releaseurl = ''
@@ -154,11 +160,17 @@ If ($filetype -eq 'zip') {
       "/norestart"
       "/L*v"
       $logFile
+      "RegistrationToken='{0}'" -f $RegistrationToken
   )
-  Start-Process "msiexec.exe"  -Wait -NoNewWindow -ArgumentList $args
+  $process = Start-Process "msiexec.exe" -Wait -NoNewWindow -PassThru -ArgumentList $args
+  # https://docs.microsoft.com/en-us/windows/win32/msi/error-codes
+  If (@(0,3010) -contains $process.ExitCode) { 
+    success ' * Mondoo was installed successfully!'
+  } Else {
+    fail " * Mondoo installation failed with exit code: {0}" -f $process.ExitCode
+  }
   Remove-Item $downloadlocation -Force
-
-  success ' * Mondoo was installed successfully!'
+  
 } Else {
   fail "${filetype} is not supported for download"
 }
