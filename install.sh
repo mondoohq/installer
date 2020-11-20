@@ -59,7 +59,7 @@ purple "
   __  __                 _             
  |  \/  |               | |            
  | \  / | ___  _ __   __| | ___   ___  
- | |\/| |/ _ \| \'_ \ / _\` |/ _ \ / _ \ 
+ | |\/| |/ _ \| \_ \ / _\ |/ _ \ / _ \ 
  | |  | | (_) | | | | (_| | (_) | (_) |
  |_|  |_|\___/|_| |_|\__,_|\___/ \___/ 
 "
@@ -98,11 +98,16 @@ fi
 
 # Install the necessary package sources
 if [ $OS = "RedHat" ]; then
-  purple_bold "\n* Configuring YUM sources for Mondoo at /etc/yum.repos.d/mondoo.repo"
-  curl --retry 3 --retry-delay 10 -sSL https://releases.mondoo.io/rpm/mondoo.repo | $sudo_cmd tee /etc/yum.repos.d/mondoo.repo
+  if type mondoo >nul 2>&1; then
+    purple_bold "\n* Mondoo already installed. Installing updates if available"
+    $sudo_cmd yum update -y mondoo
+  else  
+    purple_bold "\n* Configuring YUM sources for Mondoo at /etc/yum.repos.d/mondoo.repo"
+    curl --retry 3 --retry-delay 10 -sSL https://releases.mondoo.io/rpm/mondoo.repo | $sudo_cmd tee /etc/yum.repos.d/mondoo.repo
 
-  purple_bold "\n* Installing the Mondoo agent package"
-  $sudo_cmd yum install -y mondoo
+    purple_bold "\n* Installing the Mondoo agent package"
+    $sudo_cmd yum install -y mondoo
+  fi
 elif [ $OS = "Debian" ]; then
   if type mondoo >nul 2>&1; then
     purple_bold "\n* Mondoo already installed. Installing updates if available"
@@ -120,11 +125,16 @@ elif [ $OS = "Debian" ]; then
     $sudo_cmd apt-get update -y && $sudo_cmd apt-get install -y mondoo
   fi
 elif [ $OS = "Suse" ]; then
-  purple_bold "\n* Configuring ZYPPER sources for Mondoo at /etc/zypp/repos.d/mondoo.repo"
-  curl --retry 3 --retry-delay 10 -sSL https://releases.mondoo.io/rpm/mondoo.repo | $sudo_cmd tee /etc/zypp/repos.d/mondoo.repo
+  if type mondoo >nul 2>&1; then
+    purple_bold "\n* Mondoo already installed. Installing updates if available"
+    $sudo_cmd zypper -n update mondoo
+  else
+    purple_bold "\n* Configuring ZYPPER sources for Mondoo at /etc/zypp/repos.d/mondoo.repo"
+    curl --retry 3 --retry-delay 10 -sSL https://releases.mondoo.io/rpm/mondoo.repo | $sudo_cmd tee /etc/zypp/repos.d/mondoo.repo
 
-  purple_bold "\n* Installing the Mondoo agent package"
-  $sudo_cmd zypper -n --gpg-auto-import-keys install mondoo
+    purple_bold "\n* Installing the Mondoo agent package"
+    $sudo_cmd zypper -n --gpg-auto-import-keys install mondoo
+  fi
 elif [ $OS = "macOS" ]; then
   red "macOS is not supported yet. Please reach out at Mondoo Community:
 
