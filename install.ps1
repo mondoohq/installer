@@ -11,8 +11,8 @@
     .PARAMETER Version
     If provided, tries to download the specific version instead of the latest
     .EXAMPLE
-    .\install.ps1 -RegistrationToken INSERTKEYHERE
-    .\install.ps1 -Version 1.4.0
+    Import-Module ./install.ps1; Install-Mondoo -RegistrationToken INSERTKEYHERE
+    Import-Module ./install.ps1; Install-Mondoo -Version 2.0.0
 #>
 function Install-Mondoo {
   [CmdletBinding()]
