@@ -151,21 +151,22 @@ function Install-Mondoo {
     $packageName = "mondoo"
     $timeStamp = Get-Date -Format yyyyMMddTHHmmss
     $logFile = '{0}\{1}-{2}.MsiInstall.log' -f $env:TEMP, $packageName,$timeStamp
-    $args = @(
+    $argsList = @(
         "/i"
         ('"{0}"' -f $file.fullname)
         "/qn"
         "/norestart"
         "/L*v"
         $logFile
-        "RegistrationToken='{0}'" -f $RegistrationToken
+        "RegistrationToken={0}" -f $RegistrationToken
     )
-    $process = Start-Process "msiexec.exe" -Wait -NoNewWindow -PassThru -ArgumentList $args
+    info (' * Run installer {0} and log into {1}' -f $downloadlocation, $logFile)
+    $process = Start-Process "msiexec.exe" -Wait -NoNewWindow -PassThru -ArgumentList $argsList
     # https://docs.microsoft.com/en-us/windows/win32/msi/error-codes
     If (@(0,3010) -contains $process.ExitCode) { 
       success ' * Mondoo was installed successfully!'
     } Else {
-      fail " * Mondoo installation failed with exit code: {0}" -f $process.ExitCode
+      fail (" * Mondoo installation failed with exit code: {0}") -f $process.ExitCode
     }
     Remove-Item $downloadlocation -Force
     
