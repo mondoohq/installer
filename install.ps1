@@ -158,8 +158,13 @@ function Install-Mondoo {
         "/norestart"
         "/L*v"
         $logFile
-        "RegistrationToken={0}" -f $RegistrationToken
     )
+
+    # add registration token to args if set
+    If(![string]::IsNullOrEmpty($RegistrationToken)) {
+      $argsList = $argsList += "RegistrationToken={0}" -f $RegistrationToken
+    }
+
     info (' * Run installer {0} and log into {1}' -f $downloadlocation, $logFile)
     $process = Start-Process "msiexec.exe" -Wait -NoNewWindow -PassThru -ArgumentList $argsList
     # https://docs.microsoft.com/en-us/windows/win32/msi/error-codes
