@@ -1,4 +1,4 @@
-FROM alpine:3.12.0
+FROM alpine:3.13
 ARG VERSION=3.0.2
 RUN apk update && apk add ca-certificates && rm -rf /var/cache/apk/*
 RUN apk add curl tar rpm
