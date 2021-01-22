@@ -18,18 +18,20 @@
   become: true
   when: not ansible_check_mode
 
-- name: runs mondoo agent to retrieve a new token
+- name: Retrieves a new registration token
   command: mondoo agents generate-token --expiresin 120
   connection: local
   register: retrievedRegistrationToken
   when: registration_token_retrieval == "cli"
 
-- set_fact:
-    registration_token={{ retrievedRegistrationToken.stdout }}
+- name: Set registration token fact
+  set_fact: registration_token={{ retrievedRegistrationToken.stdout }}
   when: registration_token_retrieval == "cli"
 
-- debug: var=registration_token
-  run_once: true
+- name: Log Registration Token
+  ansible.builtin.debug:
+    var: registration_token
+    verbosity: 1
 
 - name: Register Mondoo Agent
   command: mondoo register --config /etc/opt/mondoo/mondoo.yml --token {{ registration_token }}
@@ -38,13 +40,13 @@
     creates: /etc/opt/mondoo/mondoo.yml
   become: true
   when: not ansible_check_mode
+  notify: restart mondoo-service
 
 # ensure systemd service is started and enableds
 - name: Ensure mondoo service is running
-  systemd:
+  ansible.builtin.systemd:
     name: mondoo.service
     state: started
     enabled: yes
   become: true
   when: not ansible_check_mode
-  # notify: restart mondoo-service
