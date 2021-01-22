@@ -8,7 +8,7 @@
 
 - name: Install Mondoo apt-key
   apt_key:
-    id: E3CCC5777260B0111C49FAD9AC3310C8D750A058
+    id: "{{ mondoo_gpg_keyid }}"
     url: "{{ mondoo_deb_gpgkey }}"
     state: present
   become: true
