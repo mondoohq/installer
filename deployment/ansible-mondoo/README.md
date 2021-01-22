@@ -1,6 +1,6 @@
 # Mondoo Ansible Role
 
-This role installs the Mondoo agent on Linux servers. 
+This role installs the Mondoo CLI on Linux servers. 
 
 It does:
 
@@ -15,6 +15,8 @@ It supports:
  * Amazon Linux
  * Debian
  * Suse & openSUSE
+
+The role is published at Ansible Galaxy: [Mondoo role](https://galaxy.ansible.com/mondoolabs/mondoo).
 
 ## Requirements
 
@@ -31,15 +33,39 @@ It supports:
 
 This role has no role dependencies
 
-## Example Playbook
+## Example: Apply Ansible Playbook to Amazon EC2 instance
 
-This is an example of how to use the mondoo role with the `registration_token` variable in an ansible playbook:
+This playbook demonstrates how to use the Mondoo role to install the agent on many instances:
 
+1. Create a new `hosts` inventory. Add your host to the group.
+
+```ini
+[mondoo-agents]
+54.172.7.243  ansible_user=ec2-user
 ```
-    - hosts: servers
-      roles:
-         - { role: mondoo, registration_token: "changeme" }
+
+2. Create a `playbook.yml` and change the `mondoo_registration_token`:
+
+```yaml
+---
+- hosts: mondoo-agents
+  become: yes
+  roles:
+    - role: mondoolabs.mondoo
+      vars:
+        mondoo_registration_token: "changeme"
 ```
+
+3. Run the playbook with the local hosts file
+
+```bash
+# download mondoo role
+ansible-galaxy install mondoolabs.mondoo
+# apply the playbook
+ansible-playbook -i hosts playbook.yml
+```
+
+4. All instances [reported their vulnerability status](https://mondoo.app/)
 
 ## Testing
 
