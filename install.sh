@@ -84,6 +84,9 @@ elif [ -f /etc/debian_version -o "$DISTRIBUTION" == "Debian" -o "$DISTRIBUTION" 
   OS="Debian"
 elif [ -f /etc/redhat-release -o "$DISTRIBUTION" == "RedHat" -o "$DISTRIBUTION" == "CentOS" -o "$DISTRIBUTION" == "Amazon" ]; then
   OS="RedHat"
+elif [ -f /etc/photon-release -o "$DISTRIBUTION" == "Photon" ]; then
+  # NOTE: it requires tdnf >= 2.1.2-3.ph3, before remote http gpg keys were not supported
+  OS="RedHat"
 # openSUSE and SUSE use /etc/SuSE-release
 elif [ -f /etc/SuSE-release -o "$DISTRIBUTION" == "SUSE" -o "$DISTRIBUTION" == "openSUSE" ]; then
   OS="Suse"
