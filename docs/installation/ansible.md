@@ -22,7 +22,7 @@ This playbook demonstrates how to use the Mondoo role to install the agent on ma
   roles:
     - role: mondoolabs.mondoo
       vars:
-        mondoo_registration_token: "changeme"
+        registration_token: "changeme"
 ```
 
 3. Run the playbook with the local hosts file
