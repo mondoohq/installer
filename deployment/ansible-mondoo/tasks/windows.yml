@@ -1,0 +1,32 @@
+# download and install msi
+# we do register as part of the msi workflow to support reregistration more easily
+- name: install mondoo msi package
+  win_package:
+    path: https://releases.mondoo.io/mondoo/3.1.0/mondoo_3.1.0_windows_amd64.msi
+    state: present
+
+- name: unregister mondoo agent
+  # unregisters an existing agent if it was registered
+  ansible.windows.win_command: mondoo.exe unregister --force --config C:\\ProgramData\\Mondoo\\mondoo.yml
+  args:
+    chdir: "C:\\Program Files\\Mondoo\\service"
+    # only run the command if no config file exists
+    creates: C:\ProgramData\Mondoo\mondoo.yml
+  when: force_registration == true
+  # if the credentials are already invalid, the command will throw an error
+  ignore_errors: yes
+
+- name: remove existing credentials
+  # ensure no configuration file exists if force mode was activated
+  ansible.windows.win_file:
+    state: absent
+    path: C:\ProgramData\Mondoo\mondoo.yml
+  when: force_registration == true
+
+- name: register mondoo agent
+  ansible.windows.win_command: mondoo.exe register --config C:\\ProgramData\\Mondoo\\mondoo.yml --token {{ registration_token }}
+  args:
+    chdir: "C:\\Program Files\\Mondoo\\service"
+    # only run the command if no config file exists (was not deleted in non-force mode)
+    creates: C:\ProgramData\Mondoo\mondoo.yml
+  when: not ansible_check_mode

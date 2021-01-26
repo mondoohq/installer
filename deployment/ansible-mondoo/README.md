@@ -15,6 +15,7 @@ It supports:
  * Amazon Linux
  * Debian
  * Suse & openSUSE
+ * Windows
 
 The role is published at Ansible Galaxy: [Mondoo role](https://galaxy.ansible.com/mondoolabs/mondoo).
 
@@ -28,19 +29,20 @@ The role is published at Ansible Galaxy: [Mondoo role](https://galaxy.ansible.co
 | -------------- | ------------- | -----------------------------------|
 | `registration_token_retrieval` | `manual` | `manual` requires to set ``registration_token`. `cli` call a local mondoo agent to automatically retrieve a new registration token |
 | `registration_token`|  n/a | manually set the Mondoo Registration Token that is used to register new agents
+| `force_registration`|  true | forces re-registration for each run
 
 ## Dependencies
 
 This role has no role dependencies
 
-## Example: Apply Ansible Playbook to Amazon EC2 instance
+## Example: Apply Ansible Playbook to Amazon EC2 Linux instance
 
 This playbook demonstrates how to use the Mondoo role to install the agent on many instances:
 
 1. Create a new `hosts` inventory. Add your host to the group.
 
 ```ini
-[mondoo-agents]
+[mondoo_linux]
 54.172.7.243  ansible_user=ec2-user
 ```
 
@@ -48,7 +50,7 @@ This playbook demonstrates how to use the Mondoo role to install the agent on ma
 
 ```yaml
 ---
-- hosts: mondoo_agents
+- hosts: mondoo_linux
   become: yes
   roles:
     - role: mondoolabs.mondoo
@@ -58,9 +60,9 @@ This playbook demonstrates how to use the Mondoo role to install the agent on ma
 
 If you do not want to re-register existing agents, then set `force_registration: false` in vars:
 
-```
+```yaml
 ---
-- hosts: mondoo_agents
+- hosts: mondoo_linux
   become: yes
   roles:
     - role: mondoolabs.mondoo
@@ -80,6 +82,43 @@ ansible-playbook -i hosts playbook.yml
 
 4. All instances [reported their vulnerability status](https://mondoo.app/)
 
+## Apply Ansible Playbook to Amazon EC2 Windows instance
+
+If you are using Windows, please read the ansible documentation about [WinRM setup](https://docs.ansible.com/ansible/latest/user_guide/windows_setup.html#id4) or the [SSH setup](https://docs.ansible.com/ansible/latest/user_guide/windows_setup.html#windows-ssh-setup).
+
+1. Create a new `hosts` inventory. Add your host to the group.
+
+```ini
+[mondoo_windows]
+123.123.247.76 ansible_port=5986 ansible_connection=winrm ansible_user=Administrator ansible_password=changeme ansible_shell_type=powershell ansible_winrm_server_cert_validation=ignore
+```
+
+or if you are going to use ssh:
+```ini
+3.235.247.76 ansible_port=22 ansible_connection=ssh ansible_user=Administrator ansible_password=changeme ansible_shell_type=cmd
+```
+
+2. Create a `playbook.yml` and change the `registration_token`:
+
+If you are targeting windows, the configuration is slightly different since `become` needs to be deactivated:
+
+```yaml
+- hosts: mondoo_windows
+  roles:
+    - role: mondoolabs.mondoo
+      vars:
+        registration_token: "changeme"
+        force_registration: false
+```
+
+3. Run the playbook with the local hosts file
+
+```bash
+# download mondoo role
+ansible-galaxy install mondoolabs.mondoo
+# apply the playbook
+ansible-playbook -i hosts playbook.yml
+```
 
 ## Testing
 
@@ -123,3 +162,11 @@ TASK [mondoo : Download Mondoo RPM key] ********************************
 ```
 sudo zypper install python python2-urllib3 python3 python3-urllib3
 ```
+
+**Error `ansible.legacy.setup` on Windows with SSH**
+
+```
+fatal: [123.123.247.76]: FAILED! => {"ansible_facts": {}, "changed": false, "failed_modules": {"ansible.legacy.setup": {"failed": true, "module_stderr": "Parameter format not correct - ;\r\n", "module_stdout": "", "msg": "MODULE FAILURE\nSee stdout/stderr for the exact error", "rc": 1}}, "msg": "The following modules failed to execute: ansible.legacy.setup\n"}
+```
+
+Ansible in combination with Win32-OpenSSH versions older than v7.9.0.0p1-Beta do not work when `powershell` is the shell type, set the shell type to `cmd`
