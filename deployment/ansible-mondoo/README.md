@@ -44,16 +44,29 @@ This playbook demonstrates how to use the Mondoo role to install the agent on ma
 54.172.7.243  ansible_user=ec2-user
 ```
 
-2. Create a `playbook.yml` and change the `mondoo_registration_token`:
+2. Create a `playbook.yml` and change the `registration_token`:
 
 ```yaml
 ---
-- hosts: mondoo-agents
+- hosts: mondoo_agents
   become: yes
   roles:
     - role: mondoolabs.mondoo
       vars:
         registration_token: "changeme"
+```
+
+If you do not want to re-register existing agents, then set `force_registration: false` in vars:
+
+```
+---
+- hosts: mondoo_agents
+  become: yes
+  roles:
+    - role: mondoolabs.mondoo
+      vars:
+        registration_token: "changeme"
+        force_registration: false
 ```
 
 3. Run the playbook with the local hosts file
@@ -66,6 +79,7 @@ ansible-playbook -i hosts playbook.yml
 ```
 
 4. All instances [reported their vulnerability status](https://mondoo.app/)
+
 
 ## Testing
 

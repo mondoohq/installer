@@ -1,12 +1,12 @@
 ---
-- name: Install apt-transport-https
+- name: install apt-transport-https
   apt:
     name: apt-transport-https
     state: present
   become: true
   when: not ansible_check_mode
 
-- name: Install Mondoo apt-key
+- name: install mondoo apt-key
   apt_key:
     id: "{{ mondoo_gpg_keyid }}"
     url: "{{ mondoo_deb_gpgkey }}"
@@ -14,7 +14,7 @@
   become: true
   when: not ansible_check_mode
 
-- name: Configure Mondoo DEB repository
+- name: configure mondoo deb repository
   apt_repository:
     repo: "{{ mondoo_deb_repo }}"
     state: "present"
@@ -22,7 +22,7 @@
   become: true
   when: not ansible_check_mode
 
-- name: Ensure Mondoo agent is installed
+- name: ensure mondoo agent is installed
   apt:
     name: mondoo
     state: latest

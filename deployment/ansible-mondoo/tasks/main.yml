@@ -10,40 +10,58 @@
 - include_tasks: pkg_suse.yml
   when: ansible_os_family == "Suse"
 
-# register if no config file exists
-- name: Create Mondoo config directory
+- name: create mondoo config directory
   file:
     dest: /etc/opt/mondoo
     state: directory
   become: true
   when: not ansible_check_mode
 
-- name: Retrieves a new registration token
+- name: retrieves a new registration token
   command: mondoo agents generate-token --expiresin 120
   connection: local
   register: retrievedRegistrationToken
   when: registration_token_retrieval == "cli"
 
-- name: Set registration token fact
+- name: set registration token fact
   set_fact: registration_token={{ retrievedRegistrationToken.stdout }}
   when: registration_token_retrieval == "cli"
 
-- name: Log Registration Token
+- name: log registration token
   ansible.builtin.debug:
     var: registration_token
     verbosity: 1
 
-- name: Register Mondoo Agent
-  command: mondoo register --config /etc/opt/mondoo/mondoo.yml --token {{ registration_token }}
+- name: unregister mondoo agent
+  # unregisters an existing agent if it was registered
+  command: mondoo unregister --force --config /etc/opt/mondoo/mondoo.yml
   args:
     # only run the command if no config file exists
+    creates: /etc/opt/mondoo/mondoo.yml
+  when: force_registration == true
+  # if the credentials are already invalid, the command will throw an error
+  ignore_errors: yes
+
+  
+- name: remove existing credentials
+  # ensure no configuration file exists if force mode was activated
+  file:
+    state: absent
+    path: /etc/opt/mondoo/mondoo.yml
+  when: force_registration == true
+
+- name: register mondoo agent
+  command: mondoo register --config /etc/opt/mondoo/mondoo.yml --token {{ registration_token }}
+  args:
+    # only run the command if no config file exists (was not deleted in non-force mode)
     creates: /etc/opt/mondoo/mondoo.yml
   become: true
   when: not ansible_check_mode
   notify: restart mondoo-service
 
-# ensure systemd service is started and enableds
-- name: Ensure mondoo service is running
+
+- name: ensure mondoo service is running
+  # ensures the systemd service is started and enabled
   ansible.builtin.systemd:
     name: mondoo.service
     state: started

@@ -1,6 +1,7 @@
 ---
 # defaults file for mondoo
 
+force_registration: true
 
 # we support 'manual' and 'cli'
 # if 'manual' is set, the user need to set `registration_token`

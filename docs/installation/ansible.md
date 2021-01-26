@@ -13,11 +13,11 @@ This playbook demonstrates how to use the Mondoo role to install the agent on ma
 54.172.7.243  ansible_user=ec2-user
 ```
 
-2. Create a `playbook.yml` and change the `mondoo_registration_token`:
+2. Create a `playbook.yml` and change the `registration_token`:
 
 ```yaml
 ---
-- hosts: mondoo-agents
+- hosts: mondoo_agents
   become: yes
   roles:
     - role: mondoolabs.mondoo
