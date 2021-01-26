@@ -1,6 +1,9 @@
 ---
 # defaults file for mondoo
 
+latest_version_url: https://releases.mondoo.io/mondoo/latest.json
+
+# option to force a re-registration
 force_registration: true
 
 # we support 'manual' and 'cli'

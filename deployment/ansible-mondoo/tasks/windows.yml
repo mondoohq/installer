@@ -1,8 +1,30 @@
+# download the latest json to fetch the latest released version
+
+- name: determine latest released version
+  ansible.windows.win_uri:
+    url: "{{ latest_version_url }}"
+    return_content: yes
+  register: latest_jsondata
+
+- name: log latest version
+  ansible.builtin.debug:
+    var: latest_jsondata.json
+
+- name: determine latest pkg version
+  set_fact:
+    latest_pkg_version_url: "{{ latest_jsondata.json | json_query(jmesquery) }}"
+  vars:
+    jmesquery: "files[*].filename | [?contains(@, 'msi')] | [0]"
+
+- name: log latest version
+  ansible.builtin.debug:
+    var: latest_pkg_version_url
+
 # download and install msi
 # we do register as part of the msi workflow to support reregistration more easily
 - name: install mondoo msi package
   win_package:
-    path: https://releases.mondoo.io/mondoo/3.1.0/mondoo_3.1.0_windows_amd64.msi
+    path: "{{ latest_pkg_version_url }}"
     state: present
 
 - name: unregister mondoo agent

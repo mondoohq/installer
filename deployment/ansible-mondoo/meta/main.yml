@@ -1,4 +1,7 @@
 ---
+collections:
+  - ansible.windows
+
 galaxy_info:
   role_name: mondoo
   author: Mondoo, Inc
@@ -47,6 +50,7 @@ galaxy_info:
     - name: opensuse
       versions:
         - all
+    - name: Windows
 
   galaxy_tags: [vulnerability, management, security ]
   # List tags for your role here, one per line. A tag is a keyword that describes
