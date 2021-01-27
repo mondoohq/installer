@@ -22,7 +22,7 @@ Host shorty
   User ec2-user
 ```
 
-You can use `shorty` as host identifier with `monndoo`  then:
+You can use `shorty` as host identifier with `mondoo`  then:
 
 ```
 # use hosts defined in ~/.ssh/config
