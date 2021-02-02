@@ -2,10 +2,6 @@
 
 Displays the Mondoo agent version
 
-### Synopsis
-
-Displays the Mondoo agent version
-
 ```
 mondoo version [flags]
 ```
@@ -19,9 +15,12 @@ mondoo version [flags]
 ### Options inherited from parent commands
 
 ```
-      --config string   config file (default is $HOME/.mondoo.yaml)
+      --config string     config file (default is $HOME/.mondoo.yaml)
+      --loglevel string   set log-level: error, warn, info, debug, trace (default "info")
+  -v, --verbose           verbose output
 ```
 
 ### SEE ALSO
 
-* [mondoo](mondoo.md)	 - Mondoo CLI
+* [mondoo](README.md)	 - Mondoo CLI
+

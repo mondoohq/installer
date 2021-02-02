@@ -5,13 +5,16 @@ Registers Mondoo agent with Mondoo Cloud
 ### Synopsis
 
 
-This command register the mondoo agent with Mondoo Cloud. It requires the
-'--token' argument.
+This command register the mondoo agent with Mondoo Cloud by using a registration
+token. To pass in the token, use the '--token' flag.
 
 You can generate a new registration token via the Mondoo Dashboard
-https://mondoo.app -> Space -> Agents -> New. Copy the token and pass it in
-as the '--token' argument:
+https://mondoo.app -> Space -> Agents -> New. Copy the token and pass it in 
+as the '--token' argument or use 'mondoo agents generate-token'
 
+Every agent remains registered until you explicitly unregister it. You can
+unregister an agent on the Mondoo dashboard, or by using 'mondoo unregister'
+	
 
 ```
 mondoo register [flags]
@@ -28,9 +31,12 @@ mondoo register [flags]
 ### Options inherited from parent commands
 
 ```
-      --config string   config file (default is $HOME/.mondoo.yaml)
+      --config string     config file (default is $HOME/.mondoo.yaml)
+      --loglevel string   set log-level: error, warn, info, debug, trace (default "info")
+  -v, --verbose           verbose output
 ```
 
 ### SEE ALSO
 
-* [mondoo](mondoo.md)	 - Mondoo CLI
+* [mondoo](README.md)	 - Mondoo CLI
+

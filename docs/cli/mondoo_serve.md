@@ -1,16 +1,18 @@
-## mondoo migrate
+## mondoo serve
 
-Migrates Mondoo CLI configuration to the latest version
+Start a Mondoo in background serve mode
 
 ```
-mondoo migrate [flags]
+mondoo serve [flags]
 ```
 
 ### Options
 
 ```
-      --dry-run   displays warnings but does not update he config
-  -h, --help      help for migrate
+  -b, --bind string   bind the server to an address (unix://file.sock, http://0.0.0.0:8989)
+  -h, --help          help for serve
+  -p, --port int      the port to listen on (default 8989)
+  -t, --timer int     scan interval in minutes (default 60)
 ```
 
 ### Options inherited from parent commands
