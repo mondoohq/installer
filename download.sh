@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # Copyright (c) 2019-2020 Mondoo, Inc.
 # License: Apache License, Version 2.0
@@ -92,15 +92,21 @@ url="${base_url}/${product}/${version}/${filename}"
 
 if [ $os = "darwin" ]; then
   sha256bin='shasum -a 256'
+	shaurl="${base_url}/${product}/${version}/checksums.macos.txt"
 else
   sha256bin=sha256sum
+	shaurl="${base_url}/${product}/${version}/checksums.${os}.txt"
 fi
 
+# download binary
 purple_bold "Downloading ${url}"
 binarySha=$(curl -fsSL ${url} | tee ${filename} | ${sha256bin} | cut -b 1-64)
+echo -e "Downloaded binary hash: ${binarySha}"
 
 # download the checksum
-expectedSha=$(curl ${base_url}/${product}/${version}/checksums.${os}.txt | grep ${filename} | cut -b 1-64)
+purple_bold "Downloading ${shaurl}"
+expectedSha=$(curl -fsSL ${shaurl} | grep ${filename} | cut -b 1-64)
+echo -e "Expected binary hash: ${expectedSha}"
 
 # extract binary
 if [ $binarySha = $expectedSha ]; then
@@ -112,7 +118,7 @@ if [ $binarySha = $expectedSha ]; then
 else
   # clean up on error
 	rm ${filename}
-  fail "Binary hash (${binarySha}) does not match the exepected hash ${expectedSha}\nAborted download.";
+  fail "Binary hash '${binarySha}' does not match the exepected hash '${expectedSha}'\nAborted download.";
 fi
 
 # Display final message
