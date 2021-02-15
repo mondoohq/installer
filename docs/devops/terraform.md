@@ -121,10 +121,6 @@ resource "digitalocean_droplet" "mywebserver" {
   }
 
   provisioner "mondoo" {
-    report = {
-      format = "cli"
-    }
-
     # by default we recommend to pass provisioning even if mondoo found vulnerabilities
     on_failure = continue
   }
@@ -145,10 +141,6 @@ Required Parameters:
   * none
 
 Optional Parameters:
-
-  * `report.format` (string) - The format can be set to `cli` or `yaml`
-
-  * `collector` (string) - Overwrite the collector endpoint. Supported values are 'https' urls and 'awssns' topics
 
   * `on_failure` (string) - If on_failure is set to `continue` terraform continues even if vulnerabilities have been found
 
@@ -206,10 +198,6 @@ resource "aws_instance" "web" {
   }
 
   provisioner "mondoo" {
-    report = {
-      format = "cli"
-    }
-
     # by default we recommend to pass provisioning even if mondoo found vulnerabilities
     on_failure = continue
   }

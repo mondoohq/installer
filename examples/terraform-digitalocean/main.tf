@@ -42,10 +42,6 @@ resource "digitalocean_droplet" "mywebserver" {
   }
 
   provisioner "mondoo" {
-    report = {
-      format = "cli"
-    }
-
     # by default we recommend to pass provisioning even if mondoo found vulnerabilities
     on_failure = continue
   }
