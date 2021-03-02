@@ -134,9 +134,11 @@ elif [ $OS = "Suse" ]; then
   else
     purple_bold "\n* Configuring ZYPPER sources for Mondoo at /etc/zypp/repos.d/mondoo.repo"
     curl --retry 3 --retry-delay 10 -sSL https://releases.mondoo.io/rpm/mondoo.repo | $sudo_cmd tee /etc/zypp/repos.d/mondoo.repo
+    # zypper does not recognize the gpg key reference from mondoo.repo properly, therefore we need to add this here manually
+    $sudo_cmd rpm --import https://releases.mondoo.io/rpm/pubkey.gpg
 
     purple_bold "\n* Installing the Mondoo agent package"
-    $sudo_cmd zypper -n --gpg-auto-import-keys install mondoo
+    $sudo_cmd zypper -n install mondoo
   fi
 elif [ $OS = "macOS" ]; then
   red "macOS is not supported yet. Please reach out at Mondoo Community:
