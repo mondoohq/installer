@@ -1,16 +1,28 @@
 # Kudos to https://github.com/terraform-providers/terraform-provider-aws for their great example
 
-variable "public_key_path" {
-  description = <<DESCRIPTION
-Path to the SSH public key to be used for authentication.
-Ensure this keypair is added to your local SSH agent so provisioners can
-connect.
-Example: ~/.ssh/terraform.pub
-DESCRIPTION
+terraform {
+  required_version = ">= 0.14"
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 3.0"
+    }
+  }
+}
+
+variable "public_key" {
+  description = "Path to the SSH public key to be used for authentication. Example: ~/.ssh/terraform.pub"
+  default = "~/.ssh/id_rsa.pub"
+}
+
+variable "private_key" {
+  description = "path to private key"
+  default = "~/.ssh/id_rsa"
 }
 
 variable "key_name" {
   description = "Desired name of AWS key pair"
+  default = "Terraform Key"
 }
 
 variable "aws_region" {
@@ -68,7 +80,7 @@ resource "aws_security_group" "default" {
 
 resource "aws_key_pair" "auth" {
   key_name   = var.key_name
-  public_key = file(var.public_key_path)
+  public_key = file(var.public_key)
 }
 
 resource "aws_instance" "web" {
@@ -79,6 +91,7 @@ resource "aws_instance" "web" {
     type    = "ssh"
     user    = "ubuntu"
     timeout = "2m"
+    private_key = file(var.private_key)
   }
 
   instance_type = "t2.micro"
@@ -103,9 +116,26 @@ resource "aws_instance" "web" {
     ]
   }
 
-  provisioner "mondoo" {
-    # by default we recommend to pass provisioning even if mondoo found vulnerabilities
-    on_failure = continue
+  # run scan of instance
+  provisioner "local-exec" {
+    command = "mondoo scan -t ssh://ubuntu@${coalesce(self.public_ip, self.private_ip)} -i ${var.private_key} --insecure --exit-0-on-success"
   }
 }
 
+# run scan of aws account
+# see https://www.terraform.io/docs/language/resources/provisioners/null_resource.html
+resource "null_resource" "example1" {
+  provisioner "local-exec" {
+    command = "mondoo scan -t aws:// --option 'region=${var.aws_region}' --exit-0-on-success"
+  }
+
+  depends_on = [
+    "aws_security_group.default",
+    "aws_instance.web"
+  ]
+}
+
+
+output "instance_id" {
+  value = aws_instance.web.id
+}
