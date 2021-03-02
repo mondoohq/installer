@@ -1,21 +1,38 @@
-variable "ssh_fingerprint" {
-  description = <<DESCRIPTION
-The fingerprint of your ssh key
-- Get your ssh fingerprint from https://cloud.digitalocean.com/account/security
-- Obtain your ssh_key id number via your account. See Document https://developers.digitalocean.com/documentation/v2/#list-all-keys
-DESCRIPTION
-  default = "5e:f8:07:77:14:db:ab:73:b5:62:69:79:66:04:8e:86"
+terraform {
+  required_providers {
+    digitalocean = {
+      source = "digitalocean/digitalocean"
+      version = ">= 2.5.1"
+    }
+  }
+}
+
+variable "do_token" {
+  description = "value of DIGITALOCEAN_TOKEN"
 }
 
 provider "digitalocean" {
-  # set the DIGITALOCEAN_TOKEN environment variable before calling
-  # terraform apply:
-  # export DIGITALOCEAN_TOKEN="Your API TOKEN"
+  token = var.do_token
+}
+
+variable "private_key" {
+  description = "path to private key"
+  default = "~/.ssh/id_rsa"
+}
+
+variable "public_key" {
+  description = "path to public key"
+  default = "~/.ssh/id_rsa.pub"
+}
+
+resource "digitalocean_ssh_key" "default" {
+  name = "terraform"
+  public_key = file(var.public_key)
 }
 
 resource "digitalocean_droplet" "mywebserver" {
   ssh_keys = [
-    var.ssh_fingerprint,
+    digitalocean_ssh_key.default.fingerprint
   ]
   image              = "ubuntu-18-04-x64"
   region             = "nyc1"
@@ -31,6 +48,7 @@ resource "digitalocean_droplet" "mywebserver" {
     host     = self.ipv4_address
     user     = "root"
     timeout  = "2m"
+    private_key = file(var.private_key)
   }
 
   provisioner "remote-exec" {
@@ -38,12 +56,11 @@ resource "digitalocean_droplet" "mywebserver" {
       "export PATH=$PATH:/usr/bin",
       "sudo apt-get update",
       "sudo apt-get -y install nginx",
-    ] 
+    ]
   }
 
-  provisioner "mondoo" {
-    # by default we recommend to pass provisioning even if mondoo found vulnerabilities
-    on_failure = continue
+  provisioner "local-exec" {
+    command = "mondoo scan -t ssh://root@${self.ipv4_address} -i ${var.private_key} --insecure --exit-0-on-success"
   }
 }
 
