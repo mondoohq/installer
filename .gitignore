@@ -4,3 +4,8 @@ ansible-mondoo/molecule/default/tests/__pycache__
 .vagrant
 docs/node_modules
 docs/_book
+.terraform
+.terraform.lock.hcl
+terraform.tfstate
+terraform.tfstate.backup
+**/terraform*/completed.txt
