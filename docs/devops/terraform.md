@@ -1,62 +1,10 @@
-# Mondoo Terraform Provisioner
+# Terraform & Mondoo
 
-Mondoo ships an integration for [Terraform](https://www.terraform.io/) to ease the assessment of vulnerabilities during an image build process.
-
-## Install Mondoo Packer Provisioner
-
-The Mondoo Packer Provisioner depends on:
-
-  * [Terraform CLI installed on workstation](https://learn.hashicorp.com/terraform/getting-started/install.html)
-  * [Mondoo CLI installed on workstation](../agent/installation/)
-
-The provisioner plugin may be installed via:
-
-  * Pre-compiled binary
-
-### Install packer plugin from binary
-
-To install the precompiled binary, download the appropriate package from [Github](https://github.com/mondoolabs/terraform-provisioner-mondoo/releases) and place the binary in Terraform's plugin directory `~/.terraform.d/plugins` (Linux, Mac) or `%USERPROFILE%/terraform.d/plugins` (Windows). Other locations that Terraform searches for are [documented on their website](https://www.terraform.io/docs/extend/how-terraform-works.html#plugin-locationss).
-
-The following simplifies the installation:
-
-**Linux**
-
-```
-mkdir -p ~/.terraform.d/plugins
-cd ~/.terraform.d/plugins
-curl -L https://github.com/mondoolabs/terraform-provisioner-mondoo/releases/latest/download/terraform-provisioner-mondoo_linux_amd64.tar.gz | tar -xz > terraform-provisioner-mondoo
-chmod +x terraform-provisioner-mondoo
-```
-
-**Mac**
-
-```
-mkdir -p ~/.terraform.d/plugins
-cd ~/.terraform.d/plugins
-curl -L https://github.com/mondoolabs/terraform-provisioner-mondoo/releases/latest/download/terraform-provisioner-mondoo_darwin_amd64.tar.gz | tar -xz > terraform-provisioner-mondoo
-chmod +x terraform-provisioner-mondoo
-```
-
-**Windows**
-
-Download the binary from the [Github releases page](https://github.com/mondoolabs/terraform-provisioner-mondoo/releases/) and put it in the same directory as your packer executable.
-
-```powershell
-# This script requires powershell
-Invoke-WebRequest 'https://releases.mondoo.io/terraform-provisioner-mondoo/0.8.0/terraform-provisioner-mondoo_windows_amd64.zip' -O 'terraform-provisioner-mondoo_windows_amd64.zip'
-
-# extract zip and place it in the same path as packer
-Expand-Archive -LiteralPath terraform-provisioner-mondoo_windows_amd64.zip
-Copy-Item ./terraform-provisioner-mondoo_windows_amd64/terraform-provisioner-mondoo.exe ((Get-Command terraform).Source | Split-Path)
-
-# clean up
-Remove-Item -Recurse -Force .\terraform-provisioner-mondoo_windows_amd64
-Remove-Item terraform-provisioner-mondoo_windows_amd64.zip
-```
+It is very easy to use Mondoo in combination with Terraform. The following documentation helps to ease vulnerabilities & policy assessments during a build process.
 
 ### Verifying the Installation
 
-After installing Terraform, Mondoo Agent and the Mondoo Terraform Provisioning Plugin run the following commands to check that everything is configured properly:
+After installing Terraform, Mondoo Agent run the following commands to verify that everything is configured properly:
 
 ```
 $ terraform
@@ -72,29 +20,48 @@ $ mondoo status
 
 If you get an error, ensure the tools are properly configured for your system path.
 
-
 ## Basic Example
 
-Once the plugin is installed, you can use the provisioner by adapting your `instance` configuration. The following is a fully functional Terraform configuration that launches a DigitalOcean droplet with Nginx installed and a Mondoo vulnerability assessment.
+> The section describes the [Dgital Ocean example](https://github.com/mondoolabs/mondoo/tree/master/examples/terraform-digitalocean). Further examples are available in our [GitHub repo](https://github.com/mondoolabs/mondoo/tree/master/examples)
 
-```
-variable "ssh_fingerprint" {
-  description = <<DESCRIPTION
-The fingerprint of your ssh key
-- Get your ssh fingerprint from https://cloud.digitalocean.com/account/security
-- Obtain your ssh_key id number via your account. See Document https://developers.digitalocean.com/documentation/v2/#list-all-keys
-DESCRIPTION
+The following is a fully functional Terraform configuration that launches a DigitalOcean droplet with Nginx installed and a Mondoo vulnerability assessment.
+
+```hcl2
+terraform {
+  required_providers {
+    digitalocean = {
+      source = "digitalocean/digitalocean"
+      version = ">= 2.5.1"
+    }
+  }
+}
+
+variable "do_token" {
+  description = "value of DIGITALOCEAN_TOKEN"
 }
 
 provider "digitalocean" {
-  # set the DIGITALOCEAN_TOKEN environment variable before calling
-  # terraform apply:
-  # export DIGITALOCEAN_TOKEN="Your API TOKEN"
+  token = var.do_token
+}
+
+variable "private_key" {
+  description = "path to private key"
+  default = "~/.ssh/id_rsa"
+}
+
+variable "public_key" {
+  description = "path to public key"
+  default = "~/.ssh/id_rsa.pub"
+}
+
+resource "digitalocean_ssh_key" "default" {
+  name = "terraform"
+  public_key = file(var.public_key)
 }
 
 resource "digitalocean_droplet" "mywebserver" {
   ssh_keys = [
-    var.ssh_fingerprint,
+    digitalocean_ssh_key.default.fingerprint
   ]
   image              = "ubuntu-18-04-x64"
   region             = "nyc1"
@@ -110,6 +77,7 @@ resource "digitalocean_droplet" "mywebserver" {
     host     = self.ipv4_address
     user     = "root"
     timeout  = "2m"
+    private_key = file(var.private_key)
   }
 
   provisioner "remote-exec" {
@@ -120,51 +88,36 @@ resource "digitalocean_droplet" "mywebserver" {
     ]
   }
 
-  provisioner "mondoo" {
-    # by default we recommend to pass provisioning even if mondoo found vulnerabilities
-    on_failure = continue
+  provisioner "local-exec" {
+    command = "mondoo scan -t ssh://root@${self.ipv4_address} -i ${var.private_key} --insecure --exit-0-on-success"
   }
 }
 ```
 
-To run the example, run `terraform`:
+To run the example:
 
+```bash
+# set token for DigitalOcean
+export DIGITALOCEAN_TOKEN=d1...ef
+# run terraform
+terraform apply -var do_token=$DIGITALOCEAN_TOKEN
 ```
-export DIGITALOCEAN_TOKEN="Your API TOKEN"
-terraform apply do-nginx.json
-```
 
-## Mondoo Terraform Provisioner Configuration Reference
+To trigger Mondoo, use the `local-exec` and pass in the required arguments to connect to the machine:
 
-Required Parameters:
-
-  * none
-
-Optional Parameters:
-
-  * `on_failure` (string) - If on_failure is set to `continue` terraform continues even if vulnerabilities have been found
-
-  ```
-  "on_failure": "continue",
-  ```
-
-  * `labels` (map of string) - Custom labels can be passed to mondoo. This eases searching for the correct asset report later.
-
-```
-"labels": {
-  "mondoo.app/ami-name":  "{{user `ami_name`}}",
-  "name":"Packer Builder",
-  "custom_key":"custom_value"
+```hcl2
+provisioner "local-exec" {
+  command = "mondoo scan -t ssh://root@${self.ipv4_address} -i ${var.private_key} --insecure --exit-0-on-success"
 }
 ```
 
 ## AWS Infrastructure Provisioning Example
 
-This example illustrates the combination of Terraform & Mondoo to build an infrastructure running on AWS. The source for this example is available on [Github](https://github.com/mondoolabs/mondoo/tree/master/examples/terraform-aws). Further examples are available in our [GitHub repo](https://github.com/mondoolabs/mondoo/tree/master/examples), eg. for [DigitalOcean](https://github.com/mondoolabs/mondoo/tree/master/examples/terraform-digitalocean).
+This example illustrates the combination of Terraform & Mondoo to build an infrastructure running on AWS. This example is available on [Github](https://github.com/mondoolabs/mondoo/tree/master/examples/terraform-aws). Similar to the example above, it runs `mondoo` for the EC2 instance. In additon, it also runs a scan for the AWS account itself.
 
 ***Terraform Configuration***
 
-```
+```hcl
 resource "aws_instance" "web" {
   # The connection block tells our provisioner how to
   # communicate with the resource (instance)
@@ -173,6 +126,7 @@ resource "aws_instance" "web" {
     type    = "ssh"
     user    = "ubuntu"
     timeout = "2m"
+    private_key = file(var.private_key)
   }
 
   instance_type = "t2.micro"
@@ -197,11 +151,23 @@ resource "aws_instance" "web" {
     ]
   }
 
-  provisioner "mondoo" {
-    # by default we recommend to pass provisioning even if mondoo found vulnerabilities
-    on_failure = continue
+  # run scan of instance
+  provisioner "local-exec" {
+    command = "mondoo scan -t ssh://ubuntu@${coalesce(self.public_ip, self.private_ip)} -i ${var.private_key} --insecure --exit-0-on-success"
   }
 }
+
+# run scan of aws account
+resource "null_resource" "example1" {
+  provisioner "local-exec" {
+    command = "mondoo scan -t aws:// --option 'region=${var.aws_region}' --exit-0-on-success"
+  }
+
+  depends_on = [
+    "aws_instance.web"
+  ]
+}
+
 ```
 
 ***Terraform Apply***
@@ -221,67 +187,12 @@ terraform init
 
 Now we are ready to provision a new EC2 instance:
 
-```
-$ terraform apply -var 'key_name=chris-rock' -var 'public_key_path= /users/chris-rock/.ssh/id_rsa.pub'
-
-aws_key_pair.auth: Refreshing state... [id=chris-rock]
-aws_security_group.default: Refreshing state... [id=sg-0674c664601a7f8ad]
-
-An execution plan has been generated and is shown below.
-Resource actions are indicated with the following symbols:
-  + create
-
-Terraform will perform the following actions:
-
-  # aws_instance.web will be created
-...
-
-aws_instance.web (remote-exec): Processing triggers for ufw (0.35-0ubuntu2) ...
-aws_instance.web: Provisioning with 'mondoo'...
-aws_instance.web (mondoo): start mondoo provisioner
-aws_instance.web (mondoo): Executing: vuln
-aws_instance.web (mondoo): Start vulnerability scan:
-aws_instance.web (mondoo):   →  detected automated runtime environment: Terraform
-aws_instance.web (mondoo):   →  verify platform access to ssh://ubuntu@54.175.81.209
-aws_instance.web: Still creating... [1m10s elapsed]
-aws_instance.web (mondoo):   →  gather platform details
-aws_instance.web (mondoo):   →  detected ubuntu 16.04
-aws_instance.web (mondoo):   →  gather platform packages for vulnerability scan
-aws_instance.web (mondoo):   →  found 466 packages
-aws_instance.web (mondoo):   →  analyse packages for vulnerabilities
-aws_instance.web: Still creating... [1m30s elapsed]
-aws_instance.web (mondoo): Advisory Report:
-aws_instance.web (mondoo):   ■        PACKAGE                     INSTALLED               VULNERABLE (<)  ADVISORY
-aws_instance.web (mondoo):   ■   9.8  linux-image-4.4.0-1087-aws  4.4.0-1087.98                           https://mondoo.app/advisories/
-aws_instance.web (mondoo):   ├─  9.8  linux-image-4.4.0-1087-aws  4.4.0-1087.98                           https://mondoo.app/advisories/
-aws_instance.web (mondoo):   ├─  8.8  linux-image-4.4.0-1087-aws  4.4.0-1087.98                           https://mondoo.app/advisories/
-aws_instance.web (mondoo):   ├─  8.1  linux-image-4.4.0-1087-aws  4.4.0-1087.98                           https://mondoo.app/advisories/
-aws_instance.web (mondoo):   ├─  7.8  linux-image-4.4.0-1087-aws  4.4.0-1087.98                           https://mondoo.app/advisories/
-aws_instance.web (mondoo):   ├─  7.8  linux-image-4.4.0-1087-aws  4.4.0-1087.98                           https://mondoo.app/advisories/
-aws_instance.web (mondoo):   ├─  7.8  linux-image-4.4.0-1087-aws  4.4.0-1087.98                           https://mondoo.app/advisories/
-aws_instance.web (mondoo):   ├─  7.8  linux-image-4.4.0-1087-aws  4.4.0-1087.98                           https://mondoo.app/advisories/
-aws_instance.web (mondoo):   ├─  7.8  linux-image-4.4.0-1087-aws  4.4.0-1087.98                           https://mondoo.app/advisories/
-aws_instance.web (mondoo):   ├─  7.8  linux-image-4.4.0-1087-aws  4.4.0-1087.98                           https://mondoo.app/advisories/
-aws_instance.web (mondoo):   ├─  7.8  linux-image-4.4.0-1087-aws  4.4.0-1087.98                           https://mondoo.app/advisories/
-...
-aws_instance.web (mondoo):   →  ■ found 71 advisories: 2 critical, 14 high, 26 medium, 3 low, 26 none, 0 unknown
-aws_instance.web (mondoo):   →  report is available at https://mondoo.app/v/serene-dhawan-599345/focused-darwin-833545/reports/1Nbx4rp7LCK1ogMKj7CCrsZgsJk
-
-aws_instance.web: Creation complete after 1m35s [id=i-02332991769bae321]
-
-Apply complete! Resources: 1 added, 0 changed, 0 destroyed.
-
-Outputs:
-
-instance_id = i-02332991769bae321
-
+```bash
+$ terraform apply -var 'key_name=terraform' -var 'public_key=~/.ssh/id_rsa.pub' -var 'private_key=~/.ssh/id_rsa'
 ```
 
-## Uninstall
-
-You can easily uninstall the provisioner by removing the binary.
+You can easily destroy the setup via:
 
 ```
-# linux & mac
-rm ~/.terraform.d/plugins/terraform-provisioner-mondoo
+$ terraform destroy -var 'key_nameterraform' -var 'public_key=~/.ssh/id_rsa.pub' -var 'private_key=~/.ssh/id_rsa'
 ```
