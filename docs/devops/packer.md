@@ -6,12 +6,14 @@ Mondoo ships an integration for [Packer](https://www.packer.io) to ease the asse
 
 The Mondoo Packer Provisioner depends on:
 
-  * [Packer CLI installed on workstation](https://www.packer.io/intro/getting-started/install.html)
+  * [Packer 1.7 CLI installed on workstation](https://www.packer.io/intro/getting-started/install.html)
   * [Mondoo CLI installed on workstation](../installation/)
 
 The provisioner plugin may be installed via:
 
   * Precompiled binary
+
+> NOTE: Packer 1.7 introduced a [breaking change](https://github.com/hashicorp/packer/blob/master/CHANGELOG.md#backwards-incompatibilities). Therefore, our packer provisioner 1.1.0+ requires Packer 1.7+
 
 ### Install packer plugin from binary
 
