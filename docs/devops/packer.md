@@ -32,7 +32,7 @@ cd ~/.packer.d/plugins
 curl https://releases.mondoo.io/packer-provisioner-mondoo/latest.json | jq -r '.files[] | select (.platform=="linux").filename' | xargs -n 1 curl | tar -xz > packer-provisioner-mondoo
 
 # download a specific version
-curl -sSL https://releases.mondoo.io/packer-provisioner-mondoo/0.14.0/packer-provisioner-mondoo_linux_amd64.tar.gz | tar -xz > packer-provisioner-mondoo
+curl -sSL https://releases.mondoo.io/packer-provisioner-mondoo/1.1.0/packer-provisioner-mondoo_linux_amd64.tar.gz | tar -xz > packer-provisioner-mondoo
 
 # set the permissions
 chmod +x packer-provisioner-mondoo
@@ -49,7 +49,7 @@ cd ~/.packer.d/plugins
 curl https://releases.mondoo.io/packer-provisioner-mondoo/latest.json | jq -r '.files[] | select (.platform=="darwin").filename' | xargs -n 1 curl | tar -xz > packer-provisioner-mondoo
 
 # download a specific version
-curl -sSL https://releases.mondoo.io/packer-provisioner-mondoo/0.14.0/packer-provisioner-mondoo_darwin_amd64.tar.gz | tar -xz > packer-provisioner-mondoo
+curl -sSL https://releases.mondoo.io/packer-provisioner-mondoo/1.1.0/packer-provisioner-mondoo_darwin_amd64.tar.gz | tar -xz > packer-provisioner-mondoo
 
 # set the permissions
 chmod +x packer-provisioner-mondoo
@@ -61,7 +61,7 @@ Download the binary from the [Mondoo releases page](https://releases.mondoo.io/p
 
 ```powershell
 # This script requires powershell
-Invoke-WebRequest 'https://releases.mondoo.io/packer-provisioner-mondoo/0.14.0/packer-provisioner-mondoo_windows_amd64.zip' -O 'packer-provisioner-mondoo_windows_amd64.zip'
+Invoke-WebRequest 'https://releases.mondoo.io/packer-provisioner-mondoo/1.1.0/packer-provisioner-mondoo_windows_amd64.zip' -O 'packer-provisioner-mondoo_windows_amd64.zip'
 
 # extract zip and place it in the same path as packer
 Expand-Archive -LiteralPath packer-provisioner-mondoo_windows_amd64.zip
