@@ -57,7 +57,7 @@ This script source is available at: https://github.com/mondoolabs/mondoo
 
 base_url="${MONDOO_MIRROR:-https://releases.mondoo.io}"
 product="mondoo"
-version="${MONDOO_VERSION:-3.6.2}"
+version="${MONDOO_VERSION:-3.7.0}"
 
 fail() {
   echo -e "${red}${1}${end}";
