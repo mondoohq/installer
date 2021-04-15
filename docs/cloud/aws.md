@@ -1,4 +1,4 @@
-# AWS Integration
+# AWS
 
 Mondoo offers a wide range of choices to collect risk information about workload running in your AWS account:
 
@@ -11,6 +11,7 @@ Mondoo offers a wide range of choices to collect risk information about workload
 
 **Gather vulnerability information during run-time**
 
+  - [Event-based scanning with Mondoo-AWS Integration](#integration)
   - [Scan AWS EC2 instances from your workstation](#scan-from-workstation)
   - [Install mondoo agent via CloudInit](../installation/cloudinit.md#aws-ec2-instance-user-data)
   - [Terraform deployment](../devops/terraform.md)
@@ -38,34 +39,57 @@ If you want to use a specific profile, set `AWS_PROFILE`
 ```bash
 $ export AWS_PROFILE=mondoo
 ```
+Mondoo provides policies for scanning the security of your AWS account following [CIS Standards](https://www.cisecurity.org/benchmark/amazon_web_services/)
+EC2 instances are automatically discovered and can be scanned using SSH or SSM. 
+To associate credentials with instances for SSH scanning, please refer to the [Mondoo vault docs](../getstarted/vault.md)
 
-You can also set the region:
+Now, you are ready to scan your AWS account and EC2 instances:
 
 ```bash
-$ export AWS_REGION=us-east-1
+$ mondoo scan -t aws://
+# scan your account and discover all ec2 instances
+$ mondoo scan -t aws:// --discover all
 ```
 
-Now, you are ready to scan the EC2 instances:
+Use `--discover-filter` to add filters for regions, instance ids, and tags:
 
 ```bash
-$ mondoo scan -t ec2://profile/name/region/us-east-1
-$ mondoo scan -t ec2://region/us-east-1
-$ mondoo scan -t ec2://user/ec2-user
-$ mondoo scan -t ec2://profile/mondoo/region/us-east-1/user/ec2-user
+$ mondoo scan -t aws:// --discover all --discover-filter regions=us-east-2 --discover-filter instance-ids=i-06eab6c104c0f5fb0 --discover-filter tags=Name:testnametag
 ```
 
-![Mondoo AWS EC2 instances scan from CLI](../static/videos/aws-ec2-scan.gif)
+## Mondoo AWS Integration
 
-> Note: mondoo uses `~/.ssh/config` to determine the users for each detected public IP
+Use the AWS integration to enable cron-scheduled and event-based scanning of your AWS account and EC2 instances.
 
-Instead of using the same ssh username for all instances, you can also configure the SSH config and configure the username for each instance with their username:
+### How it works 
+We use AWS Cloudformation to setup the Mondoo Lambda function in the desired account. The lambda function scans the account and EC2 instances on the desired cron schedule. It communicates with Mondoo Cloud to find the appropriate policies and sends all results to Mondoo Cloud.
 
-```bash
-Host 123.123.123.123
-  User chris
+### Create
+Use the Mondoo UI to create the integration:
 
-Host yourdomain.com
-  IdentityFile /your/path/keyname
-````
+![integration-create-image](../../assets/aws-integration-create.png)
 
-If you require a specific list of instances with more detailed configuration, consider the use of an [Ansible inventory](../devops/ansible.md)
+After entering your AWS Account ID, the browser will open a new tab with AWS Cloudformation loaded, ready to launch the stack. 
+
+Scan Configuration options, explained:
+- cron scan in hours: the interval at which scans should be executed
+- discover ec2 instances: find the ec2 instances in the account (across all regions)
+- use ssm: use ssm to scan the instance when available 
+- use ssh: use ssh to scan instances, using the secrets metadata query and aws secrets manager vault to retrieve the secrets
+- secrets metadata query: see [Mondoo vault docs](../getstarted/vault.md)
+- show ec2 instances filtering options: displays fields to enter in region, instance id, or tag filters. this mirrors the cli `--discover-filter` behaviour noted above
+
+### View
+A list of integrations and a detail page for each is available on the agents page:
+
+![integration-list-image](../../assets/aws-integration-list.png)
+
+Clicking on any of the integration rows will lead to the details page for that integration. Any errors the server encountered when setting up the integration will be displayed on the details page. This is also where scan configuration options can be edited and a one-off scan triggered.
+
+
+### Remove
+When removing an AWS Integration from Mondoo server, a link will be opened to the AWS Cloudformation Stacks list page for easy stack deletion. The configured integration will be removed from Mondoo, and the rule allowing the Mondoo AWS account to send events to the target account will be deleted. 
+
+
+### Lambda VPC Access
+The AWSLambdaVPCAccessExecutionRole is already attached to the Mondoo Lambda Role for the function. Should your lambda function require VPC access to be able to scan instances, please refer to https://docs.aws.amazon.com/lambda/latest/dg/configuration-vpc.html to attach the lambda function to the appropriate VPC. You will also need to configure your security group to allow outbound traffic to [mondoo app](https://mondoo.app) from the labda function and ssm instances.
