@@ -1,4 +1,4 @@
-# Hello, Mondoo:tm:  👋
+# Hello, Mondoo™  👋
 
 ![Hi](./static/hello.png)
 
