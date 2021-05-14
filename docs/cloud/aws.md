@@ -67,7 +67,7 @@ We use AWS Cloudformation to setup the Mondoo Lambda function in the desired acc
 ### Create
 Use the Mondoo UI to create the integration:
 
-![integration-create-image](../../assets/aws-integration-create.png)
+![integration-create-image](./aws-integration-create.png)
 
 After entering your AWS Account ID, the browser will open a new tab with AWS Cloudformation loaded, ready to launch the stack. 
 
@@ -82,7 +82,7 @@ Scan Configuration options, explained:
 ### View
 A list of integrations and a detail page for each is available on the agents page:
 
-![integration-list-image](../../assets/aws-integration-list.png)
+![integration-list-image](./aws-integration-list.png)
 
 Clicking on any of the integration rows will lead to the details page for that integration. Any errors the server encountered when setting up the integration will be displayed on the details page. This is also where scan configuration options can be edited and a one-off scan triggered.
 
