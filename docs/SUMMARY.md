@@ -15,6 +15,7 @@
     * [SSH Targets](getstarted/server.md#ssh-targets)
     * [Ansible Inventory](getstarted/server.md#ansible-inventory)
     * [Local System](getstarted/server.md#local-system)
+    * [Vault Integration](getstarted/vault.md)
 
 * [Cloud Workload Security](getstarted/cloud-workload.md#cloud-workload-security)
     * [Azure Instances](getstarted/cloud-workload.md#azure-instances)
