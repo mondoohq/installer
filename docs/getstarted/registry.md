@@ -31,17 +31,15 @@ Login Succeeded
 
 Then scan the repository via:
 
-```
+```bash
 $ mondoo scan -t cr://123456789.dkr.ecr.us-east-1.amazonaws.com/repository
 ```
 
 Further information is available at [Integration/Registry/AWS](../registry/aws_ecr.md#aws-elastic-container-registry)
 
-
-
 ## Docker Hub Repository
 
-![Mondoo Docker Hub scan from CLI](../static/videos/videos/docker-hub-scan.gif)
+![Mondoo Docker Hub scan from CLI](../static/videos/docker-hub-scan.gif)
 
 Install the `docker` CLI and [log in to the registry](https://docs.docker.com/engine/reference/commandline/login/):
 
@@ -63,7 +61,7 @@ Further information is available at [Integration/Registry/DockerHub](../registry
 
 To authenticate with the registry, [log in with gcloud](https://cloud.google.com/container-registry/docs/advanced-authentication#standalone-helper)
 
-```
+```bash
 gcloud auth configure-docker
 ```
 
@@ -87,7 +85,7 @@ docker login -u admin -p Harbor12345 harbor.yourdomain.com
 
 Then scan the registry or a repository via:
 
-```
+```bash
 $ mondoo scan -t cr://harbor.yourdomain.com
 $ mondoo scan -t cr://harbor.yourdomain.com/project/repository
 ```
