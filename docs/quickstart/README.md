@@ -2,9 +2,11 @@
 
 The easiest way to try Mondoo is by installing the agent locally on your workstation or use our  Docker container `mondoolabs/mondoo`. You can easily try out
 
-* [Sign Up](#sign-up)
-* [Install Mondoo CLI](#install-mondoo-cli)
-* [Do your first scan](#first-scan)
+- [Quickstart](#quickstart)
+  - [Sign Up](#sign-up)
+  - [Install Mondoo CLI](#install-mondoo-cli)
+    - [Create CLI credentials](#create-cli-credentials)
+  - [First scan](#first-scan)
 
 ## Sign Up
 
@@ -28,7 +30,7 @@ To quickly assess the state of a your systems, install the Mondoo CLI on your wo
 
 **macOS Workstation**
 
-![Mondoo Agent installation on macOS](./static/videos/mondoo-setup-macos.gif)
+![Mondoo Agent installation on macOS](../static/videos/mondoo-setup-macos.gif)
 
 ```
 brew tap mondoolabs/mondoo
@@ -47,7 +49,7 @@ curl -sSL https://mondoo.io/download.sh | bash
 
 **Windows workstation**
 
-![Mondoo Agent installation on Windows](../assets/windows_mondoo_install.png)
+![Mondoo Agent installation on Windows](../installation/windows_mondoo_install.png)
 
 ```powershell
 iex (new-object net.webclient).downloadstring('https://mondoo.io/download.ps1')
@@ -56,7 +58,7 @@ See [Installing Mondoo Agent on Windows workstation](../installation/windows.md)
 
 ### Create CLI credentials
 
-![Create a new agent](../assets/quickstart/spacedashboard.png)
+![Create a new agent](./spacedashboard.png)
 
 The Mondoo CLI use a secure private key to sign the communication with an individual key. Via a registration token, the agent is able to retrieve its credentials securely.
 

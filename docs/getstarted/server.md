@@ -16,7 +16,7 @@ $ mondoo scan -t ssh://ec2-user@52.51.185.215:2222
 
 Definitions from ` ~/.ssh/config` are used by the mondoo agent. The following defines the host `shorty` for ssh:
 
-```
+```config
 Host shorty
   HostName 54.205.49.51
   User ec2-user
@@ -24,7 +24,7 @@ Host shorty
 
 You can use `shorty` as host identifier with `mondoo`  then:
 
-```
+```bash
 # use hosts defined in ~/.ssh/config
 $ mondoo scan -t ssh://shorty
 ```
@@ -33,7 +33,7 @@ $ mondoo scan -t ssh://shorty
 
 You can always pass unencrypted keys via the `-i` option:
 
-```
+```bash
 mondoo scan -t ssh://vagrant@192.168.100.70 -i /path/to/private_key
 ```
 
@@ -43,17 +43,17 @@ mondoo scan -t ssh://vagrant@192.168.100.70 -i /path/to/private_key
 
 Since `mondoo` integrates with `ssh-agent`, you do not need to provide the identity key. This is also the recommended solution for encrypted identity keys:
 
-```
-ssh-add /path/to/private_key
-mondoo scan -t ssh://vagrant@192.168.100.70
+```bash
+$ ssh-add /path/to/private_key
+$ mondoo scan -t ssh://vagrant@192.168.100.70
 ```
 
 **Password Authentication**
 
 > NOTE: We do not recommend this method for any production workloads, since it may expose your password as cleartext in logs
 
-```
-mondoo scan -t ssh://vagrant:vagrant@192.168.100.70
+```bash
+$ mondoo scan -t ssh://vagrant:vagrant@192.168.100.70
 ```
 
 ## Ansible Inventory
@@ -74,7 +74,7 @@ instance1 ansible_host=18.203.250.158 ansible_user=ubuntu
 Equipped with this inventory, you can ping all the hosts with ansible:
 
 ```bash
-ansible all -i hosts.ini -m ping
+$ ansible all -i hosts.ini -m ping
 34.243.41.251 | SUCCESS => {
  "changed": false,
  "ping": "pong"
@@ -88,7 +88,7 @@ instance1 | SUCCESS => {
 Then use `ansible-inventory` with Mondoo:
 
 ```bash
-ansible-inventory -i hosts.ini --list | mondoo scan --ansible-inventory
+$ ansible-inventory -i hosts.ini --list | mondoo scan --ansible-inventory
 ```
 
 Further information is available at [Integration/DevOps/Ansible](../devops/ansible.md#ansible-and-mondoo)
@@ -97,6 +97,6 @@ Further information is available at [Integration/DevOps/Ansible](../devops/ansib
 
 Linux bases systems can also be scanned locally:
 
-```
+```bash
 $ mondoo scan
 ```

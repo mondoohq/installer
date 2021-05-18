@@ -2,7 +2,7 @@
 
 ## Kubernetes
 
-![Mondoo Kubernetes scan from CLI](../assets/videos/k8s-scan.gif)
+![Mondoo Kubernetes scan from CLI](../static/videos/k8s-scan.gif)
 
 Ensure you can connect to your cluster via `kubectl`:
 
@@ -15,7 +15,7 @@ hello-node-7676b5fb8d-xck5l   1/1     Running                0          5d1h
 
 Then you can scan your cluster via:
 
-```
+```bash
 $ mondoo scan -t k8s://
 ```
 
@@ -35,7 +35,7 @@ Further information is available at [Integration/Cloud/K8S](../cloud/k8s.md#k8s-
 
 Mondoo can scan Docker container images directly via their registry name:
 
-```
+```bash
 $ mondoo scan -t docker://ubuntu:latest
 $ mondoo scan -t docker://elastic/elasticsearch:7.2.0
 $ mondoo scan -t docker://gcr.io/google-containers/ubuntu:14.04
@@ -44,7 +44,7 @@ $ mondoo scan -t docker://registry.access.redhat.com/ubi8/ubi
 
 If the Docker agent is installed, you can scan images by their id:
 
-```
+```bash
 $ mondoo scan -t docker://docker-image-id
 ```
 
@@ -54,7 +54,7 @@ $ mondoo scan -t docker://docker-image-id
 
 You can easily scan running containers by their id:
 
-```
+```bash
 $ mondoo scan -t docker://docker-container-id
 ```
 
@@ -63,4 +63,3 @@ Scans also work for stopped containers.
 ![Mondoo stopped Docker container scan from CLI](../static/videos/docker-stopped-container-scan.gif)
 
 > Note: Docker container can only be scanned if the Docker engine is installed
-

@@ -2,7 +2,7 @@
 
 Mondoo is built to make vulnerability assessment for your infrastructure easy. If you are already using Ansible to manage parts of your infrastructure, you can re-use the setup for Mondoo. This is possible because Mondoo understands the [Ansible's inventory](https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html) format.
 
-![Mondoo using Ansible inventory](../../assets/ansible-inventory.png)
+![Mondoo using Ansible inventory](../static/ansible-inventory.png)
 
 ## Overview about Ansible inventory
 

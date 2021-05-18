@@ -4,18 +4,18 @@ Mondoo offers a wide range of choices to collect risk information about workload
 
 **Gather vulnerability information during build-time**
 
- - [Risk assessment in Azure DevOps](../cicd/azure-devops.md#azure-devops)
- - [Risk assessment for Azure Container Registry](../registry/azure_acr.md#azure-container-registry)
- - [Build AMIs with Packer](../devops/packer.md)
- - [Test Docker Images in Azure DevOps](../cicd/azure-devops.md)
+- [Risk assessment in Azure DevOps](../cicd/azure-devops.md#azure-devops)
+- [Risk assessment for Azure Container Registry](../registry/azure_acr.md#azure-container-registry)
+- [Build AMIs with Packer](../devops/packer.md)
+- [Test Docker Images in Azure DevOps](../cicd/azure-devops.md)
 
 **Gather vulnerability information during run-time**
 
-  - [Scan Azure compute instances from your workstation](#scan-from-workstation)
-  - [Install mondoo agent via CloudInit](../installation/cloudinit.md)
-  - [Terraform deployment](../devops/terraform.md)
-  - [Verify instances managed by Chef/AWS OpsWorks](../installation/chef.md)
-  - [Verify instances managed by Ansible](../installation/ansible.md)
+- [Scan Azure compute instances from your workstation](#scan-from-workstation)
+- [Install mondoo agent via CloudInit](../installation/cloudinit.md)
+- [Terraform deployment](../devops/terraform.md)
+- [Verify instances managed by Chef/AWS OpsWorks](../installation/chef.md)
+- [Verify instances managed by Ansible](../installation/ansible.md)
 
 ## Scan from Workstation
 
@@ -45,7 +45,7 @@ win2019  DEMO             westus
 
 Provided with those values, you can trigger a scan via `mondoo`:
 
-```
+```bash
 $ mondoo scan -t az://subscriptions/subscriptionid/resourceGroups/groupname
 ```
 
