@@ -46,7 +46,7 @@ function Install-Mondoo {
     $wc = New-Object Net.Webclient
     $wc.Headers.Add('User-Agent', (Get-UserAgent))
     $latest = $wc.DownloadString($url) | ConvertFrom-Json 
-    $entry = $latest.files | where { $_.platform -eq "windows" -and $_.filename -match "${filetype}$" }
+    $entry = $latest.files | Where-Object { $_.platform -eq "windows" -and $_.filename -match "${filetype}" }
     $entry.filename
   }
 
@@ -70,7 +70,7 @@ function Install-Mondoo {
   purple "
                           .-.            
                           : :            
-  ,-.,-.,-. .--. ,-.,-. .-' : .--.  .--. ™
+  ,-.,-.,-. .--. ,-.,-. .-' : .--.  .--. ™ 
   : ,. ,. :' .; :: ,. :' .; :' .; :' .; :
   :_;:_;:_;`.__.':_;:_;`.__.'`.__.'`.__.
   "
@@ -191,4 +191,4 @@ function Install-Mondoo {
   $erroractionpreference = $previous_erroractionpreference
 
   }
-}
+} 
