@@ -2,7 +2,8 @@
 <#
     .SYNOPSIS
     This PowerShell script installs the latest Mondoo agent on windows. Usage:
-    iex ((New-Object System.Net.WebClient).DownloadString('https://mondoo.io/install.ps1')); Install-Mondoo;
+    Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://mondoo.io/install.ps1')); Install-Mondoo;
+    
     .PARAMETER RegistrationToken
     The registration token for your mondoo installation. See our docs if you do not
     have one: https://mondoo.io/docs/installation/registration.html
@@ -70,9 +71,9 @@ function Install-Mondoo {
   purple "
                           .-.            
                           : :            
-  ,-.,-.,-. .--. ,-.,-. .-' : .--.  .--. ™
-  : ,. ,. :' .; :: ,. :' .; :' .; :' .; :
-  :_;:_;:_;`.__.':_;:_;`.__.'`.__.'`.__.
+  ,-.,-.,-. .--. ,-.,-. .-`' : .--.  .--.
+  : ,. ,. :`' .; :: ,. :`' .; :`' .; :`' .; :
+  :_;:_;:_;``.__.`':_;:_;``.__.`'``.__.`'``.__.
   "
                   
   info "Welcome to the Mondoo Binary Download Script. It downloads the Mondoo binary for

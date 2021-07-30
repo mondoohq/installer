@@ -56,7 +56,7 @@ trap on_error ERR
 
 purple_bold "Mondoo Package Install Script"
 purple "
-                         .-.            
+                        .-.            
                         : :            
 ,-.,-.,-. .--. ,-.,-. .-' : .--.  .--. ™
 : ,. ,. :' .; :: ,. :' .; :' .; :' .; :

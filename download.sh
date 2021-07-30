@@ -38,7 +38,7 @@ red_bold() { echo -e "${redb}${1}${end}"; }
 
 purple_bold "Mondoo Binary Download Script"
 purple "
-                         .-.            
+                        .-.            
                         : :            
 ,-.,-.,-. .--. ,-.,-. .-' : .--.  .--. ™
 : ,. ,. :' .; :: ,. :' .; :' .; :' .; :
