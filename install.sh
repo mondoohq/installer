@@ -76,7 +76,7 @@ echo -e "\nWelcome to the Mondoo installer. We will auto-detect your
 operating system to determine the best installation method.
 If you experience any issues, please reach us at:
 
-  * Mondoo Community Discord: https://discord.gg/MRrWXYTmHJ
+  * Mondoo Community Discord: https://discord.com/invite/HPAjpS6b34
 
 The source code of this installer is available on Github:
 
@@ -414,7 +414,7 @@ configure_token() {
   if [ $MONDOO_IS_REGISTERED = true ]; then
     purple_bold "\n* Mondoo was successfully registered."
   else
-    red "\n* Failed to register Mondoo."
+    red "\n* Failed to register Mondoo. Please reach out to us via Mondoo Community Discord."
     exit 1
   fi
 }

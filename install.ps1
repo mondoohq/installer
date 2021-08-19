@@ -6,7 +6,7 @@
     
     .PARAMETER RegistrationToken
     The registration token for your mondoo installation. See our docs if you do not
-    have one: https://mondoo.io/docs/installation/registration.html
+    have one: https://docs.mondoo.io/server/registration
     .PARAMETER DownloadType
     Set 'msi' (default) to download the package or 'zip' for the agent binary instead
     .PARAMETER Version
@@ -80,7 +80,7 @@ function Install-Mondoo {
   Windows into $ENV:UserProfile\mondoo and adds the path to the user's environment PATH. If 
   you are experiencing any issues, please do not hesitate to reach out: 
 
-    * Mondoo Community https://github.com/mondoolabs/mondoo
+    * Mondoo Community Discord https://discord.com/invite/HPAjpS6b34
 
   This script source is available at: https://github.com/mondoolabs/mondoo
   "
@@ -108,8 +108,8 @@ function Install-Mondoo {
   # we only support x86_64 at this point, stop if we got arm
   if ($env:PROCESSOR_ARCHITECTURE -ne 'AMD64') {
     fail "
-  Your processor architecture $env:PROCESSOR_ARCHITECTURE is not supported yet. Please contact 
-  us via https://github.com/mondoolabs/mondoo or hello@mondoo.io
+  Your processor architecture $env:PROCESSOR_ARCHITECTURE is not supported yet. Please come join us in 
+  our Mondoo Community Discord: https://discord.com/invite/HPAjpS6b34 or email us at hello@mondoo.io
   "
   }
 
@@ -183,9 +183,9 @@ function Install-Mondoo {
   info "
   Thank you for installing Mondoo!"
   info "
-  If you have any questions, please reach out at Mondoo Community:
+  If you have any questions, please come join us in our Mondoo Community Discord:
 
-    * https://github.com/mondoolabs/mondoo
+    * https://discord.com/invite/HPAjpS6b34
   "
 
   # reset erroractionpreference
