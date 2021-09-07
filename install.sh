@@ -435,7 +435,7 @@ finalize_setup() {
 
   # Display final message
   detect_mondoo_registered
-  if [ $MONDOO_IS_REGISTERED = true ]; then
+  if [ $MONDOO_IS_REGISTERED = false ]; then
     purple_bold "\nMondoo is ready to go!"
     echo
     lightblue_bold "Next you should register Mondoo to get access to policies and reports."
