@@ -85,9 +85,8 @@ The source code of this installer is available at:
 KNOWN_DISTRIBUTION="(RedHat|CentOS|Debian|Ubuntu|openSUSE|Amazon|SUSE|Arch Linux)"
 DISTRIBUTION="$(
   lsb_release -d 2>/dev/null | grep -Eo "$KNOWN_DISTRIBUTION" || \
+    grep -m1 -Eo "$KNOWN_DISTRIBUTION" /etc/os-release 2>/dev/null || \
     grep -Eo "$KNOWN_DISTRIBUTION" /etc/issue 2>/dev/null || \
-    grep -Eo "$KNOWN_DISTRIBUTION" /etc/Eos-release 2>/dev/null || \
-    grep -m1 -Eo "$KNOWN_DISTRIBUTION" /etc/os-release 2>/dev/null ||
     uname -s)"
 
 if [ "$DISTRIBUTION" = "Darwin" ]; then
@@ -112,6 +111,7 @@ fi
 # To be POSIX-compatible we will be using `command` instead of `hash` or `type`.
 #
 
+MONDOO_CMD="mondoo"
 MONDOO_EXECUTABLE=""
 MONDOO_INSTALLED=false
 detect_mondoo() {
@@ -143,11 +143,74 @@ else
   }
 fi
 
+# Portable setup
+# --------------
+
+detect_portable() {
+  if [ -x "mondoo" ]; then
+    MONDOO_EXECUTABLE="$(pwd)/mondoo"
+    MONDOO_CMD="./mondoo"
+    MONDOO_INSTALLED=true
+  fi
+}
+
+detect_latest_version() {
+  MONDOO_LATEST_VERSION="$(curl https://releases.mondoo.io/mondoo/ 2>/dev/null | grep -Eo 'href="[[:alnum:]]+\.[[:alnum:]]+\.[[:alnum:]]+' | head -n1 | sed 's/href="//')"
+}
+
+install_portable() {
+  FAIL=false
+  if [ ! -x "$(command -v tar)" ]; then
+    FAIL=true
+    red "Cannot find command `tar`. It is required for the portable installer"
+  fi
+  if [ ! -x "$(command -v curl)" ]; then
+    FAIL=true
+    red "Cannot find command `curl`. It is required for the portable installer"
+  fi
+  if [ $FAIL = true ]; then exit 1; fi
+
+  case "$OS" in
+    "macOS") SYSTEM="darwin";;
+    *) SYSTEM="linux";;
+  esac
+
+  ARCH_DETECT="$(uname -m)"
+  case "$ARCH_DETECT" in
+    "x86_64") ARCH="amd64";;
+    "i386") ARCH="386";;
+    "aarch64_be") ARCH="arm64";;
+    "aarch64") ARCH="arm64";;
+    "armv8b") ARCH="arm64";;
+    "armv8l") ARCH="arm64";;
+    *) red "Unsupported architecture ($ARCH_DETECT). Exiting.";
+       exit 1;;
+  esac
+
+  detect_latest_version
+
+  FILE="mondoo_${MONDOO_LATEST_VERSION}_${SYSTEM}_${ARCH}.tar.gz"
+  URL="https://releases.mondoo.io/mondoo/${MONDOO_LATEST_VERSION}/${FILE}"
+
+  echo "Downloading latest version from: $URL"
+  curl -O "${URL}"
+
+  tar xf "${FILE}"
+
+  detect_portable
+  if [ -z "$MONDOO_EXECUTABLE" ]; then
+    red "Cannot find mondoo executable in local folder. Aborting."
+    exit 1
+  fi
+
+  purple_bold "Installed a portable version of mondoo in this folder."
+  echo "You can run it via: ${MONDOO_CMD}"
+}
+
 # macOS installer
 # ---------------
 
 configure_macos_installer() {
-
   if [ -x "$(command -v brew)" ]; then
     MONDOO_INSTALLER="brew"
     mondoo_install() {
@@ -171,12 +234,6 @@ configure_macos_installer() {
     }
     mondoo_update() { mondoo_install "$@"; }
   fi
-
-  purple "macOS is not supported yet. Please reach out at Mondoo Community:
-
-  * https://github.com/mondoolabs/mondoo
-"
-  exit 1
 }
 
 # Arch Linux installer
@@ -312,10 +369,10 @@ configure_suse_installer() {
 # --------------------
 
 detect_mondoo_registered() {
-  if [ "$(mondoo status >/dev/null 2>&1; echo $?)" -eq "0" ]; then
+  if [ "$(${MONDOO_CMD} status >/dev/null 2>&1; echo $?)" -eq "0" ]; then
     MONDOO_IS_REGISTERED=true
   else
-    MONDOO_IS_REGISTERED=true
+    MONDOO_IS_REGISTERED=false
   fi
 }
 
@@ -325,7 +382,7 @@ configure_token() {
     return
   fi
 
-  purble_bold "\n* Detected registration token, checking if agent is registered..."
+  purple_bold "\n* Detected registration token, checking if agent is registered..."
   detect_mondoo_registered
 
   if [ $MONDOO_IS_REGISTERED = true ]; then
@@ -335,7 +392,7 @@ configure_token() {
 
   purple_bold "\n* Register agent with Mondoo Cloud"
   $sudo_cmd mkdir -p /etc/opt/mondoo/
-  $sudo_cmd mondoo register --config /etc/opt/mondoo/mondoo.yml --token $MONDOO_REGISTRATION_TOKEN
+  $sudo_cmd ${MONDOO_CMD} register --config /etc/opt/mondoo/mondoo.yml --token $MONDOO_REGISTRATION_TOKEN
 
   if [ "$(cat /proc/1/comm)" = "init" ]
   then
@@ -377,11 +434,17 @@ finalize_setup() {
   detect_mondoo_registered
   if [ $MONDOO_IS_REGISTERED = true ]; then
     purple_bold "\nMondoo is ready to go!"
+    echo
     lightblue_bold "Next you should register this agent to get access to policies and reports."
-    lightblue_bold "Follow this guide: https://mondoo.io/docs/quickstart/#create-cli-credentials"
+    lightblue_bold "Follow this guide: "
+    echo
+    lightblue_bold "https://mondoo.io/docs/quickstart/#create-cli-credentials"
+    echo
   else
     purple_bold "\nMondoo is set up and ready to go!"
+    echo
     lightblue_bold "Follow our quick start guide for next steps: https://mondoo.io/docs/quickstart/#first-scan"
+    echo
   fi
 
 }
