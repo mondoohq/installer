@@ -24,6 +24,10 @@
 #     (Optional) Mondoo Registation Token to register an agent. Systemd services
 #     are only activated if the agent is properly authenticated.
 
+# Please note that we aim to be POSIX-compatible in this script.
+# If you find anything that violates this constraints please reach out.
+# - https://unix.stackexchange.com/questions/73750/difference-between-function-foo-and-foo
+
 # define colors
 end="\033[0m"
 red="\033[0;31m"
@@ -37,16 +41,16 @@ greenb="\033[1;32m"
 purple="\033[0;35m"
 purpleb="\033[1;35m"
 
-function red { echo -e "${red}${1}${end}"; }
-function red_bold { echo -e "${redb}${1}${end}"; }
-function green { echo -e "${green}${1}${end}"; }
-function green_bold { echo -e "${greenb}${1}${end}"; }
-function lightblue {  echo -e "${lightblue}${1}${end}"; }
-function lightblue_bold { echo -e "${lightblueb}${1}${end}"; }
-function purple { echo -e "${purple}${1}${end}"; }
-function purple_bold { echo -e "${purpleb}${1}${end}"; }
+red() { echo -e "${red}${1}${end}"; }
+red_bold() { echo -e "${redb}${1}${end}"; }
+green() { echo -e "${green}${1}${end}"; }
+green_bold() { echo -e "${greenb}${1}${end}"; }
+lightblue() {  echo -e "${lightblue}${1}${end}"; }
+lightblue_bold() { echo -e "${lightblueb}${1}${end}"; }
+purple() { echo -e "${purple}${1}${end}"; }
+purple_bold() { echo -e "${purpleb}${1}${end}"; }
 
-function on_error() {
+on_error() {
   red "It looks like we encountered a problem. Feel free to reach us at: https://github.com/mondoolabs/mondoo"
   exit 1;
 }
@@ -79,9 +83,14 @@ The source code of this installer is available at:
 # -----------------------
 # Store detected value in $OS
 KNOWN_DISTRIBUTION="(RedHat|CentOS|Debian|Ubuntu|openSUSE|Amazon|SUSE|Arch Linux)"
-DISTRIBUTION=$(lsb_release -d 2>/dev/null | grep -Eo $KNOWN_DISTRIBUTION  || grep -Eo $KNOWN_DISTRIBUTION /etc/issue 2>/dev/null || grep -Eo $KNOWN_DISTRIBUTION /etc/Eos-release 2>/dev/null || grep -m1 -Eo $KNOWN_DISTRIBUTION /etc/os-release 2>/dev/null || uname -s)
+DISTRIBUTION="$(
+  lsb_release -d 2>/dev/null | grep -Eo "$KNOWN_DISTRIBUTION" || \
+    grep -Eo "$KNOWN_DISTRIBUTION" /etc/issue 2>/dev/null || \
+    grep -Eo "$KNOWN_DISTRIBUTION" /etc/Eos-release 2>/dev/null || \
+    grep -m1 -Eo "$KNOWN_DISTRIBUTION" /etc/os-release 2>/dev/null ||
+    uname -s)"
 
-if [ $DISTRIBUTION = "Darwin" ]; then
+if [ "$DISTRIBUTION" = "Darwin" ]; then
   OS="macOS"
 elif [ -f /etc/debian_version -o "$DISTRIBUTION" == "Debian" -o "$DISTRIBUTION" == "Ubuntu" ]; then
   OS="Debian"
@@ -105,7 +114,7 @@ fi
 
 MONDOO_EXECUTABLE=""
 MONDOO_INSTALLED=false
-function detect_mondoo {
+detect_mondoo() {
   MONDOO_EXECUTABLE="$(command -v mondoo)"
   if [ -x "$MONDOO_EXECUTABLE" ]; then
     MONDOO_INSTALLED=true
@@ -123,7 +132,7 @@ detect_mondoo
 if [ $(echo "$UID") = "0" ]; then
   sudo_cmd=''
 else
-  function sudo_cmd {
+  sudo_cmd() {
     if [ -x "$(command -v sudo)" ]; then
       sudo "$@"
     else
@@ -137,11 +146,11 @@ fi
 # macOS installer
 # ---------------
 
-function configure_macos_installer {
+configure_macos_installer() {
 
   if [ -x "$(command -v brew)" ]; then
     MONDOO_INSTALLER="brew"
-    function mondoo_install {
+    mondoo_install() {
       purple_bold "\n* Configuring brew sources for Mondoo via `brew tap`"
       brew tap mondoolabs/mondoo
 
@@ -149,18 +158,18 @@ function configure_macos_installer {
       brew install mondoo
     }
 
-    function mondoo_update {
+    mondoo_update() {
       brew upgrade mondoo
     }
 
   else
     MONDOO_INSTALLER=""
-    function mondoo_install {
+    mondoo_install() {
       red "Cannot find an installer to use for macOS. Supported installer is: brew"
       echo "Please use the above installer or contribute to: https://github.com/mondoolabs/mondoo"
       exit 1
     }
-    function mondoo_update { mondoo_install "$@" }
+    mondoo_update() { mondoo_install "$@"; }
   fi
 
   purple "macOS is not supported yet. Please reach out at Mondoo Community:
@@ -173,41 +182,41 @@ function configure_macos_installer {
 # Arch Linux installer
 # --------------------
 
-function configure_archlinux_installer {
+configure_archlinux_installer() {
   AUR_PACKAGE="mondoo"
 
   if [ -x "$(command -v yay)" ]; then
     MONDOO_INSTALLER="yay"
-    function mondoo_install {
+    mondoo_install() {
       yay -S "$AUR_PACKAGE"
     }
-    function mondoo_update { mondoo_install "$@" }
+    mondoo_update() { mondoo_install "$@"; }
 
   elif [ -x "$(command -v paru)" ]; then
     MONDOO_INSTALLER="paru"
-    function mondoo_install {
+    mondoo_install() {
       paru -S "$AUR_PACKAGE"
     }
-    function mondoo_update { mondoo_install "$@" }
+    mondoo_update() { mondoo_install "$@"; }
 
   else
     MONDOO_INSTALLER=""
-    function mondoo_install {
+    mondoo_install() {
       red "Cannot find an installer to use for Arch Linux. Supported AUR install methods are: yay and paru."
       echo "You can install the mondoo package manually from AUR. Alternatively use one of the above installers or contribute to: https://github.com/mondoolabs/mondoo"
       exit 1
     }
-    function mondoo_update { mondoo_install "$@" }
+    mondoo_update() { mondoo_install "$@"; }
   fi
 }
 
 # RHEL installer
 # --------------
 
-function configure_rhel_installer {
+configure_rhel_installer() {
   if [ -x "$(command -v yum)" ]; then
     MONDOO_INSTALLER="yum"
-    function mondoo_install {
+    mondoo_install() {
       purple_bold "\n* Configuring YUM sources for Mondoo at /etc/yum.repos.d/mondoo.repo"
       curl --retry 3 --retry-delay 10 -sSL https://releases.mondoo.io/rpm/mondoo.repo | $sudo_cmd tee /etc/yum.repos.d/mondoo.repo
 
@@ -215,18 +224,18 @@ function configure_rhel_installer {
       $sudo_cmd yum install -y mondoo
     }
 
-    function mondoo_update {
+    mondoo_update() {
       $sudo_cmd yum update -y mondoo
     }
 
   else
     MONDOO_INSTALLER=""
-    function mondoo_install {
+    mondoo_install() {
       red "Cannot find an installer to use for RedHat Linux. Supported installer is: yum"
       echo "Please use the above installer or contribute to: https://github.com/mondoolabs/mondoo"
       exit 1
     }
-    function mondoo_update { mondoo_install "$@" }
+    mondoo_update() { mondoo_install "$@"; }
 
   fi
 }
@@ -234,10 +243,10 @@ function configure_rhel_installer {
 # Debian installer
 # ----------------
 
-function configure_debian_installer {
+configure_debian_installer() {
   if [ -x "$(command -v apt-get)" ]; then
     MONDOO_INSTALLER="apt-get"
-    function mondoo_install {
+    mondoo_install() {
       purple_bold "\n* Installing prerequisites for Debian"
       $sudo_cmd apt-get update -y
       $sudo_cmd apt-get install -y apt-transport-https ca-certificates gnupg
@@ -250,18 +259,18 @@ function configure_debian_installer {
       $sudo_cmd apt-get update -y && $sudo_cmd apt-get install -y mondoo
     }
 
-    function mondoo_update {
+    mondoo_update() {
       $sudo_cmd apt-get update -y && $sudo_cmd apt-get upgrade -y mondoo
     }
 
   else
     MONDOO_INSTALLER=""
-    function mondoo_install {
+    mondoo_install() {
       red "Cannot find an installer to use for Debian Linux. Supported installer is: apt-get"
       echo "Please use the above installer or contribute to: https://github.com/mondoolabs/mondoo"
       exit 1
     }
-    function mondoo_update { mondoo_install "$@" }
+    mondoo_update() { mondoo_install "$@"; }
 
   fi
 }
@@ -269,10 +278,10 @@ function configure_debian_installer {
 # SUSE installer
 # --------------
 
-function configure_suse_installer {
+configure_suse_installer() {
   if [ -x "$(command -v zypper)" ]; then
     MONDOO_INSTALLER="apt-get"
-    function mondoo_install {
+    mondoo_install() {
       purple_bold "\n* Configuring ZYPPER sources for Mondoo at /etc/zypp/repos.d/mondoo.repo"
       curl --retry 3 --retry-delay 10 -sSL https://releases.mondoo.io/rpm/mondoo.repo | $sudo_cmd tee /etc/zypp/repos.d/mondoo.repo
       # zypper does not recognize the gpg key reference from mondoo.repo properly, therefore we need to add this here manually
@@ -282,18 +291,18 @@ function configure_suse_installer {
       $sudo_cmd zypper -n install mondoo
     }
 
-    function mondoo_update {
+    mondoo_update() {
       $sudo_cmd zypper -n update mondoo
     }
 
   else
     MONDOO_INSTALLER=""
-    function mondoo_install {
+    mondoo_install() {
       red "Cannot find an installer to use for SUSE Linux. Supported installer is: zypper"
       echo "Please use the above installer or contribute to: https://github.com/mondoolabs/mondoo"
       exit 1
     }
-    function mondoo_update { mondoo_install "$@" }
+    mondoo_update() { mondoo_install "$@"; }
 
   fi
 }
@@ -302,17 +311,17 @@ function configure_suse_installer {
 # Post-install actions
 # --------------------
 
-function detect_mondoo_registered {
-  if [ "$(mondoo status >nul 2>&1; echo $?)" -eq "0" ]; then
+detect_mondoo_registered() {
+  if [ "$(mondoo status >/dev/null 2>&1; echo $?)" -eq "0" ]; then
     MONDOO_IS_REGISTERED=true
   else
     MONDOO_IS_REGISTERED=true
   fi
 }
 
-function configure_token {
+configure_token() {
   if [ -z "${MONDOO_REGISTRATION_TOKEN}" ]; then
-    echo "\n* No registration token provided, skipping agent registration."
+    echo -e "\n* No registration token provided, skipping agent registration."
     return
   fi
 
@@ -328,12 +337,12 @@ function configure_token {
   $sudo_cmd mkdir -p /etc/opt/mondoo/
   $sudo_cmd mondoo register --config /etc/opt/mondoo/mondoo.yml --token $MONDOO_REGISTRATION_TOKEN
 
-  if [ $(cat /proc/1/comm) = "init" ]
+  if [ "$(cat /proc/1/comm)" = "init" ]
   then
     purple_bold "\n* Restart upstart service"
     $sudo_cmd stop mondoo || true
     $sudo_cmd start mondoo || true
-  elif [ $(cat /proc/1/comm) = "systemd" ]
+  elif [ "$(cat /proc/1/comm)" = "systemd" ]
   then
     purple_bold "\n* Restart systemd service"
     $sudo_cmd systemctl restart mondoo.service
@@ -350,7 +359,7 @@ function configure_token {
   fi
 }
 
-function postinstall_check {
+postinstall_check() {
   detect_mondoo
   if [ $MONDOO_INSTALLED = false ]; then
     red "Failed to install Mondoo (can't find the Mondoo binary)."
@@ -360,26 +369,21 @@ function postinstall_check {
   echo "Installation completed."
 }
 
-function finalize_setup {
+finalize_setup() {
 
   configure_token
 
   # Display final message
+  detect_mondoo_registered
   if [ $MONDOO_IS_REGISTERED = true ]; then
-    action="using"
+    purple_bold "\nMondoo is ready to go!"
+    lightblue_bold "Next you should register this agent to get access to policies and reports."
+    lightblue_bold "Follow this guide: https://mondoo.io/docs/quickstart/#create-cli-credentials"
   else
-    action="installing"
+    purple_bold "\nMondoo is set up and ready to go!"
+    lightblue_bold "Follow our quick start guide for next steps: https://mondoo.io/docs/quickstart/#first-scan"
   fi
-  purple_bold "\nThank you for $action Mondoo!"
-  purple "
-  If you have any questions, please reach out at Mondoo Community:
 
-    * https://github.com/mondoolabs/mondoo
-  "
-
-  echo ""
-  echo -e "\t\tmondoo setup"
-  exit 0
 }
 
 # Determine which OS installer we are going to use
@@ -411,10 +415,12 @@ fi
 
 if [ $MONDOO_INSTALLED = true ]; then
   purple_bold "\n* Mondoo is already installed."
-  read -p "Do you want to check for updates? [Yn]" choice
+  echo -en "${lightblueb}Do you want to check for updates? [Yn]${end} "
+  read choice
   case $choice in
-    [Y]* ) mondoo_update
-    * ) echo "Not checking for updates."
+    "")   mondoo_update ;;
+    [Y]*) mondoo_update ;;
+    *) echo "Not checking for updates." ;;
   esac
 
   finalize_setup
