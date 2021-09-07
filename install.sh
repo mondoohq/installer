@@ -138,6 +138,31 @@ fi
 # ---------------
 
 function configure_macos_installer {
+
+  if [ -x "$(command -v brew)" ]; then
+    MONDOO_INSTALLER="brew"
+    function mondoo_install {
+      purple_bold "\n* Configuring brew sources for Mondoo via `brew tap`"
+      brew tap mondoolabs/mondoo
+
+      purple_bold "\n* Installing Mondoo via `brew install`"
+      brew install mondoo
+    }
+
+    function mondoo_update {
+      brew upgrade mondoo
+    }
+
+  else
+    MONDOO_INSTALLER=""
+    function mondoo_install {
+      red "Cannot find an installer to use for macOS. Supported installer is: brew"
+      echo "Please use the above installer or contribute to: https://github.com/mondoolabs/mondoo"
+      exit 1
+    }
+    function mondoo_update { mondoo_install "$@" }
+  fi
+
   purple "macOS is not supported yet. Please reach out at Mondoo Community:
 
   * https://github.com/mondoolabs/mondoo
@@ -157,12 +182,14 @@ function configure_archlinux_installer {
       yay -S "$AUR_PACKAGE"
     }
     function mondoo_update { mondoo_install "$@" }
+
   elif [ -x "$(command -v paru)" ]; then
     MONDOO_INSTALLER="paru"
     function mondoo_install {
       paru -S "$AUR_PACKAGE"
     }
     function mondoo_update { mondoo_install "$@" }
+
   else
     MONDOO_INSTALLER=""
     function mondoo_install {
