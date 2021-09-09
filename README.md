@@ -4,7 +4,7 @@
 
 ## Usage
 
-![Mondoo CLI](docs/static/mondoo-cli.png)
+![Mondoo CLI](assets/mondoo-cli.png)
 
 ## Quick Start
 
@@ -60,7 +60,3 @@ mondoo scan -t ssh://ec2-user@54.76.229.223
 - [terraform-aws](./examples/terraform-aws) - Launch & Scan instance on AWS
 - [terraform-digitalocean](./examples/terraform-digitalocean) - Launch & Scan instance on Digitalocean
 - [vagrant](./examples/vagrant) - Spin-up Mondoo agents in Vagrant
-
- **Docs**
-
-- [docs](./docs) - Source for Mondoo documentation
