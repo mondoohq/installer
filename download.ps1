@@ -1,7 +1,7 @@
 #Requires -Version 5
 
 # Automatic Mondoo downloader to be used with
-# Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex (new-object net.webclient).downloadstring('https://mondoo.io/download.ps1')
+# Set-ExecutionPolicy RemoteSigned -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex (new-object net.webclient).downloadstring('https://mondoo.io/download.ps1')
 
 function fail($msg, [int] $exit_code=1) { Write-Host $msg -f red; exit $exit_code }
 function info($msg) {  Write-Host $msg -f white }
