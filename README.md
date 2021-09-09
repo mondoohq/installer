@@ -1,6 +1,6 @@
 # Mondoo Cloud-Native Security
 
-![Mondoo Cloud-Native Security](assets/title.png)
+![Mondoo Cloud-Native Security](assets/github.splash.png)
 
 ## Usage
 
