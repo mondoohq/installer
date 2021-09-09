@@ -441,12 +441,12 @@ finalize_setup() {
     lightblue_bold "Next you should register Mondoo to get access to policies and reports."
     lightblue_bold "Follow this guide: "
     echo
-    lightblue_bold "https://mondoo.io/docs/quickstart/#create-cli-credentials"
+    lightblue_bold "https://docs.mondoo.io/server/registration#retrieve-mondoo-agent-credentials"
     echo
   else
     purple_bold "\nMondoo is set up and ready to go!"
     echo
-    lightblue_bold "Follow our quick start guide for next steps: https://mondoo.io/docs/quickstart/#first-scan"
+    lightblue_bold "Follow our quick start guide for next steps: https://docs.mondoo.io/getstarted/quickstart"
     echo
   fi
 
