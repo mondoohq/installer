@@ -481,15 +481,8 @@ fi
 # ----------------------------
 
 if [ $MONDOO_INSTALLED = true ]; then
-  purple_bold "\n* Mondoo is already installed."
-  echo -en "${lightblueb}Do you want to check for updates? [Yn]${end} "
-  read choice
-  case $choice in
-    "")   mondoo_update ;;
-    [Y]*) mondoo_update ;;
-    *) echo "Not checking for updates." ;;
-  esac
-
+  purple_bold "\n* Mondoo is already installed. Updateing Mondoo..."
+  mondoo_update
   finalize_setup
   exit 0
 fi
