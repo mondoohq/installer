@@ -135,7 +135,9 @@ detect_mondoo
 # Used for all privileged calls. If the script is run as root, this is not required.
 
 if [ $(echo "$UID") = "0" ]; then
-  sudo_cmd=''
+  sudo_cmd() {
+    "$@"
+  }
 else
   sudo_cmd() {
     if [ -x "$(command -v sudo)" ]; then
@@ -281,14 +283,14 @@ configure_rhel_installer() {
     MONDOO_INSTALLER="yum"
     mondoo_install() {
       purple_bold "\n* Configuring YUM sources for Mondoo at /etc/yum.repos.d/mondoo.repo"
-      curl --retry 3 --retry-delay 10 -sSL https://releases.mondoo.io/rpm/mondoo.repo | $sudo_cmd tee /etc/yum.repos.d/mondoo.repo
+      curl --retry 3 --retry-delay 10 -sSL https://releases.mondoo.io/rpm/mondoo.repo | sudo_cmd tee /etc/yum.repos.d/mondoo.repo
 
       purple_bold "\n* Installing Mondoo"
-      $sudo_cmd yum install -y mondoo
+      sudo_cmd yum install -y mondoo
     }
 
     mondoo_update() {
-      $sudo_cmd yum update -y mondoo
+      sudo_cmd yum update -y mondoo
     }
 
   else
@@ -310,19 +312,19 @@ configure_debian_installer() {
     MONDOO_INSTALLER="apt-get"
     mondoo_install() {
       purple_bold "\n* Installing prerequisites for Debian"
-      $sudo_cmd apt-get update -y
-      $sudo_cmd apt-get install -y apt-transport-https ca-certificates gnupg
+      sudo_cmd apt-get update -y
+      sudo_cmd apt-get install -y apt-transport-https ca-certificates gnupg
 
       purple_bold "\n* Configuring APT package sources for Mondoo at /etc/apt/sources.list.d/mondoo.list"
-      curl --retry 3 --retry-delay 10 -sSL https://releases.mondoo.io/debian/pubkey.gpg | $sudo_cmd apt-key add -
-      echo "deb https://releases.mondoo.io/debian/ stable main" | $sudo_cmd tee /etc/apt/sources.list.d/mondoo.list
+      curl --retry 3 --retry-delay 10 -sSL https://releases.mondoo.io/debian/pubkey.gpg | sudo_cmd apt-key add -
+      echo "deb https://releases.mondoo.io/debian/ stable main" | sudo_cmd tee /etc/apt/sources.list.d/mondoo.list
 
       purple_bold "\n* Installing Mondoo"
-      $sudo_cmd apt-get update -y && $sudo_cmd apt-get install -y mondoo
+      sudo_cmd apt-get update -y && sudo_cmd apt-get install -y mondoo
     }
 
     mondoo_update() {
-      $sudo_cmd apt-get update -y && $sudo_cmd apt-get upgrade -y mondoo
+      sudo_cmd apt-get update -y && sudo_cmd apt-get upgrade -y mondoo
     }
 
   else
@@ -344,16 +346,16 @@ configure_suse_installer() {
     MONDOO_INSTALLER="apt-get"
     mondoo_install() {
       purple_bold "\n* Configuring ZYPPER sources for Mondoo at /etc/zypp/repos.d/mondoo.repo"
-      curl --retry 3 --retry-delay 10 -sSL https://releases.mondoo.io/rpm/mondoo.repo | $sudo_cmd tee /etc/zypp/repos.d/mondoo.repo
+      curl --retry 3 --retry-delay 10 -sSL https://releases.mondoo.io/rpm/mondoo.repo | sudo_cmd tee /etc/zypp/repos.d/mondoo.repo
       # zypper does not recognize the gpg key reference from mondoo.repo properly, therefore we need to add this here manually
-      $sudo_cmd rpm --import https://releases.mondoo.io/rpm/pubkey.gpg
+      sudo_cmd rpm --import https://releases.mondoo.io/rpm/pubkey.gpg
 
       purple_bold "\n* Installing Mondoo"
-      $sudo_cmd zypper -n install mondoo
+      sudo_cmd zypper -n install mondoo
     }
 
     mondoo_update() {
-      $sudo_cmd zypper -n update mondoo
+      sudo_cmd zypper -n update mondoo
     }
 
   else
@@ -394,18 +396,18 @@ configure_token() {
   fi
 
   purple_bold "\n* Register Mondoo with Mondoo Cloud"
-  $sudo_cmd mkdir -p /etc/opt/mondoo/
-  $sudo_cmd ${MONDOO_CMD} register --config /etc/opt/mondoo/mondoo.yml --token $MONDOO_REGISTRATION_TOKEN
+  sudo_cmd mkdir -p /etc/opt/mondoo/
+  sudo_cmd ${MONDOO_CMD} register --config /etc/opt/mondoo/mondoo.yml --token $MONDOO_REGISTRATION_TOKEN
 
   if [ "$(cat /proc/1/comm)" = "init" ]
   then
     purple_bold "\n* Restart upstart service"
-    $sudo_cmd stop mondoo || true
-    $sudo_cmd start mondoo || true
+    sudo_cmd stop mondoo || true
+    sudo_cmd start mondoo || true
   elif [ "$(cat /proc/1/comm)" = "systemd" ]
   then
     purple_bold "\n* Restart systemd service"
-    $sudo_cmd systemctl restart mondoo.service
+    sudo_cmd systemctl restart mondoo.service
   else
     red "\nWe could not detect your process supervisor. If Mondoo is running as a service, you will need to restart it manually to make sure it is registered."
   fi
