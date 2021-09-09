@@ -129,9 +129,10 @@ You can register the agent via:
 MONDOO_REGISTRATION_TOKEN=\"ey..iU\"
 mondoo register --token \$MONDOO_REGISTRATION_TOKEN
 
-Further information is available at https://mondoo.io/docs
+Further information is available at https://docs.mondoo.io
 
 If you have any questions, please reach out at Mondoo Community:
 
-* https://github.com/mondoolabs/mondoo
+* Mondoo Community Discord: https://discord.gg/MRrWXYTmHJ
+* Github: https://github.com/mondoolabs/mondoo
 "
