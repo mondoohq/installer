@@ -113,7 +113,7 @@ fi
 # Installation detection
 # ----------------------
 # Note: https://stackoverflow.com/questions/592620/how-can-i-check-if-a-program-exists-from-a-bash-script
-# To be POSIX-compatible we will be using `command` instead of `hash` or `type`.
+# To be POSIX-compatible we will be using 'command' instead of 'hash' or 'type'.
 #
 
 MONDOO_CMD="mondoo"
@@ -143,7 +143,7 @@ else
     if [ -x "$(command -v sudo)" ]; then
       sudo "$@"
     else
-      red "This command needs to run with elevated privileges, but we could not find the `sudo` command in your path (\$PATH)."
+      red "This command needs to run with elevated privileges, but we could not find the 'sudo' command in your path (\$PATH)."
       echo "The command we tried to run is: $@"
       exit 1
     fi
@@ -169,11 +169,11 @@ install_portable() {
   FAIL=false
   if [ ! -x "$(command -v tar)" ]; then
     FAIL=true
-    red "This script needs the `tar` command, but we could not find `tar` in your path (\$PATH)."
+    red "This script needs the 'tar' command, but we could not find 'tar' in your path (\$PATH)."
   fi
   if [ ! -x "$(command -v curl)" ]; then
     FAIL=true
-    red "This script needs the `curl` command, but we could not find `curl` in your path (\$PATH)."
+    red "This script needs the 'curl' command, but we could not find 'curl' in your path (\$PATH)."
   fi
   if [ $FAIL = true ]; then exit 1; fi
 
@@ -206,7 +206,7 @@ install_portable() {
 
   detect_portable
   if [ -z "$MONDOO_EXECUTABLE" ]; then
-    red "We could not find the `mondoo` executable in the present working directory."
+    red "We could not find the 'mondoo' executable in the present working directory."
     exit 1
   fi
 
@@ -221,21 +221,22 @@ configure_macos_installer() {
   if [ -x "$(command -v brew)" ]; then
     MONDOO_INSTALLER="brew"
     mondoo_install() {
-      purple_bold "\n* Configuring brew sources for Mondoo via `brew tap`"
+      purple_bold "\n* Configuring brew sources for Mondoo via 'brew tap'"
       brew tap mondoolabs/mondoo
 
-      purple_bold "\n* Installing Mondoo via `brew install`"
+      purple_bold "\n* Installing Mondoo via 'brew install'"
       brew install mondoo
     }
 
     mondoo_update() {
+      purple_bold "\n* Upgrade Mondoo via 'brew upgrade'"
       brew upgrade mondoo
     }
 
   else
     MONDOO_INSTALLER=""
     mondoo_install() {
-      red "Mondoo uses Mac Homebrew to install on macOS, but we could not find the `brew` command in your path (\$PATH)."
+      red "Mondoo uses Mac Homebrew to install on macOS, but we could not find the 'brew' command in your path (\$PATH)."
       echo
       echo "For more information about the Mac Homebrew package manager, see https://brew.sh"
       exit 1
@@ -296,7 +297,7 @@ configure_rhel_installer() {
   else
     MONDOO_INSTALLER=""
     mondoo_install() {
-      red "Mondoo uses YUM to install on RedHat Linux, but we could not find the `yum` command in your path (\$PATH)."
+      red "Mondoo uses YUM to install on RedHat Linux, but we could not find the 'yum' command in your path (\$PATH)."
       exit 1
     }
     mondoo_update() { mondoo_install "$@"; }
@@ -330,7 +331,7 @@ configure_debian_installer() {
   else
     MONDOO_INSTALLER=""
     mondoo_install() {
-      red "Mondoo uses APT to install on Debian Linux, but we could not find the `apt-get` command in your path (\$PATH)."
+      red "Mondoo uses APT to install on Debian Linux, but we could not find the 'apt-get' command in your path (\$PATH)."
       exit 1
     }
     mondoo_update() { mondoo_install "$@"; }
@@ -361,7 +362,7 @@ configure_suse_installer() {
   else
     MONDOO_INSTALLER=""
     mondoo_install() {
-      red "Mondoo uses ZYPPER to install on Debian Linux, but we could not find the `zypper` command in your path (\$PATH)."
+      red "Mondoo uses ZYPPER to install on Debian Linux, but we could not find the 'zypper' command in your path (\$PATH)."
       exit 1
     }
     mondoo_update() { mondoo_install "$@"; }
@@ -391,7 +392,7 @@ configure_token() {
   detect_mondoo_registered
 
   if [ $MONDOO_IS_REGISTERED = true ]; then
-    purple_bold "\n* Mondoo is already registered. Skipping registration (you can manually run `mondoo register` to re-register)."
+    purple_bold "\n* Mondoo is already registered. Skipping registration (you can manually run 'mondoo register' to re-register)."
     return
   fi
 
