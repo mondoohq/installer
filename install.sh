@@ -87,7 +87,7 @@ The source code of this installer is available on Github:
 # Detect operating system
 # -----------------------
 # Store detected value in $OS
-KNOWN_DISTRIBUTION="(RedHat|CentOS|Debian|Ubuntu|openSUSE|Amazon|SUSE|Arch Linux)"
+KNOWN_DISTRIBUTION="(RedHat|Red Hat|CentOS|Debian|Ubuntu|openSUSE|Amazon|SUSE|Arch Linux)"
 DISTRIBUTION="$(
   lsb_release -d 2>/dev/null | grep -Eo "$KNOWN_DISTRIBUTION" || \
     grep -m1 -Eo "$KNOWN_DISTRIBUTION" /etc/os-release 2>/dev/null || \
