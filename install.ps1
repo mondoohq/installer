@@ -80,7 +80,7 @@ function Install-Mondoo {
   Windows into $ENV:UserProfile\mondoo and adds the path to the user's environment PATH. If 
   you are experiencing any issues, please do not hesitate to reach out: 
 
-    * Mondoo Community Discord https://discord.com/invite/HPAjpS6b34
+    * Mondoo Community Discord https://discord.gg/HPAjpS6b34
 
   This script source is available at: https://github.com/mondoolabs/mondoo
   "
@@ -109,7 +109,7 @@ function Install-Mondoo {
   if ($env:PROCESSOR_ARCHITECTURE -ne 'AMD64') {
     fail "
   Your processor architecture $env:PROCESSOR_ARCHITECTURE is not supported yet. Please come join us in 
-  our Mondoo Community Discord: https://discord.com/invite/HPAjpS6b34 or email us at hello@mondoo.io
+  our Mondoo Community Discord: https://discord.gg/HPAjpS6b34 or email us at hello@mondoo.io
   "
   }
 
@@ -185,7 +185,7 @@ function Install-Mondoo {
   info "
   If you have any questions, please come join us in our Mondoo Community Discord:
 
-    * https://discord.com/invite/HPAjpS6b34
+    * https://discord.gg/HPAjpS6b34
   "
 
   # reset erroractionpreference
