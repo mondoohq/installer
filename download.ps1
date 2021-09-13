@@ -52,7 +52,7 @@ if ($env:PROCESSOR_ARCHITECTURE -ne 'AMD64') {
 Your processor architecture $env:PROCESSOR_ARCHITECTURE is not supported yet. Please come join us 
 in our Mondoo Community Discord:
 
-  * https://discord.com/invite/HPAjpS6b34
+  * https://discord.gg/HPAjpS6b34
 "
 }
 
@@ -114,7 +114,7 @@ info "Thank you for downloading Mondoo!"
 info "
 If you have any questions, please come join us in our Mondoo Community Discord:
 
-  * https://discord.com/invite/HPAjpS6b34
+  * https://discord.gg/HPAjpS6b34
 "
 
 # reset erroractionpreference
