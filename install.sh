@@ -481,7 +481,7 @@ fi
 # ----------------------------
 
 if [ $MONDOO_INSTALLED = true ]; then
-  purple_bold "\n* Mondoo is already installed. Updateing Mondoo..."
+  purple_bold "\n* Mondoo is already installed. Updating Mondoo..."
   mondoo_update
   finalize_setup
   exit 0
