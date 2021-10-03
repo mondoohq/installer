@@ -396,6 +396,27 @@ configure_token() {
     return
   fi
 
+  if [ $OS = "macOS" ]; then
+    configure_macos_token
+  else 
+    configure_linux_token
+  fi
+
+  detect_mondoo_registered
+  if [ $MONDOO_IS_REGISTERED = true ]; then
+    purple_bold "\n* Mondoo was successfully registered."
+  else
+    red "\n* Failed to register Mondoo. Please reach out to us via Mondoo Community Discord."
+    exit 1
+  fi
+}
+
+configure_macos_token() {
+  purple_bold "\n* Register Mondoo with Mondoo Cloud"
+  ${MONDOO_CMD} register --token $MONDOO_REGISTRATION_TOKEN
+}
+
+configure_linux_token() {
   purple_bold "\n* Register Mondoo with Mondoo Cloud"
   sudo_cmd mkdir -p /etc/opt/mondoo/
   sudo_cmd ${MONDOO_CMD} register --config /etc/opt/mondoo/mondoo.yml --token $MONDOO_REGISTRATION_TOKEN
@@ -412,14 +433,6 @@ configure_token() {
   else
     red "\nWe could not detect your process supervisor. If Mondoo is running as a service, you will need to restart it manually to make sure it is registered."
   fi
-
-  detect_mondoo_registered
-  if [ $MONDOO_IS_REGISTERED = true ]; then
-    purple_bold "\n* Mondoo was successfully registered."
-  else
-    red "\n* Failed to register Mondoo. Please reach out to us via Mondoo Community Discord."
-    exit 1
-  fi
 }
 
 postinstall_check() {
@@ -433,7 +446,6 @@ postinstall_check() {
 }
 
 finalize_setup() {
-
   configure_token
 
   # Display final message
