@@ -413,9 +413,7 @@ configure_token() {
 
 configure_macos_token() {
   purple_bold "\n* Register Mondoo with Mondoo Cloud"
-  
-  mkdir $HOME/.config/mondoo/
-  
+  mkdir -p $HOME/.config/mondoo/
   ${MONDOO_CMD} register --config $HOME/.config/mondoo/mondoo.yml --token $MONDOO_REGISTRATION_TOKEN
 }
 
