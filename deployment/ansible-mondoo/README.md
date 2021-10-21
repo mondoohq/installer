@@ -5,7 +5,7 @@ This role installs the Mondoo CLI on Linux servers.
 It does:
 
  * Installs the signed `mondoo` package
- * Registers the agent with Mondoo Cloud
+ * Registers Mondoo Client with Mondoo Platform
  * Enables the systemd service
 
 It supports:
@@ -27,8 +27,8 @@ The role is published at Ansible Galaxy: [Mondoo role](https://galaxy.ansible.co
 
 | Name           | Default Value | Description                        |
 | -------------- | ------------- | -----------------------------------|
-| `registration_token_retrieval` | `manual` | `manual` requires to set ``registration_token`. `cli` call a local mondoo agent to automatically retrieve a new registration token |
-| `registration_token`|  n/a | manually set the Mondoo Registration Token that is used to register new agents
+| `registration_token_retrieval` | `manual` | `manual` requires to set ``registration_token`. `cli` call a local Mondoo Client to automatically retrieve a new registration token |
+| `registration_token`|  n/a | manually set the Mondoo Registration Token that is used to register new Mondoo Clients
 | `force_registration`|  true | forces re-registration for each run
 
 ## Dependencies
@@ -37,7 +37,7 @@ This role has no role dependencies
 
 ## Example: Apply Ansible Playbook to Amazon EC2 Linux instance
 
-This playbook demonstrates how to use the Mondoo role to install the agent on many instances:
+This playbook demonstrates how to use the Mondoo role to install the Mondoo Client on many instances:
 
 1. Create a new `hosts` inventory. Add your host to the group.
 
@@ -58,7 +58,7 @@ This playbook demonstrates how to use the Mondoo role to install the agent on ma
         registration_token: "changeme"
 ```
 
-If you do not want to re-register existing agents, then set `force_registration: false` in vars:
+If you do not want to re-register existing Mondoo Clients, then set `force_registration: false` in vars:
 
 ```yaml
 ---

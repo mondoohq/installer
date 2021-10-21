@@ -22,7 +22,7 @@
   become: true
   when: not ansible_check_mode
 
-- name: ensure mondoo agent is installed
+- name: ensure Mondoo Client is installed
   apt:
     name: mondoo
     state: latest

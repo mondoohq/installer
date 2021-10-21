@@ -1,6 +1,6 @@
 ---
 
-# install agent
+# install Mondoo Client
 - include_tasks: pkg_debian.yml
   when: ansible_os_family == "Debian"
 
@@ -18,7 +18,7 @@
   when: not ansible_check_mode
 
 - name: retrieves a new registration token
-  command: mondoo agents generate-token --expiresin 120
+  command: mondoo client generate-token --expiresin 120
   connection: local
   register: retrievedRegistrationToken
   when: registration_token_retrieval == "cli"
@@ -32,8 +32,8 @@
     var: registration_token
     verbosity: 1
 
-- name: unregister mondoo agent
-  # unregisters an existing agent if it was registered
+- name: unregister mondoo client
+  # unregisters an existing Mondoo Client if it was registered
   command: mondoo unregister --force --config /etc/opt/mondoo/mondoo.yml
   args:
     # only run the command if no config file exists
@@ -49,7 +49,7 @@
     path: /etc/opt/mondoo/mondoo.yml
   when: force_registration == true
 
-- name: register mondoo agent
+- name: register Mondoo Client
   command: mondoo register --config /etc/opt/mondoo/mondoo.yml --token {{ registration_token }}
   args:
     # only run the command if no config file exists (was not deleted in non-force mode)
@@ -66,3 +66,6 @@
     enabled: yes
   become: true
   when: not ansible_check_mode
+
+
+- name: ensure mondoo client is managed
