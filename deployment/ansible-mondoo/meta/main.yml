@@ -5,7 +5,7 @@ collections:
 galaxy_info:
   role_name: mondoo
   author: Mondoo, Inc
-  description: Installs the Mondoo agent
+  description: Installs the Mondoo Client
   company: Mondoo, Inc
 
   # If the issue tracker for your role is not on github, uncomment the
