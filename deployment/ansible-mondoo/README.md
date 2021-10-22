@@ -1,6 +1,6 @@
 # Mondoo Ansible Role
 
-This role installs the Mondoo CLI on Linux servers. 
+This role installs the Mondoo Client on Linux and Windows servers. 
 
 It does:
 
