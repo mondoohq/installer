@@ -34,7 +34,7 @@
   # unregisters an existing Mondoo Client if it was registered
   ansible.windows.win_command: mondoo.exe unregister --force --config C:\\ProgramData\\Mondoo\\mondoo.yml
   args:
-    chdir: "C:\\Program Files\\Mondoo\\service"
+    chdir: "C:\\Program Files\\Mondoo"
     # only run the command if no config file exists
     creates: C:\ProgramData\Mondoo\mondoo.yml
   when: force_registration == true
@@ -51,7 +51,13 @@
 - name: register Mondoo Client
   ansible.windows.win_command: mondoo.exe register --config C:\\ProgramData\\Mondoo\\mondoo.yml --token {{ registration_token }}
   args:
-    chdir: "C:\\Program Files\\Mondoo\\service"
+    chdir: "C:\\Program Files\\Mondoo"
     # only run the command if no config file exists (was not deleted in non-force mode)
     creates: C:\ProgramData\Mondoo\mondoo.yml
   when: not ansible_check_mode
+
+- name: ensure Mondoo Client is managed
+  ansible.windows.win_command: mondoo.exe register
+  args:
+    chdir: "C:\\Program Files\\Mondoo"
+  when: ensure_managed_client == true and not ansible_check_mode

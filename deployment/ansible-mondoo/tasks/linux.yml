@@ -67,5 +67,7 @@
   become: true
   when: not ansible_check_mode
 
-
-- name: ensure mondoo client is managed
+- name: ensure Mondoo Client is managed
+  command: mondoo register
+  become: true
+  when: ensure_managed_client == true and not ansible_check_mode

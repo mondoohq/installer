@@ -58,7 +58,13 @@ This playbook demonstrates how to use the Mondoo role to install the Mondoo Clie
         registration_token: "changeme"
 ```
 
-If you do not want to re-register existing Mondoo Clients, then set `force_registration: false` in vars:
+In addition we support the following variables:
+
+| variable                      | description                                                               |
+|-------------------------------|---------------------------------------------------------------------------|
+| `force_registration: true`    | set to true if you want to re-register existing Mondoo Clients            |
+| `ensure_managed_client: true` | ensures the configured clients are configured as managed Client in Mondoo |
+
 
 ```yaml
 ---
@@ -68,7 +74,8 @@ If you do not want to re-register existing Mondoo Clients, then set `force_regis
     - role: mondoolabs.mondoo
       vars:
         registration_token: "changeme"
-        force_registration: false
+        force_registration: true
+        ensure_managed_client: true
 ```
 
 3. Run the playbook with the local hosts file
