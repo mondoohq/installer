@@ -5,29 +5,32 @@
     url: "{{ latest_version_url }}"
     return_content: yes
   register: latest_jsondata
+  when: pkg_version_url is undefined
 
 - name: log latest version
   ansible.builtin.debug:
     var: latest_jsondata.json
+  when: pkg_version_url is undefined
 
 - name: determine latest pkg version
   set_fact:
-    latest_pkg_version_url: "{{ latest_jsondata.json | json_query(jmesquery) }}"
+    pkg_version_url: "{{ latest_jsondata.json | json_query(jmesquery) }}"
   vars:
     jmesquery: "files[*].filename | [?contains(@, 'msi')] | [0]"
+  when: pkg_version_url is undefined
 
 - name: log latest version
   ansible.builtin.debug:
-    var: latest_pkg_version_url
+    var: pkg_version_url
 
 # download and install msi
 # we do register as part of the msi workflow to support reregistration more easily
 - name: install mondoo msi package
   win_package:
-    path: "{{ latest_pkg_version_url }}"
+    path: "{{ pkg_version_url }}"
     state: present
 
-- name: unregister mondoo client
+- name: unregister Mondoo Client
   # unregisters an existing Mondoo Client if it was registered
   ansible.windows.win_command: mondoo.exe unregister --force --config C:\\ProgramData\\Mondoo\\mondoo.yml
   args:
