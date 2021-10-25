@@ -56,6 +56,13 @@
     creates: C:\ProgramData\Mondoo\mondoo.yml
   when: not ansible_check_mode
 
+- name: Set Mondoo startup mode to auto and ensure it is started
+  win_service:
+    name: mondoo
+    start_mode: auto
+    state: started
+  when: not ansible_check_mode
+
 - name: ensure Mondoo Client is managed
   ansible.windows.win_command: mondoo.exe register
   args:
