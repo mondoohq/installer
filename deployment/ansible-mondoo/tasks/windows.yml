@@ -60,4 +60,4 @@
   ansible.windows.win_command: mondoo.exe register
   args:
     chdir: "C:\\Program Files\\Mondoo"
-  when: ensure_managed_client == true and not ansible_check_mode
+  when: (ensure_managed_client is not undefined and ensure_managed_client == true) and not ansible_check_mode
