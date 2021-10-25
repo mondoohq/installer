@@ -70,4 +70,4 @@
 - name: ensure Mondoo Client is managed
   command: mondoo register
   become: true
-  when: ensure_managed_client == true and not ansible_check_mode
+  when: (ensure_managed_client is not undefined and ensure_managed_client == true) and not ansible_check_mode
