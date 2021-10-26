@@ -15,7 +15,7 @@ It supports:
  * Amazon Linux
  * Debian
  * Suse & openSUSE
- * Windows
+ * Windows 10, 2016, 2019, 2021
 
 The role is published at Ansible Galaxy: [Mondoo role](https://galaxy.ansible.com/mondoolabs/mondoo).
 
