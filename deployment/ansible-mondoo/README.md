@@ -102,7 +102,7 @@ If you are using Windows, please read the ansible documentation about [WinRM set
 
 or if you are going to use ssh:
 ```ini
-3.235.247.76 ansible_port=22 ansible_connection=ssh ansible_user=Administrator ansible_password=changeme ansible_shell_type=cmd
+3.235.247.76 ansible_port=22 ansible_connection=ssh ansible_user=admin ansible_shell_type=cmd
 ```
 
 2. Create a `playbook.yml` and change the `registration_token`:
