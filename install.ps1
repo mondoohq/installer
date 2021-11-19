@@ -13,7 +13,7 @@
     If provided, tries to download the specific version instead of the latest
     .EXAMPLE
     Import-Module ./install.ps1; Install-Mondoo -RegistrationToken INSERTKEYHERE
-    Import-Module ./install.ps1; Install-Mondoo -Version 5.14.0
+    Import-Module ./install.ps1; Install-Mondoo -Version 5.14.1
 #>
 function Install-Mondoo {
   [CmdletBinding()]
