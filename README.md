@@ -48,7 +48,8 @@ Example   | Phase | Description |
 [aws-ami-packer-hcl](./examples/aws-ami-packer-hcl) | Build 
  Build & Scan AMI with Packer and Mondoo for AWS (hcl) |
 [aws-ami-packer-json](./examples/aws-ami-packer-json) | Build | Build & Scan AMI with Packer and Mondoo for AWS (json) |
-[aws-mondoo-scan-via-terraform](./examples/aws-mondoo-scan-via-terraform) | Launch & Scan instance on AWS |
+[aws-ec2-ansible](./examples/aws-ec2-ansible) | Deploy, Operate | Secure EC2 instance with Ansible and scan with Mondoo |
+[aws-mondoo-scan-via-terraform](./examples/aws-mondoo-scan-via-terraform) | Deploy | Launch & Scan instance on AWS |
 
 ### Digital Ocean
 
@@ -64,7 +65,7 @@ Example   | Phase | Description |
 [mondoo-deploy-ansible](./examples/mondoo-deploy-ansible) | Deploy | Ansible Playbook to deploy Mondoo Client |
 [mondoo-deploy-chef](./examples/mondoo-deploy-chef) | Deploy | Chef Cookbook to deploy Mondoo Client |
 [mondoo-trial-vagrant](./examples/mondoo-trial-vagrant) | Code |  Spin-up Mondoo Client in Vagrant |
-
+[mql-policies](./examples/mql-policies) | Build, Deploy | Write a custom policy and assess the state |
 
 **Mondoo Scripts**
 

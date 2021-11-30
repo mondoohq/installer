@@ -1,0 +1,22 @@
+---
+- hosts: all
+  become: true
+
+  vars:
+    ssh_max_sessions: 4
+    ssh_max_startups: 10:30:60
+    ssh_login_grace_time: 30
+    os_security_packages_clean: true
+    os_security_packages_list:
+      [
+        "xinetd",
+        "inetd",
+        "ypserv",
+        "telnet-server",
+        "rsh-server",
+        "prelink",
+        "telnet",
+      ]
+  roles:
+    - dev-sec.os-hardening
+    - dev-sec.ssh-hardening
