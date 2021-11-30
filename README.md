@@ -45,10 +45,10 @@ mondoo scan -t ssh://ec2-user@54.76.229.223
 
 Example   | Phase | Description |
 --------- | ----- | ----------- |
-[aws-ami-packer-hcl](./examples/aws-ami-packer-hcl) | Build 
- Build & Scan AMI with Packer and Mondoo for AWS (hcl) |
+[aws-ami-packer-hcl](./examples/aws-ami-packer-hcl) | Build | Build & Scan AMI with Packer and Mondoo for AWS (hcl) |
 [aws-ami-packer-json](./examples/aws-ami-packer-json) | Build | Build & Scan AMI with Packer and Mondoo for AWS (json) |
 [aws-ec2-ansible](./examples/aws-ec2-ansible) | Deploy, Operate | Secure EC2 instance with Ansible and scan with Mondoo |
+[aws-ec2-instance-connect](./examples/aws-ec2-instance-connect) | Operate | Assess state of individual instances with EC2 Instance Connect |
 [aws-mondoo-scan-via-terraform](./examples/aws-mondoo-scan-via-terraform) | Deploy | Launch & Scan instance on AWS |
 
 ### Digital Ocean
