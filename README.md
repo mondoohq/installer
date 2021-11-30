@@ -43,25 +43,27 @@ mondoo scan -t ssh://ec2-user@54.76.229.223
 
 ### AWS
 
-Example   | Description |
---------- | --------- |
-[aws-ami-packer-json](./examples/aws-ami-packer-json) | Build & Scan AMI with Packer and Mondoo for AWS (json) |
+Example   | Phase | Description |
+--------- | ----- | ----------- |
+[aws-ami-packer-hcl](./examples/aws-ami-packer-hcl) | Build 
+ Build & Scan AMI with Packer and Mondoo for AWS (hcl) |
+[aws-ami-packer-json](./examples/aws-ami-packer-json) | Build | Build & Scan AMI with Packer and Mondoo for AWS (json) |
 [aws-mondoo-scan-via-terraform](./examples/aws-mondoo-scan-via-terraform) | Launch & Scan instance on AWS |
 
 ### Digital Ocean
 
-Example   | Description |
---------- | --------- |
-[digitalocean-image-packer](./examples/digitalocean-image-packer) | Build & Scan image on Digitalocean |
-[digitalocean-mondoo-scan-via-terraform](./examples/digitalocean-mondoo-scan-via-terraform) | Launch & Scan instance on Digitalocean |
+Example   | Phase | Description |
+--------- | ----- | ----------- |
+[digitalocean-image-packer](./examples/digitalocean-image-packer) | Build | Build & Scan image on Digitalocean |
+[digitalocean-mondoo-scan-via-terraform](./examples/digitalocean-mondoo-scan-via-terraform) | Deploy |  Launch & Scan instance on Digitalocean |
 
 ### Mondoo Client
 
-Example   | Description |
---------- | --------- |
-[mondoo-deploy-ansible](./examples/mondoo-deploy-ansible) | Ansible Playbook to deploy Mondoo Client |
-[mondoo-deploy-chef](./examples/mondoo-deploy-chef) | Chef Cookbook to deploy Mondoo Client |
-[mondoo-trial-vagrant](./examples/mondoo-trial-vagrant) | Spin-up Mondoo Client in Vagrant |
+Example   | Phase | Description |
+--------- | ----- | ----------- |
+[mondoo-deploy-ansible](./examples/mondoo-deploy-ansible) | Deploy | Ansible Playbook to deploy Mondoo Client |
+[mondoo-deploy-chef](./examples/mondoo-deploy-chef) | Deploy | Chef Cookbook to deploy Mondoo Client |
+[mondoo-trial-vagrant](./examples/mondoo-trial-vagrant) | Code |  Spin-up Mondoo Client in Vagrant |
 
 
 **Mondoo Scripts**
@@ -69,3 +71,7 @@ Example   | Description |
 - [install.sh](./install.sh) - Mondoo Agent Bash Installer for Servers
 - [download.sh](./download.sh) - Mondoo Agent Bash Downloader for Workstation
 - [Dockerfile](./Dockerfile) - Build script for official Mondoo container
+
+
+
+
