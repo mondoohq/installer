@@ -45,15 +45,15 @@ mondoo scan -t ssh://ec2-user@54.76.229.223
 
 Example   | Description |
 --------- | --------- |
-[packer-aws](./examples/packer-aws) | Build & Scan AMI on AWS |
-[mondoo-scan-via-terraform-aws](./examples/mondoo-scan-via-terraform-aws) | Launch & Scan instance on AWS |
+[aws-ami-packer-json](./examples/aws-ami-packer-json) | Build & Scan AMI with Packer and Mondoo for AWS (json) |
+[aws-mondoo-scan-via-terraform](./examples/aws-mondoo-scan-via-terraform) | Launch & Scan instance on AWS |
 
 ### Digital Ocean
 
 Example   | Description |
 --------- | --------- |
-[packer-digitalocean](./examples/packer-digitalocean) | Build & Scan image on Digitalocean |
-[mondoo-scan-via-terraform-digitalocean](./examples/mondoo-scan-via-terraform-digitalocean) | Launch & Scan instance on Digitalocean |
+[digitalocean-image-packer](./examples/digitalocean-image-packer) | Build & Scan image on Digitalocean |
+[digitalocean-mondoo-scan-via-terraform](./examples/digitalocean-mondoo-scan-via-terraform) | Launch & Scan instance on Digitalocean |
 
 ### Mondoo Client
 
