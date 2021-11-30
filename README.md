@@ -39,24 +39,33 @@ mondoo scan -t docker://00fa961d6b6a
 mondoo scan -t ssh://ec2-user@54.76.229.223
 ```
 
-## Repository Structure
+## Examples
 
-**Mondoo Deployment**
+### AWS
 
-- [ansible-mondoo](./deployment/ansible-mondoo) - Ansible role for Mondoo
-- [chef-mondoo](./deployment/chef-mondoo) - Chef cookbook for Mondoo
+Example   | Description |
+--------- | --------- |
+[aws-ami-packer-json](./examples/aws-ami-packer-json) | Build & Scan AMI with Packer and Mondoo for AWS (json) |
+[aws-mondoo-scan-via-terraform](./examples/aws-mondoo-scan-via-terraform) | Launch & Scan instance on AWS |
+
+### Digital Ocean
+
+Example   | Description |
+--------- | --------- |
+[digitalocean-image-packer](./examples/digitalocean-image-packer) | Build & Scan image on Digitalocean |
+[digitalocean-mondoo-scan-via-terraform](./examples/digitalocean-mondoo-scan-via-terraform) | Launch & Scan instance on Digitalocean |
+
+### Mondoo Client
+
+Example   | Description |
+--------- | --------- |
+[mondoo-deploy-ansible](./examples/mondoo-deploy-ansible) | Ansible Playbook to deploy Mondoo Client |
+[mondoo-deploy-chef](./examples/mondoo-deploy-chef) | Chef Cookbook to deploy Mondoo Client |
+[mondoo-trial-vagrant](./examples/mondoo-trial-vagrant) | Spin-up Mondoo Client in Vagrant |
+
+
+**Mondoo Scripts**
+
 - [install.sh](./install.sh) - Mondoo Agent Bash Installer for Servers
 - [download.sh](./download.sh) - Mondoo Agent Bash Downloader for Workstation
 - [Dockerfile](./Dockerfile) - Build script for official Mondoo container
-
-**Examples**
-
-- [ansible-aws-ec2](./examples/ansible-aws-ec2) - Ansible Playbook to deploy Mondoo Agents
-- [chef-aws-ec2](./examples/chef-aws-ec2) - Chef Wrapper Cookbook to deploy Mondoo Agents
-- [cloudinit](examples/cloudinit) - Lauch instance on AWS with Mondoo Agent
-- [docker](./examples/docker) - Play with Docker & Mondoo
-- [packer-aws](./examples/packer-aws) - Build & Scan AMI on AWS
-- [packer-digitalocean](./examples/packer-digitalocean) - Build & Scan image on Digitalocean
-- [terraform-aws](./examples/terraform-aws) - Launch & Scan instance on AWS
-- [terraform-digitalocean](./examples/terraform-digitalocean) - Launch & Scan instance on Digitalocean
-- [vagrant](./examples/vagrant) - Spin-up Mondoo agents in Vagrant

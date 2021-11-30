@@ -1,11 +1,11 @@
 # Ansible Playbook Example
 
-This playbook allows you to install the Mondoo agent via Ansible.
+This playbook allows you to install the Mondoo Client via Ansible.
 
 1. Adapt the ansible hosts inventory. Add your host to the group.
 
 ```
-[mondoo-agents]
+[mondoo-clients]
 54.172.7.243  ansible_user=ec2-user
 ```
 
@@ -13,7 +13,7 @@ This playbook allows you to install the Mondoo agent via Ansible.
 
 ```yaml
 ---
-- hosts: mondoo-agents
+- hosts: mondoo-clients
   become: yes
   roles:
     - role: mondoolabs.mondoo

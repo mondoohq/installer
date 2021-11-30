@@ -1,9 +1,9 @@
-# Mondoo agent demo with Vagrant
+# Mondoo Client demo with Vagrant
 
 ## Preparation:
 
 1. Login to https://mondoo.app/
-2. Create or select a Mondoo space and select `Agents` on the sidebar
+2. Create or select a Mondoo space and select `Managed Client` on the sidebar
 3. Create a new registration token and set it as an environment variable
 
 ## Start VM
