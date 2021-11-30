@@ -1,9 +1,0 @@
----
-# handlers file for mondoo
-
-- name: restart mondoo-service
-  ansible.builtin.systemd:
-    name: mondoo
-    state: restarted
-    daemon_reload: yes
-  when: not ansible_check_mode
