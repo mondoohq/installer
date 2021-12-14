@@ -1,4 +1,4 @@
-FROM alpine:3.13
+FROM alpine:3.15
 ARG VERSION=5.17.1
 ARG PACKAGE="mondoo_${VERSION}_linux_amd64.tar.gz"
 ARG BASEURL="https://releases.mondoo.io/mondoo/${VERSION}"
