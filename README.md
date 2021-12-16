@@ -24,7 +24,7 @@ export MONDOO_REGISTRATION_TOKEN='changeme'
 curl -sSL http://mondoo.io/install.sh | bash
 ```
 
-For other installation methods, have a look at our [documentation](https://docs.mondoo.io/server/overview).
+For other installation methods, have a look at our [documentation](https://docs.mondoo.io/getstarted/overview).
 
 Run a scan:
 
