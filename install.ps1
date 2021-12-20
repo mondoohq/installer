@@ -24,7 +24,7 @@ function Install-Mondoo {
   )
   Process {
 
-  function fail($msg, [int] $exit_code=1) { Write-Host $msg -f red; exit $exit_code }
+  function fail($msg) { Write-Error -ExitAction Stop -Message $msg }
   function info($msg) {  Write-Host $msg -f white }
   function success($msg) { Write-Host $msg -f darkgreen }
   function purple($msg) { Write-Host $msg -f magenta }
