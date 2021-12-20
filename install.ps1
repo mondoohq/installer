@@ -1,4 +1,5 @@
 #Requires -Version 5
+#Requires -RunAsAdministrator
 <#
     .SYNOPSIS
     This PowerShell script installs the latest Mondoo agent on windows. Usage:
