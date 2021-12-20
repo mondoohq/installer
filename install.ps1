@@ -171,7 +171,7 @@ function Install-Mondoo {
     If (@(0,3010) -contains $process.ExitCode) { 
       success ' * Mondoo was installed successfully!'
     } Else {
-      fail (" * Mondoo installation failed with exit code: {0}") -f $process.ExitCode
+      fail (" * Mondoo installation failed with exit code: {0}" -f $process.ExitCode)
     }
     Remove-Item $downloadlocation -Force
     
