@@ -1,5 +1,5 @@
 FROM alpine:3.15
-ARG VERSION=5.18.0
+ARG VERSION=5.19.0
 ARG PACKAGE="mondoo_${VERSION}_linux_amd64.tar.gz"
 ARG BASEURL="https://releases.mondoo.io/mondoo/${VERSION}"
 RUN apk update &&\
