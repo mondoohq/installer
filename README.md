@@ -72,7 +72,3 @@ Example   | Phase | Description |
 - [install.sh](./install.sh) - Mondoo Agent Bash Installer for Servers
 - [download.sh](./download.sh) - Mondoo Agent Bash Downloader for Workstation
 - [Dockerfile](./Dockerfile) - Build script for official Mondoo container
-
-
-
-
