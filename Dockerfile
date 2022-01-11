@@ -1,7 +1,18 @@
+# Mondoo Multi-Architecture Container Dockerfile
+# 
+# To build with BuildX:   docker buildx build --build-arg VERSION=5.21.0 --platform 
+#             linux/386,linux/amd64,linux/arm/v7,linux/arm64 -t mondoolabs/mondoo:5.21.0 . --push
+
 FROM alpine:3.15
-ARG VERSION=5.20.0
-ARG PACKAGE="mondoo_${VERSION}_linux_amd64.tar.gz"
+ARG VERSION
+
+ARG TARGETOS
+ARG TARGETARCH
+ARG TARGETVARIANT
+
 ARG BASEURL="https://releases.mondoo.io/mondoo/${VERSION}"
+ARG PACKAGE="mondoo_${VERSION}_${TARGETOS}_${TARGETARCH}${TARGETVARIANT}.tar.gz"
+
 RUN apk update &&\
     apk add ca-certificates wget tar &&\
     wget --quiet --output-document=SHA256SUMS ${BASEURL}/checksums.linux.txt &&\
