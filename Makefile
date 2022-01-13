@@ -1,9 +1,26 @@
 
-.PHONY: build/docker
-build/docker:
-	DOCKER_BUILDKIT=1 docker build --build-arg VERSION=$(shell cat VERSION) -t mondoolabs/mondoo:$(shell cat VERSION) -t mondoolabs/mondoo:latest .
-	docker push mondoolabs/mondoo:$(shell cat VERSION)
-	docker push mondoolabs/mondoo:latest
+### This build only caches the containers locally for testing purposes.
+.PHONY: docker/build/test
+docker/build/test:
+	#DOCKER_BUILDKIT=1 docker build --build-arg VERSION=$(shell cat VERSION) -t mondoolabs/mondoo:$(shell cat VERSION) -t mondoolabs/mondoo:latest .
+	if docker buildx ls | grep mondoo-builder; then docker buildx rm mondoo-builder; fi
+	docker buildx create --name mondoo-builder --driver docker-container --bootstrap --use
+	docker buildx build --build-arg VERSION=$(shell cat VERSION) --platform linux/386,linux/amd64,linux/arm/v7,linux/arm64 -t mondoolabs/mondoo:$(shell cat VERSION) -t mondoolabs/mondoo:latest . 
+	docker tag mondoolabs/mondoo:$(shell cat VERSION) mondoolabs/mondoo:latest
+	docker buildx rm mondoo-builder
+	docker manifest inspect mondoolabs/mondoo:$(shell cat VERSION)
+
+### This includes --push and will push the manifest directly to the Docker Hub, you must be logged in as a valid user.
+.PHONY: docker/build/push
+docker/build/push:
+        #DOCKER_BUILDKIT=1 docker build --build-arg VERSION=$(shell cat VERSION) -t mondoolabs/mondoo:$(shell cat VERSION) -t mondoolabs/mondoo:latest .
+        if docker buildx ls | grep mondoo-builder; then docker buildx rm mondoo-builder; fi
+        docker buildx create --name mondoo-builder --driver docker-container --bootstrap --use
+        docker buildx build --build-arg VERSION=$(shell cat VERSION) --platform linux/386,linux/amd64,linux/arm/v7,linux/arm64 -t mondoolabs/mondoo:$(shell cat VERSION) -t mondoolabs/mondoo:latest . --push
+        docker tag mondoolabs/mondoo:$(shell cat VERSION) mondoolabs/mondoo:latest
+        docker buildx rm mondoo-builder
+        docker manifest inspect mondoolabs/mondoo:$(shell cat VERSION)
+
 
 .PHONY: test/install_bash
 test/install_bash:
