@@ -14,12 +14,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-# 
+#
 # The Mondoo installation script installs Mondoo on supported
 # Linux distros using its native package manager
-# 
+#
 # The script may use the following environment variables:
-# 
+#
 # MONDOO_REGISTRATION_TOKEN
 #     (Optional) Mondoo Registation Token. Systemd services
 #     are only activated if Mondoo is properly authenticated.
@@ -45,7 +45,7 @@ red() { echo -e "${red}${1}${end}"; }
 red_bold() { echo -e "${redb}${1}${end}"; }
 green() { echo -e "${green}${1}${end}"; }
 green_bold() { echo -e "${greenb}${1}${end}"; }
-lightblue() {  echo -e "${lightblue}${1}${end}"; }
+lightblue() { echo -e "${lightblue}${1}${end}"; }
 lightblue_bold() { echo -e "${lightblueb}${1}${end}"; }
 purple() { echo -e "${purple}${1}${end}"; }
 purple_bold() { echo -e "${purpleb}${1}${end}"; }
@@ -54,10 +54,10 @@ on_error() {
   red "The Mondoo install script encountered a problem. For assistance, please join our community Discord or find us on Github."
   echo
   echo "* Mondoo Community Discord: https://discord.gg/HPAjpS6b34"
-  echo 
+  echo
   echo "* Github: https://github.com/mondoolabs/mondoo"
   echo
-  exit 1;
+  exit 1
 }
 
 # register a trap for error signals
@@ -71,7 +71,7 @@ purple "
 : ,. ,. :' .; :: ,. :' .; :' .; :' .; :
 :_;:_;:_;\`.__.':_;:_;\`.__.'\`.__.'\`.__.
 "
-                 
+
 echo -e "\nWelcome to the Mondoo installer. We will auto-detect your
 operating system to determine the best installation method.
 If you experience any issues, please reach us at:
@@ -89,10 +89,11 @@ The source code of this installer is available on Github:
 # Store detected value in $OS
 KNOWN_DISTRIBUTION="(RedHat|Red Hat|CentOS|Debian|Ubuntu|openSUSE|Amazon|SUSE|Arch Linux)"
 DISTRIBUTION="$(
-  lsb_release -d 2>/dev/null | grep -Eo "$KNOWN_DISTRIBUTION" || \
-    grep -m1 -Eo "$KNOWN_DISTRIBUTION" /etc/os-release 2>/dev/null || \
-    grep -Eo "$KNOWN_DISTRIBUTION" /etc/issue 2>/dev/null || \
-    uname -s)"
+  lsb_release -d 2>/dev/null | grep -Eo "$KNOWN_DISTRIBUTION" ||
+    grep -m1 -Eo "$KNOWN_DISTRIBUTION" /etc/os-release 2>/dev/null ||
+    grep -Eo "$KNOWN_DISTRIBUTION" /etc/issue 2>/dev/null ||
+    uname -s
+)"
 
 if [ "$DISTRIBUTION" = "Darwin" ]; then
   OS="macOS"
@@ -178,20 +179,22 @@ install_portable() {
   if [ $FAIL = true ]; then exit 1; fi
 
   case "$OS" in
-    "macOS") SYSTEM="darwin";;
-    *) SYSTEM="linux";;
+  "macOS") SYSTEM="darwin" ;;
+  *) SYSTEM="linux" ;;
   esac
 
   ARCH_DETECT="$(uname -m)"
   case "$ARCH_DETECT" in
-    "x86_64") ARCH="amd64";;
-    "i386") ARCH="386";;
-    "aarch64_be") ARCH="arm64";;
-    "aarch64") ARCH="arm64";;
-    "armv8b") ARCH="arm64";;
-    "armv8l") ARCH="arm64";;
-    *) red "Mondoo does not support the ($ARCH_DETECT) architecture.";
-       exit 1;;
+  "x86_64") ARCH="amd64" ;;
+  "i386") ARCH="386" ;;
+  "aarch64_be") ARCH="arm64" ;;
+  "aarch64") ARCH="arm64" ;;
+  "armv8b") ARCH="arm64" ;;
+  "armv8l") ARCH="arm64" ;;
+  *)
+    red "Mondoo does not support the ($ARCH_DETECT) architecture."
+    exit 1
+    ;;
   esac
 
   detect_latest_version
@@ -309,29 +312,30 @@ configure_rhel_installer() {
 # ----------------
 
 configure_debian_installer() {
-  if [ -x "$(command -v apt-get)" ]; then
-    MONDOO_INSTALLER="apt-get"
+  if [ -x "$(command -v apt)" ]; then
+    MONDOO_INSTALLER="apt"
     mondoo_install() {
       purple_bold "\n* Installing prerequisites for Debian"
-      sudo_cmd apt-get update -y
-      sudo_cmd apt-get install -y apt-transport-https ca-certificates gnupg
+      sudo_cmd apt update -y
+      sudo_cmd apt install -y apt-transport-https ca-certificates gnupg
 
       purple_bold "\n* Configuring APT package sources for Mondoo at /etc/apt/sources.list.d/mondoo.list"
-      curl --retry 3 --retry-delay 10 -sSL https://releases.mondoo.io/debian/pubkey.gpg | sudo_cmd apt-key add -
-      echo "deb https://releases.mondoo.io/debian/ stable main" | sudo_cmd tee /etc/apt/sources.list.d/mondoo.list
+      curl --retry 3 --retry-delay 10 -sSL https://releases.mondoo.io/debian/pubkey.gpg | sudo_cmd gpg --dearmor --output /usr/share/keyrings/mondoo-archive-keyring.gpg
+      echo "deb [signed-by=/usr/share/keyrings/mondoo-archive-keyring.gpg] https://releases.mondoo.io/debian/ stable main" | sudo_cmd tee /etc/apt/sources.list.d/mondoo.list
+
 
       purple_bold "\n* Installing Mondoo"
-      sudo_cmd apt-get update -y && sudo_cmd apt-get install -y mondoo
+      sudo_cmd apt update -y && sudo_cmd apt install -y mondoo
     }
 
     mondoo_update() {
-      sudo_cmd apt-get update -y && sudo_cmd apt-get upgrade -y mondoo
+      sudo_cmd apt update -y && sudo_cmd apt upgrade -y mondoo
     }
 
   else
     MONDOO_INSTALLER=""
     mondoo_install() {
-      red "Mondoo uses APT to install on Debian Linux, but we could not find the 'apt-get' command in your path (\$PATH)."
+      red "Mondoo uses APT to install on Debian Linux, but we could not find the 'apt' command in your path (\$PATH)."
       exit 1
     }
     mondoo_update() { mondoo_install "$@"; }
@@ -344,7 +348,7 @@ configure_debian_installer() {
 
 configure_suse_installer() {
   if [ -x "$(command -v zypper)" ]; then
-    MONDOO_INSTALLER="apt-get"
+    MONDOO_INSTALLER="apt"
     mondoo_install() {
       purple_bold "\n* Configuring ZYPPER sources for Mondoo at /etc/zypp/repos.d/mondoo.repo"
       curl --retry 3 --retry-delay 10 -sSL https://releases.mondoo.io/rpm/mondoo.repo | sudo_cmd tee /etc/zypp/repos.d/mondoo.repo
@@ -370,12 +374,14 @@ configure_suse_installer() {
   fi
 }
 
-
 # Post-install actions
 # --------------------
 
 detect_mondoo_registered() {
-  if [ "$(${MONDOO_CMD} status >/dev/null 2>&1; echo $?)" -eq "0" ]; then
+  if [ "$(
+    ${MONDOO_CMD} status >/dev/null 2>&1
+    echo $?
+  )" -eq "0" ]; then
     MONDOO_IS_REGISTERED=true
   else
     MONDOO_IS_REGISTERED=false
@@ -398,7 +404,7 @@ configure_token() {
 
   if [ $OS = "macOS" ]; then
     configure_macos_token
-  else 
+  else
     configure_linux_token
   fi
 
@@ -422,13 +428,11 @@ configure_linux_token() {
   sudo_cmd mkdir -p /etc/opt/mondoo/
   sudo_cmd ${MONDOO_CMD} register --config /etc/opt/mondoo/mondoo.yml --token $MONDOO_REGISTRATION_TOKEN
 
-  if [ "$(cat /proc/1/comm)" = "init" ]
-  then
+  if [ "$(cat /proc/1/comm)" = "init" ]; then
     purple_bold "\n* Restart upstart service"
     sudo_cmd stop mondoo || true
     sudo_cmd start mondoo || true
-  elif [ "$(cat /proc/1/comm)" = "systemd" ]
-  then
+  elif [ "$(cat /proc/1/comm)" = "systemd" ]; then
     purple_bold "\n* Restart systemd service"
     sudo_cmd systemctl restart mondoo.service
   else
@@ -486,9 +490,8 @@ elif [[ $OS = "Suse" ]]; then
 
 else
   purple "Your operating system is not yet supported by this installer."
-  exit 1;
+  exit 1
 fi
-
 
 # Mondoo installation / update
 # ----------------------------
