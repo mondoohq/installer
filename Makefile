@@ -13,25 +13,28 @@ docker/build/test:
 ### This includes --push and will push the manifest directly to the Docker Hub, you must be logged in as a valid user.
 .PHONY: docker/build/push
 docker/build/push:
-        #DOCKER_BUILDKIT=1 docker build --build-arg VERSION=$(shell cat VERSION) -t mondoolabs/mondoo:$(shell cat VERSION) -t mondoolabs/mondoo:latest .
-        if docker buildx ls | grep mondoo-builder; then docker buildx rm mondoo-builder; fi
-        docker buildx create --name mondoo-builder --driver docker-container --bootstrap --use
-        docker buildx build --build-arg VERSION=$(shell cat VERSION) --platform linux/386,linux/amd64,linux/arm/v7,linux/arm64 -t mondoolabs/mondoo:$(shell cat VERSION) -t mondoolabs/mondoo:latest . --push
-        docker tag mondoolabs/mondoo:$(shell cat VERSION) mondoolabs/mondoo:latest
-        docker buildx rm mondoo-builder
-        docker manifest inspect mondoolabs/mondoo:$(shell cat VERSION)
+	#DOCKER_BUILDKIT=1 docker build --build-arg VERSION=$(shell cat VERSION) -t mondoolabs/mondoo:$(shell cat VERSION) -t mondoolabs/mondoo:latest .
+	if docker buildx ls | grep mondoo-builder; then docker buildx rm mondoo-builder; fi
+	docker buildx create --name mondoo-builder --driver docker-container --bootstrap --use
+	docker buildx build --build-arg VERSION=$(shell cat VERSION) --platform linux/386,linux/amd64,linux/arm/v7,linux/arm64 -t mondoolabs/mondoo:$(shell cat VERSION) -t mondoolabs/mondoo:latest . --push
+	docker tag mondoolabs/mondoo:$(shell cat VERSION) mondoolabs/mondoo:latest
+	docker buildx rm mondoo-builder
+	docker manifest inspect mondoolabs/mondoo:$(shell cat VERSION)
 
+test/shellcheck:
+	shellcheck install.sh
+	shellcheck download.sh
 
 .PHONY: test/install_bash
 test/install_bash:
-	cp install.sh test/install_bash
-	cd test/install_bash && docker build --no-cache -f centos7.Dockerfile .
-	cd test/install_bash && docker build --no-cache -f amazonlinux2.Dockerfile .
-	cd test/install_bash && docker build --no-cache -f debian.Dockerfile .
-	cd test/install_bash && docker build --no-cache -f ubuntu.Dockerfile .	
-	cd test/install_bash && docker build --no-cache -f opensuse.Dockerfile .
-	cd test/install_bash && docker build --no-cache -f centos7.arm64.Dockerfile .
-	cd test/install_bash && docker build --no-cache -f redhat8.Dockerfile .
+	cp install.sh test/install_sh
+	cd test/install_sh && docker build --no-cache -f centos7.Dockerfile .
+	cd test/install_sh && docker build --no-cache -f amazonlinux2.Dockerfile .
+	cd test/install_sh && docker build --no-cache -f debian.Dockerfile .
+	cd test/install_sh && docker build --no-cache -f ubuntu.Dockerfile .	
+	cd test/install_sh && docker build --no-cache -f opensuse.Dockerfile .
+	cd test/install_sh && docker build --no-cache -f centos7.arm64.Dockerfile .
+	cd test/install_sh && docker build --no-cache -f redhat8.Dockerfile .
 
 .PHONY: test/download_sh
 # MONDOO_REGISTRATION_TOKEN="changeme"
