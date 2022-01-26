@@ -100,24 +100,24 @@ fi
 
 # download binary
 purple_bold "Downloading ${url}"
-binarySha=$(curl -fsSL ${url} | tee ${filename} | ${sha256bin} | cut -b 1-64)
+binarySha=$(curl -fsSL "${url}" | tee "${filename}" | ${sha256bin} | cut -b 1-64)
 echo -e "Downloaded binary hash: ${binarySha}"
 
 # download the checksum
 purple_bold "Downloading ${shaurl}"
-expectedSha=$(curl -fsSL ${shaurl} | grep ${filename} | cut -b 1-64)
+expectedSha=$(curl -fsSL "${shaurl}" | grep "${filename}" | cut -b 1-64)
 echo -e "Expected binary hash: ${expectedSha}"
 
 # extract binary
-if [ $binarySha = $expectedSha ]; then
+if [ "$binarySha" = "$expectedSha" ]; then
   purple "Download matches the exepected hash ${binarySha}"
-  tar -xf ${filename}
+  tar -xf "${filename}"
   chmod +x "${product}"
-	rm ${filename}
+	rm "${filename}"
   purple "Installed to $(pwd)/${product}"
 else
   # clean up on error
-  rm ${filename}
+  rm "${filename}"
   fail "Binary hash '${binarySha}' does not match the expected hash '${expectedSha}'\nAborted download.";
 fi
 

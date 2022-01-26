@@ -1,5 +1,5 @@
-FROM ubuntu
-RUN apt-get update -y && apt-get install -y curl
+FROM debian
+RUN apt update -y && apt install -y curl
 ADD install.sh /run/install.sh
 RUN /run/install.sh
 RUN mondoo version
