@@ -29,8 +29,8 @@ test/shellcheck:
 	shellcheck install.sh
 	shellcheck download.sh
 
-.PHONY: test/install_bash
-test/install_bash:
+.PHONY: test/install_sh
+test/install_sh:
 	cp install.sh test/install_sh
 	cd test/install_sh && docker build --no-cache -f almalinux.Dockerfile .
 	cd test/install_sh && docker build --no-cache -f amazonlinux2.Dockerfile .
