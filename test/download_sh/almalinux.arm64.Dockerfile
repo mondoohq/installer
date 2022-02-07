@@ -1,7 +1,4 @@
-FROM centos:7
-ARG mondoo_registration_token
-ENV MONDOO_REGISTRATION_TOKEN=$mondoo_registration_token
-RUN echo ${MONDOO_REGISTRATION_TOKEN}
+FROM arm64v8/almalinux
 RUN mkdir -p /root/trial
 WORKDIR /root/trial
 ADD download.sh /root/trial/download.sh

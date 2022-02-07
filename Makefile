@@ -28,12 +28,12 @@ test/shellcheck:
 .PHONY: test/install_bash
 test/install_bash:
 	cp install.sh test/install_sh
-	cd test/install_sh && docker build --no-cache -f centos7.Dockerfile .
+	cd test/install_sh && docker build --no-cache -f almalinux.Dockerfile .
 	cd test/install_sh && docker build --no-cache -f amazonlinux2.Dockerfile .
 	cd test/install_sh && docker build --no-cache -f debian.Dockerfile .
 	cd test/install_sh && docker build --no-cache -f ubuntu.Dockerfile .	
 	cd test/install_sh && docker build --no-cache -f opensuse.Dockerfile .
-	cd test/install_sh && docker build --no-cache -f centos7.arm64.Dockerfile .
+	cd test/install_sh && docker build --no-cache -f almalinux.arm64.Dockerfile .
 	cd test/install_sh && docker build --no-cache -f redhat8.Dockerfile .
 
 .PHONY: test/download_sh
@@ -41,8 +41,8 @@ test/install_bash:
 test/download_sh:
 	cp download.sh test/download_sh
 	cd test/download_sh && docker build --no-cache -f alpine.Dockerfile .
-	cd test/download_sh && docker build --no-cache -f centos7.Dockerfile .
-	cd test/download_sh && docker build --no-cache -f centos7.arm64.Dockerfile .
+	cd test/download_sh && docker build --no-cache -f almalinux.Dockerfile .
+	cd test/download_sh && docker build --no-cache -f almalinux.arm64.Dockerfile .
 	cd test/download_sh && docker build --no-cache -f amazonlinux2.Dockerfile .
 	cd test/download_sh && docker build --no-cache -f debian.Dockerfile .
 	cd test/download_sh && docker build --no-cache -f ubuntu.Dockerfile .	
