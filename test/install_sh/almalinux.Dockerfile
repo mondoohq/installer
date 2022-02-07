@@ -1,4 +1,4 @@
-FROM centos:7
+FROM almalinux
 ADD install.sh /run/install.sh
 RUN /run/install.sh
 RUN mondoo version
