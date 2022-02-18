@@ -235,20 +235,12 @@ configure_macos_installer() {
     }
 
   else
-    MONDOO_INSTALLER="pkg"
+    MONDOO_INSTALLER=""
     mondoo_install() {
-      detect_latest_version
-      FILE="mondoo_${MONDOO_LATEST_VERSION}_darwin_universal.pkg"
-      URL="https://releases.mondoo.io/mondoo/${MONDOO_LATEST_VERSION}/${FILE}"
-
-      purple_bold "\n* Downloading Mondoo Universal Package for Mac" 
-      curl -sO ${URL}
-
-      purple_bold "\n* Installing Mondoo via 'installer -pkg'"
-      sudo_cmd /usr/sbin/installer -pkg ${FILE} -target /Library
-      
-      purple_bold "\n* Cleaning up downloaded package"
-      rm ${FILE}
+      red "Mondoo uses Mac Homebrew to install on macOS, but we could not find the 'brew' command in your path (\$PATH)."
+      echo
+      echo "For more information about the Mac Homebrew package manager, see https://brew.sh"
+      exit 1
     }
     mondoo_update() { mondoo_install "$@"; }
   fi
@@ -418,15 +410,15 @@ configure_token() {
   if [ $MONDOO_IS_REGISTERED = true ]; then
     purple_bold "\n* Mondoo was successfully registered."
   else
-    red "\n* Failed to register Mondoo. Please ensure your registration token is not expired.  For support, reach out to us via the Mondoo Community Discord."
+    red "\n* Failed to register Mondoo. Please reach out to us via Mondoo Community Discord."
     exit 1
   fi
 }
 
 configure_macos_token() {
   purple_bold "\n* Register Mondoo with Mondoo Cloud"
-  sudo_cmd mkdir -p "/etc/opt/mondoo/"
-  sudo_cmd ${MONDOO_CMD} register --config /etc/opt/mondoo/mondoo.yml --token "$MONDOO_REGISTRATION_TOKEN"
+  mkdir -p "$HOME/.config/mondoo/"
+  ${MONDOO_CMD} register --config "$HOME/.config/mondoo/mondoo.yml" --token "$MONDOO_REGISTRATION_TOKEN"
 }
 
 configure_linux_token() {
