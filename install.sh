@@ -97,6 +97,8 @@ if [ "$DISTRIBUTION" = "Darwin" ]; then
   OS="macOS"
 elif [ -f /etc/debian_version ] || [ "$DISTRIBUTION" == "Debian" ] || [ "$DISTRIBUTION" == "Ubuntu" ]; then
   OS="Debian"
+elif [ "$AWS_EXECUTION_ENV" == "CloudShell" ]; then
+  OS="AWSCloudShell"
 elif [ -f /etc/redhat-release ] || [ "$DISTRIBUTION" == "RedHat" ] || [ "$DISTRIBUTION" == "CentOS" ] || [ "$DISTRIBUTION" == "Amazon" ]; then
   OS="RedHat"
 elif [ -f /etc/photon-release ] || [ "$DISTRIBUTION" == "Photon" ]; then
@@ -201,9 +203,7 @@ install_portable() {
   URL="https://releases.mondoo.io/mondoo/${MONDOO_LATEST_VERSION}/${FILE}"
 
   echo "Downloading the latest version of Mondoo from: $URL"
-  curl -O "${URL}"
-
-  tar xf "${FILE}"
+  curl "${URL}" | tar xz
 
   detect_portable
   if [ -z "$MONDOO_EXECUTABLE" ]; then
@@ -211,8 +211,11 @@ install_portable() {
     exit 1
   fi
 
-  purple_bold "We installed a portable version of mondoo to the present working directory."
-  echo "You can run Mondoo via: ${MONDOO_CMD}"
+  purple_bold "We installed a portable version of mondoo to $PWD"
+  if [[ ":$PATH:" == ":$PWD:" ]]; then
+  purple_bold "For convenience, add the following line to your .bashrc"
+  purple_bold "export PATH=\$PATH:$PWD"
+  fi
 }
 
 # macOS installer
@@ -372,6 +375,31 @@ configure_suse_installer() {
   fi
 }
 
+# CloudShell installer
+# --------------
+
+configure_cloudshell_installer() {
+  MONDOO_INSTALLER="tar"
+  mondoo_install() {
+    install_dir="$HOME/.local/bin"
+    purple_bold "\n* Installing Mondoo to $install_dir"
+    mkdir -p "$install_dir"
+    (cd "$install_dir"; install_portable)
+    PATH="$PATH:$install_dir"
+  }
+
+  mondoo_update() {
+    mondoo_install
+  }
+
+  configure_linux_token() {
+    purple_bold "\n* Register Mondoo with Mondoo Cloud"
+    config_path="$HOME/.config/mondoo"
+    mkdir -p "$config_path"
+    ${MONDOO_CMD} register --config "$config_path/mondoo.yml" --token "$MONDOO_REGISTRATION_TOKEN"
+  }
+}
+
 # Post-install actions
 # --------------------
 
@@ -485,6 +513,8 @@ elif [[ $OS = "Debian" ]]; then
 
 elif [[ $OS = "Suse" ]]; then
   configure_suse_installer
+elif [[ $OS = "AWSCloudShell" ]]; then
+  configure_cloudshell_installer
 
 else
   purple "Your operating system is not yet supported by this installer."
