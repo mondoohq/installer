@@ -3,11 +3,11 @@
 <#
     .SYNOPSIS
     This PowerShell script installs the latest Mondoo agent on windows. Usage:
-    Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://mondoo.io/install.ps1')); Install-Mondoo;
+    Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://mondoo.com/install.ps1')); Install-Mondoo;
     
     .PARAMETER RegistrationToken
     The registration token for your mondoo installation. See our docs if you do not
-    have one: https://docs.mondoo.io/server/registration
+    have one: https://mondoo.com/docs/server/registration
     .PARAMETER DownloadType
     Set 'msi' (default) to download the package or 'zip' for the agent binary instead
     .PARAMETER Version
@@ -31,7 +31,7 @@ function Install-Mondoo {
   function purple($msg) { Write-Host $msg -f magenta }
 
   function Get-UserAgent() {
-    return "MondooInstallScript/1.0 (+https://mondoo.io/) PowerShell/$($PSVersionTable.PSVersion.Major).$($PSVersionTable.PSVersion.Minor) (Windows NT $([System.Environment]::OSVersion.Version.Major).$([System.Environment]::OSVersion.Version.Minor);$PSEdition)"
+    return "MondooInstallScript/1.0 (+https://mondoo.com/) PowerShell/$($PSVersionTable.PSVersion.Major).$($PSVersionTable.PSVersion.Minor) (Windows NT $([System.Environment]::OSVersion.Version.Major).$([System.Environment]::OSVersion.Version.Minor);$PSEdition)"
   }
 
   function download($url,$to) {
@@ -41,7 +41,7 @@ function Install-Mondoo {
   }
 
   function determine_latest($filetype) {
-    $url = 'https://releases.mondoo.io/mondoo/latest.json'
+    $url = 'https://releases.mondoo.com/mondoo/latest.json'
     If([string]::IsNullOrEmpty($filetype)) {
       $filetype = [regex]::escape('msi')
     }
@@ -54,7 +54,7 @@ function Install-Mondoo {
 
   function determine_version($filetype, $version) {
     $arch = 'amd64'
-    $res = "https://releases.mondoo.io/mondoo/${version}/mondoo_${version}_windows_${arch}.${filetype}"
+    $res = "https://releases.mondoo.com/mondoo/${version}/mondoo_${version}_windows_${arch}.${filetype}"
     $res
   }
 
@@ -83,7 +83,7 @@ function Install-Mondoo {
 
     * Mondoo Community Discord https://discord.gg/HPAjpS6b34
 
-  This script source is available at: https://github.com/mondoolabs/mondoo
+  This script source is available at: https://github.com/mondoohq/mondoo
   "
 
   # Any subsequent commands which fails will stop the execution of the shell script
@@ -110,7 +110,7 @@ function Install-Mondoo {
   if ($env:PROCESSOR_ARCHITECTURE -ne 'AMD64' -and -not ($env:PROCESSOR_ARCHITECTURE -eq "x86" -and [Environment]::Is64BitOperatingSystem)) {
     fail "
   Your processor architecture $env:PROCESSOR_ARCHITECTURE is not supported yet. Please come join us in 
-  our Mondoo Community Discord: https://discord.gg/HPAjpS6b34 or email us at hello@mondoo.io
+  our Mondoo Community Discord: https://discord.gg/HPAjpS6b34 or email us at hello@mondoo.com
   "
   }
 

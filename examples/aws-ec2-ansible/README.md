@@ -1,11 +1,11 @@
 # Apply Ansible to all EC2 machines and Assess the security state
 
-This example runs [DevSec's Ansible server hardening roles](https://github.com/dev-sec/ansible-collection-hardening) for EC2 instances and assesses the state via [Mondoo](https://mondoo.io)
+This example runs [DevSec's Ansible server hardening roles](https://github.com/dev-sec/ansible-collection-hardening) for EC2 instances and assesses the state via [Mondoo](https://mondoo.com)
 
 ## Precondition
 
  * [Install Ansible](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html)
- * [Mondoo CLI installed on workstation](https://docs.mondoo.io/operating_systems/installation/installation)
+ * [Mondoo CLI installed on workstation](https://mondoo.com/docs/operating_systems/installation/installation)
  * Launched Linux Instance(s) that are reachable via SSH
 
 ## Run Playbook
@@ -64,7 +64,7 @@ PLAY RECAP *********************************************************************
 
 ## Assess Security via Mondoo
 
-Mondoo leverages the ansible inventory. It can also be executed via ansible, see [Mondoo Docs](https://docs.mondoo.io/operating_systems/automation/ansible/) for further options.
+Mondoo leverages the ansible inventory. It can also be executed via ansible, see [Mondoo Docs](https://mondoo.com/docs/operating_systems/automation/ansible/) for further options.
 
 ```bash
 $ ansible-inventory -i hosts.ini --list | mondoo scan --incognito ../shared/policies/linux-baseline.yaml

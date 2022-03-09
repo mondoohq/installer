@@ -2,7 +2,7 @@
 
 ## Precondition
 
- * [Mondoo CLI installed on workstation](https://docs.mondoo.io/operating_systems/installation/installation)
+ * [Mondoo CLI installed on workstation](https://mondoo.com/docs/operating_systems/installation/installation)
 
 ## Spin Up EC2 instance
 

@@ -10,7 +10,7 @@ ARG TARGETOS
 ARG TARGETARCH
 ARG TARGETVARIANT
 
-ARG BASEURL="https://releases.mondoo.io/mondoo/${VERSION}"
+ARG BASEURL="https://releases.mondoo.com/mondoo/${VERSION}"
 ARG PACKAGE="mondoo_${VERSION}_${TARGETOS}_${TARGETARCH}${TARGETVARIANT}.tar.gz"
 
 RUN apk update &&\
