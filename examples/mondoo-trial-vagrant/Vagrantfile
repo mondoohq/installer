@@ -6,7 +6,7 @@ Vagrant.require_version ">= 1.8.4"
 Vagrant.configure(2) do |config|
   $mondoo_script = <<SCRIPT
 echo Installing mondoo ...
-curl -sSL https://mondoo.io/install.sh | bash
+curl -sSL https://mondoo.com/install.sh | bash
 SCRIPT
 
   config.vm.define "centos" do |centos|

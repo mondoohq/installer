@@ -14,17 +14,17 @@ Install `mondoo`:
 
 ```bash
 export MONDOO_REGISTRATION_TOKEN='changeme'
-curl -sSL http://mondoo.io/download.sh | bash
+curl -sSL http://mondoo.com/download.sh | bash
 ```
 
 ***Service***
 
 ```bash
 export MONDOO_REGISTRATION_TOKEN='changeme'
-curl -sSL http://mondoo.io/install.sh | bash
+curl -sSL http://mondoo.com/install.sh | bash
 ```
 
-For other installation methods, have a look at our [documentation](https://docs.mondoo.io/getstarted/overview).
+For other installation methods, have a look at our [documentation](https://mondoo.com/docs/getstarted/overview).
 
 Run a scan:
 
@@ -79,4 +79,4 @@ Example   | Phase | Description |
 
 **Installation Packages**
 
-- [releases.mondoo.io](https://releases.mondoo.io)
+- [releases.mondoo.com](https://releases.mondoo.com)

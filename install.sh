@@ -53,7 +53,7 @@ on_error() {
   echo
   echo "* Mondoo Community Discord: https://discord.gg/HPAjpS6b34"
   echo
-  echo "* Github: https://github.com/mondoolabs/mondoo"
+  echo "* Github: https://github.com/mondoohq/mondoo"
   echo
   exit 1
 }
@@ -78,7 +78,7 @@ If you experience any issues, please reach us at:
 
 The source code of this installer is available on Github:
 
-  * Github: https://github.com/mondoolabs/mondoo
+  * Github: https://github.com/mondoohq/mondoo
 
 "
 
@@ -163,7 +163,7 @@ detect_portable() {
 }
 
 detect_latest_version() {
-  MONDOO_LATEST_VERSION="$(curl https://releases.mondoo.io/mondoo/ 2>/dev/null | grep -Eo 'href="[[:alnum:]]+\.[[:alnum:]]+\.[[:alnum:]]+' | head -n1 | sed 's/href="//')"
+  MONDOO_LATEST_VERSION="$(curl https://releases.mondoo.com/mondoo/ 2>/dev/null | grep -Eo 'href="[[:alnum:]]+\.[[:alnum:]]+\.[[:alnum:]]+' | head -n1 | sed 's/href="//')"
 }
 
 install_portable() {
@@ -200,7 +200,7 @@ install_portable() {
   detect_latest_version
 
   FILE="mondoo_${MONDOO_LATEST_VERSION}_${SYSTEM}_${ARCH}.tar.gz"
-  URL="https://releases.mondoo.io/mondoo/${MONDOO_LATEST_VERSION}/${FILE}"
+  URL="https://releases.mondoo.com/mondoo/${MONDOO_LATEST_VERSION}/${FILE}"
 
   echo "Downloading the latest version of Mondoo from: $URL"
   curl "${URL}" | tar xz
@@ -226,7 +226,7 @@ configure_macos_installer() {
     MONDOO_INSTALLER="brew"
     mondoo_install() {
       purple_bold "\n* Configuring brew sources for Mondoo via 'brew tap'"
-      brew tap mondoolabs/mondoo
+      brew tap mondoohq/mondoo
 
       purple_bold "\n* Installing Mondoo via 'brew install'"
       brew install mondoo
@@ -288,7 +288,7 @@ configure_rhel_installer() {
     MONDOO_INSTALLER="yum"
     mondoo_install() {
       purple_bold "\n* Configuring YUM sources for Mondoo at /etc/yum.repos.d/mondoo.repo"
-      curl --retry 3 --retry-delay 10 -sSL https://releases.mondoo.io/rpm/mondoo.repo | sudo_cmd tee /etc/yum.repos.d/mondoo.repo
+      curl --retry 3 --retry-delay 10 -sSL https://releases.mondoo.com/rpm/mondoo.repo | sudo_cmd tee /etc/yum.repos.d/mondoo.repo
 
       purple_bold "\n* Installing Mondoo"
       sudo_cmd yum install -y mondoo
@@ -321,8 +321,8 @@ configure_debian_installer() {
       sudo_cmd apt install -y apt-transport-https ca-certificates gnupg
 
       purple_bold "\n* Configuring APT package sources for Mondoo at /etc/apt/sources.list.d/mondoo.list"
-      curl --retry 3 --retry-delay 10 -sSL https://releases.mondoo.io/debian/pubkey.gpg | sudo_cmd gpg --dearmor --output /usr/share/keyrings/mondoo-archive-keyring.gpg
-      echo "deb [signed-by=/usr/share/keyrings/mondoo-archive-keyring.gpg] https://releases.mondoo.io/debian/ stable main" | sudo_cmd tee /etc/apt/sources.list.d/mondoo.list
+      curl --retry 3 --retry-delay 10 -sSL https://releases.mondoo.com/debian/pubkey.gpg | sudo_cmd gpg --dearmor --output /usr/share/keyrings/mondoo-archive-keyring.gpg
+      echo "deb [signed-by=/usr/share/keyrings/mondoo-archive-keyring.gpg] https://releases.mondoo.com/debian/ stable main" | sudo_cmd tee /etc/apt/sources.list.d/mondoo.list
 
 
       purple_bold "\n* Installing Mondoo"
@@ -352,9 +352,9 @@ configure_suse_installer() {
     MONDOO_INSTALLER="apt"
     mondoo_install() {
       purple_bold "\n* Configuring ZYPPER sources for Mondoo at /etc/zypp/repos.d/mondoo.repo"
-      curl --retry 3 --retry-delay 10 -sSL https://releases.mondoo.io/rpm/mondoo.repo | sudo_cmd tee /etc/zypp/repos.d/mondoo.repo
+      curl --retry 3 --retry-delay 10 -sSL https://releases.mondoo.com/rpm/mondoo.repo | sudo_cmd tee /etc/zypp/repos.d/mondoo.repo
       # zypper does not recognize the gpg key reference from mondoo.repo properly, therefore we need to add this here manually
-      sudo_cmd rpm --import https://releases.mondoo.io/rpm/pubkey.gpg
+      sudo_cmd rpm --import https://releases.mondoo.com/rpm/pubkey.gpg
 
       purple_bold "\n* Installing Mondoo"
       sudo_cmd zypper -n install mondoo
@@ -487,12 +487,12 @@ finalize_setup() {
     lightblue_bold "Next you should register Mondoo to get access to policies and reports."
     lightblue_bold "Follow this guide: "
     echo
-    lightblue_bold "https://docs.mondoo.io/server/registration#retrieve-mondoo-agent-credentials"
+    lightblue_bold "https://mondoo.com/docs/server/registration#retrieve-mondoo-agent-credentials"
     echo
   else
     purple_bold "\nMondoo is set up and ready to go!"
     echo
-    lightblue_bold "Follow our quick start guide for next steps: https://docs.mondoo.io/getstarted/quickstart"
+    lightblue_bold "Follow our quick start guide for next steps: https://mondoo.com/docs/getstarted/quickstart"
     echo
   fi
 
