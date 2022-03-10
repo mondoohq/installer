@@ -37,4 +37,4 @@ jobs:
           platforms: linux/386,linux/amd64,linux/arm64,linux/arm/v6,linux/arm/v7
           push: true
           build-args: VERSION=${{ steps.vars.outputs.tag }}
-          tags: mondoolabs/mondoo:${{ steps.vars.outputs.tag }},mondoolabs/mondoo:latest
+          tags: mondoolabs/mondoo:${{ steps.vars.outputs.tag }},mondoolabs/mondoo:latest,mondoo/client:${{ steps.vars.outputs.tag }},mondoo/client:latest        
