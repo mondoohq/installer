@@ -5,11 +5,6 @@ on:
     tags:
       - '[0-9]+.[0-9]+.[0-9]+'
   workflow_dispatch:
-    inputs:
-      tags:
-        description: 'Mondoo Build Version'
-        required: true
-        type: string
 
 
 jobs:
@@ -18,13 +13,18 @@ jobs:
     timeout-minutes: 10
     name: Build Docker
     steps:
-      - name: Get latest tag
-        id: vars
-        run: echo ::set-output name=tag::${GITHUB_REF:10}
+      #- name: Get latest tag
+      #  id: vars
+      #  run: echo ::set-output name=tag::${GITHUB_REF:10}
       - name: Clone repository
         uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
         #with:
         #  ref: ${{ steps.vars.outputs.tag }}
+      - name: Get Latest Tag
+        id: vars
+        uses: WyriHaximus/github-action-get-previous-tag@v1
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
         with:
