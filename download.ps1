@@ -21,7 +21,7 @@ info "Welcome to the Mondoo Binary Download Script. It downloads the Mondoo bina
 Windows into $ENV:UserProfile\mondoo and adds the path to the user's environment PATH. If 
 you are experiencing any issues, please do not hesitate to reach out: 
 
-  * Mondoo Community Discord https://discord.com/invite/HPAjpS6b34
+  * Mondoo Community Slack https://mondoo.link/slack
 
 This script source is available at: https://github.com/mondoohq/mondoo
 "
@@ -49,10 +49,7 @@ Set-ExecutionPolicy RemoteSigned -scope CurrentUser
 # we only support x86_64 at this point, stop if we got arm
 if ($env:PROCESSOR_ARCHITECTURE -ne 'AMD64') {
   fail "
-Your processor architecture $env:PROCESSOR_ARCHITECTURE is not supported yet. Please come join us 
-in our Mondoo Community Discord:
-
-  * https://discord.gg/HPAjpS6b34
+Your processor architecture $env:PROCESSOR_ARCHITECTURE is not supported yet. Contact hello@mondoo.com or join the Mondoo Community Slack channel https://mondoo.link/slack
 "
 }
 
@@ -112,9 +109,9 @@ success ' * Mondoo was downloaded successfully!'
 # Display final message
 info "Thank you for downloading Mondoo!"
 info "
-If you have any questions, please come join us in our Mondoo Community Discord:
+If you need support, contact hello@mondoo.com or join the Mondoo Community Slack channel:
 
-  * https://discord.gg/HPAjpS6b34
+  * https://mondoo.link/slack
 "
 
 # reset erroractionpreference
