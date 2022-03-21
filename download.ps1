@@ -23,7 +23,7 @@ you are experiencing any issues, please do not hesitate to reach out:
 
   * Mondoo Community Slack https://mondoo.link/slack
 
-This script source is available at: https://github.com/mondoohq/mondoo
+This script source is available at: https://github.com/mondoohq/client
 "
 
 # Any subsequent commands which fails will stop the execution of the shell script
