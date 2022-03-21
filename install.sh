@@ -248,7 +248,7 @@ configure_macos_installer() {
       curl -sO ${URL}
 
       purple_bold "\n* Installing Mondoo via 'installer -pkg'"
-      sudo_cmd /usr/sbin/installer -pkg ${FILE} -target /Library
+      sudo_cmd /usr/sbin/installer -pkg ${FILE} -target /
       
       purple_bold "\n* Cleaning up downloaded package"
       rm ${FILE}
