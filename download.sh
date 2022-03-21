@@ -56,7 +56,7 @@ This script source is available at: https://github.com/mondoohq/mondoo
 
 base_url="${MONDOO_MIRROR:-https://releases.mondoo.com}"
 product="mondoo"
-version="${MONDOO_VERSION:-5.30.0}"
+version="${MONDOO_VERSION:-5.31.0}"
 
 fail() {
   echo -e "${red}${1}${end}";
