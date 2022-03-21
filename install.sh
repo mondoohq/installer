@@ -242,7 +242,7 @@ configure_macos_installer() {
     mondoo_install() {
       detect_latest_version
       FILE="mondoo_${MONDOO_LATEST_VERSION}_darwin_universal.pkg"
-      URL="https://releases.mondoo.io/mondoo/${MONDOO_LATEST_VERSION}/${FILE}"
+      URL="https://releases.mondoo.com/mondoo/${MONDOO_LATEST_VERSION}/${FILE}"
 
       purple_bold "\n* Downloading Mondoo Universal Package for Mac" 
       curl -sO ${URL}
@@ -495,12 +495,12 @@ finalize_setup() {
     lightblue_bold "Next you should register Mondoo to get access to policies and reports."
     lightblue_bold "Follow this guide: "
     echo
-    lightblue_bold "https://mondoo.com/docs/server/registration#retrieve-mondoo-agent-credentials"
+    lightblue_bold "https://mondoo.com/docs/operating_systems/installation/registration/"
     echo
   else
     purple_bold "\nMondoo is set up and ready to go!"
     echo
-    lightblue_bold "Follow our quick start guide for next steps: https://mondoo.com/docs/getstarted/quickstart"
+    lightblue_bold "Follow our quick start guide for next steps: https://mondoo.com/docs/"
     echo
   fi
 
