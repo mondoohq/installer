@@ -16,7 +16,7 @@
 # limitations under the License.
 # 
 # Automatic Mondoo downloader to be used with
-# curl -sSL https://mondoo.io/download.sh | sh -
+# curl -sSL https://mondoo.com/download.sh | sh -
 # 
 # This script requires tar and gzip as helper commands
 # e.g. yum install tar gzip
@@ -49,14 +49,14 @@ echo -e "\nWelcome to the Mondoo Binary Download Script. It tries to auto-detect
 operating system and determines the appropriate binnary for your platform. If you are 
 experiencing any issues, please do not hesitate to reach out: 
 
-  * Mondoo Community Discord https://discord.gg/HPAjpS6b34
+  * Mondoo Community Slack https://mondoo.link/slack
 
-This script source is available at: https://github.com/mondoolabs/mondoo
+This script source is available at: https://github.com/mondoohq/mondoo
 "
 
-base_url="${MONDOO_MIRROR:-https://releases.mondoo.io}"
+base_url="${MONDOO_MIRROR:-https://releases.mondoo.com}"
 product="mondoo"
-version="${MONDOO_VERSION:-5.27.0}"
+version="${MONDOO_VERSION:-5.31.0}"
 
 fail() {
   echo -e "${red}${1}${end}";
@@ -129,10 +129,10 @@ You can register the agent via:
 MONDOO_REGISTRATION_TOKEN=\"ey..iU\"
 mondoo register --token \$MONDOO_REGISTRATION_TOKEN
 
-Further information is available at https://docs.mondoo.io
+Further information is available at https://mondoo.com/docs
 
 If you have any questions, please come join us in our Mondoo Community:
 
-* Mondoo Community Discord: https://discord.gg/HPAjpS6b34
-* Github: https://github.com/mondoolabs/mondoo
+* Mondoo Community Slack https://mondoo.link/slack
+* Github: https://github.com/mondoohq/mondoo
 "

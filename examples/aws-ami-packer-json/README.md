@@ -6,8 +6,8 @@ This example assumes you have basic knowledge of Packer and AWS. If you are unfa
 
  * [AWS Account](https://aws.amazon.com/free/)
  * [Packer CLI installed on workstation](https://www.packer.io/intro/getting-started/install.html)
- * [Mondoo CLI installed on workstation](https://docs.mondoo.io/getstarted/server)
- * [Mondoo Packer Provisioner](https://docs.mondoo.io/buildtime/packer)
+ * [Mondoo CLI installed on workstation](https://mondoo.com/docs/getstarted/server)
+ * [Mondoo Packer Provisioner](https://mondoo.com/docs/buildtime/packer)
 
 ## Build your image
 

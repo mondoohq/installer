@@ -49,11 +49,11 @@ purple() { echo -e "${purple}${1}${end}"; }
 purple_bold() { echo -e "${purpleb}${1}${end}"; }
 
 on_error() {
-  red "The Mondoo install script encountered a problem. For assistance, please join our community Discord or find us on Github."
+  red "The Mondoo install script encountered a problem. For assistance, please join our community Slack or find us on Github."
   echo
-  echo "* Mondoo Community Discord: https://discord.gg/HPAjpS6b34"
+  echo "* Mondoo Community Slack https://mondoo.link/slack"
   echo
-  echo "* Github: https://github.com/mondoolabs/mondoo"
+  echo "* Github: https://github.com/mondoohq/mondoo"
   echo
   exit 1
 }
@@ -74,11 +74,11 @@ echo -e "\nWelcome to the Mondoo installer. We will auto-detect your
 operating system to determine the best installation method.
 If you experience any issues, please reach us at:
 
-  * Mondoo Community Discord: https://discord.gg/HPAjpS6b34
+  * Mondoo Community Slack https://mondoo.link/slack
 
 The source code of this installer is available on Github:
 
-  * Github: https://github.com/mondoolabs/mondoo
+  * Github: https://github.com/mondoohq/mondoo
 
 "
 
@@ -97,6 +97,8 @@ if [ "$DISTRIBUTION" = "Darwin" ]; then
   OS="macOS"
 elif [ -f /etc/debian_version ] || [ "$DISTRIBUTION" == "Debian" ] || [ "$DISTRIBUTION" == "Ubuntu" ]; then
   OS="Debian"
+elif [ "$AWS_EXECUTION_ENV" == "CloudShell" ]; then
+  OS="AWSCloudShell"
 elif [ -f /etc/redhat-release ] || [ "$DISTRIBUTION" == "RedHat" ] || [ "$DISTRIBUTION" == "CentOS" ] || [ "$DISTRIBUTION" == "Amazon" ]; then
   OS="RedHat"
 elif [ -f /etc/photon-release ] || [ "$DISTRIBUTION" == "Photon" ]; then
@@ -161,7 +163,7 @@ detect_portable() {
 }
 
 detect_latest_version() {
-  MONDOO_LATEST_VERSION="$(curl https://releases.mondoo.io/mondoo/ 2>/dev/null | grep -Eo 'href="[[:alnum:]]+\.[[:alnum:]]+\.[[:alnum:]]+' | head -n1 | sed 's/href="//')"
+  MONDOO_LATEST_VERSION="$(curl https://releases.mondoo.com/mondoo/ 2>/dev/null | grep -Eo 'href="[[:alnum:]]+\.[[:alnum:]]+\.[[:alnum:]]+' | head -n1 | sed 's/href="//')"
 }
 
 install_portable() {
@@ -198,12 +200,10 @@ install_portable() {
   detect_latest_version
 
   FILE="mondoo_${MONDOO_LATEST_VERSION}_${SYSTEM}_${ARCH}.tar.gz"
-  URL="https://releases.mondoo.io/mondoo/${MONDOO_LATEST_VERSION}/${FILE}"
+  URL="https://releases.mondoo.com/mondoo/${MONDOO_LATEST_VERSION}/${FILE}"
 
   echo "Downloading the latest version of Mondoo from: $URL"
-  curl -O "${URL}"
-
-  tar xf "${FILE}"
+  curl "${URL}" | tar xz
 
   detect_portable
   if [ -z "$MONDOO_EXECUTABLE" ]; then
@@ -211,8 +211,11 @@ install_portable() {
     exit 1
   fi
 
-  purple_bold "We installed a portable version of mondoo to the present working directory."
-  echo "You can run Mondoo via: ${MONDOO_CMD}"
+  purple_bold "We installed a portable version of mondoo to $PWD"
+  if [[ ":$PATH:" == ":$PWD:" ]]; then
+  purple_bold "For convenience, add the following line to your .bashrc"
+  purple_bold "export PATH=\$PATH:$PWD"
+  fi
 }
 
 # macOS installer
@@ -223,7 +226,7 @@ configure_macos_installer() {
     MONDOO_INSTALLER="brew"
     mondoo_install() {
       purple_bold "\n* Configuring brew sources for Mondoo via 'brew tap'"
-      brew tap mondoolabs/mondoo
+      brew tap mondoohq/mondoo
 
       purple_bold "\n* Installing Mondoo via 'brew install'"
       brew install mondoo
@@ -293,7 +296,7 @@ configure_rhel_installer() {
     MONDOO_INSTALLER="yum"
     mondoo_install() {
       purple_bold "\n* Configuring YUM sources for Mondoo at /etc/yum.repos.d/mondoo.repo"
-      curl --retry 3 --retry-delay 10 -sSL https://releases.mondoo.io/rpm/mondoo.repo | sudo_cmd tee /etc/yum.repos.d/mondoo.repo
+      curl --retry 3 --retry-delay 10 -sSL https://releases.mondoo.com/rpm/mondoo.repo | sudo_cmd tee /etc/yum.repos.d/mondoo.repo
 
       purple_bold "\n* Installing Mondoo"
       sudo_cmd yum install -y mondoo
@@ -326,8 +329,8 @@ configure_debian_installer() {
       sudo_cmd apt install -y apt-transport-https ca-certificates gnupg
 
       purple_bold "\n* Configuring APT package sources for Mondoo at /etc/apt/sources.list.d/mondoo.list"
-      curl --retry 3 --retry-delay 10 -sSL https://releases.mondoo.io/debian/pubkey.gpg | sudo_cmd gpg --dearmor --output /usr/share/keyrings/mondoo-archive-keyring.gpg
-      echo "deb [signed-by=/usr/share/keyrings/mondoo-archive-keyring.gpg] https://releases.mondoo.io/debian/ stable main" | sudo_cmd tee /etc/apt/sources.list.d/mondoo.list
+      curl --retry 3 --retry-delay 10 -sSL https://releases.mondoo.com/debian/pubkey.gpg | sudo_cmd gpg --dearmor --output /usr/share/keyrings/mondoo-archive-keyring.gpg
+      echo "deb [signed-by=/usr/share/keyrings/mondoo-archive-keyring.gpg] https://releases.mondoo.com/debian/ stable main" | sudo_cmd tee /etc/apt/sources.list.d/mondoo.list
 
 
       purple_bold "\n* Installing Mondoo"
@@ -357,9 +360,9 @@ configure_suse_installer() {
     MONDOO_INSTALLER="apt"
     mondoo_install() {
       purple_bold "\n* Configuring ZYPPER sources for Mondoo at /etc/zypp/repos.d/mondoo.repo"
-      curl --retry 3 --retry-delay 10 -sSL https://releases.mondoo.io/rpm/mondoo.repo | sudo_cmd tee /etc/zypp/repos.d/mondoo.repo
+      curl --retry 3 --retry-delay 10 -sSL https://releases.mondoo.com/rpm/mondoo.repo | sudo_cmd tee /etc/zypp/repos.d/mondoo.repo
       # zypper does not recognize the gpg key reference from mondoo.repo properly, therefore we need to add this here manually
-      sudo_cmd rpm --import https://releases.mondoo.io/rpm/pubkey.gpg
+      sudo_cmd rpm --import https://releases.mondoo.com/rpm/pubkey.gpg
 
       purple_bold "\n* Installing Mondoo"
       sudo_cmd zypper -n install mondoo
@@ -378,6 +381,31 @@ configure_suse_installer() {
     mondoo_update() { mondoo_install "$@"; }
 
   fi
+}
+
+# CloudShell installer
+# --------------
+
+configure_cloudshell_installer() {
+  MONDOO_INSTALLER="tar"
+  mondoo_install() {
+    install_dir="$HOME/.local/bin"
+    purple_bold "\n* Installing Mondoo to $install_dir"
+    mkdir -p "$install_dir"
+    (cd "$install_dir"; install_portable)
+    PATH="$PATH:$install_dir"
+  }
+
+  mondoo_update() {
+    mondoo_install
+  }
+
+  configure_linux_token() {
+    purple_bold "\n* Register Mondoo with Mondoo Cloud"
+    config_path="$HOME/.config/mondoo"
+    mkdir -p "$config_path"
+    ${MONDOO_CMD} register --config "$config_path/mondoo.yml" --token "$MONDOO_REGISTRATION_TOKEN"
+  }
 }
 
 # Post-install actions
@@ -418,7 +446,7 @@ configure_token() {
   if [ $MONDOO_IS_REGISTERED = true ]; then
     purple_bold "\n* Mondoo was successfully registered."
   else
-    red "\n* Failed to register Mondoo. Please ensure your registration token is not expired.  For support, reach out to us via the Mondoo Community Discord."
+    red "\n* Failed to register Mondoo. Please reach out to us via Mondoo Community Slack - https://mondoo.link/slack."
     exit 1
   fi
 }
@@ -467,12 +495,12 @@ finalize_setup() {
     lightblue_bold "Next you should register Mondoo to get access to policies and reports."
     lightblue_bold "Follow this guide: "
     echo
-    lightblue_bold "https://docs.mondoo.io/server/registration#retrieve-mondoo-agent-credentials"
+    lightblue_bold "https://mondoo.com/docs/server/registration#retrieve-mondoo-agent-credentials"
     echo
   else
     purple_bold "\nMondoo is set up and ready to go!"
     echo
-    lightblue_bold "Follow our quick start guide for next steps: https://docs.mondoo.io/getstarted/quickstart"
+    lightblue_bold "Follow our quick start guide for next steps: https://mondoo.com/docs/getstarted/quickstart"
     echo
   fi
 
@@ -493,6 +521,8 @@ elif [[ $OS = "Debian" ]]; then
 
 elif [[ $OS = "Suse" ]]; then
   configure_suse_installer
+elif [[ $OS = "AWSCloudShell" ]]; then
+  configure_cloudshell_installer
 
 else
   purple "Your operating system is not yet supported by this installer."

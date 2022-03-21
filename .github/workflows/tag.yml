@@ -4,6 +4,8 @@ on:
   push:
     tags:
       - '[0-9]+.[0-9]+.[0-9]+'
+  workflow_dispatch:
+
 
 jobs:
   build_container:
@@ -11,13 +13,18 @@ jobs:
     timeout-minutes: 10
     name: Build Docker
     steps:
-      - name: Get latest tag
-        id: vars
-        run: echo ::set-output name=tag::${GITHUB_REF:10}
+      #- name: Get latest tag
+      #  id: vars
+      #  run: echo ::set-output name=tag::${GITHUB_REF:10}
       - name: Clone repository
         uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
         #with:
         #  ref: ${{ steps.vars.outputs.tag }}
+      - name: Get Latest Tag
+        id: vars
+        uses: WyriHaximus/github-action-get-previous-tag@v1
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
         with:
@@ -34,7 +41,7 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           context: .
-          platforms: linux/386,linux/amd64,linux/arm64,linux/arm/v7
+          platforms: linux/386,linux/amd64,linux/arm64,linux/arm/v6,linux/arm/v7
           push: true
           build-args: VERSION=${{ steps.vars.outputs.tag }}
-          tags: mondoolabs/mondoo:${{ steps.vars.outputs.tag }},mondoolabs/mondoo:latest
+          tags: mondoolabs/mondoo:${{ steps.vars.outputs.tag }},mondoolabs/mondoo:latest,mondoo/client:${{ steps.vars.outputs.tag }},mondoo/client:latest        

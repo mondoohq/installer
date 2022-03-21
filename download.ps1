@@ -1,7 +1,7 @@
 #Requires -Version 5
 
 # Automatic Mondoo downloader to be used with
-# Set-ExecutionPolicy RemoteSigned -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex (new-object net.webclient).downloadstring('https://mondoo.io/download.ps1')
+# Set-ExecutionPolicy RemoteSigned -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex (new-object net.webclient).downloadstring('https://mondoo.com/download.ps1')
 
 function fail($msg, [int] $exit_code=1) { Write-Host $msg -f red; exit $exit_code }
 function info($msg) {  Write-Host $msg -f white }
@@ -21,9 +21,9 @@ info "Welcome to the Mondoo Binary Download Script. It downloads the Mondoo bina
 Windows into $ENV:UserProfile\mondoo and adds the path to the user's environment PATH. If 
 you are experiencing any issues, please do not hesitate to reach out: 
 
-  * Mondoo Community Discord https://discord.com/invite/HPAjpS6b34
+  * Mondoo Community Slack https://mondoo.link/slack
 
-This script source is available at: https://github.com/mondoolabs/mondoo
+This script source is available at: https://github.com/mondoohq/mondoo
 "
 
 # Any subsequent commands which fails will stop the execution of the shell script
@@ -49,15 +49,12 @@ Set-ExecutionPolicy RemoteSigned -scope CurrentUser
 # we only support x86_64 at this point, stop if we got arm
 if ($env:PROCESSOR_ARCHITECTURE -ne 'AMD64') {
   fail "
-Your processor architecture $env:PROCESSOR_ARCHITECTURE is not supported yet. Please come join us 
-in our Mondoo Community Discord:
-
-  * https://discord.gg/HPAjpS6b34
+Your processor architecture $env:PROCESSOR_ARCHITECTURE is not supported yet. Contact hello@mondoo.com or join the Mondoo Community Slack channel https://mondoo.link/slack
 "
 }
 
 function Get-UserAgent() {
-    return "MondooDownloadScript/1.0 (+https://mondoo.io/) PowerShell/$($PSVersionTable.PSVersion.Major).$($PSVersionTable.PSVersion.Minor) (Windows NT $([System.Environment]::OSVersion.Version.Major).$([System.Environment]::OSVersion.Version.Minor);$PSEdition)"
+    return "MondooDownloadScript/1.0 (+https://mondoo.com/) PowerShell/$($PSVersionTable.PSVersion.Major).$($PSVersionTable.PSVersion.Minor) (Windows NT $([System.Environment]::OSVersion.Version.Major).$([System.Environment]::OSVersion.Version.Minor);$PSEdition)"
 }
 
 function download($url,$to) {
@@ -67,7 +64,7 @@ function download($url,$to) {
 }
 
 function determine_latest() {
-  $url = 'https://releases.mondoo.io/mondoo/latest.json'
+  $url = 'https://releases.mondoo.com/mondoo/latest.json'
   $wc = New-Object Net.Webclient
   $wc.Headers.Add('User-Agent', (Get-UserAgent))
   $latest = $wc.DownloadString($url) | ConvertFrom-Json 
@@ -90,7 +87,7 @@ $dir = Get-Location
 # manual override
 # $version = '5.2.0'
 # $arch = 'amd64'
-# $releaseurl = "https://releases.mondoo.io/mondoo/${version}/mondoo_${version}_windows_${arch}.zip"
+# $releaseurl = "https://releases.mondoo.com/mondoo/${version}/mondoo_${version}_windows_${arch}.zip"
 
 # automatic
 $releaseurl = determine_latest
@@ -112,9 +109,9 @@ success ' * Mondoo was downloaded successfully!'
 # Display final message
 info "Thank you for downloading Mondoo!"
 info "
-If you have any questions, please come join us in our Mondoo Community Discord:
+If you need support, contact hello@mondoo.com or join the Mondoo Community Slack channel:
 
-  * https://discord.gg/HPAjpS6b34
+  * https://mondoo.link/slack
 "
 
 # reset erroractionpreference
