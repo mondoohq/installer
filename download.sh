@@ -49,7 +49,7 @@ echo -e "\nWelcome to the Mondoo Binary Download Script. It tries to auto-detect
 operating system and determines the appropriate binnary for your platform. If you are 
 experiencing any issues, please do not hesitate to reach out: 
 
-  * Mondoo Community Discord https://discord.gg/HPAjpS6b34
+  * Mondoo Community Slack https://mondoo.link/slack
 
 This script source is available at: https://github.com/mondoohq/mondoo
 "
@@ -133,6 +133,6 @@ Further information is available at https://mondoo.com/docs
 
 If you have any questions, please come join us in our Mondoo Community:
 
-* Mondoo Community Discord: https://discord.gg/HPAjpS6b34
+* Mondoo Community Slack https://mondoo.link/slack
 * Github: https://github.com/mondoohq/mondoo
 "
