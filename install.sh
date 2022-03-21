@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (c) 2019-2021 Mondoo, Inc.
+# Copyright (c) 2019-2022 Mondoo, Inc.
 # License: Apache License, Version 2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -238,12 +238,20 @@ configure_macos_installer() {
     }
 
   else
-    MONDOO_INSTALLER=""
+    MONDOO_INSTALLER="pkg"
     mondoo_install() {
-      red "Mondoo uses Mac Homebrew to install on macOS, but we could not find the 'brew' command in your path (\$PATH)."
-      echo
-      echo "For more information about the Mac Homebrew package manager, see https://brew.sh"
-      exit 1
+      detect_latest_version
+      FILE="mondoo_${MONDOO_LATEST_VERSION}_darwin_universal.pkg"
+      URL="https://releases.mondoo.com/mondoo/${MONDOO_LATEST_VERSION}/${FILE}"
+
+      purple_bold "\n* Downloading Mondoo Universal Package for Mac" 
+      curl -sO ${URL}
+
+      purple_bold "\n* Installing Mondoo via 'installer -pkg'"
+      sudo_cmd /usr/sbin/installer -pkg ${FILE} -target /
+      
+      purple_bold "\n* Cleaning up downloaded package"
+      rm ${FILE}
     }
     mondoo_update() { mondoo_install "$@"; }
   fi
@@ -445,8 +453,9 @@ configure_token() {
 
 configure_macos_token() {
   purple_bold "\n* Register Mondoo with Mondoo Cloud"
-  mkdir -p "$HOME/.config/mondoo/"
-  ${MONDOO_CMD} register --config "$HOME/.config/mondoo/mondoo.yml" --token "$MONDOO_REGISTRATION_TOKEN"
+  config_path="$HOME/.config/mondoo"
+  mkdir -p "$config_path"
+  ${MONDOO_CMD} register --config "$config_path/mondoo.yml" --token "$MONDOO_REGISTRATION_TOKEN"
 }
 
 configure_linux_token() {
@@ -487,12 +496,12 @@ finalize_setup() {
     lightblue_bold "Next you should register Mondoo to get access to policies and reports."
     lightblue_bold "Follow this guide: "
     echo
-    lightblue_bold "https://mondoo.com/docs/server/registration#retrieve-mondoo-agent-credentials"
+    lightblue_bold "https://mondoo.com/docs/operating_systems/installation/registration/"
     echo
   else
     purple_bold "\nMondoo is set up and ready to go!"
     echo
-    lightblue_bold "Follow our quick start guide for next steps: https://mondoo.com/docs/getstarted/quickstart"
+    lightblue_bold "Follow our quick start guide for next steps: https://mondoo.com/docs/"
     echo
   fi
 
