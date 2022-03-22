@@ -76,16 +76,16 @@ If you experience any issues, please reach us at:
 
   * Mondoo Community Slack https://mondoo.link/slack
 
-The source code of this installer is available on Github:
+The source code of this installer is available on GitHub:
 
-  * Github: https://github.com/mondoohq/client
+  * GitHub: https://github.com/mondoohq/client
 
 "
 
 # Detect operating system
 # -----------------------
 # Store detected value in $OS
-KNOWN_DISTRIBUTION="(RedHat|Red Hat|CentOS|Debian|Ubuntu|openSUSE|Amazon|SUSE|Arch Linux)"
+KNOWN_DISTRIBUTION="(RedHat|Red Hat|CentOS|Debian|Ubuntu|openSUSE|Amazon|SUSE|Arch Linux|AlmaLinux|Rocky Linux)"
 DISTRIBUTION="$(
   lsb_release -d 2>/dev/null | grep -Eo "$KNOWN_DISTRIBUTION" ||
     grep -m1 -Eo "$KNOWN_DISTRIBUTION" /etc/os-release 2>/dev/null ||
@@ -99,7 +99,7 @@ elif [ -f /etc/debian_version ] || [ "$DISTRIBUTION" == "Debian" ] || [ "$DISTRI
   OS="Debian"
 elif [ "$AWS_EXECUTION_ENV" == "CloudShell" ]; then
   OS="AWSCloudShell"
-elif [ -f /etc/redhat-release ] || [ "$DISTRIBUTION" == "RedHat" ] || [ "$DISTRIBUTION" == "CentOS" ] || [ "$DISTRIBUTION" == "Amazon" ]; then
+elif [ -f /etc/redhat-release ] || [ "$DISTRIBUTION" == "RedHat" ] || [ "$DISTRIBUTION" == "CentOS" ] || [ "$DISTRIBUTION" == "Amazon" ] || [ "$DISTRIBUTION" == "AlmaLinux" ] || [ "$DISTRIBUTION" == "Rocky Linux" ]; then
   OS="RedHat"
 elif [ -f /etc/photon-release ] || [ "$DISTRIBUTION" == "Photon" ]; then
   # NOTE: it requires tdnf >= 2.1.2-3.ph3, before remote http gpg keys were not supported
