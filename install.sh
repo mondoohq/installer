@@ -53,7 +53,7 @@ on_error() {
   echo
   echo "* Mondoo Community Slack https://mondoo.link/slack"
   echo
-  echo "* Github: https://github.com/mondoohq/mondoo"
+  echo "* Github: https://github.com/mondoohq/client"
   echo
   exit 1
 }
@@ -78,7 +78,7 @@ If you experience any issues, please reach us at:
 
 The source code of this installer is available on Github:
 
-  * Github: https://github.com/mondoohq/mondoo
+  * Github: https://github.com/mondoohq/client
 
 "
 
