@@ -401,7 +401,7 @@ configure_cloudshell_installer() {
   }
 
   configure_linux_token() {
-    purple_bold "\n* Register Mondoo Client with Mondoo Cloud"
+    purple_bold "\n* Register Mondoo Client with Mondoo Platform"
     config_path="$HOME/.config/mondoo"
     mkdir -p "$config_path"
     ${MONDOO_CMD} register --config "$config_path/mondoo.yml" --token "$MONDOO_REGISTRATION_TOKEN"
@@ -452,14 +452,14 @@ configure_token() {
 }
 
 configure_macos_token() {
-  purple_bold "\n* Register Mondoo Client with Mondoo Cloud"
+  purple_bold "\n* Register Mondoo Client with Mondoo Platform"
   config_path="$HOME/.config/mondoo"
   mkdir -p "$config_path"
   ${MONDOO_CMD} register --config "$config_path/mondoo.yml" --token "$MONDOO_REGISTRATION_TOKEN"
 }
 
 configure_linux_token() {
-  purple_bold "\n* Register Mondoo Client with Mondoo Cloud"
+  purple_bold "\n* Register Mondoo Client with Mondoo Platform"
   sudo_cmd mkdir -p "/etc/opt/mondoo/"
   sudo_cmd ${MONDOO_CMD} register --config /etc/opt/mondoo/mondoo.yml --token "$MONDOO_REGISTRATION_TOKEN"
 
