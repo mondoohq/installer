@@ -234,7 +234,13 @@ configure_macos_installer() {
 
     mondoo_update() {
       purple_bold "\n* Upgrade Mondoo Client via 'brew upgrade'"
-      brew upgrade mondoo
+      if brew tap | grep mondoolabs/mondoo >/dev/null; then 
+        purple_bold "  - Legacy tap already exists, uninstalling Mondoo and re-installing from new tap"
+        brew uninstall mondoo && brew untap mondoolabs/mondoo
+        brew tap mondoohq/mondoo && brew install mondoo
+      else
+        brew upgrade mondoo
+      fi
     }
 
   else
