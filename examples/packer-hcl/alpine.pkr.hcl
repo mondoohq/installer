@@ -37,7 +37,7 @@ source "virtualbox-iso" "alpine" {
     "${var.sshpassword}<enter><wait>",
     "${var.sshpassword}<enter><wait>",
     "adduser ${var.sshusername} wheel<enter><wait5>",
-    "apk add virtualbox-guest-additions virtualbox-guest-modules-virt<enter>",
+    "apk add virtualbox-guest-additions virtualbox-guest-additions-openrc<enter>",
     "<wait10>"
   ]
 }
