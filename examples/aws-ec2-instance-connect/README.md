@@ -2,7 +2,7 @@
 
 ## Precondition
 
- * [Mondoo CLI installed on workstation](https://mondoo.com/docs/operating_systems/installation/installation)
+ * [Mondoo Client installed and configured on workstation](https://mondoo.com/docs/tutorials/mondoo/account-setup/#step-2-install-and-register-mondoo-client-on-a-workstation)
 
 ## Spin Up EC2 instance
 
@@ -11,7 +11,7 @@ Spin up a Amazon Linux 2 instance. By default [EC2 Instance Connect](https://doc
 
 ## Assess Security with Mondoo
 
-Run `mondoo` to assess the security of the server:
+Run `mondoo scan` to assess the security of the server:
 
 ```
 $ mondoo scan -t aws-ec2-connect://ec2-user@i-0b033277c54499187 --insecure ../shared/policies/linux-baseline.yaml --incognito --sudo
