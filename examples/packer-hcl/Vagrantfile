@@ -1,0 +1,19 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure(2) do |config|
+    config.vm.define 'alpine39' do |alpine|
+        alpine.vm.box = 'alpine-3.9-x86_64'
+        alpine.vm.provider 'virtualbox' do |vb|
+            vb.name = 'alpine3.9'
+            vb.cpus = 1
+            vb.memory = 1024
+            vb.customize [
+                'modifyvm', :id,
+                '--natdnshostresolver1', 'on',
+                '--nic1', 'nat',
+                '--cableconnected1', 'on'
+            ]
+        end
+    end
+end
