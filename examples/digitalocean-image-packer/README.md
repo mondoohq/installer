@@ -4,7 +4,7 @@
 
  * [DigitalOcean Account](https://www.digitalocean.com/)
  * [Packer CLI installed on workstation](https://www.packer.io/intro/getting-started/install.html)
- * [Mondoo CLI installed on workstation](https://mondoo.com/docs/getstarted/server)
+ * [Mondoo Client installed and configured on workstation](https://mondoo.com/docs/tutorials/mondoo/account-setup/#step-2-install-and-register-mondoo-client-on-a-workstation)
  * [Mondoo Packer Provisioner](https://mondoo.com/docs/buildtime/packer)
 
 ## Build your image

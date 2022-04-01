@@ -6,29 +6,28 @@
 
 ![Mondoo CLI](assets/mondoo-cli.png)
 
-## Quick Start
+## Getting Started with Mondoo - Sign up for free account!
 
-Install `mondoo`:
+Get started with Mondoo by signing up for a free Mondoo Platform account, and install and configure Mondoo Client on your workstation. You can follow our guide at [Mondoo Platform and Mondoo Client setup](https://mondoo.com/docs/tutorials/mondoo/account-setup/).
 
-***Workstation***
+## Run a security assessment 
 
-```bash
-export MONDOO_REGISTRATION_TOKEN='changeme'
-curl -sSL http://mondoo.com/download.sh | bash
-```
-
-***Service***
-
-```bash
-export MONDOO_REGISTRATION_TOKEN='changeme'
-curl -sSL http://mondoo.com/install.sh | bash
-```
-
-For other installation methods, have a look at our [documentation](https://mondoo.com/docs/getstarted/overview).
+Mondoo can run security assessments on local, and remote targets including servers (Linux, Windows, macOS), Cloud (AWS, Azure, Google, VMware), Kubernetes (EKS, GKE, AKS, self-managed), containers, container registries, SaaS products (MS365, GitHub, GitLab), and more. 
 
 Run a scan:
 
 ```bash
+# scan your local host
+mondoo scan
+
+# scan a cloud environment
+mondoo scan -t aws
+mondoo scan -t gcp
+mondoo scan -t azure
+
+# scan kubernetes
+mondoo scan -t k8s
+
 # scan a docker image from remote registry
 mondoo scan -t docker://centos:7
 

@@ -5,7 +5,7 @@ This example runs [DevSec's Ansible server hardening roles](https://github.com/d
 ## Precondition
 
  * [Install Ansible](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html)
- * [Mondoo CLI installed on workstation](https://mondoo.com/docs/operating_systems/installation/installation)
+ * [Mondoo Client installed and configured on workstation](https://mondoo.com/docs/tutorials/mondoo/account-setup/#step-2-install-and-register-mondoo-client-on-a-workstation)
  * Launched Linux Instance(s) that are reachable via SSH
 
 ## Run Playbook

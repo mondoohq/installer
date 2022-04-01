@@ -6,7 +6,7 @@ This example demonstrates the use of spinning up an AWS instance with Terraform 
 
  * [AWS Account](https://aws.amazon.com/free/)
  * [Terraform CLI installed on workstation](https://learn.hashicorp.com/terraform/getting-started/install.html)
- * [Mondoo CLI installed on workstation](https://mondoo.com/docs/getstarted/server)
+ * [Mondoo Client installed and configured on workstation](https://mondoo.com/docs/tutorials/mondoo/account-setup/#step-2-install-and-register-mondoo-client-on-a-workstation)
 
 ## Build Infrastructure
 

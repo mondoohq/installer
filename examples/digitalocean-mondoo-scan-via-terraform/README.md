@@ -8,7 +8,7 @@ Note: This example is tested with Terraform 0.14.7 and may not work with earlier
 
  * [DigitalOcean Account](https://www.digitalocean.com/)
  * [Terraform CLI installed on workstation](https://learn.hashicorp.com/terraform/getting-started/install.html)
- * [Mondoo CLI installed on workstation](https://mondoo.com/docs/getstarted/server)
+ * [Mondoo Client installed and configured on workstation](https://mondoo.com/docs/tutorials/mondoo/account-setup/#step-2-install-and-register-mondoo-client-on-a-workstation)
 
 ## Build Infrastructure
 
