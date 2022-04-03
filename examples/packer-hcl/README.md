@@ -11,7 +11,7 @@ This example demonstrates how to use packer in combination with Mondoo.
 
 To run the example, ensure Vagrant and VirtualBox are installed on your workstation. Next, install the Mondoo Client and Mondoo Packer Provisioner.
 
-To run the example, we need Vagrant and Virtual Box installed on your workstation. In addition, the [Mondoo Client](https://mondoo.com/docs/operating_systems/installation/) is required on your workstation in combination with the [Mondoo Packer Provisioner](https://mondoo.com/docs/supplychain/packer/#install-mondoo-packer-provisioner).
+To run the example, we need Vagrant and Virtual Box installed on your workstation. In addition, the [Mondoo Client](https://mondoo.com/docs/tutorials/mondoo/account-setup/#step-2-install-and-register-mondoo-client-on-a-workstation) is required on your workstation in combination with the [Mondoo Packer Provisioner](https://mondoo.com/docs/supplychain/packer/#install-mondoo-packer-provisioner).
 
 **Build the image**
 
