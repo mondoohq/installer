@@ -54,9 +54,9 @@ experiencing any issues, please do not hesitate to reach out:
 This script source is available at: https://github.com/mondoohq/client
 "
 
-base_url="${MONDOO_MIRROR:-https://releases.mondoo.com}"
+base_url="${MONDOO_MIRROR:-https://install.mondoo.com/package}"
 product="mondoo"
-version="${MONDOO_VERSION:-5.36.2}"
+version="${MONDOO_VERSION:-latest}"
 
 fail() {
   echo -e "${red}${1}${end}";
@@ -87,25 +87,26 @@ case "$(uname -s)" in
 	*)      fail "Cannot detect OS" ;;
 esac
 
-filename="${product}_${version}_${os}_${arch}.tar.gz"
-url="${base_url}/${product}/${version}/${filename}"
-
+# determine sha tool based on os
 if [ $os = "darwin" ]; then
   sha256bin='shasum -a 256'
-	shaurl="${base_url}/${product}/${version}/checksums.macos.txt"
 else
   sha256bin=sha256sum
-	shaurl="${base_url}/${product}/${version}/checksums.${os}.txt"
 fi
 
+filename="${product}_${version}_${os}_${arch}.tar.gz"
+pkg_base_url="${base_url}/${product}/${os}/${arch}/tar.gz/${version}"
+download_url="${pkg_base_url}/download"
+sha_url="${pkg_base_url}/sha256"
+
 # download binary
-purple_bold "Downloading ${url}"
-binarySha=$(curl -fsSL "${url}" | tee "${filename}" | ${sha256bin} | cut -b 1-64)
+purple_bold "Downloading ${download_url}"
+binarySha=$(curl -fsSL "${download_url}" | tee "${filename}" | ${sha256bin} | cut -b 1-64)
 echo -e "Downloaded binary hash: ${binarySha}"
 
 # download the checksum
-purple_bold "Downloading ${shaurl}"
-expectedSha=$(curl -fsSL "${shaurl}" | grep "${filename}" | cut -b 1-64)
+purple_bold "Downloading ${sha_url}"
+expectedSha=$(curl -fsSL "${sha_url}")
 echo -e "Expected binary hash: ${expectedSha}"
 
 # extract binary
