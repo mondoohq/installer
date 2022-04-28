@@ -251,13 +251,13 @@ configure_macos_installer() {
       URL="https://releases.mondoo.com/mondoo/${MONDOO_LATEST_VERSION}/${FILE}"
 
       purple_bold "\n* Downloading Mondoo Client Universal Package for Mac" 
-      curl -sO ${URL}
+      curl -sO "${URL}"
 
       purple_bold "\n* Installing Mondoo Client via 'installer -pkg'"
-      sudo_cmd /usr/sbin/installer -pkg ${FILE} -target /
+      sudo_cmd /usr/sbin/installer -pkg "${FILE}" -target /
       
       purple_bold "\n* Cleaning up downloaded package"
-      rm ${FILE}
+      rm "${FILE}"
     }
     mondoo_update() { mondoo_install "$@"; }
   fi
