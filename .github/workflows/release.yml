@@ -1,0 +1,41 @@
+name: Update for Release
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "version that should be released"
+        required: true
+        type: string
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      # Checkout the branch
+      - name: checkout
+        uses: actions/checkout@v3
+
+      - name: setup go
+        uses: actions/setup-go@v3
+        with:
+          go-version: '>=1.17.0'
+
+      # runs go to generate the update
+      - run: |
+          echo '${{ github.event.inputs.version }}' > VERSION
+
+      # Commit changes
+      - name: setup git config
+        run: |
+          # setup the username and email. I tend to use 'GitHub Actions Bot' with no email by default
+          git config user.name "GitHub Actions Bot"
+          git config user.email "<>"
+
+      - name: commit
+        run: |
+          echo '${{ github.event.inputs.version }}'
+          git add VERSION
+          git commit -m '${{ github.event.inputs.version }}'
+          git push origin master
+          git tag '${{ github.event.inputs.version }}'
+          git push origin '${{ github.event.inputs.version }}'
+
