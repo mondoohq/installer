@@ -14,7 +14,7 @@ ARG BASEURL="https://releases.mondoo.com/mondoo/${VERSION}"
 ARG PACKAGE="mondoo_${VERSION}_${TARGETOS}_${TARGETARCH}${TARGETVARIANT}.tar.gz"
 
 RUN apk update &&\
-    apk add ca-certificates wget tar &&\
+    apk add ca-certificates wget tar rpm &&\
     wget --quiet --output-document=SHA256SUMS ${BASEURL}/checksums.linux.txt &&\
     wget --quiet --output-document=${PACKAGE} ${BASEURL}/${PACKAGE} &&\
     cat SHA256SUMS | grep "${PACKAGE}" | sha256sum -c - &&\
