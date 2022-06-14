@@ -31,7 +31,7 @@ mondoo scan k8s
 # scan a docker image from remote registry
 mondoo scan docker://centos:7
 
-# scan docker container (get ids from docker ps)
+# scan a docker container (get ids from docker ps)
 mondoo scan docker://00fa961d6b6a
 
 # scan a ssh instance
