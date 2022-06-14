@@ -10,32 +10,32 @@
 
 Get started with Mondoo by signing up for a free Mondoo Platform account, and install and configure Mondoo Client on your workstation. You can follow our guide at [Mondoo Platform and Mondoo Client setup](https://mondoo.com/docs/tutorials/mondoo/account-setup/).
 
-## Run a security assessment 
+## Run a security assessment
 
-Mondoo can run security assessments on local, and remote targets including servers (Linux, Windows, macOS), Cloud (AWS, Azure, Google, VMware), Kubernetes (EKS, GKE, AKS, self-managed), containers, container registries, SaaS products (MS365, GitHub, GitLab), and more. 
+Mondoo can run security assessments on local, and remote targets including servers (Linux, Windows, macOS), Cloud (AWS, Azure, Google, VMware), Kubernetes (EKS, GKE, AKS, self-managed), containers, container registries, SaaS products (MS365, GitHub, GitLab), and more.
 
 Run a scan:
 
 ```bash
 # scan your local host
-mondoo scan
+mondoo scan local
 
 # scan a cloud environment
-mondoo scan -t aws
-mondoo scan -t gcp
-mondoo scan -t azure
+mondoo scan aws
+mondoo scan gcp
+mondoo scan azure
 
-# scan kubernetes
-mondoo scan -t k8s
+# scan a kubernetes cluster
+mondoo scan k8s
 
 # scan a docker image from remote registry
-mondoo scan -t docker://centos:7
+mondoo scan docker://centos:7
 
 # scan docker container (get ids from docker ps)
-mondoo scan -t docker://00fa961d6b6a
+mondoo scan docker://00fa961d6b6a
 
 # scan a ssh instance
-mondoo scan -t ssh://ec2-user@54.76.229.223
+mondoo scan ssh://ec2-user@54.76.229.223
 ```
 
 ## Examples
