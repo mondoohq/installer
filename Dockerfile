@@ -29,7 +29,7 @@ RUN apk update &&\
 # - difficulties with docker volume mounting
 # - will not work properly in gcp cloud run (especially with data mounting)
 # TODO: revist in future if limitations are still true
-# RUN addgroup -S mondoo && adduser -S -G mondoo mondoo
-# USER mondoo
+RUN addgroup --gid 1001 -S mondoo && adduser --uid 1001 -S -G mondoo mondoo
+USER mondoo:mondoo
 ENTRYPOINT [ "mondoo" ]
 CMD ["help"]
