@@ -1,9 +1,12 @@
 # Mondoo Multi-Architecture Container Dockerfile
 # 
-# To build with BuildX:   docker buildx build --build-arg VERSION=5.21.0 --platform 
-#             linux/386,linux/amd64,linux/arm/v7,linux/arm64 -t mondoolabs/mondoo:5.21.0 . --push
+# To build root images with BuildX:   docker buildx build --build-arg VERSION=5.21.0 --platform 
+#             linux/386,linux/amd64,linux/arm/v7,linux/arm64 --target root -t mondoolabs/mondoo:5.21.0 . --push
+#
+# To build non-root images with BuildX:   docker buildx build --build-arg VERSION=5.21.0 --platform 
+#             linux/386,linux/amd64,linux/arm/v7,linux/arm64 --target non-root -t mondoolabs/mondoo:5.21.0 . --push
 
-FROM alpine:3.15
+FROM alpine:3.15 AS root
 ARG VERSION
 
 ARG TARGETOS
@@ -23,13 +26,13 @@ RUN apk update &&\
     rm -f ${PACKAGE} SHA256SUMS &&\
     apk del wget tar --quiet &&\
     rm -rf /var/cache/apk/*
-
-# Note: we would prefer to use our own user to ensure the image does not run in root, but this comes with a lot of
-# limitations:
-# - difficulties with docker volume mounting
-# - will not work properly in gcp cloud run (especially with data mounting)
-# TODO: revist in future if limitations are still true
-# RUN addgroup -S mondoo && adduser -S -G mondoo mondoo
-# USER mondoo
+ 
 ENTRYPOINT [ "mondoo" ]
 CMD ["help"]
+
+# Non-root version of the container
+FROM base AS non-root
+
+RUN addgroup -S mondoo && adduser -S -G mondoo mondoo
+USER mondoo
+
