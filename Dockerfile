@@ -30,8 +30,8 @@ RUN apk update &&\
 ENTRYPOINT [ "mondoo" ]
 CMD ["help"]
 
-# Non-root version of the container
-FROM base AS non-root
+# Rootless version of the container
+FROM root AS rootless
 
 RUN addgroup -S mondoo && adduser -S -G mondoo mondoo
 USER mondoo
