@@ -48,7 +48,7 @@ function Install-Mondoo {
     $wc = New-Object Net.Webclient
     $wc.Headers.Add('User-Agent', (Get-UserAgent))
     $latest = $wc.DownloadString($url) | ConvertFrom-Json 
-    $entry = $latest.files | where { $_.platform -eq "windows" -and $_.filename -match "${filetype}$" }
+    $entry = $latest.files | where { $_.platform -eq "windows" -and $_.filename -match "${filetype}$" -and $_.filename -NotMatch "enterprise" }
     $entry.filename
   }
 
