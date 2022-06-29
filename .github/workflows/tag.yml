@@ -67,9 +67,6 @@ jobs:
           push: true
           build-args: VERSION=${{ steps.vars.outputs.tag }}
           tags: |
-            mondoolabs/mondoo:${{ steps.vars.outputs.tag }}-ubi
-            mondoolabs/mondoo:${{ steps.semver.outputs.major }}-ubi
-            mondoolabs/mondoo:latest-ubi
             mondoo/client:${{ steps.vars.outputs.tag }}-ubi
             mondoo/client:${{ steps.semver.outputs.major }}-ubi
             mondoo/client:latest-ubi
