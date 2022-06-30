@@ -68,9 +68,6 @@ jobs:
           build-args: VERSION=${{ steps.vars.outputs.tag }}
           target: rootless
           tags: |
-            mondoolabs/mondoo:${{ steps.vars.outputs.tag }}-rootless
-            mondoolabs/mondoo:${{ steps.semver.outputs.major }}-rootless
-            mondoolabs/mondoo:latest-rootless
             mondoo/client:${{ steps.vars.outputs.tag }}-rootless
             mondoo/client:${{ steps.semver.outputs.major }}-rootless
             mondoo/client:latest-rootless
