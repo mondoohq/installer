@@ -13,9 +13,9 @@
 * Supported Architectures: `amd64`, `arm64`, `i386`, `arm32v6`, `arm32v7`
 
 # Supported tags
-- `latest` - always pinned to the latest release of Mondoo client
+- `latest` - always pinned to the latest release of Mondoo Client
 - `6` - starting from `6.3.0` we offer a major version container, which is always pinned to the latest release for a given major version
-- `6.4.0` - always pinned to a specific Mondoo client release
+- `6.4.0` - always pinned to a specific Mondoo Client release
 
 ## UBI containers
 We offer a Mondoo Client container built on top of [Universal Base Image (UBI)](https://hub.docker.com/r/redhat/ubi8) by Red Hat. Note that the containers built with this base image support only the `amd64` and `arm64` architectures.
