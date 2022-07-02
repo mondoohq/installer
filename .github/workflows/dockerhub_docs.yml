@@ -19,16 +19,16 @@ jobs:
       - name: Update mondoolabs/mondoo DockerHub docs
         uses: peter-evans/dockerhub-description@v3
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
           repository: mondoolabs/mondoo
           readme-filepath: ./dockerhub/mondoolabs/mondoo.md
 
       - name: Update mondoo/client DockerHub docs
         uses: peter-evans/dockerhub-description@v3
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
           repository: mondoo/client
           readme-filepath: ./dockerhub/mondoo/client.md
             
