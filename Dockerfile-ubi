@@ -3,7 +3,7 @@
 # To build with BuildX:   docker buildx build --build-arg VERSION=5.21.0 --platform 
 #             linux/386,linux/amd64,linux/arm/v7,linux/arm64 -t mondoolabs/mondoo:5.21.0 . --push
 
-FROM redhat/ubi8
+FROM redhat/ubi8-minimal
 ARG VERSION
 
 ARG TARGETOS
