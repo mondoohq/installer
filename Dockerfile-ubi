@@ -29,6 +29,4 @@ CMD ["help"]
 
 # Rootless version of the container
 FROM root AS rootless
-
-RUN groupadd -r mondoo && adduser -r -g mondoo mondoo
-USER mondoo
+USER 100:101
