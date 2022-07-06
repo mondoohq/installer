@@ -27,6 +27,17 @@ Supported tags are:
 
 The `Dockerfile` for these images can be found [here](https://github.com/mondoohq/client/blob/master/Dockerfile-ubi).
 
+## Rootless containers
+The default Mondoo Client container runs our binary as the `root` user. This makes it easy to run a filesystem scan on the host or to use our Cloud Run capabilities. If neither of these use-cases are applicable, we recommend using the rootless containers that we offer. Instead of running under the `root` user, the Mondoo Client will run using the `mondoo` user.
+
+Supported tags are:
+- `latest-rootless`
+- `latest-ubi-rootless`
+- `6-rootless`
+- `6-ubi-rootless`
+- `6.4.0-rootless`
+- `6.4.0-ubi-rootless`
+
 # What is Mondoo
 
 Mondoo is a cloud security platform for infrastructure developers. Using Mondoo, your team will get an automated risk assessment and real-time insights into all of your business-critical infrastructure, across all of your infrastructure platforms.
