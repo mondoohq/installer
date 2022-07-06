@@ -13,15 +13,15 @@ ARG TARGETVARIANT
 ARG BASEURL="https://releases.mondoo.com/mondoo/${VERSION}"
 ARG PACKAGE="mondoo_${VERSION}_${TARGETOS}_${TARGETARCH}${TARGETVARIANT}.tar.gz"
 
-RUN yum upgrade -y &&\
-    yum install wget tar rpm -y &&\
+RUN microdnf upgrade -y &&\
+    microdnf install wget tar rpm gzip -y &&\
     wget --quiet --output-document=SHA256SUMS ${BASEURL}/checksums.linux.txt &&\
     wget --quiet --output-document=${PACKAGE} ${BASEURL}/${PACKAGE} &&\
     cat SHA256SUMS | grep "${PACKAGE}" | sha256sum -c - &&\
     tar -xzC /usr/local/bin -f ${PACKAGE} &&\
     /usr/local/bin/mondoo version &&\
     rm -f ${PACKAGE} SHA256SUMS &&\
-    yum remove wget tar --quiet -y &&\
+    microdnf remove wget tar gzip -y &&\
     rm -rf /var/cache/dnf/*
 
 ENTRYPOINT [ "mondoo" ]
