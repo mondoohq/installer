@@ -1,5 +1,7 @@
 ![Mondoo](https://mondoo.com/docs/img/mondoo.logo.svg)
 
+> This is a legacy repo. We recommend using [mondoo/client](https://hub.docker.com/r/mondoo/client) instead.
+
 # Quick reference
 
 * Basic use: ```docker run mondoo/client <args>```
