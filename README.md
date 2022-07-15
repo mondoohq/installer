@@ -29,13 +29,13 @@ mondoo scan azure
 mondoo scan k8s
 
 # scan a docker image from remote registry
-mondoo scan docker://centos:7
+mondoo scan docker image centos:7
 
 # scan a docker container (get ids from docker ps)
-mondoo scan docker://00fa961d6b6a
+mondoo scan docker container 00fa961d6b6a
 
-# scan a ssh instance
-mondoo scan ssh://ec2-user@54.76.229.223
+# scan a system over ssh
+mondoo scan ssh ec2-user@54.76.229.223
 ```
 
 ## Examples
