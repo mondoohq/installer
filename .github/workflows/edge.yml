@@ -1,4 +1,4 @@
-name: Mondoo Docker Tag Edge
+name: Release Mondoo Edge Container Image
 
 on:
   workflow_dispatch:

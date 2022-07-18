@@ -1,4 +1,4 @@
-name: Mondoo Docker Tag
+name: Release Mondoo Container Image
 
 on:
   push:
