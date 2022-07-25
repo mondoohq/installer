@@ -40,8 +40,8 @@ jobs:
           platforms: linux/386,linux/amd64,linux/arm64,linux/arm/v6,linux/arm/v7
           push: true
           build-args: |
-            BASEURL=https://releases.mondoo.com/edge/mondoo/${VERSION}
-            VERSION=${{ steps.vars.outputs.tag }}
+            BASEURL=https://releases.mondoo.com/edge/mondoo/${{ github.event.inputs.version }}
+            VERSION=${{ github.event.inputs.version }}
           target: root
           tags: |
             mondoo/client:edge-${{ github.event.inputs.version }}
@@ -55,8 +55,8 @@ jobs:
           platforms: linux/386,linux/amd64,linux/arm64,linux/arm/v6,linux/arm/v7
           push: true
           build-args: |
-            BASEURL=https://releases.mondoo.com/edge/mondoo/${VERSION}
-            VERSION=${{ steps.vars.outputs.tag }}
+            BASEURL=https://releases.mondoo.com/edge/mondoo/${{ github.event.inputs.version }}
+            VERSION=${{ github.event.inputs.version }}
           target: rootless
           tags: |
             mondoo/client:edge-${{ github.event.inputs.version }}-rootless
