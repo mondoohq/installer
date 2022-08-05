@@ -66,6 +66,6 @@ jobs:
           curl \
             -X POST \
             -H "Accept: application/vnd.github+json" \
-            -H "Authorization: token ${GITHUB_API_TOKEN}" \
+            -H "Authorization: token ${REPO_API_TOKEN}" \
             https://api.github.com/repos/mondoohq/mondoo-operator/actions/workflows/31262606/dispatches \
             -d "{\"ref\":\"master\",\"inputs\":{\"mondooClientImageTag\":\"edge-${{ github.event.inputs.version }}-rootless\"}}"
