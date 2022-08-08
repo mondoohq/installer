@@ -505,9 +505,10 @@ finalize_setup() {
     lightblue_bold "https://mondoo.com/docs/operating_systems/installation/registration/"
     echo
   else
-    purple_bold "\nMondoo Client is set up and ready to go!"
+    purple_bold "\nMondoo Client is set up and ready to scan!"
     echo
-    lightblue_bold "Follow our quick start guide for next steps: https://mondoo.com/docs/"
+    lightblue_bold "Run 'mondoo scan local' to scan this system"
+    lightblue_bold "Learn more in our quick start docs: https://mondoo.com/docs/"
     echo
   fi
 
