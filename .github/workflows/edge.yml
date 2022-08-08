@@ -63,7 +63,7 @@ jobs:
 
       - name: Start mondoo-operator integration tests
         run: |
-          curl \
+          curl -s \
             -X POST \
             -H "Accept: application/vnd.github+json" \
             -H "Authorization: token ${{ secrets.REPO_API_TOKEN }}" \
