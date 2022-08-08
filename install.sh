@@ -304,7 +304,7 @@ configure_rhel_installer() {
       purple_bold "\n* Configuring YUM sources for Mondoo at /etc/yum.repos.d/mondoo.repo"
       curl --retry 3 --retry-delay 10 -sSL https://releases.mondoo.com/rpm/mondoo.repo | sudo_cmd tee /etc/yum.repos.d/mondoo.repo
 
-      purple_bold "\n* Installing Mondoo"
+      purple_bold "\n* Installing Mondoo Client"
       sudo_cmd yum install -y mondoo
     }
 
@@ -339,7 +339,7 @@ configure_debian_installer() {
       echo "deb [signed-by=/usr/share/keyrings/mondoo-archive-keyring.gpg] https://releases.mondoo.com/debian/ stable main" | sudo_cmd tee /etc/apt/sources.list.d/mondoo.list
 
 
-      purple_bold "\n* Installing Mondoo"
+      purple_bold "\n* Installing Mondoo Client"
       sudo_cmd apt update -y && sudo_cmd apt install -y mondoo
     }
 
@@ -370,7 +370,7 @@ configure_suse_installer() {
       # zypper does not recognize the gpg key reference from mondoo.repo properly, therefore we need to add this here manually
       sudo_cmd rpm --import https://releases.mondoo.com/rpm/pubkey.gpg
 
-      purple_bold "\n* Installing Mondoo"
+      purple_bold "\n* Installing Mondoo Client"
       sudo_cmd zypper -n install mondoo
     }
 
@@ -505,9 +505,10 @@ finalize_setup() {
     lightblue_bold "https://mondoo.com/docs/operating_systems/installation/registration/"
     echo
   else
-    purple_bold "\nMondoo Client is set up and ready to go!"
+    purple_bold "\nMondoo Client is set up and ready to scan!"
     echo
-    lightblue_bold "Follow our quick start guide for next steps: https://mondoo.com/docs/"
+    lightblue_bold "Run 'mondoo scan local' to scan this system"
+    lightblue_bold "Learn more in our quick start docs: https://mondoo.com/docs/"
     echo
   fi
 
