@@ -45,7 +45,6 @@ jobs:
           target: root
           tags: |
             mondoo/client:edge-${{ github.event.inputs.version }}
-            mondoo/client:edge-${{ github.event.inputs.version }}
             mondoo/client:edge-latest
 
       - name: Build and push rootless images (alpine)
@@ -60,5 +59,13 @@ jobs:
           target: rootless
           tags: |
             mondoo/client:edge-${{ github.event.inputs.version }}-rootless
-            mondoo/client:edge-${{ github.event.inputs.version }}-rootless
             mondoo/client:edge-latest-rootless
+
+      - name: Start mondoo-operator integration tests
+        run: |
+          curl -s \
+            -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: token ${{ secrets.REPO_API_TOKEN }}" \
+            https://api.github.com/repos/mondoohq/mondoo-operator/actions/workflows/31262606/dispatches \
+            -d "{\"ref\":\"main\",\"inputs\":{\"mondooClientImageTag\":\"edge-${{ github.event.inputs.version }}-rootless\"}}"
