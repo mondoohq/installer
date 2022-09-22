@@ -28,6 +28,10 @@
 # If you find anything that violates this constraints please reach out.
 # - https://unix.stackexchange.com/questions/73750/difference-between-function-foo-and-foo
 
+MONDOO_PRODUCT_NAME="Mondoo Client" # product name
+MONDOO_PKG_NAME="mondoo" # pkg name in package repository
+MONDOO_BINARY="mondoo" # binary that we search for
+
 # define colors
 end="\033[0m"
 red="\033[0;31m"
@@ -49,7 +53,7 @@ purple() { echo -e "${purple}${1}${end}"; }
 purple_bold() { echo -e "${purpleb}${1}${end}"; }
 
 on_error() {
-  red "The Mondoo Client install script encountered a problem. For assistance, please join our community Slack or find us on GitHub."
+  red "The ${MONDOO_PRODUCT_NAME} install script encountered a problem. For assistance, please join our community Slack or find us on GitHub."
   echo
   echo "* Mondoo Community Slack https://mondoo.link/slack"
   echo
@@ -61,16 +65,16 @@ on_error() {
 # register a trap for error signals
 trap on_error ERR
 
-purple_bold "Mondoo Client Installer"
+purple_bold "Mondoo Installer"
 purple "
-                        .-.            
-                        : :            
+                        .-.
+                        : :
 ,-.,-.,-. .--. ,-.,-. .-' : .--.  .--. ™
 : ,. ,. :' .; :: ,. :' .; :' .; :' .; :
 :_;:_;:_;\`.__.':_;:_;\`.__.'\`.__.'\`.__.
 "
 
-echo -e "\nWelcome to the Mondoo Client installer. We will auto-detect 
+echo -e "\nWelcome to the Mondoo installer. We will auto-detect
 your operating system to determine the best installation method.
 If you experience any issues, please reach us at:
 
@@ -116,12 +120,11 @@ fi
 # Note: https://stackoverflow.com/questions/592620/how-can-i-check-if-a-program-exists-from-a-bash-script
 # To be POSIX-compatible we will be using 'command' instead of 'hash' or 'type'.
 #
-
-MONDOO_CMD="mondoo"
+MONDOO_BINARY_PATH="${MONDOO_BINARY}" # default expects the binary in default path
 MONDOO_EXECUTABLE=""
 MONDOO_INSTALLED=false
 detect_mondoo() {
-  MONDOO_EXECUTABLE="$(command -v mondoo)"
+  MONDOO_EXECUTABLE="$(command -v "$MONDOO_BINARY")"
   if [ -x "$MONDOO_EXECUTABLE" ]; then
     MONDOO_INSTALLED=true
   else
@@ -155,15 +158,15 @@ fi
 # --------------
 
 detect_portable() {
-  if [ -x "mondoo" ]; then
-    MONDOO_EXECUTABLE="$(pwd)/mondoo"
-    MONDOO_CMD="./mondoo"
+  if [ -x "${MONDOO_BINARY}" ]; then
+    MONDOO_EXECUTABLE="$(pwd)/${MONDOO_BINARY}"
+    MONDOO_BINARY_PATH="./${MONDOO_BINARY}"
     MONDOO_INSTALLED=true
   fi
 }
 
 detect_latest_version() {
-  MONDOO_LATEST_VERSION="$(curl https://releases.mondoo.com/mondoo/ 2>/dev/null | grep -Eo 'href="[[:alnum:]]+\.[[:alnum:]]+\.[[:alnum:]]+' | head -n1 | sed 's/href="//')"
+  MONDOO_LATEST_VERSION="$(curl https://releases.mondoo.com/${MONDOO_PKG_NAME}/ 2>/dev/null | grep -Eo 'href="[[:alnum:]]+\.[[:alnum:]]+\.[[:alnum:]]+' | head -n1 | sed 's/href="//')"
 }
 
 install_portable() {
@@ -192,26 +195,26 @@ install_portable() {
   "armv8b") ARCH="arm64" ;;
   "armv8l") ARCH="arm64" ;;
   *)
-    red "Mondoo Client does not support the ($ARCH_DETECT) architecture."
+    red "${MONDOO_PRODUCT_NAME} does not support the (${ARCH_DETECT}) architecture."
     exit 1
     ;;
   esac
 
   detect_latest_version
 
-  FILE="mondoo_${MONDOO_LATEST_VERSION}_${SYSTEM}_${ARCH}.tar.gz"
-  URL="https://releases.mondoo.com/mondoo/${MONDOO_LATEST_VERSION}/${FILE}"
+  FILE="${MONDOO_BINARY}_${MONDOO_LATEST_VERSION}_${SYSTEM}_${ARCH}.tar.gz"
+  URL="https://releases.mondoo.com/${MONDOO_BINARY}/${MONDOO_LATEST_VERSION}/${FILE}"
 
-  echo "Downloading the latest version of Mondoo Client from: $URL"
+  echo "Downloading the latest version of ${MONDOO_PRODUCT_NAME} from: $URL"
   curl "${URL}" | tar xz
 
   detect_portable
   if [ -z "$MONDOO_EXECUTABLE" ]; then
-    red "We could not find the 'mondoo' executable in the present working directory."
+    red "We could not find the '${MONDOO_BINARY}' executable in the present working directory."
     exit 1
   fi
 
-  purple_bold "We installed a portable version of mondoo to $PWD"
+  purple_bold "We installed a portable version of ${MONDOO_BINARY} to $PWD"
   if [[ ":$PATH:" == ":$PWD:" ]]; then
   purple_bold "For convenience, add the following line to your .bashrc"
   purple_bold "export PATH=\$PATH:$PWD"
@@ -225,21 +228,21 @@ configure_macos_installer() {
   if [ -x "$(command -v brew)" ]; then
     MONDOO_INSTALLER="brew"
     mondoo_install() {
-      purple_bold "\n* Configuring brew sources for Mondoo via 'brew tap'"
+      purple_bold "\n* Configuring brew sources for Mondoo Repository via 'brew tap'"
       brew tap mondoohq/mondoo
 
-      purple_bold "\n* Installing Mondoo Client via 'brew install'"
-      brew install mondoo
+      purple_bold "\n* Installing ${MONDOO_PRODUCT_NAME} via 'brew install'"
+      brew install ${MONDOO_PKG_NAME}
     }
 
     mondoo_update() {
-      purple_bold "\n* Upgrade Mondoo Client via 'brew upgrade'"
-      if brew tap | grep mondoolabs/mondoo >/dev/null; then 
+      purple_bold "\n* Upgrade ${MONDOO_PRODUCT_NAME} via 'brew upgrade'"
+      if brew tap | grep mondoolabs/mondoo >/dev/null; then
         purple_bold "  - Legacy tap already exists, uninstalling Mondoo and re-installing from new tap"
-        brew uninstall mondoo && brew untap mondoolabs/mondoo
-        brew tap mondoohq/mondoo && brew install mondoo
+        brew uninstall ${MONDOO_PKG_NAME} && brew untap mondoolabs/mondoo
+        brew tap mondoohq/mondoo && brew install ${MONDOO_PKG_NAME}
       else
-        brew upgrade mondoo
+        brew upgrade ${MONDOO_PKG_NAME}
       fi
     }
 
@@ -247,15 +250,15 @@ configure_macos_installer() {
     MONDOO_INSTALLER="pkg"
     mondoo_install() {
       detect_latest_version
-      FILE="mondoo_${MONDOO_LATEST_VERSION}_darwin_universal.pkg"
-      URL="https://releases.mondoo.com/mondoo/${MONDOO_LATEST_VERSION}/${FILE}"
+      FILE="${MONDOO_BINARY}_${MONDOO_LATEST_VERSION}_darwin_universal.pkg"
+      URL="https://releases.mondoo.com/${MONDOO_BINARY}/${MONDOO_LATEST_VERSION}/${FILE}"
 
-      purple_bold "\n* Downloading Mondoo Client Universal Package for Mac" 
+      purple_bold "\n* Downloading ${MONDOO_PRODUCT_NAME} Universal Package for Mac"
       curl -sO "${URL}"
 
-      purple_bold "\n* Installing Mondoo Client via 'installer -pkg'"
+      purple_bold "\n* Installing ${MONDOO_PRODUCT_NAME} via 'installer -pkg'"
       sudo_cmd /usr/sbin/installer -pkg "${FILE}" -target /
-      
+
       purple_bold "\n* Cleaning up downloaded package"
       rm "${FILE}"
     }
@@ -267,19 +270,17 @@ configure_macos_installer() {
 # --------------------
 
 configure_archlinux_installer() {
-  AUR_PACKAGE="mondoo"
-
   if [ -x "$(command -v yay)" ]; then
     MONDOO_INSTALLER="yay"
     mondoo_install() {
-      yay -S "$AUR_PACKAGE"
+      yay -S "${MONDOO_PKG_NAME}"
     }
     mondoo_update() { mondoo_install "$@"; }
 
   elif [ -x "$(command -v paru)" ]; then
     MONDOO_INSTALLER="paru"
     mondoo_install() {
-      paru -S "$AUR_PACKAGE"
+      paru -S "${MONDOO_PKG_NAME}"
     }
     mondoo_update() { mondoo_install "$@"; }
 
@@ -287,7 +288,7 @@ configure_archlinux_installer() {
     MONDOO_INSTALLER=""
     mondoo_install() {
       red "Mondoo uses yay and paru to install on AUR, but we could not find either command in your path (\$PATH)."
-      echo "You can install the Mondoo package manually from AUR, or use one of the above installers directly."
+      echo "You can install the ${MONDOO_PRODUCT_NAME} package manually from AUR, or use one of the above installers directly."
       exit 1
     }
     mondoo_update() { mondoo_install "$@"; }
@@ -304,12 +305,12 @@ configure_rhel_installer() {
       purple_bold "\n* Configuring YUM sources for Mondoo at /etc/yum.repos.d/mondoo.repo"
       curl --retry 3 --retry-delay 10 -sSL https://releases.mondoo.com/rpm/mondoo.repo | sudo_cmd tee /etc/yum.repos.d/mondoo.repo
 
-      purple_bold "\n* Installing Mondoo Client"
-      sudo_cmd yum install -y mondoo
+      purple_bold "\n* Installing ${MONDOO_PRODUCT_NAME}"
+      sudo_cmd yum install -y ${MONDOO_PKG_NAME}
     }
 
     mondoo_update() {
-      sudo_cmd yum update -y mondoo
+      sudo_cmd yum update -y ${MONDOO_PKG_NAME}
     }
 
   else
@@ -339,12 +340,12 @@ configure_debian_installer() {
       echo "deb [signed-by=/usr/share/keyrings/mondoo-archive-keyring.gpg] https://releases.mondoo.com/debian/ stable main" | sudo_cmd tee /etc/apt/sources.list.d/mondoo.list
 
 
-      purple_bold "\n* Installing Mondoo Client"
-      sudo_cmd apt update -y && sudo_cmd apt install -y mondoo
+      purple_bold "\n* Installing ${MONDOO_PRODUCT_NAME}"
+      sudo_cmd apt update -y && sudo_cmd apt install -y ${MONDOO_PKG_NAME}
     }
 
     mondoo_update() {
-      sudo_cmd apt update -y && sudo_cmd apt upgrade -y mondoo
+      sudo_cmd apt update -y && sudo_cmd apt upgrade -y ${MONDOO_PKG_NAME}
     }
 
   else
@@ -370,12 +371,12 @@ configure_suse_installer() {
       # zypper does not recognize the gpg key reference from mondoo.repo properly, therefore we need to add this here manually
       sudo_cmd rpm --import https://releases.mondoo.com/rpm/pubkey.gpg
 
-      purple_bold "\n* Installing Mondoo Client"
-      sudo_cmd zypper -n install mondoo
+      purple_bold "\n* Installing ${MONDOO_PRODUCT_NAME}"
+      sudo_cmd zypper -n install ${MONDOO_PKG_NAME}
     }
 
     mondoo_update() {
-      sudo_cmd zypper -n update mondoo
+      sudo_cmd zypper -n update ${MONDOO_PKG_NAME}
     }
 
   else
@@ -396,9 +397,9 @@ configure_cloudshell_installer() {
   MONDOO_INSTALLER="tar"
   mondoo_install() {
     install_dir="$HOME/.local/bin"
-    purple_bold "\n* Installing Mondoo Client to $install_dir"
+    purple_bold "\n* Installing ${MONDOO_PRODUCT_NAME} to $install_dir"
     mkdir -p "$install_dir"
-    (cd "$install_dir"; install_portable)
+    (cd "${install_dir}" || exit 1; install_portable)
     PATH="$PATH:$install_dir"
   }
 
@@ -407,10 +408,10 @@ configure_cloudshell_installer() {
   }
 
   configure_linux_token() {
-    purple_bold "\n* Register Mondoo Client with Mondoo Platform"
+    purple_bold "\n* Register ${MONDOO_PRODUCT_NAME} with Mondoo Platform"
     config_path="$HOME/.config/mondoo"
     mkdir -p "$config_path"
-    ${MONDOO_CMD} register --config "$config_path/mondoo.yml" --token "$MONDOO_REGISTRATION_TOKEN"
+    ${MONDOO_BINARY_PATH} register --config "$config_path/mondoo.yml" --token "$MONDOO_REGISTRATION_TOKEN"
   }
 }
 
@@ -419,7 +420,7 @@ configure_cloudshell_installer() {
 
 detect_mondoo_registered() {
   if [ "$(
-    ${MONDOO_CMD} status >/dev/null 2>&1
+    ${MONDOO_BINARY_PATH} status >/dev/null 2>&1
     echo $?
   )" -eq "0" ]; then
     MONDOO_IS_REGISTERED=true
@@ -430,15 +431,15 @@ detect_mondoo_registered() {
 
 configure_token() {
   if [ -z "${MONDOO_REGISTRATION_TOKEN}" ]; then
-    echo -e "\n* No registration token provided, skipping Mondoo Client registration."
+    echo -e "\n* No registration token provided, skipping ${MONDOO_PRODUCT_NAME} registration."
     return
   fi
 
-  purple_bold "\n* Registration token detected, checking if Mondoo Client is registered..."
+  purple_bold "\n* Registration token detected, checking if ${MONDOO_PRODUCT_NAME} is registered..."
   detect_mondoo_registered
 
   if [ $MONDOO_IS_REGISTERED = true ]; then
-    purple_bold "\n* Mondoo Client is already registered. Skipping registration (you can manually run 'mondoo register' to re-register)."
+    purple_bold "\n* ${MONDOO_PRODUCT_NAME} is already registered. Skipping registration (you can manually run 'mondoo register' to re-register)."
     return
   fi
 
@@ -450,24 +451,24 @@ configure_token() {
 
   detect_mondoo_registered
   if [ $MONDOO_IS_REGISTERED = true ]; then
-    purple_bold "\n* Mondoo Client was successfully registered."
+    purple_bold "\n* ${MONDOO_PRODUCT_NAME} was successfully registered."
   else
-    red "\n* Failed to register Mondoo Client. Please reach out to us via Mondoo Community Slack - https://mondoo.link/slack."
+    red "\n* Failed to register ${MONDOO_PRODUCT_NAME}. Please reach out to us via Mondoo Community Slack - https://mondoo.link/slack."
     exit 1
   fi
 }
 
 configure_macos_token() {
-  purple_bold "\n* Register Mondoo Client with Mondoo Platform"
+  purple_bold "\n* Register ${MONDOO_PRODUCT_NAME} with Mondoo Platform"
   config_path="$HOME/.config/mondoo"
   mkdir -p "$config_path"
-  ${MONDOO_CMD} register --config "$config_path/mondoo.yml" --token "$MONDOO_REGISTRATION_TOKEN"
+  ${MONDOO_BINARY_PATH} register --config "$config_path/mondoo.yml" --token "$MONDOO_REGISTRATION_TOKEN"
 }
 
 configure_linux_token() {
-  purple_bold "\n* Register Mondoo Client with Mondoo Platform"
+  purple_bold "\n* Register ${MONDOO_PRODUCT_NAME} with Mondoo Platform"
   sudo_cmd mkdir -p "/etc/opt/mondoo/"
-  sudo_cmd ${MONDOO_CMD} register --config /etc/opt/mondoo/mondoo.yml --token "$MONDOO_REGISTRATION_TOKEN"
+  sudo_cmd ${MONDOO_BINARY_PATH} register --config /etc/opt/mondoo/mondoo.yml --token "$MONDOO_REGISTRATION_TOKEN"
 
   if [ "$(cat /proc/1/comm)" = "init" ]; then
     purple_bold "\n* Restart upstart service"
@@ -477,18 +478,18 @@ configure_linux_token() {
     purple_bold "\n* Restart systemd service"
     sudo_cmd systemctl restart mondoo.service
   else
-    red "\nWe could not detect your process supervisor. If Mondoo Client is running as a service, you will need to restart it manually to make sure it is registered."
+    red "\nWe could not detect your process supervisor. If ${MONDOO_PRODUCT_NAME} is running as a service, you will need to restart it manually to make sure it is registered."
   fi
 }
 
 postinstall_check() {
   detect_mondoo
   if [ $MONDOO_INSTALLED = false ]; then
-    red "Mondoo Client installation failed (can't find the Mondoo binary)."
+    red "${MONDOO_PRODUCT_NAME} installation failed (can't find the Mondoo binary)."
     exit 1
   fi
 
-  echo "Mondoo Client installation completed."
+  echo "${MONDOO_PRODUCT_NAME} installation completed."
 }
 
 finalize_setup() {
@@ -497,15 +498,15 @@ finalize_setup() {
   # Display final message
   detect_mondoo_registered
   if [ $MONDOO_IS_REGISTERED = false ]; then
-    purple_bold "\nMondoo Client is ready to go!"
+    purple_bold "\n${MONDOO_PRODUCT_NAME} is ready to go!"
     echo
-    lightblue_bold "Next you should register Mondoo Client to get access to policies and reports."
+    lightblue_bold "Next you should register ${MONDOO_PRODUCT_NAME} to get access to policies and reports."
     lightblue_bold "Follow this guide: "
     echo
     lightblue_bold "https://mondoo.com/docs/operating_systems/installation/registration/"
     echo
   else
-    purple_bold "\nMondoo Client is set up and ready to scan!"
+    purple_bold "\n${MONDOO_PRODUCT_NAME} is set up and ready to scan!"
     echo
     lightblue_bold "Run 'mondoo scan local' to scan this system or learn more in our quick start docs: https://mondoo.com/docs/"
     echo
@@ -540,7 +541,7 @@ fi
 # ----------------------------
 
 if [ $MONDOO_INSTALLED = true ]; then
-  purple_bold "\n* Mondoo Client is already installed. Updating Mondoo..."
+  purple_bold "\n* ${MONDOO_PRODUCT_NAME} is already installed. Updating Mondoo..."
   mondoo_update "$@";
   finalize_setup
   exit 0
@@ -550,7 +551,7 @@ if [ -z "${MONDOO_INSTALLER}" ]; then
   red "Cannot determine which installer to use. Exiting."
   exit 1
 fi
-purple_bold "\n* Installing Mondoo Client via $MONDOO_INSTALLER"
+purple_bold "\n* Installing ${MONDOO_PRODUCT_NAME} via $MONDOO_INSTALLER"
 mondoo_install
 
 postinstall_check
