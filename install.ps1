@@ -15,13 +15,15 @@
     .EXAMPLE
     Import-Module ./install.ps1; Install-Mondoo -RegistrationToken INSERTKEYHERE
     Import-Module ./install.ps1; Install-Mondoo -Version 5.14.1
+    Import-Module ./install.ps1; Install-Mondoo -Proxy 1.1.1.1:3128
 #>
 function Install-Mondoo {
   [CmdletBinding()]
   Param(
       [string]   $RegistrationToken = '',
       [string]   $DownloadType = 'msi',
-      [string]   $Version = ''
+      [string]   $Version = '',
+      [string]   $Proxy = ''
   )
   Process {
 
@@ -36,6 +38,9 @@ function Install-Mondoo {
 
   function download($url,$to) {
     $wc = New-Object Net.Webclient
+    If(![string]::IsNullOrEmpty($Proxy)) {
+      $wc.proxy = New-Object System.Net.WebProxy($Proxy)
+    }
     $wc.Headers.Add('User-Agent', (Get-UserAgent))
     $wc.downloadFile($url,$to)
   }
@@ -46,6 +51,9 @@ function Install-Mondoo {
       $filetype = [regex]::escape('msi')
     }
     $wc = New-Object Net.Webclient
+    If(![string]::IsNullOrEmpty($Proxy)) {
+      $wc.proxy = New-Object System.Net.WebProxy($Proxy)
+    }
     $wc.Headers.Add('User-Agent', (Get-UserAgent))
     $latest = $wc.DownloadString($url) | ConvertFrom-Json 
     $entry = $latest.files | where { $_.platform -eq "windows" -and $_.filename -match "${filetype}$" -and $_.filename -NotMatch "enterprise" }
@@ -118,6 +126,7 @@ function Install-Mondoo {
   info ("  RegistrationToken: {0}" -f $RegistrationToken)
   info ("  DownloadType:      {0}" -f $DownloadType)
   info ("  Version:           {0}" -f $Version)
+  info ("  Proxy:             {0}" -f $Proxy)
   info ""
 
   # determine download url
