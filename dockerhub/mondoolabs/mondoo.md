@@ -8,7 +8,7 @@
 * Sign up for free: https://console.mondoo.com
 * Release Notes: https://mondoo.com/releases/
 * Documentation: [mondoo.com/docs](https://mondoo.com/docs/)
-* Where to get help: [Mondoo Community Slack](https://mondoo.link/slack)
+* Where to get help: [Mondoo Community GitHub Discussions](https://github.com/orgs/mondoohq/discussions)
 * Dockerfile Source: https://github.com/mondoohq/client/blob/master/Dockerfile
 * Where to file issues: https://github.com/mondoohq/client/issues
 * Mondoo Client Binary Downloads (Non-Container):  https://releases.mondoo.com/mondoo/

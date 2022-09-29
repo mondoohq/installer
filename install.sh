@@ -53,9 +53,9 @@ purple() { echo -e "${purple}${1}${end}"; }
 purple_bold() { echo -e "${purpleb}${1}${end}"; }
 
 on_error() {
-  red "The ${MONDOO_PRODUCT_NAME} install script encountered a problem. For assistance, please join our community Slack or find us on GitHub."
+  red "The ${MONDOO_PRODUCT_NAME} install script encountered a problem. For assistance, please join our community on GitHub Discussions."
   echo
-  echo "* Mondoo Community Slack https://mondoo.link/slack"
+  echo "* Mondoo Community GitHub Discussions https://github.com/orgs/mondoohq/discussions"
   echo
   echo "* GitHub: https://github.com/mondoohq/client"
   echo
@@ -78,7 +78,7 @@ echo -e "\nWelcome to the Mondoo installer. We will auto-detect
 your operating system to determine the best installation method.
 If you experience any issues, please reach us at:
 
-  * Mondoo Community Slack https://mondoo.link/slack
+  * Mondoo Community GitHub Discussions https://github.com/orgs/mondoohq/discussions
 
 The source code of this installer is available on GitHub:
 
@@ -453,7 +453,7 @@ configure_token() {
   if [ $MONDOO_IS_REGISTERED = true ]; then
     purple_bold "\n* ${MONDOO_PRODUCT_NAME} was successfully registered."
   else
-    red "\n* Failed to register ${MONDOO_PRODUCT_NAME}. Please reach out to us via Mondoo Community Slack - https://mondoo.link/slack."
+    red "\n* Failed to register ${MONDOO_PRODUCT_NAME}. Please reach out in the Mondoo Community GitHub Discussions - https://github.com/orgs/mondoohq/discussions."
     exit 1
   fi
 }
