@@ -3,7 +3,7 @@
 <#
     .SYNOPSIS
     This PowerShell script installs the latest Mondoo agent on windows. Usage:
-    Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://mondoo.com/install.ps1')); Install-Mondoo;
+    Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://install.mondoo.com/ps1')); Install-Mondoo;
     
     .PARAMETER RegistrationToken
     The registration token for your mondoo installation. See our docs if you do not
@@ -14,8 +14,10 @@
     If provided, tries to download the specific version instead of the latest
     .EXAMPLE
     Import-Module ./install.ps1; Install-Mondoo -RegistrationToken INSERTKEYHERE
-    Import-Module ./install.ps1; Install-Mondoo -Version 5.14.1
+    Import-Module ./install.ps1; Install-Mondoo -Version 6.14.0
     Import-Module ./install.ps1; Install-Mondoo -Proxy 1.1.1.1:3128
+    Import-Module ./install.ps1; Install-Mondoo -Service enable
+    Import-Module ./install.ps1; Install-Mondoo -UpdateTask enable -Time 12:00 -Interval 3
 #>
 function Install-Mondoo {
   [CmdletBinding()]
@@ -23,7 +25,13 @@ function Install-Mondoo {
       [string]   $RegistrationToken = '',
       [string]   $DownloadType = 'msi',
       [string]   $Version = '',
-      [string]   $Proxy = ''
+      [string]   $Proxy = '',
+      [string]   $Service = '',
+      [string]   $UpdateTask = '',
+      [string]   $Time = '',
+      [string]   $Interval = '',
+      [string]   $taskname = "MondooUpdater",
+      [string]   $taskpath = "Mondoo"
   )
   Process {
 
@@ -74,6 +82,72 @@ function Install-Mondoo {
   function setenv($name,$value,$global) {
     $target = 'User'; if($global) {$target = 'Machine'}
     [System.Environment]::SetEnvironmentVariable($name,$value,$target)
+  }
+
+  function enable_service() {
+    info "Set Mondoo Client to run as a service automatically at startup and start the service"
+    Set-Service -Name mondoo -Status Running -StartupType Automatic
+    If(![string]::IsNullOrEmpty($Proxy)) {
+      # set register key for Mondoo Service to use proxy for internet connection
+      reg add hklm\SYSTEM\CurrentControlSet\Services\Mondoo /v Environment /t REG_MULTI_SZ /d "https_proxy=$Proxy" /f
+    }
+    if(((Get-Service -Name Mondoo).Status -eq 'Running') -and ((Get-Service -Name Mondoo).StartType -eq 'Automatic') ) {
+      success "* Mondoo Service is running and start type is automatic"
+    } Else {
+      fail "Mondoo service configuration failed"
+    }
+  }
+
+  Function NewScheduledTaskFolder($taskpath)
+  {
+      $ErrorActionPreference = "stop"
+      $scheduleObject = New-Object -ComObject schedule.service
+      $scheduleObject.connect()
+      $rootFolder = $scheduleObject.GetFolder("\")
+      Try { $null = $scheduleObject.GetFolder($taskpath) }
+      Catch { $null = $rootFolder.CreateFolder($taskpath) }
+      Finally { $ErrorActionPreference = "continue" }
+  }
+
+  Function CreateAndRegisterMondooUpdaterTask($taskname, $taskpath)
+  {
+      info "Create and register the Mondoo update task"
+      NewScheduledTaskFolder $taskpath
+
+      $taskArgument = '-NoProfile -WindowStyle Hidden -Command "& { [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12;$wc = New-Object Net.Webclient;'
+
+      If(![string]::IsNullOrEmpty($Proxy)) {
+        # Add proxy config to scheduling task
+        $taskArgument = $taskArgument += '$wc.proxy = New-Object System.Net.WebProxy(\"' + $Proxy + '\");'
+      }
+
+      $taskArgument = $taskArgument += 'iex ($wc.DownloadString(\"https://install.mondoo.com/ps1\")); Install-Mondoo '
+
+      # Service enabled
+      If($Service.ToLower() -eq 'enable') {
+        $taskArgument = $taskArgument += '-Service enable '
+      }
+
+      # Proxy enabled
+      If (![string]::IsNullOrEmpty($Proxy)) {
+        $taskArgument = $taskArgument += '-Proxy ' + $Proxy + ' '
+      }
+
+      $taskArgument = $taskArgument += '}"'
+
+      $action = New-ScheduledTaskAction -Execute 'Powershell.exe' -Argument $taskArgument
+      $trigger =  @(
+        $(New-ScheduledTaskTrigger -Daily -DaysInterval $Interval -At $Time)
+      )
+      $principal = New-ScheduledTaskPrincipal -GroupId "NT AUTHORITY\SYSTEM" -RunLevel Highest
+      Register-ScheduledTask -Action $action -Trigger $trigger -TaskName $taskname -Description "Mondoo Updater Task" -TaskPath $taskpath -Principal $principal
+
+      If(Get-ScheduledTask -TaskName $taskname -EA 0)
+      {
+         success "* Mondoo Updater Task installed"
+      } Else {
+        fail "Installation of Mondoo Updater Task failed"
+      }
   }
 
   purple "Mondoo Windows Installer Script"
@@ -127,6 +201,10 @@ function Install-Mondoo {
   info ("  DownloadType:      {0}" -f $DownloadType)
   info ("  Version:           {0}" -f $Version)
   info ("  Proxy:             {0}" -f $Proxy)
+  info ("  Service:           {0}" -f $Service)
+  info ("  UpdateTask:        {0}" -f $UpdateTask)
+  info ("  Time:              {0}" -f $Time)
+  info ("  Interval:          {0}" -f $Interval)
   info ""
 
   # determine download url
@@ -183,6 +261,21 @@ function Install-Mondoo {
     } Else {
       fail (" * Mondoo installation failed with exit code: {0}" -f $process.ExitCode)
     }
+
+    If($Service.ToLower() -eq 'enable') {
+      # start Mondoo service
+      enable_service
+    }
+
+    If($UpdateTask.ToLower() -eq 'enable') {
+      # Creating a scheduling task to automatically update the Mondoo client
+      If(Get-ScheduledTask -TaskName $taskname -EA 0)
+      {
+          Unregister-ScheduledTask -TaskName $taskname -Confirm:$false
+      }
+      CreateAndRegisterMondooUpdaterTask $taskname $taskpath
+    }
+
     Remove-Item $downloadlocation -Force
     
   } Else {
@@ -200,6 +293,5 @@ function Install-Mondoo {
 
   # reset erroractionpreference
   $erroractionpreference = $previous_erroractionpreference
-
   }
 }
