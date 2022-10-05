@@ -248,14 +248,19 @@ function Install-Mondoo {
         $logFile
     )
 
-    # add registration token to args if set
-    If(![string]::IsNullOrEmpty($RegistrationToken)) {
-      $argsList = $argsList += "RegistrationToken={0}" -f $RegistrationToken
-    }
-
     info (' * Run installer {0} and log into {1}' -f $downloadlocation, $logFile)
     $process = Start-Process "msiexec.exe" -Wait -NoNewWindow -PassThru -ArgumentList $argsList
     # https://docs.microsoft.com/en-us/windows/win32/msi/error-codes
+
+    If(![string]::IsNullOrEmpty($RegistrationToken)) {
+      info "Register Mondoo Client"
+      # Set Proxy if enabled
+      If (![string]::IsNullOrEmpty($Proxy)) {
+        $env:https_proxy = $Proxy;
+      }
+      $env:Path = 'C:\Program Files\Mondoo\;' + $env:Path; mondoo register -t $RegistrationToken --config 'C:\ProgramData\Mondoo\mondoo.yml'
+    }
+
     If (@(0,3010) -contains $process.ExitCode) { 
       success ' * Mondoo was installed successfully!'
     } Else {
