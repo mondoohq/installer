@@ -40,14 +40,11 @@ jobs:
   update-version:
     runs-on: ubuntu-latest
     steps:
-      # Checkout the branch
       - name: checkout
         uses: actions/checkout@v3
-
       - name: Get Latest Tag
         id: vars
         uses: WyriHaximus/github-action-get-previous-tag@v1
-
       # runs go to generate the update
       - run: |
           echo '${{ steps.vars.outputs.tag }}' > VERSION
@@ -55,6 +52,7 @@ jobs:
       - name: commit
         run: |
           echo 'VERSION is ${{ steps.vars.outputs.tag }}'
+          git add VERSION
           git config --global user.email "tools@mondoo.com"
           git config --global user.name "Mondoo Tools"
           git commit -m "Update VERSION to ${{ steps.vars.outputs.tag }}"
