@@ -40,32 +40,20 @@ jobs:
   update-version:
     runs-on: ubuntu-latest
     steps:
-      # Checkout the branch
       - name: checkout
         uses: actions/checkout@v3
-
       - name: Get Latest Tag
         id: vars
         uses: WyriHaximus/github-action-get-previous-tag@v1
-
-      - name: setup go
-        uses: actions/setup-go@v3
-        with:
-          go-version: '>=1.17.0'
-
       # runs go to generate the update
       - run: |
           echo '${{ steps.vars.outputs.tag }}' > VERSION
       # Commit changes
-      - name: setup git config
-        run: |
-          # setup the username and email. I tend to use 'GitHub Actions Bot' with no email by default
-          git config user.name "GitHub Actions Bot"
-          git config user.email "<>"
       - name: commit
         run: |
-          echo '${{ steps.vars.outputs.tag }}'
+          echo 'VERSION is ${{ steps.vars.outputs.tag }}'
           git add VERSION
-          git commit -m '${{ steps.vars.outputs.tag }}'
-          git push 
-
+          git config --global user.email "tools@mondoo.com"
+          git config --global user.name "Mondoo Tools"
+          git commit -m "Update VERSION to ${{ steps.vars.outputs.tag }}"
+          git push -f
