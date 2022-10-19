@@ -1,9 +1,8 @@
 name: Release Mondoo Container Image
 
 on:
-  push:
-    tags:
-      - '[0-9]+.[0-9]+.[0-9]+'
+  release:
+    types: [released]
   workflow_dispatch:
 
 
@@ -99,3 +98,4 @@ jobs:
             mondoo/client:${{ steps.vars.outputs.tag }}-ubi-rootless
             mondoo/client:${{ steps.semver.outputs.major }}-ubi-rootless
             mondoo/client:latest-ubi-rootless
+
