@@ -1,18 +1,52 @@
 name: Update for Release
+
 on:
+  release:
+    types: [released]
   workflow_dispatch:
     inputs:
       version:
-        description: "version that should be released"
+        description: 'Version that should be released'
         required: true
-        type: string
+        default: '1.2.3'
+
 jobs:
-  release:
+  update-downstream:
+    runs-on: ubuntu-latest
+    ## Matrix task, repeats steps for each repo
+    strategy:
+      matrix:
+        repo: ["mondoohq/homebrew-mondoo", "mondoohq/mac-pkg"]
+        #repo: ["mondoohq/homebrew-mondoo", "mondoohq/archlinux-package", "mondoohq/mac-pkg"]
+    steps:
+      - uses: actions/checkout@v3
+      - name: Repository Dispatch (Workflow Dispatch)
+        uses: peter-evans/repository-dispatch@v2
+        if: github.event_name == 'workflow_dispatch'
+        with:
+          token: ${{ secrets.REPO_API_TOKEN }}
+          repository: ${{ matrix.repo }}
+          event-type: update
+          client-payload: '{"version": "${{ github.event.inputs.version }}"}'
+      - name: Repository Dispatch (Release)
+        uses: peter-evans/repository-dispatch@v2
+        if: github.event_name == 'release'
+        with:
+          token: ${{ secrets.REPO_API_TOKEN }}
+          repository: ${{ matrix.repo }}
+          event-type: update
+          client-payload: '{"version": "${{ github.event.release.tag_name }}"}'
+
+  update-version:
     runs-on: ubuntu-latest
     steps:
       # Checkout the branch
       - name: checkout
         uses: actions/checkout@v3
+
+      - name: Get Latest Tag
+        id: vars
+        uses: WyriHaximus/github-action-get-previous-tag@v1
 
       - name: setup go
         uses: actions/setup-go@v3
@@ -21,21 +55,17 @@ jobs:
 
       # runs go to generate the update
       - run: |
-          echo '${{ github.event.inputs.version }}' > VERSION
-
+          echo '${{ steps.vars.outputs.tag }}' > VERSION
       # Commit changes
       - name: setup git config
         run: |
           # setup the username and email. I tend to use 'GitHub Actions Bot' with no email by default
           git config user.name "GitHub Actions Bot"
           git config user.email "<>"
-
       - name: commit
         run: |
-          echo '${{ github.event.inputs.version }}'
+          echo '${{ steps.vars.outputs.tag }}'
           git add VERSION
-          git commit -m '${{ github.event.inputs.version }}'
-          git push origin master -f
-          git tag '${{ github.event.inputs.version }}'
-          git push origin '${{ github.event.inputs.version }}'
+          git commit -m '${{ steps.vars.outputs.tag }}'
+          git push 
 
