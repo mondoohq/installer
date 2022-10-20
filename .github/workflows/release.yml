@@ -52,7 +52,7 @@ jobs:
       - name: Commit VERSION file
         run: |
           echo 'VERSION is ${{ steps.vars.outputs.tag }}'
-          touch VERSION
+          git checkout master
           git add VERSION
           git config --global user.email "tools@mondoo.com"
           git config --global user.name "Mondoo Tools"
