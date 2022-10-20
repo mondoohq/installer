@@ -16,8 +16,7 @@ jobs:
     ## Matrix task, repeats steps for each repo
     strategy:
       matrix:
-        repo: ["mondoohq/homebrew-mondoo", "mondoohq/mac-pkg"]
-        #repo: ["mondoohq/homebrew-mondoo", "mondoohq/archlinux-package", "mondoohq/mac-pkg"]
+        repo: ["mondoohq/homebrew-mondoo", "mondoohq/archlinux-package", "mondoohq/mac-pkg"]
     steps:
       - uses: actions/checkout@v3
       - name: Repository Dispatch (Workflow Dispatch)
