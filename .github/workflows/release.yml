@@ -42,19 +42,31 @@ jobs:
     steps:
       - name: checkout
         uses: actions/checkout@v3
-      - name: Get Latest Tag
+        with:
+          ref: 'master'
+          fetch-depth: 0
+      - name: Version from Workflow Dispatch
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
+      - name: Version from Release Tag
+        if: github.event_name == 'release'
+        run: |
+          echo "VERSION=${{ github.event.release.tag_name }}" >> $GITHUB_ENV
+      - name: Verify valid version
         id: vars
-        uses: WyriHaximus/github-action-get-previous-tag@v1
-      # runs go to generate the update
-      - run: |
-          echo '${{ steps.vars.outputs.tag }}' > VERSION
-      # Commit changes
+        run: |
+          if [[ ! $VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Invalid version: $VERSION"
+            exit 1
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
       - name: Commit VERSION file
         run: |
-          echo 'VERSION is ${{ steps.vars.outputs.tag }}'
-          git checkout master
+          echo ${VERSION} > VERSION
+          echo "VERSION is $VERSION"
           git add VERSION
           git config --global user.email "tools@mondoo.com"
           git config --global user.name "Mondoo Tools"
-          git commit -m 'Update VERSION to ${{ steps.vars.outputs.tag }}'
-          git push origin master -f
+          git commit -m "Update VERSION to $VERSION"
+          git push 
