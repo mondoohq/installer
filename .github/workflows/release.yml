@@ -1,4 +1,4 @@
-name: Update for Release
+name: Update Release Version
 
 on:
   release:
@@ -56,4 +56,4 @@ jobs:
           git config --global user.email "tools@mondoo.com"
           git config --global user.name "Mondoo Tools"
           git commit -m "Update VERSION to ${{ steps.vars.outputs.tag }}"
-          git push -f
+          git push origin master -f
