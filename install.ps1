@@ -18,13 +18,15 @@
     Import-Module ./install.ps1; Install-Mondoo -Proxy 1.1.1.1:3128
     Import-Module ./install.ps1; Install-Mondoo -Service enable
     Import-Module ./install.ps1; Install-Mondoo -UpdateTask enable -Time 12:00 -Interval 3
+    Import-Module ./install.ps1; Install-Mondoo -Product cnspec
 #>
 function Install-Mondoo {
   [CmdletBinding()]
   Param(
-      [string]   $RegistrationToken = '',
+      [string]   $Product = 'mondoo',
       [string]   $DownloadType = 'msi',
       [string]   $Version = '',
+      [string]   $RegistrationToken = '',
       [string]   $Proxy = '',
       [string]   $Service = '',
       [string]   $UpdateTask = '',
@@ -53,8 +55,8 @@ function Install-Mondoo {
     $wc.downloadFile($url,$to)
   }
 
-  function determine_latest($filetype) {
-    $url = 'https://releases.mondoo.com/mondoo/latest.json'
+  function determine_latest($product, $filetype) {
+    $url = "https://releases.mondoo.com/${product}/latest.json"
     If([string]::IsNullOrEmpty($filetype)) {
       $filetype = [regex]::escape('msi')
     }
@@ -64,13 +66,13 @@ function Install-Mondoo {
     }
     $wc.Headers.Add('User-Agent', (Get-UserAgent))
     $latest = $wc.DownloadString($url) | ConvertFrom-Json 
-    $entry = $latest.files | where { $_.platform -eq "windows" -and $_.filename -match "${filetype}$" -and $_.filename -NotMatch "enterprise" }
+    $entry = $latest.files | where { $_.platform -eq "windows" -and $_.filename -match "${filetype}$" -and $_.filename -NotMatch "enterprise" -and $_.filename -match "amd64" }
     $entry.filename
   }
 
-  function determine_version($filetype, $version) {
+  function determine_version($product, $filetype, $version) {
     $arch = 'amd64'
-    $res = "https://releases.mondoo.com/mondoo/${version}/mondoo_${version}_windows_${arch}.${filetype}"
+    $res = "https://releases.mondoo.com/${product}/${version}/${product}_${version}_windows_${arch}.${filetype}"
     $res
   }
 
@@ -197,6 +199,7 @@ function Install-Mondoo {
   }
 
   info "Arguments:"
+  info ("  Product:           {0}" -f $Product)
   info ("  RegistrationToken: {0}" -f $RegistrationToken)
   info ("  DownloadType:      {0}" -f $DownloadType)
   info ("  Version:           {0}" -f $Version)
@@ -209,34 +212,39 @@ function Install-Mondoo {
 
   # determine download url
   $filetype = $DownloadType
+  # cnquery and cnspec only ship as zip
+  if($Product -ne 'mondoo') {
+    $filetype = 'zip'
+  }
+
   $releaseurl = ''
   If(![string]::IsNullOrEmpty($Version)) {
     # specific version
-    $releaseurl = determine_version $filetype $Version
+    $releaseurl = determine_version $Product $filetype $Version
   } else {
     # latest release
-    $releaseurl = determine_latest $filetype
+    $releaseurl = determine_latest $Product $filetype
   }
 
   # download windows binary zip/msi
   $dir = Get-Location
-  $downloadlocation = "$dir\mondoo.$filetype"
-  info " * Downloading mondoo from $releaseurl to $downloadlocation"
+  $downloadlocation = "$dir\$Product.$filetype"
+  info " * Downloading $Product from $releaseurl to $downloadlocation"
   download $releaseurl $downloadlocation
 
   If ($filetype -eq 'zip') {
     info ' * Extracting zip...'
     # remove older version if it is still there
-    Remove-Item "$dir\mondoo.exe" -Force -ErrorAction Ignore
+    Remove-Item "$dir\$Product.exe" -Force -ErrorAction Ignore
     Add-Type -Assembly "System.IO.Compression.FileSystem"
     [IO.Compression.ZipFile]::ExtractToDirectory($downloadlocation,$dir)
     Remove-Item $downloadlocation -Force
 
-    success ' * Mondoo was downloaded successfully!'
+    success " * $Product was downloaded successfully! You can find it in $dir\$Product.exe"
   } ElseIf ($filetype -eq 'msi') {
     info ' * Installing msi package...'
     $file = Get-Item $downloadlocation
-    $packageName = "mondoo"
+    $packageName = $Product
     $timeStamp = Get-Date -Format yyyyMMddTHHmmss
     $logFile = '{0}\{1}-{2}.MsiInstall.log' -f $env:TEMP, $packageName,$timeStamp
     $argsList = @(
@@ -253,18 +261,18 @@ function Install-Mondoo {
     # https://docs.microsoft.com/en-us/windows/win32/msi/error-codes
 
     If(![string]::IsNullOrEmpty($RegistrationToken)) {
-      info "Register Mondoo Client"
+      info "Register $Product Client"
       # Set Proxy if enabled
       If (![string]::IsNullOrEmpty($Proxy)) {
         $env:https_proxy = $Proxy;
       }
-      $env:Path = 'C:\Program Files\Mondoo\;' + $env:Path; mondoo register -t $RegistrationToken --config 'C:\ProgramData\Mondoo\mondoo.yml'
+      $env:Path = "'C:\Program Files\Mondoo\;' + $env:Path; $Product register -t $RegistrationToken --config 'C:\ProgramData\Mondoo\mondoo.yml'"
     }
 
     If (@(0,3010) -contains $process.ExitCode) { 
-      success ' * Mondoo was installed successfully!'
+      success " * $Product was installed successfully!"
     } Else {
-      fail (" * Mondoo installation failed with exit code: {0}" -f $process.ExitCode)
+      fail (" * $Product installation failed with exit code: {0}" -f $process.ExitCode)
     }
 
     If($Service.ToLower() -eq 'enable') {
@@ -289,7 +297,7 @@ function Install-Mondoo {
 
   # Display final message
   info "
-  Thank you for installing Mondoo!"
+  Thank you for installing $Product!"
   info "
   If you have any questions, please come join us in our Mondoo Community on GitHub Discussions:
 
