@@ -241,6 +241,7 @@ function Install-Mondoo {
   }
 
   # Check if Path exists
+  $Path = $Path.trim('\')
   if (!(Test-Path $Path)) {New-Item -Path $Path -ItemType Directory}
 
   # download windows binary zip/msi
@@ -296,7 +297,7 @@ function Install-Mondoo {
         $env:https_proxy = $Proxy;
       }
       $env:Path = "$PATH;" + $env:Path
-      "$Product register -t '$RegistrationToken' --config 'C:\ProgramData\Mondoo\mondoo.yml'"
+      iex "$Product register -t '$RegistrationToken' --config 'C:\ProgramData\Mondoo\mondoo.yml'"
     }
 
     If (@(0,3010) -contains $process.ExitCode) { 
