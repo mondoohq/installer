@@ -1,6 +1,6 @@
-![Mondoo](https://mondoo.com/docs/img/mondoo.logo.svg)
+<img src="https://raw.githubusercontent.com/mondoohq/.github/master/profile/static/mondoo-logo.png" width="350" />
 
-> This is a legacy repo. We recommend using [mondoo/client](https://hub.docker.com/r/mondoo/client) instead.
+> This repo is deprecated and will be removed in the future.  Please use [mondoo/client](https://hub.docker.com/r/mondoo/client) instead.
 
 # Quick reference
 
@@ -16,8 +16,8 @@
 
 # Supported tags
 - `latest` - always pinned to the latest release of Mondoo Client
-- `6` - starting from `6.3.0` we offer a major version container, which is always pinned to the latest release for a given major version
-- `6.4.0` - always pinned to a specific Mondoo Client release
+- `7` - always pinned to the latest release for a given major version
+- `7.2.0` - always pinned to a specific Mondoo Client release
 
 # What is Mondoo
 
