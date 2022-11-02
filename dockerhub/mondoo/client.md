@@ -1,6 +1,6 @@
-![Mondoo](https://mondoo.com/docs/img/mondoo.logo.svg)
+# Mondoo
 
-# Quick reference
+## Quick reference
 
 * Basic use: ```docker run mondoo/client <args>```
 * Sign up for free: https://console.mondoo.com
@@ -12,18 +12,18 @@
 * Mondoo Client Binary Downloads (Non-Container):  https://releases.mondoo.com/mondoo/
 * Supported Architectures: `amd64`, `arm64`, `i386`, `arm32v6`, `arm32v7`
 
-# Supported tags
+## Supported tags
 - `latest` - always pinned to the latest release of Mondoo Client
-- `6` - starting from `6.3.0` we offer a major version container, which is always pinned to the latest release for a given major version
-- `6.4.0` - always pinned to a specific Mondoo Client release
+- `7` - always pinned to the latest release for a given major version
+- `7.2.0` - always pinned to a specific Mondoo Client release
 
 ## UBI containers
 We offer a Mondoo Client container built on top of [Universal Base Image (UBI)](https://hub.docker.com/r/redhat/ubi8) by Red Hat. Note that the containers built with this base image support only the `amd64` and `arm64` architectures.
 
 Supported tags are:
 - `latest-ubi`
-- `6-ubi`
-- `6.4.0-ubi`
+- `7-ubi`
+- `7.2.0-ubi`
 
 The `Dockerfile` for these images can be found [here](https://github.com/mondoohq/client/blob/master/Dockerfile-ubi).
 
@@ -33,10 +33,10 @@ The default Mondoo Client container runs our binary as the `root` user. This mak
 Supported tags are:
 - `latest-rootless`
 - `latest-ubi-rootless`
-- `6-rootless`
-- `6-ubi-rootless`
-- `6.4.0-rootless`
-- `6.4.0-ubi-rootless`
+- `7-rootless`
+- `7-ubi-rootless`
+- `7.2.0-rootless`
+- `7.2.0-ubi-rootless`
 
 # What is Mondoo
 
