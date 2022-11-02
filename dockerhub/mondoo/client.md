@@ -1,6 +1,6 @@
-<img src="https://raw.githubusercontent.com/mondoohq/.github/master/profile/static/mondoo-logo.png" width="350" />
+# Mondoo
 
-# Quick reference
+## Quick reference
 
 * Basic use: ```docker run mondoo/client <args>```
 * Sign up for free: https://console.mondoo.com
@@ -12,7 +12,7 @@
 * Mondoo Client Binary Downloads (Non-Container):  https://releases.mondoo.com/mondoo/
 * Supported Architectures: `amd64`, `arm64`, `i386`, `arm32v6`, `arm32v7`
 
-# Supported tags
+## Supported tags
 - `latest` - always pinned to the latest release of Mondoo Client
 - `7` - always pinned to the latest release for a given major version
 - `7.2.0` - always pinned to a specific Mondoo Client release
