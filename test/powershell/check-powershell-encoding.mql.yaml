@@ -1,0 +1,75 @@
+# Read more about the policy structure at https://mondoo.com/docs/platform/policies/overview
+policies:
+  - uid: check-powershell-encoding
+    name: Check UTF-16 LE PowerShell encoding
+    version: "1.0.1"
+    authors:
+      - name: Mondoo Inc
+        email: hello@mondoo.com
+    specs:
+      - asset_filter:
+          query: platform.family.contains(_ == 'unix')
+        scoring_queries:
+          check-powershell-encoding-01:
+          check-powershell-encoding-02:
+queries:
+  - uid: check-powershell-encoding-01
+    title: Check UTF-16 LE PowerShell encoding for install.ps1
+    query: command('file --mime-encoding install.ps1').stdout == /utf-16le/
+    impact: 100
+    docs:
+      desc: |
+        The PowerShell encoding is necessary so that the signing of the PowerShell script install.ps1 works across different systems and system languages.
+
+        [Hash of the file does not match when running signed PowerShell script](https://learn.microsoft.com/en-us/troubleshoot/windows-client/system-management-components/signed-powershell-script-fails-hash-mismatch)
+      audit: |
+        __cnspec shell__
+
+        1. Open a Terminal.
+        2. Type `cnspec shell`
+        3. Run the following query 
+      
+        ```mql
+        command('file --mime-encoding install.ps1').stdout.contains('utf-16le')
+        ```
+
+        Example output
+
+        ```mql
+        [failed] command.stdout == /utf-16le/
+          expected: == /utf-16le/
+          actual:   "install.ps1: us-ascii
+        "
+        ```
+      remediation: |
+        iconv -f US-ASCII -t UTF-16LE test > test-utf16
+  - uid: check-powershell-encoding-02
+    title: Check UTF-16 LE PowerShell encoding for download.ps1
+    query: command('file --mime-encoding download.ps1').stdout == /utf-16le/
+    impact: 100
+    docs:
+      desc: |
+        The PowerShell encoding is necessary so that the signing of the PowerShell script download.ps1 works across different systems and system languages.
+
+        [Hash of the file does not match when running signed PowerShell script](https://learn.microsoft.com/en-us/troubleshoot/windows-client/system-management-components/signed-powershell-script-fails-hash-mismatch)
+      audit: |
+        __cnspec shell__
+
+        1. Open a Terminal.
+        2. Type `cnspec shell`
+        3. Run the following query 
+      
+        ```mql
+        command('file --mime-encoding download.ps1').stdout.contains('utf-16le')
+        ```
+
+        Example output
+
+        ```mql
+        [failed] command.stdout == /utf-16le/
+          expected: == /utf-16le/
+          actual:   "download.ps1: us-ascii
+        "
+        ```
+      remediation: |
+        iconv -f US-ASCII -t UTF-16LE test > test-utf16
