@@ -24,11 +24,8 @@ jobs:
           Set-Content -Value $([System.Convert]::FromBase64String($env:PFX_CERT)) -Path .\mondoo_code_signing_cert.pfx -Encoding Byte
           Set-AuthenticodeSignature -Certificate (Get-PfxCertificate -FilePath .\mondoo_code_signing_cert.pfx) -FilePath '.\install.ps1' -TimestampServer 'http://timestamp.fabrikam.com/scripts/timstamper.dll' -HashAlgorithm 'SHA256'
           Set-AuthenticodeSignature -Certificate (Get-PfxCertificate -FilePath .\mondoo_code_signing_cert.pfx) -FilePath '.\download.ps1' -TimestampServer 'http://timestamp.fabrikam.com/scripts/timstamper.dll' -HashAlgorithm 'SHA256'
-
-      - uses: actions/checkout@v3
-      - run: |
-          git config user.name github-actions
-          git config user.email github-actions@github.com
+          git config --global user.email "tools@mondoo.com"
+          git config --global user.name "Mondoo Tools"
           git add .
           git commit -m "Sign powershell scripts"
           git push
