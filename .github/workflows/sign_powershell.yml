@@ -26,6 +26,7 @@ jobs:
           Set-AuthenticodeSignature -Certificate (Get-PfxCertificate -FilePath .\mondoo_code_signing_cert.pfx) -FilePath '.\download.ps1' -TimestampServer 'http://timestamp.fabrikam.com/scripts/timstamper.dll' -HashAlgorithm 'SHA256'
           git config --global user.email "tools@mondoo.com"
           git config --global user.name "Mondoo Tools"
-          git add .
+          git add install.ps1
+          git add download.ps1
           git commit -m "Sign powershell scripts"
           git push
