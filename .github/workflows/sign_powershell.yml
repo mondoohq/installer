@@ -1,6 +1,7 @@
 name: Sign PowerShell Scripts
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - master
