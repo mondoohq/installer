@@ -1,0 +1,33 @@
+name: Sign PowerShell Scripts
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - '**.ps1'
+
+jobs:
+  sign_scripts:
+    name: Sign and publish PowerShell scripts as pipeline artifacts
+    runs-on: windows-2022
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v3
+
+      - name: Sign powershell script
+        shell: powershell
+        env:
+          PFX_CERT: ${{ secrets.PFX_CERT }}
+        run: |
+          Set-Content -Value $([System.Convert]::FromBase64String($env:PFX_CERT)) -Path .\mondoo_code_signing_cert.pfx -Encoding Byte
+          Set-AuthenticodeSignature -Certificate (Get-PfxCertificate -FilePath .\mondoo_code_signing_cert.pfx) -FilePath '.\install.ps1' -TimestampServer 'http://timestamp.fabrikam.com/scripts/timstamper.dll' -HashAlgorithm 'SHA256'
+          Set-AuthenticodeSignature -Certificate (Get-PfxCertificate -FilePath .\mondoo_code_signing_cert.pfx) -FilePath '.\download.ps1' -TimestampServer 'http://timestamp.fabrikam.com/scripts/timstamper.dll' -HashAlgorithm 'SHA256'
+
+      - uses: actions/checkout@v3
+      - run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git add .
+          git commit -m "Sign powershell scripts"
+          git push
