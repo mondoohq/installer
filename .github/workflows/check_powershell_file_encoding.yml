@@ -1,0 +1,25 @@
+name: "Test UTF-16 LE encoding for PowerShell Scripts"
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '**.ps1'
+
+jobs:
+  check_encoding:
+    name: Check UTF-16 LE encoding for PowerShell scripts
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v3
+
+      - name: Install Mondoo cnspec
+        shell: bash
+        run: |
+          echo Installing Mondoo cnspec...
+          bash -c "$(curl -sSL https://install.mondoo.com/sh/cnspec)"
+      
+      - name: Check encoding of install.ps1 and download.ps1
+        shell: bash
+        run: |
+          cnspec scan local --detect-cicd --score-threshold 100 --policy-bundle test/powershell/check-powershell-encoding.mql.yaml -o full
