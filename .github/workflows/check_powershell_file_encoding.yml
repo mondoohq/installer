@@ -1,9 +1,6 @@
 name: "Test UTF-16 LE encoding for PowerShell Scripts"
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - '**.ps1'
 
 jobs:
   check_encoding:
