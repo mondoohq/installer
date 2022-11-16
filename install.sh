@@ -524,7 +524,7 @@ finalize_setup() {
     echo
     lightblue_bold "Run the following command to scan this system:"
     echo
-    echo -e "${MONDOO_BINARY} scan local"
+    echo -e "${MONDOO_BINARY} scan"
     echo
     lightblue_bold "Learn more in our quick start guides: https://mondoo.com/docs/"
     echo
