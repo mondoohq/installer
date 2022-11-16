@@ -65,7 +65,7 @@ on_error() {
 # register a trap for error signals
 trap on_error ERR
 
-purple_bold "Mondoo Installer"
+purple_bold "${MONDOO_PRODUCT_NAME} Installer"
 purple "
                         .-.
                         : :
@@ -74,15 +74,17 @@ purple "
 :_;:_;:_;\`.__.':_;:_;\`.__.'\`.__.'\`.__.
 "
 
-echo -e "\nWelcome to the Mondoo installer. We will auto-detect
+echo -e "\nWelcome to the ${MONDOO_PRODUCT_NAME} installer. We will auto-detect
 your operating system to determine the best installation method.
 If you experience any issues, please reach us at:
 
-  * Mondoo Community GitHub Discussions https://github.com/orgs/mondoohq/discussions
+  * Mondoo Community GitHub Discussions:
+    https://github.com/orgs/mondoohq/discussions
 
-The source code of this installer is available on GitHub:
+This installer is licensed under the Apache License, Version 2.0
 
-  * GitHub: https://github.com/mondoohq/client
+  * GitHub:
+  https://github.com/mondoohq/client
 
 "
 
@@ -431,15 +433,18 @@ detect_mondoo_registered() {
 
 configure_token() {
   if [ -z "${MONDOO_REGISTRATION_TOKEN}" ]; then
-    echo -e "\n* No registration token provided, skipping ${MONDOO_PRODUCT_NAME} registration."
+    if [ "$MONDOO_PRODUCT_NAME" = "Mondoo Client" ]; then
+      echo -e "\n* No registration token provided, skipping ${MONDOO_PRODUCT_NAME} registration."
+    fi
     return
+  else
+    purple_bold "\n* Registration token detected, checking if ${MONDOO_PRODUCT_NAME} is registered..."
   fi
 
-  purple_bold "\n* Registration token detected, checking if ${MONDOO_PRODUCT_NAME} is registered..."
   detect_mondoo_registered
-
   if [ $MONDOO_IS_REGISTERED = true ]; then
-    purple_bold "\n* ${MONDOO_PRODUCT_NAME} is already registered. Skipping registration (you can manually run 'mondoo register' to re-register)."
+    purple_bold "\n* ${MONDOO_PRODUCT_NAME} is already registered. Skipping registration"
+    purple_bold "(you can manually run '${MONDOO_BINARY} register' to re-register)."
     return
   fi
 
@@ -485,7 +490,7 @@ configure_linux_token() {
 postinstall_check() {
   detect_mondoo
   if [ $MONDOO_INSTALLED = false ]; then
-    red "${MONDOO_PRODUCT_NAME} installation failed (can't find the Mondoo binary)."
+    red "${MONDOO_PRODUCT_NAME} installation failed (can't find the ${MONDOO_BIN} binary)."
     exit 1
   fi
 
@@ -493,25 +498,37 @@ postinstall_check() {
 }
 
 finalize_setup() {
+
+  # If registration token is provided, register client
   configure_token
 
   # Display final message
-  detect_mondoo_registered
-  if [ $MONDOO_IS_REGISTERED = false ]; then
-    purple_bold "\n${MONDOO_PRODUCT_NAME} is ready to go!"
-    echo
-    lightblue_bold "Next you should register ${MONDOO_PRODUCT_NAME} to get access to policies and reports."
-    lightblue_bold "Follow this guide: "
-    echo
-    lightblue_bold "https://mondoo.com/docs/operating_systems/installation/registration/"
-    echo
+  purple_bold "\n${MONDOO_PRODUCT_NAME} is ready to go!"
+
+  # Only if installing Mondoo Client, warn user to register. Do not warn open source users.
+  if [ "$MONDOO_PRODUCT_NAME" = "Mondoo Client" ]; then
+    detect_mondoo_registered
+    if [ $MONDOO_IS_REGISTERED = false ]; then
+      echo
+      lightblue_bold "Next you should register ${MONDOO_PRODUCT_NAME} to get access to policies and reports."
+      lightblue_bold "Follow this guide: "
+      echo
+      lightblue_bold "https://mondoo.com/docs/operating_systems/installation/registration/"
+      echo
+    else
+      echo
+      lightblue_bold "Run 'mondoo scan local' to scan this system or learn more in our quick start docs: https://mondoo.com/docs/"
+      echo
+    fi
   else
-    purple_bold "\n${MONDOO_PRODUCT_NAME} is set up and ready to scan!"
     echo
-    lightblue_bold "Run 'mondoo scan local' to scan this system or learn more in our quick start docs: https://mondoo.com/docs/"
+    lightblue_bold "Run the following command to scan this system:"
+    echo
+    echo -e "${MONDOO_BINARY} scan local"
+    echo
+    lightblue_bold "Learn more in our quick start guides: https://mondoo.com/docs/"
     echo
   fi
-
 }
 
 # Determine which OS installer we are going to use
