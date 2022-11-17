@@ -347,7 +347,7 @@ configure_debian_installer() {
     }
 
     mondoo_update() {
-      sudo_cmd apt update -y && sudo_cmd apt --only-upgrade install ${MONDOO_PKG_NAME}
+      sudo_cmd apt update -y && sudo_cmd apt --only-upgrade install -y ${MONDOO_PKG_NAME}
     }
 
   else
