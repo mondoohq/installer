@@ -490,7 +490,7 @@ configure_linux_token() {
 postinstall_check() {
   detect_mondoo
   if [ $MONDOO_INSTALLED = false ]; then
-    red "${MONDOO_PRODUCT_NAME} installation failed (can't find the ${MONDOO_BIN} binary)."
+    red "${MONDOO_PRODUCT_NAME} installation failed (can't find the ${MONDOO_BINARY} binary)."
     exit 1
   fi
 
