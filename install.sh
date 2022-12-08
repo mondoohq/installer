@@ -338,8 +338,8 @@ configure_debian_installer() {
       sudo_cmd apt install -y apt-transport-https ca-certificates gnupg
 
       purple_bold "\n* Configuring APT package sources for Mondoo at /etc/apt/sources.list.d/mondoo.list"
-      APT_VERSION=`dpkg-query --show --showformat '${Version}' apt`
-      if dpkg --compare-versions ${APT_VERSION} le 1.0.2;
+      APT_VERSION=$(dpkg-query --show --showformat '${Version}' apt)
+      if dpkg --compare-versions "${APT_VERSION}" le 1.0.2;
       then
         curl --retry 3 --retry-delay 10 -sSL https://releases.mondoo.com/debian/pubkey.gpg | sudo_cmd apt-key add -
         echo "deb https://releases.mondoo.com/debian/ stable main" | sudo_cmd tee /etc/apt/sources.list.d/mondoo.list
