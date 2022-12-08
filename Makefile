@@ -31,14 +31,14 @@ test/shellcheck:
 
 .PHONY: test/install_sh
 test/install_sh:
-	cp install.sh test/install_sh
+	cp install.sh test/install_sh && chmod +x test/install_sh/install.sh
 	cd test/install_sh && docker build --no-cache -f almalinux.Dockerfile .
+	cd test/install_sh && docker build --no-cache -f almalinux.arm64.Dockerfile .
 	cd test/install_sh && docker build --no-cache -f amazonlinux2.Dockerfile .
 	cd test/install_sh && docker build --no-cache -f debian.Dockerfile .
+	cd test/install_sh && docker build --no-cache -f opensuse_leap.Dockerfile .
+	cd test/install_sh && docker build --no-cache -f redhat.Dockerfile .
 	cd test/install_sh && docker build --no-cache -f ubuntu.Dockerfile .	
-	cd test/install_sh && docker build --no-cache -f opensuse.Dockerfile .
-	cd test/install_sh && docker build --no-cache -f almalinux.arm64.Dockerfile .
-	cd test/install_sh && docker build --no-cache -f redhat8.Dockerfile .
 
 .PHONY: test/download_sh
 # MONDOO_REGISTRATION_TOKEN="changeme"
