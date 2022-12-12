@@ -1,9 +1,9 @@
-FROM arm64v8/almalinux:8 as almalinux8_arm64
+FROM registry.access.redhat.com/ubi8/ubi as rhel8
 COPY install.sh /run/install.sh
 RUN /run/install.sh
 RUN mondoo version
 
-FROM arm64v8/almalinux:9 as almalinux9_arm64
+FROM registry.access.redhat.com/ubi9/ubi as rhel9
 COPY install.sh /run/install.sh
 RUN /run/install.sh
 RUN mondoo version
