@@ -2,6 +2,11 @@ name: Sign PowerShell Scripts
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - master
+    paths:
+      - '**.ps1'
 
 jobs:
   sign_scripts:
