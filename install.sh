@@ -449,20 +449,20 @@ configure_token() {
   fi
 
   detect_mondoo_registered
-  if [ $MONDOO_IS_REGISTERED = true ]; then
+  if [ "$MONDOO_IS_REGISTERED" = true ]; then
     purple_bold "\n* ${MONDOO_PRODUCT_NAME} is already registered. Skipping registration"
     purple_bold "(you can manually run '${MONDOO_BINARY} register' to re-register)."
     return
   fi
 
-  if [ $OS = "macOS" ]; then
+  if [ "$OS" = "macOS" ]; then
     configure_macos_token
   else
     configure_linux_token
   fi
 
   detect_mondoo_registered
-  if [ $MONDOO_IS_REGISTERED = true ]; then
+  if [ "$MONDOO_IS_REGISTERED" = true ]; then
     purple_bold "\n* ${MONDOO_PRODUCT_NAME} was successfully registered."
   else
     red "\n* Failed to register ${MONDOO_PRODUCT_NAME}. Please reach out in the Mondoo Community GitHub Discussions - https://github.com/orgs/mondoohq/discussions."
@@ -496,7 +496,7 @@ configure_linux_token() {
 
 postinstall_check() {
   detect_mondoo
-  if [ $MONDOO_INSTALLED = false ]; then
+  if [ "$MONDOO_INSTALLED" = false ]; then
     red "${MONDOO_PRODUCT_NAME} installation failed (can't find the ${MONDOO_BINARY} binary)."
     exit 1
   fi
@@ -515,7 +515,7 @@ finalize_setup() {
   # Only if installing Mondoo Client, warn user to register. Do not warn open source users.
   if [ "$MONDOO_PRODUCT_NAME" = "Mondoo Client" ]; then
     detect_mondoo_registered
-    if [ $MONDOO_IS_REGISTERED = false ]; then
+    if [ "$MONDOO_IS_REGISTERED" = false ]; then
       echo
       lightblue_bold "Next you should register ${MONDOO_PRODUCT_NAME} to get access to policies and reports."
       lightblue_bold "Follow this guide: "
@@ -539,21 +539,21 @@ finalize_setup() {
 }
 
 # Determine which OS installer we are going to use
-if [[ $OS = "macOS" ]]; then
+if [[ "$OS" = "macOS" ]]; then
   configure_macos_installer
 
-elif [[ $OS = "Arch" ]]; then
+elif [[ "$OS" = "Arch" ]]; then
   configure_archlinux_installer
 
-elif [[ $OS = "RedHat" ]]; then
+elif [[ "$OS" = "RedHat" ]]; then
   configure_rhel_installer
 
-elif [[ $OS = "Debian" ]]; then
+elif [[ "$OS" = "Debian" ]]; then
   configure_debian_installer
 
-elif [[ $OS = "Suse" ]]; then
+elif [[ "$OS" = "Suse" ]]; then
   configure_suse_installer
-elif [[ $OS = "AWSCloudShell" ]]; then
+elif [[ "$OS" = "AWSCloudShell" ]]; then
   configure_cloudshell_installer
 
 else
