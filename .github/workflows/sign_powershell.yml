@@ -22,8 +22,20 @@ jobs:
           PFX_CERT: ${{ secrets.PFX_CERT }}
         run: |
           Set-Content -Value $([System.Convert]::FromBase64String($env:PFX_CERT)) -Path .\mondoo_code_signing_cert.pfx -Encoding Byte
-          Set-AuthenticodeSignature -Certificate (Get-PfxCertificate -FilePath .\mondoo_code_signing_cert.pfx) -FilePath '.\install.ps1' -TimestampServer 'http://timestamp.digicert.com' -HashAlgorithm 'SHA256'
-          Set-AuthenticodeSignature -Certificate (Get-PfxCertificate -FilePath .\mondoo_code_signing_cert.pfx) -FilePath '.\download.ps1' -TimestampServer 'http://timestamp.digicert.com' -HashAlgorithm 'SHA256'
+          
+          # sign install.sh and ensure proper encoding as UTF8 NoBOM
+          $filename = 'install.ps1'
+          Set-AuthenticodeSignature -Certificate (Get-PfxCertificate -FilePath .\mondoo_code_signing_cert.pfx) -FilePath $filepath -TimestampServer 'http://timestamp.digicert.com' -HashAlgorithm 'SHA256'
+          $content = Get-Content -Raw $filename
+          [IO.File]::WriteAllLines($filename, $content)
+
+          # sign install.sh and ensure proper encoding as UTF8 NoBOM
+          $filename = 'download.ps1'
+          Set-AuthenticodeSignature -Certificate (Get-PfxCertificate -FilePath .\mondoo_code_signing_cert.pfx) -FilePath $filepath -TimestampServer 'http://timestamp.digicert.com' -HashAlgorithm 'SHA256'
+          $content = Get-Content -Raw $filename
+          [IO.File]::WriteAllLines($filename, $content)
+
+          # commit changes
           git config --global user.email "tools@mondoo.com"
           git config --global user.name "Mondoo Tools"
           git add install.ps1
