@@ -29,7 +29,7 @@ jobs:
           $content = Get-Content -Raw $filename
           [IO.File]::WriteAllLines($filename, $content)
 
-          # sign install.sh and ensure proper encoding as UTF8 NoBOM
+          # sign download.sh and ensure proper encoding as UTF8 NoBOM
           $filename = 'download.ps1'
           Set-AuthenticodeSignature -Certificate (Get-PfxCertificate -FilePath .\mondoo_code_signing_cert.pfx) -FilePath $filename -TimestampServer 'http://timestamp.digicert.com' -HashAlgorithm 'SHA256'
           $content = Get-Content -Raw $filename
