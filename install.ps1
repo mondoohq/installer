@@ -507,4 +507,3 @@ function Install-Mondoo {
 # O/6wMzkXNfe34b4hkIAs90Hthbyjsu/Gj7X/7mxedTVgYQJRjSZS3op20NDXK4my
 # wocX/KWuGQ9WSkKKzdXD
 # SIG # End signature block
-
