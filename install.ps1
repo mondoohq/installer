@@ -4,7 +4,7 @@
     .SYNOPSIS
     This PowerShell script installs the latest Mondoo agent on windows. Usage:
     Set-ExecutionPolicy RemoteSigned -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://install.mondoo.com/ps1')); Install-Mondoo;
-    
+
     .PARAMETER RegistrationToken
     The registration token for your mondoo installation. See our docs if you do not
     have one: https://mondoo.com/docs/server/registration
@@ -39,10 +39,24 @@ function Install-Mondoo {
   )
   Process {
 
-  function fail($msg) { Write-Error -ErrorAction Stop -Message $msg }
-  function info($msg) {  Write-Host $msg -f white }
-  function success($msg) { Write-Host $msg -f darkgreen }
-  function purple($msg) { Write-Host $msg -f magenta }
+  function fail($msg) {
+    Write-Error -ErrorAction Stop -Message $msg
+  }
+
+  function info($msg) {
+    $host.ui.RawUI.ForegroundColor = "white"
+    Write-Output $msg
+  }
+
+  function success($msg) {
+    $host.ui.RawUI.ForegroundColor = "darkgreen"
+    Write-Output $msg
+  }
+
+  function purple($msg) {
+    $host.ui.RawUI.ForegroundColor = "magenta"
+    Write-Output $msg
+  }
 
   function Get-UserAgent() {
     return "MondooInstallScript/1.0 (+https://mondoo.com/) PowerShell/$($PSVersionTable.PSVersion.Major).$($PSVersionTable.PSVersion.Minor) (Windows NT $([System.Environment]::OSVersion.Version.Major).$([System.Environment]::OSVersion.Version.Minor);$PSEdition)"
@@ -57,25 +71,26 @@ function Install-Mondoo {
     $wc.downloadFile($url,$to)
   }
 
-  function determine_latest($product, $filetype) {
-    $url = "https://releases.mondoo.com/${product}/latest.json"
+  function determine_latest {
+    Param
+    (
+        [Parameter(Mandatory)]
+        [string[]]$product,
+        [Parameter(Mandatory)]
+        [string[]]$filetype,
+        [Parameter(Mandatory)]
+        [string[]]$arch
+    )
     If([string]::IsNullOrEmpty($filetype)) {
       $filetype = [regex]::escape('msi')
     }
+    $url_version = "https://install.mondoo.com/package/${product}/windows/${arch}/${filetype}/latest/version"
     $wc = New-Object Net.Webclient
     If(![string]::IsNullOrEmpty($Proxy)) {
       $wc.proxy = New-Object System.Net.WebProxy($Proxy)
     }
     $wc.Headers.Add('User-Agent', (Get-UserAgent))
-    $latest = $wc.DownloadString($url) | ConvertFrom-Json 
-    $entry = $latest.files | where { $_.platform -eq "windows" -and $_.filename -match "${filetype}$" -and $_.filename -NotMatch "enterprise" -and $_.filename -match "amd64" }
-    $entry.filename
-  }
-
-  function determine_version($product, $filetype, $version) {
-    $arch = 'amd64'
-    $res = "https://releases.mondoo.com/${product}/${version}/${product}_${version}_windows_${arch}.${filetype}"
-    $res
+    $wc.DownloadString($url_version)
   }
 
   function getenv($name,$global) {
@@ -95,14 +110,14 @@ function Install-Mondoo {
       # set register key for Mondoo Service to use proxy for internet connection
       reg add hklm\SYSTEM\CurrentControlSet\Services\Mondoo /v Environment /t REG_MULTI_SZ /d "https_proxy=$Proxy" /f
     }
-    if(((Get-Service -Name Mondoo).Status -eq 'Running') -and ((Get-Service -Name Mondoo).StartType -eq 'Automatic') ) {
+    If(((Get-Service -Name Mondoo).Status -eq 'Running') -and ((Get-Service -Name Mondoo).StartType -eq 'Automatic') ) {
       success "* Mondoo Service is running and start type is automatic"
     } Else {
       fail "Mondoo service configuration failed"
     }
   }
 
-  Function NewScheduledTaskFolder($taskpath)
+  function NewScheduledTaskFolder($taskpath)
   {
       $ErrorActionPreference = "stop"
       $scheduleObject = New-Object -ComObject schedule.service
@@ -113,74 +128,74 @@ function Install-Mondoo {
       Finally { $ErrorActionPreference = "continue" }
   }
 
-  Function CreateAndRegisterMondooUpdaterTask($taskname, $taskpath)
+  function CreateAndRegisterMondooUpdaterTask($taskname, $taskpath)
   {
-      info "Create and register the Mondoo update task"
-      NewScheduledTaskFolder $taskpath
+    info "Create and register the Mondoo update task"
+    NewScheduledTaskFolder $taskpath
 
-      $taskArgument = '-NoProfile -WindowStyle Hidden -ExecutionPolicy RemoteSigned -Command &{ [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; $wc = New-Object Net.Webclient; '
+    $taskArgument = '-NoProfile -WindowStyle Hidden -ExecutionPolicy RemoteSigned -Command &{ [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; $wc = New-Object Net.Webclient; '
 
-      If(![string]::IsNullOrEmpty($Proxy)) {
-        # Add proxy config to scheduling task
-        $taskArgument = $taskArgument += '$wc.proxy = New-Object System.Net.WebProxy(\"' + $Proxy + '\"); '
-      }
+    If (![string]::IsNullOrEmpty($Proxy)) {
+      # Add proxy config to scheduling task
+      $taskArgument = $taskArgument += '$wc.proxy = New-Object System.Net.WebProxy(\"' + $Proxy + '\"); '
+    }
 
-      $taskArgument = $taskArgument += 'iex ($wc.DownloadString(\"https://install.mondoo.com/ps1\")); Install-Mondoo '
+    $taskArgument = $taskArgument += 'iex ($wc.DownloadString(\"https://install.mondoo.com/ps1\")); Install-Mondoo '
 
-      # Set product name in scheduling task
-      $taskArgument = $taskArgument += '-Product ' + $Product + ' '
+    # Set product name in scheduling task
+    $taskArgument = $taskArgument += '-Product ' + $Product + ' '
 
-      # Set Path in scheduling task
-      $taskArgument = $taskArgument += '-Path \"' + $Path + '\" '
+    # Set Path in scheduling task
+    $taskArgument = $taskArgument += '-Path \"' + $Path + '\" '
 
-      # Service enabled
-      If($Service.ToLower() -eq 'enable' -and $Product.ToLower() -eq 'mondoo') {
-        $taskArgument = $taskArgument += '-Service enable '
-      }
+    # Service enabled
+    If ($Service.ToLower() -eq 'enable' -and $Product.ToLower() -eq 'mondoo') {
+      $taskArgument = $taskArgument += '-Service enable '
+    }
 
-      # Proxy enabled
-      If (![string]::IsNullOrEmpty($Proxy)) {
-        $taskArgument = $taskArgument += '-Proxy ' + $Proxy + ' '
-      }
+    # Proxy enabled
+    If (![string]::IsNullOrEmpty($Proxy)) {
+      $taskArgument = $taskArgument += '-Proxy ' + $Proxy + ' '
+    }
 
-      # Recreate scheduling task
-      If($UpdateTask.ToLower() -eq 'enable') {
-        $taskArgument = $taskArgument += '-UpdateTask enable -Time ' + $Time + ' -Interval ' + $Interval +' '
-      }
+    # Recreate scheduling task
+    If ($UpdateTask.ToLower() -eq 'enable') {
+      $taskArgument = $taskArgument += '-UpdateTask enable -Time ' + $Time + ' -Interval ' + $Interval +' '
+    }
 
-      $taskArgument = $taskArgument += ';}'
+    $taskArgument = $taskArgument += ';}'
 
-      $action = New-ScheduledTaskAction -Execute 'Powershell.exe' -Argument $taskArgument
-      $trigger =  @(
-        $(New-ScheduledTaskTrigger -Daily -DaysInterval $Interval -At $Time)
-      )
-      $principal = New-ScheduledTaskPrincipal -GroupId "NT AUTHORITY\SYSTEM" -RunLevel Highest
-      Register-ScheduledTask -Action $action -Trigger $trigger -TaskName $taskname -Description "$Product Updater Task" -TaskPath $taskpath -Principal $principal
+    $action = New-ScheduledTaskAction -Execute 'Powershell.exe' -Argument $taskArgument
+    $trigger =  @(
+      $(New-ScheduledTaskTrigger -Daily -DaysInterval $Interval -At $Time)
+    )
+    $principal = New-ScheduledTaskPrincipal -GroupId "NT AUTHORITY\SYSTEM" -RunLevel Highest
+    Register-ScheduledTask -Action $action -Trigger $trigger -TaskName $taskname -Description "$Product Updater Task" -TaskPath $taskpath -Principal $principal
 
-      If(Get-ScheduledTask -TaskName $taskname -EA 0)
-      {
-         success "* $Product Updater Task installed"
-      } Else {
-        fail "Installation of $Product Updater Task failed"
-      }
+    If (Get-ScheduledTask -TaskName $taskname -EA 0)
+    {
+        success "* $Product Updater Task installed"
+    } Else {
+      fail "Installation of $Product Updater Task failed"
+    }
   }
 
   purple "Mondoo Windows Installer Script"
   purple "
-                          .-.            
-                          : :            
+                          .-.
+                          : :
   ,-.,-.,-. .--. ,-.,-. .-`' : .--.  .--.
   : ,. ,. :`' .; :: ,. :`' .; :`' .; :`' .; :
   :_;:_;:_;``.__.`':_;:_;``.__.`'``.__.`'``.__.
   "
-                  
-  info "Welcome to the Mondoo Binary Download Script. It downloads the Mondoo binary for
-  Windows into $ENV:UserProfile\mondoo and adds the path to the user's environment PATH. If 
-  you are experiencing any issues, please do not hesitate to reach out: 
+
+  info "Welcome to the $Product Install Script. It downloads the $Product binary for
+  Windows into $ENV:UserProfile\$Product and adds the path to the user's environment PATH. If
+  you are experiencing any issues, please do not hesitate to reach out:
 
     * Mondoo Community GitHub Discussions https://github.com/orgs/mondoohq/discussions
 
-  This script source is available at: https://github.com/mondoohq/client
+  This script source is available at: https://github.com/mondoohq/installer
   "
 
   # Any subsequent commands which fails will stop the execution of the shell script
@@ -188,7 +203,7 @@ function Install-Mondoo {
   $erroractionpreference = 'stop'
 
   # verify powershell pre-conditions
-  if(($PSVersionTable.PSVersion.Major) -lt 5) {
+  If (($PSVersionTable.PSVersion.Major) -lt 5) {
     fail "
   The install script requires PowerShell 5 or later.
   To upgrade PowerShell visit https://docs.microsoft.com/en-us/powershell/scripting/setup/installing-windows-powershell
@@ -196,9 +211,9 @@ function Install-Mondoo {
   }
 
   # we only support x86_64 at this point, stop if we got arm
-  if ($env:PROCESSOR_ARCHITECTURE -ne 'AMD64' -and -not ($env:PROCESSOR_ARCHITECTURE -eq "x86" -and [Environment]::Is64BitOperatingSystem)) {
+  If ($env:PROCESSOR_ARCHITECTURE -ne 'AMD64' -and -not ($env:PROCESSOR_ARCHITECTURE -eq "x86" -and [Environment]::Is64BitOperatingSystem)) {
     fail "
-  Your processor architecture $env:PROCESSOR_ARCHITECTURE is not supported yet. Please come join us in 
+  Your processor architecture $env:PROCESSOR_ARCHITECTURE is not supported yet. Please come join us in
   our Mondoo Community GitHub Discussions https://github.com/orgs/mondoohq/discussions or email us at hello@mondoo.com
   "
   }
@@ -219,117 +234,127 @@ function Install-Mondoo {
   # determine download url
   $filetype = $DownloadType
   # cnquery and cnspec only ship as zip
-  if($Product -ne 'mondoo') {
+  If ($product -ne 'mondoo') {
     $filetype = 'zip'
   }
+  # get the installed mondoo version
+  $installed_version = Get-CIMInstance -Class Win32_Product | Where-Object vendor -eq "Mondoo, Inc."
 
+  $arch = 'amd64'
   $releaseurl = ''
-  If(![string]::IsNullOrEmpty($Version)) {
-    # specific version
-    $releaseurl = determine_version $Product $filetype $Version
-  } else {
+  $version = $Version
+
+  If ([string]::IsNullOrEmpty($Version)) {
     # latest release
-    $releaseurl = determine_latest $Product $filetype
-  }
-
-  # Check if Path exists
-  $Path = $Path.trim('\')
-  if (!(Test-Path $Path)) {New-Item -Path $Path -ItemType Directory}
-
-  # download windows binary zip/msi
-  $downloadlocation = "$Path\$Product.$filetype"
-  info " * Downloading $Product from $releaseurl to $downloadlocation"
-  download $releaseurl $downloadlocation
-
-  If ($filetype -eq 'zip') {
-    info ' * Extracting zip...'
-    # remove older version if it is still there
-    Remove-Item "$Path\$Product.exe" -Force -ErrorAction Ignore
-    Add-Type -Assembly "System.IO.Compression.FileSystem"
-    [IO.Compression.ZipFile]::ExtractToDirectory($downloadlocation,$Path)
-    Remove-Item $downloadlocation -Force
-
-    success " * $Product was downloaded successfully! You can find it in $Path\$Product.exe"
-
-    If($UpdateTask.ToLower() -eq 'enable') {
-      # Creating a scheduling task to automatically update the Mondoo client
-      $taskname = $Product + "Updater"
-      $taskpath = $Product
-      If(Get-ScheduledTask -TaskName $taskname -EA 0)
-      {
-          Unregister-ScheduledTask -TaskName $taskname -Confirm:$false
-      }
-      CreateAndRegisterMondooUpdaterTask $taskname $taskpath
-    }
-  } ElseIf ($filetype -eq 'msi') {
-    info ' * Installing msi package...'
-    $file = Get-Item $downloadlocation
-    $packageName = $Product
-    $timeStamp = Get-Date -Format yyyyMMddTHHmmss
-    $logFile = '{0}\{1}-{2}.MsiInstall.log' -f $env:TEMP, $packageName,$timeStamp
-    $argsList = @(
-        "/i"
-        ('"{0}"' -f $file.fullname)
-        "/qn"
-        "/norestart"
-        "/L*v"
-        $logFile
-    )
-
-    info (' * Run installer {0} and log into {1}' -f $downloadlocation, $logFile)
-    $process = Start-Process "msiexec.exe" -Wait -NoNewWindow -PassThru -ArgumentList $argsList
-    # https://docs.microsoft.com/en-us/windows/win32/msi/error-codes
-
-    If(![string]::IsNullOrEmpty($RegistrationToken)) {
-      info "
-      Register $Product Client
-      "
-      # Set Proxy if enabled
-      If (![string]::IsNullOrEmpty($Proxy)) {
-        $env:https_proxy = $Proxy;
-      }
-      $env:Path = "$PATH;" + $env:Path
-      iex "$Product register -t '$RegistrationToken' --config 'C:\ProgramData\Mondoo\mondoo.yml'"
-    }
-
-    If (@(0,3010) -contains $process.ExitCode) { 
-      success " * $Product was installed successfully!"
-    } Else {
-      fail (" * $Product installation failed with exit code: {0}" -f $process.ExitCode)
-    }
-
-    # Check if Service parameter is set and Parameter Product is set to mondoo
-    If($Service.ToLower() -eq 'enable' -and $Product.ToLower() -eq 'mondoo') {
-      # start Mondoo service
-      enable_service
-    }
-
-    If($UpdateTask.ToLower() -eq 'enable') {
-      # Creating a scheduling task to automatically update the Mondoo client
-      $taskname = $Product + "Updater"
-      $taskpath = $Product
-      If(Get-ScheduledTask -TaskName $taskname -EA 0)
-      {
-          Unregister-ScheduledTask -TaskName $taskname -Confirm:$false
-      }
-      CreateAndRegisterMondooUpdaterTask $taskname $taskpath
-    }
-
-    Remove-Item $downloadlocation -Force
-    
+    $version = determine_latest -product $Product -filetype $filetype -arch $arch
+    $releaseurl = "https://install.mondoo.com/package/${Product}/windows/${arch}/${filetype}/latest/download"
   } Else {
-    fail "${filetype} is not supported for download"
+    # specific version
+    $releaseurl = "https://install.mondoo.com/package/${Product}/windows/${arch}/${filetype}/${version}/download"
   }
 
-  # Display final message
-  info "
-  Thank you for installing $Product!"
-  info "
-  If you have any questions, please come join us in our Mondoo Community on GitHub Discussions:
+  If ($version -ne  $installed_version.version) {
+    # Check if Path exists
+    $Path = $Path.trim('\')
+    If (!(Test-Path $Path)) {New-Item -Path $Path -ItemType Directory}
 
-    * https://github.com/orgs/mondoohq/discussions
-  "
+    # download windows binary zip/msi
+    $downloadlocation = "$Path\$Product.$filetype"
+    info " * Downloading $Product from $releaseurl to $downloadlocation"
+    download $releaseurl $downloadlocation
 
+    If ($filetype -eq 'zip') {
+      info ' * Extracting zip...'
+      # remove older version if it is still there
+      Remove-Item "$Path\$Product.exe" -Force -ErrorAction Ignore
+      Add-Type -Assembly "System.IO.Compression.FileSystem"
+      [IO.Compression.ZipFile]::ExtractToDirectory($downloadlocation,$Path)
+      Remove-Item $downloadlocation -Force
+
+      success " * $Product was downloaded successfully! You can find it in $Path\$Product.exe"
+
+      If ($UpdateTask.ToLower() -eq 'enable') {
+        # Creating a scheduling task to automatically update the Mondoo client
+        $taskname = $Product + "Updater"
+        $taskpath = $Product
+        If(Get-ScheduledTask -TaskName $taskname -EA 0)
+        {
+            Unregister-ScheduledTask -TaskName $taskname -Confirm:$false
+        }
+        CreateAndRegisterMondooUpdaterTask $taskname $taskpath
+      }
+    } ElseIf ($filetype -eq 'msi') {
+      info ' * Installing msi package...'
+      $file = Get-Item $downloadlocation
+      $packageName = $Product
+      $timeStamp = Get-Date -Format yyyyMMddTHHmmss
+      $logFile = '{0}\{1}-{2}.MsiInstall.log' -f $env:TEMP, $packageName,$timeStamp
+      $argsList = @(
+          "/i"
+          ('"{0}"' -f $file.fullname)
+          "/qn"
+          "/norestart"
+          "/L*v"
+          $logFile
+      )
+
+      info (' * Run installer {0} and log into {1}' -f $downloadlocation, $logFile)
+      $process = Start-Process "msiexec.exe" -Wait -NoNewWindow -PassThru -ArgumentList $argsList
+      # https://docs.microsoft.com/en-us/windows/win32/msi/error-codes
+
+      If (![string]::IsNullOrEmpty($RegistrationToken)) {
+        info " * Register $Product Client"
+        # Set Proxy if enabled
+        If (![string]::IsNullOrEmpty($Proxy)) {
+          $env:https_proxy = $Proxy;
+        }
+        $program = "$Path\$Product.exe"
+        & $program "register", "-t", "$RegistrationToken", "--config", "C:\ProgramData\Mondoo\mondoo.yml"
+      }
+
+      If (@(0,3010) -contains $process.ExitCode) {
+        success " * $Product was installed successfully!"
+      } Else {
+        fail (" * $Product installation failed with exit code: {0}" -f $process.ExitCode)
+      }
+
+      # Check if Service parameter is set and Parameter Product is set to mondoo
+      If ($Service.ToLower() -eq 'enable' -and $Product.ToLower() -eq 'mondoo') {
+        # start Mondoo service
+        enable_service
+      }
+
+      If ($UpdateTask.ToLower() -eq 'enable') {
+        # Creating a scheduling task to automatically update the Mondoo client
+        $taskname = $Product + "Updater"
+        $taskpath = $Product
+        If (Get-ScheduledTask -TaskName $taskname -EA 0)
+        {
+            Unregister-ScheduledTask -TaskName $taskname -Confirm:$false
+        }
+        CreateAndRegisterMondooUpdaterTask $taskname $taskpath
+      }
+
+      Remove-Item $downloadlocation -Force
+
+    } Else {
+      fail "${filetype} is not supported for download"
+    }
+
+    # Display final message
+    info "
+    Thank you for installing $Product!"
+
+  } Else {
+    # Display final message
+    info "
+    Latest $Product version alread installed!"
+  }
+  info "
+    If you have any questions, please come join us in our Mondoo Community on GitHub Discussions:
+
+      * https://github.com/orgs/mondoohq/discussions
+    "
   # reset erroractionpreference
   $erroractionpreference = $previous_erroractionpreference
   }
