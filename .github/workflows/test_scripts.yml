@@ -1,5 +1,5 @@
 ---
-name: ShellCheck
+name: Script Linting
 
 on:
   pull_request:
@@ -18,3 +18,18 @@ jobs:
         with:
           ignore_paths: examples
           scandir: '.'
+
+  powershell:
+    name: Powershell Analyzer
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Run PSScriptAnalyzer
+        uses: microsoft/psscriptanalyzer-action@v1.1
+        with:
+          path: .\*.ps1
+          output: 'results.sarif'
+      - name: Upload SARIF results file
+        uses: github/codeql-action/upload-sarif@v1
+        with:
+          sarif_file: results.sarif
