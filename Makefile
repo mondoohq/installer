@@ -52,3 +52,9 @@ test/download_sh:
 	cd test/download_sh && docker build --no-cache -f ubuntu.Dockerfile .	
 	cd test/download_sh && docker build --no-cache -f opensuse.Dockerfile .
 	# cd test/download_sh && docker build --no-cache --build-arg mondoo_registration_token=${MONDOO_REGISTRATION_TOKEN} -f centos7.Dockerfile .
+
+.PHONY: test/powershell
+test/powershell:
+	pwsh -Command "Install-Module -Name PSScriptAnalyzer"
+	pwsh -Command "Invoke-ScriptAnalyzer -Path .\install.ps1"
+	pwsh -Command "Invoke-ScriptAnalyzer -Path .\download.ps1"
