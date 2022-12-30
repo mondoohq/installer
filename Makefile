@@ -58,3 +58,5 @@ test/powershell:
 	pwsh -Command "Install-Module -Name PSScriptAnalyzer"
 	pwsh -Command "Invoke-ScriptAnalyzer -Path .\install.ps1"
 	pwsh -Command "Invoke-ScriptAnalyzer -Path .\download.ps1"
+	pwsh -Command "Invoke-ScriptAnalyzer -Path .\powershell/Mondoo.Installer/Mondoo.Installer.psm1"
+	pwsh -Command "Test-ModuleManifest -Path ".\powershell\Mondoo.Installer\Mondoo.Installer.psd1""

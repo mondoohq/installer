@@ -1,0 +1,20 @@
+name: Release Powershell Module
+
+on:
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: windows-2022
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v3
+        with:
+          ref: "powershell-module" # Test, remove once tested successfully
+      - name: Publish Powershell Module
+        shell: powershell
+        env:
+          NUGETAPIKEY: ${{ secrets.NUGETAPIKEY }}
+        run: |
+          Test-ModuleManifest -Path ".\powershell\Mondoo.Installer\Mondoo.Installer.psd1"
+          Publish-Module -Path .\powershell\Mondoo.Installer -NuGetApiKey $env:NUGETAPIKEY
