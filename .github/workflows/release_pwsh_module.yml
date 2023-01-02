@@ -9,8 +9,6 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v3
-        with:
-          ref: "powershell-module" # Test, remove once tested successfully
       - name: Publish Powershell Module
         shell: powershell
         env:
