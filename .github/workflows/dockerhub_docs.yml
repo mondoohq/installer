@@ -3,7 +3,7 @@ name: Update Docker Hub docs
 on:
   push:
     branches:
-    - master
+    - main
 
 jobs:
   dockerhub_docs:
