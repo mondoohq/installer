@@ -69,3 +69,4 @@ jobs:
           git config --global user.name "Mondoo Tools"
           git commit -m "Update VERSION to $VERSION"
           git push -f
+  
