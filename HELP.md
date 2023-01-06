@@ -10,7 +10,7 @@
 
 ## cnquery
 
-###  via Shell Script (Linux and macOS)
+### via Shell Script (Linux and macOS)
 
 [`https://install.mondoo.com/sh/cnquery`](https://install.mondoo.com/sh/cnquery)
 
@@ -35,9 +35,15 @@ iex ((New-Object System.Net.WebClient).DownloadString('https://install.mondoo.co
 Install-Mondoo -Product cnquery;
 ```
 
+To login with Mondoo Platform:
+
+```bash
+cnquery login -t 'eyJh...llZ4BW'
+```
+
 ## cnspec
 
-###  via Shell Script (Linux and macOS)
+### via Shell Script (Linux and macOS)
 
 [`https://install.mondoo.com/sh/cnspec`](https://install.mondoo.com/sh/cnspec)
 
@@ -62,16 +68,25 @@ iex ((New-Object System.Net.WebClient).DownloadString('https://install.mondoo.co
 Install-Mondoo -Product cnspec;
 ```
 
+To login with Mondoo Platform:
+
+```bash
+cnspec login -t 'eyJh...llZ4BW'
+```
+
 # Package Information
 
 `https://install.mondoo.com/package/mondoo/{platform}/{arch}/{filetype}/{version}/{method}`
 
-The arguments support the following values
-  - **platform**: linux, windows, darwin
-  - **arch**:     amd64, arm64, armv7, armv6, 386
-  - **filetype**: tar.gz, deb, rpm, zip, pkg, msi
-  - **version**:  latest, or specific number
-  - **method**:   download, filename, version, sha256    
+The arguments support the following values:
+
+| Argument   | Values                                               |
+| ---------- | ---------------------------------------------------- |
+| `platform` | `linux`, `windows`, `darwin`                         |
+| `arch`     | `amd64`, `arm64`, `armv7`, `armv6`, `386`, `ppc64le` |
+| `filetype` | `tar.gz`, `deb`, `rpm`, `zip`, `pkg`, `msi`          |
+| `version`  | `latest` or specific number                          |
+| `method`   | `download`, `filename`, `version`, `sha256`          |
 
 ```bash
 # Download the latest version
