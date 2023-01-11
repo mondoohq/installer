@@ -7,25 +7,27 @@
 * Release Notes: https://mondoo.com/releases/
 * Documentation: [mondoo.com/docs](https://mondoo.com/docs/)
 * Where to get help: [Mondoo Community GitHub Discussions](https://github.com/orgs/mondoohq/discussions)
-* Dockerfile Source: https://github.com/mondoohq/client/blob/master/Dockerfile
-* Where to file issues: https://github.com/mondoohq/client/issues
+* Dockerfile Source: https://github.com/mondoohq/installer/blob/main/Dockerfile
+* Where to file issues: https://github.com/mondoohq/installer/issues
 * Mondoo Client Binary Downloads (Non-Container):  https://releases.mondoo.com/mondoo/
 * Supported Architectures: `amd64`, `arm64`, `i386`, `arm32v6`, `arm32v7`
 
 ## Supported tags
+
 - `latest` - always pinned to the latest release of Mondoo Client
 - `7` - always pinned to the latest release for a given major version
-- `7.2.0` - always pinned to a specific Mondoo Client release
+- `7.12.0` - always pinned to a specific Mondoo Client release
 
 ## UBI containers
+
 We offer a Mondoo Client container built on top of [Universal Base Image (UBI)](https://hub.docker.com/r/redhat/ubi8) by Red Hat. Note that the containers built with this base image support only the `amd64` and `arm64` architectures.
 
 Supported tags are:
 - `latest-ubi`
 - `7-ubi`
-- `7.2.0-ubi`
+- `7.12.0-ubi`
 
-The `Dockerfile` for these images can be found [here](https://github.com/mondoohq/client/blob/master/Dockerfile-ubi).
+The `Dockerfile` for these images can be found [here](https://github.com/mondoohq/installer/blob/main/Dockerfile-ubi).
 
 ## Rootless containers
 The default Mondoo Client container runs our binary as the `root` user. This makes it easy to run a filesystem scan on the host or to use our Cloud Run capabilities. If neither of these use-cases are applicable, we recommend using the rootless containers that we offer. Instead of running under the `root` user, the Mondoo Client will run using the `mondoo` user.
@@ -35,8 +37,8 @@ Supported tags are:
 - `latest-ubi-rootless`
 - `7-rootless`
 - `7-ubi-rootless`
-- `7.2.0-rootless`
-- `7.2.0-ubi-rootless`
+- `7.12.0-rootless`
+- `7.12.0-ubi-rootless`
 
 # What is Mondoo
 

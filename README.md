@@ -68,13 +68,13 @@ Example   | Phase | Description |
 
 **Mondoo Scripts**
 
-- [install.sh](./install.sh) - Mondoo Agent Bash Installer for Servers
-- [download.sh](./download.sh) - Mondoo Agent Bash Downloader for Workstation
+- [install.sh](./install.sh) - Mondoo Client Bash Installer for Servers
+- [download.sh](./download.sh) - Mondoo Client Bash Downloader for Workstation
 - [Dockerfile](./Dockerfile) - Build script for official Mondoo container
 
 **Docker Containers**
 
-- https://hub.docker.com/r/mondoolabs/mondoo
+- https://hub.docker.com/r/mondoo/client
 
 **Installation Packages**
 

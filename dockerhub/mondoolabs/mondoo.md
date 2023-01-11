@@ -9,15 +9,16 @@
 * Release Notes: https://mondoo.com/releases/
 * Documentation: [mondoo.com/docs](https://mondoo.com/docs/)
 * Where to get help: [Mondoo Community GitHub Discussions](https://github.com/orgs/mondoohq/discussions)
-* Dockerfile Source: https://github.com/mondoohq/client/blob/master/Dockerfile
-* Where to file issues: https://github.com/mondoohq/client/issues
+* Dockerfile Source: https://github.com/mondoohq/installer/blob/main/Dockerfile
+* Where to file issues: https://github.com/mondoohq/installer/issues
 * Mondoo Client Binary Downloads (Non-Container):  https://releases.mondoo.com/mondoo/
 * Supported Architectures: `amd64`, `arm64`, `i386`, `arm32v6`, `arm32v7`
 
 ## Supported tags
+
 - `latest` - always pinned to the latest release of Mondoo Client
 - `7` - always pinned to the latest release for a given major version
-- `7.2.0` - always pinned to a specific Mondoo Client release
+- `7.12.0` - always pinned to a specific Mondoo Client release
 
 # What is Mondoo
 

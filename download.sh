@@ -51,7 +51,7 @@ experiencing any issues, please do not hesitate to reach out:
 
   * Mondoo Community GitHub Discussions https://github.com/orgs/mondoohq/discussions
 
-This script source is available at: https://github.com/mondoohq/client
+This script source is available at: https://github.com/mondoohq/installer
 "
 
 base_url="${MONDOO_MIRROR:-https://install.mondoo.com/package}"
@@ -125,7 +125,7 @@ fi
 # Display final message
 purple_bold "\nThank you for downloading Mondoo!"
 echo -e "
-You can register the agent via:
+You can register the client via:
 
 MONDOO_REGISTRATION_TOKEN=\"ey..iU\"
 mondoo register --token \$MONDOO_REGISTRATION_TOKEN
@@ -135,5 +135,5 @@ Further information is available at https://mondoo.com/docs
 If you have any questions, please come join us in our Mondoo Community:
 
 * Mondoo Community GitHub Discussions https://github.com/orgs/mondoohq/discussions
-* Github: https://github.com/mondoohq/client
+* GitHub: https://github.com/mondoohq/
 "
