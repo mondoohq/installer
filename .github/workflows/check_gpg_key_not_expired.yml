@@ -1,0 +1,25 @@
+name: "Check Mondoo's GPG key is not expired"
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  check_gpg:
+    name: Check Mondoo's GPG key has not expired
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v3
+
+      - name: Install Mondoo cnspec
+        shell: bash
+        run: |
+          echo Installing Mondoo cnspec...
+          bash -c "$(curl -sSL https://install.mondoo.com/sh/cnspec)"
+      
+      - name: Check expiration of public-package-signing.gpg
+        shell: bash
+        run: |
+          cnspec scan local --detect-cicd --score-threshold 100 --policy-bundle test/cnspec/check-gpg.mql.yaml -o full

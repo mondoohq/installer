@@ -1,0 +1,28 @@
+# Read more about the policy structure at https://mondoo.com/docs/platform/policies/overview
+policies:
+  - uid: check-gpg
+    name: Check Mondoo's public package signing key
+    version: "1.0.0"
+    authors:
+      - name: Mondoo Inc
+        email: hello@mondoo.com
+    tags:
+      mondoo.com/platform: local
+      mondoo.com/category: security,gpg
+    specs:
+      - asset_filter:
+          query: asset.family.contains( _ == 'linux' )
+        scoring_queries:
+          check-gpg-not-expired:
+queries:
+  - uid: check-gpg-not-expired
+    title: Ensure the package signing gpg key is not expired
+    docs:
+      desc: |
+        GPG keys are used by Mondoo to digitally sign Linux/ UNix packages as a way for end-users to verify that the packages they receive has not been altered or compromised by a third party.
+    query: |
+      parse.openpgp( path: "./public-package-signing.gpg" ).all(
+        identities.all(
+          signatures.all( keyExpiresIn.days > 30 )
+        )
+      )
