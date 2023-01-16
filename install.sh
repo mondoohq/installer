@@ -57,7 +57,7 @@ on_error() {
   echo
   echo "* Mondoo Community GitHub Discussions https://github.com/orgs/mondoohq/discussions"
   echo
-  echo "* GitHub: https://github.com/mondoohq/client"
+  echo "* GitHub: https://github.com/mondoohq/installer"
   echo
   exit 1
 }
@@ -84,7 +84,7 @@ If you experience any issues, please reach us at:
 This installer is licensed under the Apache License, Version 2.0
 
   * GitHub:
-  https://github.com/mondoohq/client
+  https://github.com/mondoohq/installer
 
 "
 
