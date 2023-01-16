@@ -1,7 +1,0 @@
----
-- hosts: mondoo-clients
-  become: yes
-  roles:
-    - role: mondoolabs.mondoo
-      vars:
-        mondoo_registration_token: "changeme"
