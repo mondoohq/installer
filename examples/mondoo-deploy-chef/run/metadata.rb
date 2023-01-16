@@ -1,2 +1,0 @@
-name 'run'
-depends "mondoo"
