@@ -181,3 +181,187 @@ To browse all releases, please visit [https://releases.mondoo.com](https://relea
 
 - [Release Notes](https://mondoo.com/releases)
 - [Package Downloads](https://releases.mondoo.com)
+
+# Code Signature Verification
+
+Mondoo signs Microsoft Windows executables, PowerShell scripts, Linux packages and code signs Apple macOS executables. The public code signing certificate and public GPG key ist store in the [Installer Repo](https://github.com/mondoohq/installer).
+
+- Public certificate for code signing `public-code-signing.cer`
+- Public GPG key for package signing `public-package-signing.gpg`
+
+## Microsoft
+
+To verify the integrity of the Mondoo executable, please use Microsoft's Get-AuthenticodeSignature PowerShell command and compare the Thumbprint.
+
+```powershell
+$file = "mondoo_7.10.0_windows_amd64.msi"
+(Get-AuthenticodeSignature -FilePath $file).SignerCertificate | Format-List
+
+Subject      : CN="Mondoo, Inc", O="Mondoo, Inc", L=Cary, S=North Carolina, C=US
+Issuer       : CN=DigiCert Global G3 Code Signing ECC SHA384 2021 CA1, O="DigiCert, Inc.", C=US
+Thumbprint   : EE97D1E3C6CD96E06C47B0233DD7C6CE2684FA50
+FriendlyName :
+NotBefore    : 7/26/2022 12:00:00 AM
+NotAfter     : 8/23/2023 11:59:59 PM
+Extensions   : {System.Security.Cryptography.Oid, System.Security.Cryptography.Oid, System.Security.Cryptography.Oid,
+               System.Security.Cryptography.Oid...}
+```
+
+To verify the integrity of the Mondoo Powershell `install.ps1` script, please use Microsoft's Get-AuthenticodeSignature PowerShell command and compare the SignerCertificate.
+
+```powershell
+Get-AuthenticodeSignature .\install.ps1
+
+SignerCertificate                         Status
+-----------------                         ------
+EE97D1E3C6CD96E06C47B0233DD7C6CE2684FA50  Valid
+```
+
+## Apple macOS
+
+To verify the integrity of the Mondoo executable, please use Apple's codesign utility and compare the TeamIdentifier field, which should match the one below.
+
+```bash
+codesign --verify -d --verbose=2 /usr/local/bin/mondoo
+Executable=/Library/Mondoo/bin/mondoo
+Identifier=mondoo
+Format=Mach-O universal (x86_64 arm64)
+CodeDirectory v=20500 size=2060754 flags=0x10000(runtime) hashes=64393+2 location=embedded
+Signature size=9056
+Authority=Developer ID Application: Mondoo, Inc. (W2KUBWKG84)
+Authority=Developer ID Certification Authority
+Authority=Apple Root CA
+Timestamp=12. Jan 2023 at 23:51:56
+Info.plist=not bound
+TeamIdentifier=W2KUBWKG84
+Runtime Version=10.9.0
+Sealed Resources=none
+Internal requirements count=1 size=168
+```
+
+## Current & Previous PGP Public Keys
+
+### Current Key
+
+The current PGP public key from Mondoo has ID `00E1C42B` / fingerprint `4CE909E26AE7439C39CE7647AC69C65100E1C42B` and is:
+
+```
+-----BEGIN PGP PUBLIC KEY BLOCK-----
+
+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
+-----END PGP PUBLIC KEY BLOCK-----
+```
+
+### Previous Keys
+
+Key ID `00E1C42B` / fingerprint `4CE909E26AE7439C39CE7647AC69C65100E1C42B`:
+
+```
+-----BEGIN PGP PUBLIC KEY BLOCK-----
+
+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
+A8Hssvbbfw==
+=dMNn
+-----END PGP PUBLIC KEY BLOCK-----
+```
+
+You can download Mondoo's public PGP key from:
+
+- [https://releases.mondoo.com/debian/pubkey.gpg](https://releases.mondoo.com/debian/pubkey.gpg)
+- [https://releases.mondoo.com/rpm/pubkey.gpg](https://releases.mondoo.com/rpm/pubkey.gpg)
