@@ -16,10 +16,27 @@ jobs:
       - name: Install Mondoo cnspec
         shell: bash
         run: |
-          echo Installing Mondoo cnspec...
-          bash -c "$(curl -sSL https://install.mondoo.com/sh/cnspec)"
+          echo "Installing Mondoo cnspec and cnquery..."
+          bash -c "$(curl -sSL https://install.mondoo.com/sh/mondoo)"
+          
+      - name: Install OpenPGP & cURL
+        run: apt install gpg curl -y
       
       - name: Check expiration of public-code-signing.cer
         shell: bash
         run: |
           cnspec scan local --detect-cicd --score-threshold 100 --policy-bundle test/cnspec/check-certificate.mql.yaml -o full
+          
+      - name: Check Public GPG Signing Key Expiration (RPM)
+        shell: bash
+        run: |
+          curl -s https://releases.mondoo.com/rpm/pubkey.gpg | gpg --import
+          gpg --armor --export security@mondoo.com > mondoo.asc
+          cnspec run local -c 'parse.openpgp(path: "./mondoo.asc")  { primaryPublicKey { * } identities { id signatures { keyExpiresIn.days > 90 }  } }'
+          
+      - name: Check Public GPG Signing Key Expiration (Deb)
+        shell: bash
+        run: |
+          curl -s https://releases.mondoo.com/debian/pubkey.gpg | gpg --import
+          gpg --armor --export security@mondoo.com > mondoo.asc  ## cnquery/cnspec requies an ASCII Armored key
+          cnspec run local -c 'parse.openpgp(path: "./mondoo.asc")  { primaryPublicKey { * } identities { id signatures { keyExpiresIn.days > 90 }  } }'
