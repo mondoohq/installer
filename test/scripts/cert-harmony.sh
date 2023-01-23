@@ -12,23 +12,21 @@ curl -s -o mondoohq-installer-cert.asc https://raw.githubusercontent.com/mondooh
 printf "=> Comparing Github Installer vs RPM Repo..."
 curl -s -o mondoo-repo-rpm.gpg https://releases.mondoo.com/rpm/pubkey.gpg
 gpg  --keyring ./mondoo-repo-rpm.gpg --no-default-keyring --export -a > mondoo-repo-rpm.asc
-diff mondoohq-installer-cert.asc mondoo-repo-rpm.asc >/dev/null
-if [[ $? != 0 ]]; then
+if diff mondoohq-installer-cert.asc mondoo-repo-rpm.asc >/dev/null; then
+	echo "PASS"
+else
 	echo "FAIL"
 	FAIL=1
-else
-	echo "PASS"
 fi
 
 printf "=> Comparing Github Installer vs Deb Repo..."
 curl -s -o mondoo-repo-deb.gpg https://releases.mondoo.com/debian/pubkey.gpg
 gpg  --keyring ./mondoo-repo-deb.gpg --no-default-keyring --export -a > mondoo-repo-deb.asc
-diff mondoohq-installer-cert.asc mondoo-repo-deb.asc >/dev/null
-if [[ $? != 0 ]]; then
+if diff mondoohq-installer-cert.asc mondoo-repo-deb.asc >/dev/null; then
+	echo "PASS"
+else
 	echo "FAIL"
 	FAIL=1
-else
-	echo "PASS"
 fi
 
 rm -rf ${DIR}
