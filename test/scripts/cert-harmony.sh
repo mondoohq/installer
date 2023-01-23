@@ -5,7 +5,7 @@ echo "GPG Signing Cert Harmony Checker"
 FAIL=0
 DIR=/tmp/cert-${RANDOM}
 mkdir ${DIR}
-cd ${DIR}
+cd ${DIR} || exit 1
 
 curl -s -o mondoohq-installer-cert.asc https://raw.githubusercontent.com/mondoohq/installer/main/public-package-signing.gpg
 
