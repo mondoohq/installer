@@ -1,9 +1,9 @@
 name: "Check Mondoo's GPG key is not expired"
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
+  # Run every day at 00:00
+  schedule:
+    - cron:  '0 0 * * *'
 
 jobs:
   check_gpg:
@@ -23,3 +23,19 @@ jobs:
         shell: bash
         run: |
           cnspec scan local --detect-cicd --score-threshold 100 --policy-bundle test/cnspec/check-gpg.mql.yaml -o full
+
+      - name: Install OpenPGP & cURL
+        run: apt install gpg curl -y
+
+      - name: Check Public GPG Signing Key Harmony
+        shell: bash
+        run: |
+          bash test/scripts/cert-harmony.sh
+          
+      - name: Discord notification
+        uses: Ilshidur/action-discord@0.3.2
+        if: failure()
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+        with:
+          args: ':warning: Mondoo GPG key is expiring or out of sync!'
