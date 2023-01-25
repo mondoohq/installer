@@ -25,7 +25,7 @@ jobs:
           cnspec scan local --detect-cicd --score-threshold 100 --policy-bundle test/cnspec/check-gpg.mql.yaml -o full
 
       - name: Install OpenPGP & cURL
-        run: apt install gpg curl -y
+        run: sudo apt install gpg -y
 
       - name: Check Public GPG Signing Key Harmony
         shell: bash
