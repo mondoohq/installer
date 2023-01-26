@@ -332,28 +332,33 @@ configure_rhel_installer() {
 configure_debian_installer() {
   if [ -x "$(command -v apt)" ]; then
     MONDOO_INSTALLER="apt"
+    
+    apt_update() {
+        purple_bold "\n* Configuring APT package sources for Mondoo at /etc/apt/sources.list.d/mondoo.list"
+        APT_VERSION=$(dpkg-query --show --showformat '${Version}' apt)
+        if dpkg --compare-versions "${APT_VERSION}" le 1.0.2;
+        then
+          curl --retry 3 --retry-delay 10 -sSL https://releases.mondoo.com/debian/pubkey.gpg | sudo_cmd apt-key add -
+          echo "deb https://releases.mondoo.com/debian/ stable main" | sudo_cmd tee /etc/apt/sources.list.d/mondoo.list
+        else
+          curl --retry 3 --retry-delay 10 -sSL https://releases.mondoo.com/debian/pubkey.gpg | sudo_cmd gpg --dearmor --yes --output /usr/share/keyrings/mondoo-archive-keyring.gpg
+          echo "deb [signed-by=/usr/share/keyrings/mondoo-archive-keyring.gpg] https://releases.mondoo.com/debian/ stable main" | sudo_cmd tee /etc/apt/sources.list.d/mondoo.list
+        fi
+    }
+    
     mondoo_install() {
       purple_bold "\n* Installing prerequisites for Debian"
       sudo_cmd apt update -y
       sudo_cmd apt install -y apt-transport-https ca-certificates gnupg
-
-      purple_bold "\n* Configuring APT package sources for Mondoo at /etc/apt/sources.list.d/mondoo.list"
-      APT_VERSION=$(dpkg-query --show --showformat '${Version}' apt)
-      if dpkg --compare-versions "${APT_VERSION}" le 1.0.2;
-      then
-        curl --retry 3 --retry-delay 10 -sSL https://releases.mondoo.com/debian/pubkey.gpg | sudo_cmd apt-key add -
-        echo "deb https://releases.mondoo.com/debian/ stable main" | sudo_cmd tee /etc/apt/sources.list.d/mondoo.list
-      else
-        curl --retry 3 --retry-delay 10 -sSL https://releases.mondoo.com/debian/pubkey.gpg | sudo_cmd gpg --dearmor --output /usr/share/keyrings/mondoo-archive-keyring.gpg
-        echo "deb [signed-by=/usr/share/keyrings/mondoo-archive-keyring.gpg] https://releases.mondoo.com/debian/ stable main" | sudo_cmd tee /etc/apt/sources.list.d/mondoo.list
-      fi
-
-
+      apt_update
+      
       purple_bold "\n* Installing ${MONDOO_PRODUCT_NAME}"
       sudo_cmd apt update -y && sudo_cmd apt install -y ${MONDOO_PKG_NAME}
     }
 
     mondoo_update() {
+      # Always update GPG Key & Apt Source for Freshness
+      apt_update
       sudo_cmd apt update -y && sudo_cmd apt --only-upgrade install -y ${MONDOO_PKG_NAME}
     }
 
