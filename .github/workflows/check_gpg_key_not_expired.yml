@@ -38,4 +38,4 @@ jobs:
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
         with:
-          args: ':warning: Mondoo GPG key is expiring or out of sync!'
+          args: ':warning: Mondoo GPG key is expiring or out of sync!  (https://github.com/mondoohq/installer/actions/workflows/check_gpg_key_not_expired.yml)'
