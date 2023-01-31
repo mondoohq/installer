@@ -9,7 +9,7 @@ cd ${DIR} || exit 1
 
 curl -s -o mondoohq-installer-cert.asc https://raw.githubusercontent.com/mondoohq/installer/main/public-package-signing.gpg
 echo "REFERENCE KEY:"
-cat mondoohq-installer-cert.asc | gpg --show-keys --no-default-keyring
+< mondoohq-installer-cert.asc gpg --show-keys --no-default-keyring
 echo "--------------"
 
 printf "=> Comparing Github Installer vs RPM Repo..."
