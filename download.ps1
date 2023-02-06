@@ -86,7 +86,7 @@ $erroractionpreference = 'stop'
 If (($PSVersionTable.PSVersion.Major) -lt 5) {
   fail "
 The install script requires PowerShell 5 or later.
-To upgrade PowerShell visit https://docs.microsoft.com/en-us/powershell/scripting/setup/installing-windows-powershell
+To upgrade PowerShell, visit https://learn.microsoft.com/en-us/powershell/scripting/install/installing-powershell-on-windows
 "
 }
 

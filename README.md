@@ -68,7 +68,7 @@ Sign up for free [Mondoo Platform account](https://mondoo.com/docs/tutorials/mon
 cnspec login -t 'eyJh...llZ4BW'
 ```
 
-cnquery & cnspec support local, and remote targets including servers (Linux, Windows, macOS), Cloud (AWS, Azure, Google, VMware), Kubernetes (EKS, GKE, AKS, self-managed), containers, container registries, SaaS products (MS365, GitHub, GitLab), and more.
+cnquery & cnspec support local and remote targets, including servers (Linux, Windows, macOS), Cloud (AWS, Azure, Google, VMware), Kubernetes (EKS, GKE, AKS, self-managed), containers, container registries, SaaS products (Google Workspace, MS365, GitHub, GitLab), and more.
 
 Run a scan:
 
@@ -84,7 +84,7 @@ cnspec scan azure
 # scan a kubernetes cluster
 cnspec scan k8s
 
-# scan a docker image from remote registry
+# scan a docker image from a remote registry
 cnspec scan docker image centos:7
 
 # scan a docker container (get ids from docker ps)
@@ -194,7 +194,7 @@ Mondoo signs Microsoft Windows executables, PowerShell scripts, Linux packages a
 To verify the integrity of the Mondoo executable, please use Microsoft's Get-AuthenticodeSignature PowerShell command and compare the Thumbprint.
 
 ```powershell
-$file = "mondoo_7.10.0_windows_amd64.msi"
+$file = "mondoo_7.15.0_windows_amd64.msi"
 (Get-AuthenticodeSignature -FilePath $file).SignerCertificate | Format-List
 
 Subject      : CN="Mondoo, Inc", O="Mondoo, Inc", L=Cary, S=North Carolina, C=US

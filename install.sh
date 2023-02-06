@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (c) 2019-2022 Mondoo, Inc.
+# Copyright (c) 2019-2023 Mondoo, Inc.
 # License: Apache License, Version 2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,15 +21,15 @@
 # The script may use the following environment variables:
 #
 # MONDOO_REGISTRATION_TOKEN
-#     (Optional) Mondoo Registation Token. Systemd services
+#     (Optional) Mondoo Registration Token. Systemd services
 #     are only activated if Mondoo is properly authenticated.
 
 # Please note that we aim to be POSIX-compatible in this script.
-# If you find anything that violates this constraints please reach out.
+# If you find anything that violates these constraints, please reach out.
 # - https://unix.stackexchange.com/questions/73750/difference-between-function-foo-and-foo
 
 MONDOO_PRODUCT_NAME="Mondoo Client" # product name
-MONDOO_PKG_NAME="mondoo" # pkg name in package repository
+MONDOO_PKG_NAME="mondoo" # pkg name in the package repository
 MONDOO_BINARY="mondoo" # binary that we search for
 
 # define colors
@@ -120,7 +120,7 @@ fi
 # Installation detection
 # ----------------------
 # Note: https://stackoverflow.com/questions/592620/how-can-i-check-if-a-program-exists-from-a-bash-script
-# To be POSIX-compatible we will be using 'command' instead of 'hash' or 'type'.
+# To be POSIX-compatible, we will use 'command' instead of 'hash' or 'type'.
 #
 MONDOO_BINARY_PATH="${MONDOO_BINARY}" # default expects the binary in default path
 MONDOO_EXECUTABLE=""
@@ -511,13 +511,13 @@ postinstall_check() {
 
 finalize_setup() {
 
-  # If registration token is provided, register client
+  # If a registration token is provided, register the client
   configure_token
 
   # Display final message
   purple_bold "\n${MONDOO_PRODUCT_NAME} is ready to go!"
 
-  # Only if installing Mondoo Client, warn user to register. Do not warn open source users.
+  # Only if installing Mondoo Client, warn the user to register. Do not warn open source users.
   if [ "$MONDOO_PRODUCT_NAME" = "Mondoo Client" ]; then
     detect_mondoo_registered
     if [ "$MONDOO_IS_REGISTERED" = false ]; then

@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (c) 2019-2021 Mondoo, Inc.
+# Copyright (c) 2019-2023 Mondoo, Inc.
 # License: Apache License, Version 2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -46,7 +46,7 @@ purple "
 "
                  
 echo -e "\nWelcome to the Mondoo Binary Download Script. It tries to auto-detect your 
-operating system and determines the appropriate binnary for your platform. If you are 
+operating system and determines the appropriate binary for your platform. If you are 
 experiencing any issues, please do not hesitate to reach out: 
 
   * Mondoo Community GitHub Discussions https://github.com/orgs/mondoohq/discussions
@@ -60,31 +60,31 @@ version="${MONDOO_VERSION:-latest}"
 
 fail() {
   echo -e "${red}${1}${end}";
-	exit 1;
+    exit 1;
 }
 
 arch=""
 case "$(uname -m)" in
-	x86_64)  arch="amd64" ;;
-	i386)    arch="386" ;;
-	i686)    arch="386" ;;
-	arm)     arch="arm" ;;
-	aarch64) arch="arm64";;
-	arm64)   arch="arm64";;
-	*)       fail "Cannot detect architecture" ;;
+    x86_64)  arch="amd64" ;;
+    i386)    arch="386" ;;
+    i686)    arch="386" ;;
+    arm)     arch="arm" ;;
+    aarch64) arch="arm64";;
+    arm64)   arch="arm64";;
+    *)       fail "Cannot detect architecture" ;;
 esac
 
 os=""
 case "$(uname -s)" in
-	Linux)  os="linux" ;;
-	Darwin) os="darwin" ;;
-	DragonFly) os="dragonfly" ;;
-	GNU/kFreeBSD) os="freebsd" ;;
-	FreeBSD) os="freebsd" ;;
-	OpenBSD) os="openbsd" ;;
-	SunOS) os="solaris" ;;
-	NetBSD) os="netbsd" ;;
-	*)      fail "Cannot detect OS" ;;
+    Linux)  os="linux" ;;
+    Darwin) os="darwin" ;;
+    DragonFly) os="dragonfly" ;;
+    GNU/kFreeBSD) os="freebsd" ;;
+    FreeBSD) os="freebsd" ;;
+    OpenBSD) os="openbsd" ;;
+    SunOS) os="solaris" ;;
+    NetBSD) os="netbsd" ;;
+    *)      fail "Cannot detect OS" ;;
 esac
 
 # determine sha tool based on os
@@ -111,10 +111,10 @@ echo -e "Expected binary hash: ${expectedSha}"
 
 # extract binary
 if [ "$binarySha" = "$expectedSha" ]; then
-  purple "Download matches the exepected hash ${binarySha}"
+  purple "Download matches the expected hash ${binarySha}"
   tar -xf "${filename}"
   chmod +x "${product}"
-	rm "${filename}"
+    rm "${filename}"
   purple "Installed to $(pwd)/${product}"
 else
   # clean up on error
