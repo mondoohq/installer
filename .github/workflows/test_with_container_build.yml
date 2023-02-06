@@ -18,7 +18,7 @@ jobs:
           - "opensuse_leap.Dockerfile"
           - "redhat.Dockerfile"
           - "ubuntu.Dockerfile"
-    name: Install Mondoo inside containers to test new releases
+    name: Install Mondoo
     steps:
       - name: Clone repository
         uses: actions/checkout@v3
@@ -34,7 +34,7 @@ jobs:
       - name: Set up Docker BuildX
         uses: docker/setup-buildx-action@v2
 
-      - name: Build and push root images (alpine)
+      - name: Build image
         uses: docker/build-push-action@v3
         with:
           context: .
