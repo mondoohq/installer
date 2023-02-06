@@ -21,7 +21,7 @@ jobs:
     name: Install Mondoo inside containers to test new releases
     steps:
       - name: Clone repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
