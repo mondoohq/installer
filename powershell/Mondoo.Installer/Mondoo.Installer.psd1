@@ -1,4 +1,4 @@
-# Copyright (c) Mondoo, Inc. All rights reserved.
+# Copyright (c) 2022 Mondoo, Inc. All rights reserved.
 # Licensed under the Apache 2 License.
 
 @{
@@ -7,7 +7,7 @@
     RootModule = './Mondoo.Installer.psm1'
     
     # Version number of this module.
-    ModuleVersion = '1.0.3'
+    ModuleVersion = '1.0.4'
     
     # Supported PSEditions
     # CompatiblePSEditions = @()
