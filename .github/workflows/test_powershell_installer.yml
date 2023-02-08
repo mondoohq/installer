@@ -1,0 +1,21 @@
+name: Test PowerShell Installer
+
+on:
+  workflow_dispatch:
+
+jobs:
+  sign_scripts:
+    name: Run PowerShell module
+    runs-on: windows-2022
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v3
+
+      - name: Install mondoo package
+        shell: powershell
+        run: |
+          Set-PSRepository PSGallery -InstallationPolicy Trusted
+          Get-PSRepository
+          Install-Module -Name Mondoo.Installer -Force
+          Install-Mondoo
+          & 'C:\Program Files\Mondoo\cnspec.exe' version
