@@ -28,7 +28,7 @@
 # If you find anything that violates these constraints, please reach out.
 # - https://unix.stackexchange.com/questions/73750/difference-between-function-foo-and-foo
 
-MONDOO_PRODUCT_NAME="Mondoo Client" # product name
+MONDOO_PRODUCT_NAME="mondoo package for cnquery and cnspec" # product name
 MONDOO_PKG_NAME="mondoo" # pkg name in the package repository
 MONDOO_BINARY="mondoo" # binary that we search for
 
@@ -445,7 +445,7 @@ detect_mondoo_registered() {
 
 configure_token() {
   if [ -z "${MONDOO_REGISTRATION_TOKEN}" ]; then
-    if [ "$MONDOO_PRODUCT_NAME" = "Mondoo Client" ]; then
+    if [ "$MONDOO_PRODUCT_NAME" = "mondoo package for cnquery and cnspec" ]; then
       echo -e "\n* No registration token provided, skipping ${MONDOO_PRODUCT_NAME} registration."
     fi
     return
@@ -517,8 +517,8 @@ finalize_setup() {
   # Display final message
   purple_bold "\n${MONDOO_PRODUCT_NAME} is ready to go!"
 
-  # Only if installing Mondoo Client, warn the user to register. Do not warn open source users.
-  if [ "$MONDOO_PRODUCT_NAME" = "Mondoo Client" ]; then
+  # Deprecated: Only relevant for installing the mondoo package, warn the user to register. Do not warn open source users.
+  if [ "$MONDOO_PRODUCT_NAME" = "mondoo package for cnquery and cnspec" ]; then
     detect_mondoo_registered
     if [ "$MONDOO_IS_REGISTERED" = false ]; then
       echo

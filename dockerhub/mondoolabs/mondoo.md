@@ -11,7 +11,7 @@
 * Where to get help: [Mondoo Community GitHub Discussions](https://github.com/orgs/mondoohq/discussions)
 * Dockerfile Source: https://github.com/mondoohq/installer/blob/main/Dockerfile
 * Where to file issues: https://github.com/mondoohq/installer/issues
-* Mondoo Client Binary Downloads (Non-Container):  https://releases.mondoo.com/mondoo/
+* cnquery & cnspecv binary & package downloads (Non-Container):  https://releases.mondoo.com/mondoo/
 * Supported Architectures: `amd64`, `arm64`, `i386`, `arm32v6`, `arm32v7`
 
 ## Supported tags

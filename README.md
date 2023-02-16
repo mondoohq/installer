@@ -114,12 +114,12 @@ https://install.mondoo.com/package/mondoo/linux/arm64/rpm/latest/download
 ```
 
 ```bash
-# Get the filename for the latest Mondoo Client
+# Get the filename for the latest mondoo package
 https://install.mondoo.com/package/mondoo/linux/arm64/rpm/latest/filename
 ```
 
 ```bash
-# Get the version for the latest Mondoo Client
+# Get the version for the latest mondoo package
 https://install.mondoo.com/package/mondoo/linux/arm64/rpm/latest/version
 ```
 

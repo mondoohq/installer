@@ -104,7 +104,7 @@ function Install-Mondoo {
   }
 
   function enable_service() {
-    info "Set Mondoo Client to run as a service automatically at startup and start the service"
+    info "Set cnspec to run as a service automatically at startup and start the service"
     Set-Service -Name mondoo -Status Running -StartupType Automatic
     If(![string]::IsNullOrEmpty($Proxy)) {
       # set register key for Mondoo Service to use proxy for internet connection
@@ -274,7 +274,7 @@ function Install-Mondoo {
       success " * $Product was downloaded successfully! You can find it in $Path\$Product.exe"
 
       If ($UpdateTask.ToLower() -eq 'enable') {
-        # Creating a scheduling task to automatically update the Mondoo client
+        # Creating a scheduling task to automatically update the Mondoo package
         $taskname = $Product + "Updater"
         $taskpath = $Product
         If(Get-ScheduledTask -TaskName $taskname -EA 0)
@@ -325,7 +325,7 @@ function Install-Mondoo {
       }
 
       If ($UpdateTask.ToLower() -eq 'enable') {
-        # Creating a scheduling task to automatically update the Mondoo client
+        # Creating a scheduling task to automatically update the Mondoo package
         $taskname = $Product + "Updater"
         $taskpath = $Product
         If (Get-ScheduledTask -TaskName $taskname -EA 0)
