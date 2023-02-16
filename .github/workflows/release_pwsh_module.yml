@@ -1,4 +1,4 @@
-name: Release Powershell Module
+name: Release PowerShell Module
 
 on:
   workflow_dispatch:
@@ -9,7 +9,7 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v3
-      - name: Publish Powershell Module
+      - name: Publish PowerShell Module
         shell: powershell
         env:
           NUGETAPIKEY: ${{ secrets.NUGETAPIKEY }}

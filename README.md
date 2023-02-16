@@ -19,7 +19,7 @@
 bash -c "$(curl -sSL https://install.mondoo.com/sh/cnquery)"
 ```
 
-### via Powershell (Windows)
+### via PowerShell (Windows)
 
 [`https://install.mondoo.com/ps1/cnquery`](https://install.mondoo.com/ps1/cnquery)
 
@@ -40,7 +40,7 @@ Install-Mondoo -Product cnquery;
 bash -c "$(curl -sSL https://install.mondoo.com/sh/cnspec)"
 ```
 
-### via Powershell (Windows)
+### via PowerShell (Windows)
 
 [`https://install.mondoo.com/ps1/cnspec`](https://install.mondoo.com/ps1/cnspec)
 
@@ -164,8 +164,8 @@ To browse all releases, please visit [https://releases.mondoo.com](https://relea
 
 - [install.sh](https://github.com/mondoohq/installer/blob/main/install.ps1) - `cnquery` & `cnspec` Bash Installer
 - [download.sh](https://github.com/mondoohq/installer/blob/main/download.sh) - `cnquery` & `cnspec` Bash Binary Downloader
-- [install.ps1](https://github.com/mondoohq/installer/blob/main/install.ps1) - `cnquery` & `cnspec` Powershell Installer
-- [download.ps1](https://github.com/mondoohq/installer/blob/main/download.ps1) - `cnquery` & `cnspec` Powershell Binary Downloader
+- [install.ps1](https://github.com/mondoohq/installer/blob/main/install.ps1) - `cnquery` & `cnspec` PowerShell Installer
+- [download.ps1](https://github.com/mondoohq/installer/blob/main/download.ps1) - `cnquery` & `cnspec` PowerShell Binary Downloader
 
 **Config Management**
 
@@ -207,7 +207,7 @@ Extensions   : {System.Security.Cryptography.Oid, System.Security.Cryptography.O
                System.Security.Cryptography.Oid...}
 ```
 
-To verify the integrity of the Mondoo Powershell `install.ps1` script, please use Microsoft's Get-AuthenticodeSignature PowerShell command and compare the SignerCertificate.
+To verify the integrity of the Mondoo PowerShell `install.ps1` script, please use Microsoft's Get-AuthenticodeSignature PowerShell command and compare the SignerCertificate.
 
 ```powershell
 Get-AuthenticodeSignature .\install.ps1
