@@ -525,7 +525,7 @@ finalize_setup() {
       lightblue_bold "Next you should register ${MONDOO_PRODUCT_NAME} to get access to policies and reports."
       lightblue_bold "Follow this guide: "
       echo
-      lightblue_bold "https://mondoo.com/docs/operating_systems/installation/registration/"
+      lightblue_bold "https://mondoo.com/docs/cnspec/cnspec-adv-install/registration/"
       echo
     else
       echo
