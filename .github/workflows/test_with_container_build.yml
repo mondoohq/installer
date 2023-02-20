@@ -1,6 +1,10 @@
 name: Test Mondoo Releases with Container Builds
 
 on:
+  workflow_run:
+    workflows: ['Update Release Version'] # runs after release
+    types:
+      - completed
   workflow_dispatch:
 
 
