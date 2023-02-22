@@ -74,9 +74,9 @@ purple "
 :_;:_;:_;\`.__.':_;:_;\`.__.'\`.__.'\`.__.
 "
 
-echo -e "\nWelcome to the ${MONDOO_PRODUCT_NAME} installer. We will auto-detect
-your operating system to determine the best installation method.
-If you experience any issues, please reach us at:
+echo -e "\nWelcome to the ${MONDOO_PRODUCT_NAME} installer. We
+will auto-detect your operating system to determine the best installation
+method. If you experience any issues, please reach us at:
 
   * Mondoo Community GitHub Discussions:
     https://github.com/orgs/mondoohq/discussions
@@ -85,7 +85,6 @@ This installer is licensed under the Apache License, Version 2.0
 
   * GitHub:
   https://github.com/mondoohq/installer
-
 "
 
 # Detect operating system
@@ -234,7 +233,7 @@ configure_macos_installer() {
       brew tap mondoohq/mondoo
 
       purple_bold "\n* Installing ${MONDOO_PRODUCT_NAME} via 'brew install'"
-      brew install ${MONDOO_PKG_NAME}
+      brew install ${MONDOO_PKG_NAME} -q
     }
 
     mondoo_update() {
@@ -244,7 +243,7 @@ configure_macos_installer() {
         brew uninstall ${MONDOO_PKG_NAME} && brew untap mondoolabs/mondoo
         brew tap mondoohq/mondoo && brew install ${MONDOO_PKG_NAME}
       else
-        brew upgrade ${MONDOO_PKG_NAME}
+        brew upgrade ${MONDOO_PKG_NAME} -q
       fi
     }
 
@@ -529,7 +528,7 @@ finalize_setup() {
       echo
     else
       echo
-      lightblue_bold "Run 'mondoo scan local' to scan this system or learn more in our quick start docs: https://mondoo.com/docs/"
+      lightblue_bold "  Run 'mondoo scan local' to scan localhost, or learn more in our\n  quick start docs: https://mondoo.com/docs/"
       echo
     fi
   else
