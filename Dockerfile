@@ -6,7 +6,7 @@
 # To build rootless images with BuildX:   docker buildx build --build-arg VERSION=5.21.0 --platform 
 #             linux/386,linux/amd64,linux/arm/v7,linux/arm64 --target rootless -t mondoolabs/mondoo:5.21.0 . --push
 
-FROM alpine:3.15 AS root
+FROM alpine:3.17 AS root
 ARG VERSION
 
 ARG TARGETOS
