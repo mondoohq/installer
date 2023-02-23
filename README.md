@@ -96,7 +96,7 @@ cnspec scan ssh ec2-user@54.76.229.223
 
 # Package Information
 
-`https://install.mondoo.com/package/mondoo/{platform}/{arch}/{filetype}/{version}/{method}`
+`https://install.mondoo.com/package/cnspec/{platform}/{arch}/{filetype}/{version}/{method}`
 
 The arguments support the following values:
 
@@ -110,32 +110,32 @@ The arguments support the following values:
 
 ```bash
 # Download the latest version
-https://install.mondoo.com/package/mondoo/linux/arm64/rpm/latest/download
+https://install.mondoo.com/package/cnspec/linux/arm64/rpm/latest/download
 ```
 
 ```bash
-# Get the filename for the latest mondoo package
-https://install.mondoo.com/package/mondoo/linux/arm64/rpm/latest/filename
+# Get the filename for the latest cnspec package
+https://install.mondoo.com/package/cnspec/linux/arm64/rpm/latest/filename
 ```
 
 ```bash
-# Get the version for the latest mondoo package
-https://install.mondoo.com/package/mondoo/linux/arm64/rpm/latest/version
+# Get the version for the latest cnspec package
+https://install.mondoo.com/package/cnspec/linux/arm64/rpm/latest/version
 ```
 
 ```bash
-# Get the sha256 for the latest Mondoo Client
-https://install.mondoo.com/package/mondoo/linux/arm64/rpm/latest/sha256
+# Get the sha256 for the latest cnspec client
+https://install.mondoo.com/package/cnspec/linux/arm64/rpm/latest/sha256
 ```
 
 ```bash
-# Download a specific version of Mondoo Client
-https://install.mondoo.com/package/mondoo/linux/arm64/rpm/5.21.1/download
+# Download a specific version of cnspec client
+https://install.mondoo.com/package/cnspec/linux/arm64/rpm/5.21.1/download
 ```
 
 ```
-# Get the sha256 for a specific version of Mondoo Client
-https://install.mondoo.com/package/mondoo/linux/arm64/rpm/5.21.1/sha256
+# Get the sha256 for a specific version of cnspec Client
+https://install.mondoo.com/package/cnspec/linux/arm64/rpm/5.21.1/sha256
 ```
 
 # Kubernetes
