@@ -9,25 +9,7 @@
 FROM docker.io/mondoo/cnspec:${VERSION} AS root
 ARG VERSION
 
-ARG TARGETOS
-ARG TARGETARCH
-ARG TARGETVARIANT
-
-ARG BASEURL="https://releases.mondoo.com/mondoo/${VERSION}"
-ARG PACKAGE="mondoo_${VERSION}_${TARGETOS}_${TARGETARCH}${TARGETVARIANT}.tar.gz"
-
-RUN apk update &&\
-    apk add ca-certificates wget tar &&\
-    wget --quiet --output-document=SHA256SUMS ${BASEURL}/checksums.linux.txt &&\
-    wget --quiet --output-document=${PACKAGE} ${BASEURL}/${PACKAGE} &&\
-    cat SHA256SUMS | grep "${PACKAGE}" | sha256sum -c - &&\
-    tar -xzC /usr/local/bin -f ${PACKAGE} &&\
-    /usr/local/bin/mondoo version &&\
-    rm -f ${PACKAGE} SHA256SUMS &&\
-    apk del wget tar --quiet &&\
-    rm -rf /var/cache/apk/*
- 
-ENTRYPOINT [ "mondoo" ]
+ENTRYPOINT [ "cnquery" ]
 CMD ["help"]
 
 # Rootless version of the container
