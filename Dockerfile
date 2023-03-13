@@ -9,7 +9,7 @@
 FROM docker.io/mondoo/cnspec:${VERSION} AS root
 ARG VERSION
 
-ENTRYPOINT [ "cnquery" ]
+ENTRYPOINT [ "cnspec" ]
 CMD ["help"]
 
 # Rootless version of the container
