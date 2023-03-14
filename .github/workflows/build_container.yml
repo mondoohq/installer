@@ -42,11 +42,11 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
           
-      - name: Build and push root images (alpine)
+      - name: Build and push root images
         uses: docker/build-push-action@v4
         with:
           context: .
-          platforms: linux/386,linux/amd64,linux/arm64,linux/arm/v6,linux/arm/v7
+          platforms: linux/amd64,linux/arm64,linux/arm/v6,linux/arm/v7
           push: true
           build-args: VERSION=${{ steps.vars.outputs.tag }}
           target: root
@@ -58,11 +58,11 @@ jobs:
             mondoo/client:${{ steps.semver.outputs.major }}
             mondoo/client:latest
 
-      - name: Build and push rootless images (alpine)
+      - name: Build and push rootless images
         uses: docker/build-push-action@v4
         with:
           context: .
-          platforms: linux/386,linux/amd64,linux/arm64,linux/arm/v6,linux/arm/v7
+          platforms: linux/amd64,linux/arm64,linux/arm/v6,linux/arm/v7
           push: true
           build-args: VERSION=${{ steps.vars.outputs.tag }}
           target: rootless
