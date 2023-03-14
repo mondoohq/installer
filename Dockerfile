@@ -9,6 +9,8 @@
 ARG VERSION
 FROM docker.io/mondoo/cnspec:${VERSION} AS root
 
+RUN ln -s /usr/local/bin/cnspec /usr/local/bin/mondoo
+
 ENTRYPOINT [ "cnspec" ]
 CMD ["help"]
 

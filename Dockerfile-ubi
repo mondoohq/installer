@@ -10,19 +10,28 @@ ARG TARGETOS
 ARG TARGETARCH
 ARG TARGETVARIANT
 
-ARG BASEURL="https://releases.mondoo.com/cnspec/${VERSION}"
-ARG PACKAGE="cnspec_${VERSION}_${TARGETOS}_${TARGETARCH}${TARGETVARIANT}.tar.gz"
+ARG CNQUERY_BASEURL="https://releases.mondoo.com/cnquery/${VERSION}"
+ARG CNQUERY_PACKAGE="cnquery_${VERSION}_${TARGETOS}_${TARGETARCH}${TARGETVARIANT}.tar.gz"
+ARG CNSPEC_BASEURL="https://releases.mondoo.com/cnspec/${VERSION}"
+ARG CNSPEC_PACKAGE="cnspec_${VERSION}_${TARGETOS}_${TARGETARCH}${TARGETVARIANT}.tar.gz"
 
 RUN microdnf upgrade -y &&\
     microdnf install wget tar gzip -y &&\
-    wget --quiet --output-document=SHA256SUMS ${BASEURL}/cnspec_v${VERSION}_SHA256SUMS &&\
-    wget --quiet --output-document=${PACKAGE} ${BASEURL}/${PACKAGE} &&\
-    cat SHA256SUMS | grep "${PACKAGE}" | sha256sum -c - &&\
-    tar -xzC /usr/local/bin -f ${PACKAGE} &&\
+    wget --quiet --output-document=SHA256SUMS ${CNQUERY_BASEURL}/cnquery_v${VERSION}_SHA256SUMS &&\
+    wget --quiet --output-document=${CNQUERY_PACKAGE} ${CNQUERY_BASEURL}/${CNQUERY_PACKAGE} &&\
+    cat SHA256SUMS | grep "${CNQUERY_PACKAGE}" | sha256sum -c - &&\
+    tar -xzC /usr/local/bin -f ${CNQUERY_PACKAGE} &&\
+    /usr/local/bin/cnquery version &&\
+    rm -f ${CNQUERY_PACKAGE} SHA256SUMS &&\
+    wget --quiet --output-document=SHA256SUMS ${CNSPEC_BASEURL}/cnspec_v${VERSION}_SHA256SUMS &&\
+    wget --quiet --output-document=${CNSPEC_PACKAGE} ${CNSPEC_BASEURL}/${CNSPEC_PACKAGE} &&\
+    cat SHA256SUMS | grep "${CNSPEC_PACKAGE}" | sha256sum -c - &&\
+    tar -xzC /usr/local/bin -f ${CNSPEC_PACKAGE} &&\
     /usr/local/bin/cnspec version &&\
-    rm -f ${PACKAGE} SHA256SUMS &&\
+    rm -f ${CNSPEC_PACKAGE} SHA256SUMS &&\
     microdnf remove wget tar gzip -y &&\
     rm -rf /var/cache/dnf/*
+RUN ln -s /usr/local/bin/cnspec /usr/local/bin/mondoo
 
 ENTRYPOINT [ "cnspec" ]
 CMD ["help"]
