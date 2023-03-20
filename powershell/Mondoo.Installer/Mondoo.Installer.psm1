@@ -354,7 +354,16 @@ function Install-Mondoo {
     If you have any questions, please come join us in our Mondoo Community on GitHub Discussions:
 
       * https://github.com/orgs/mondoohq/discussions
+
+    Configure cnspec to run as a service and get continuous security reports using PowerShell:
+
+      Set-Service -Name mondoo -Status Running -StartupType Automatic
+
+    Scan your system now and view your results at https://console.mondoo.com:
+
+      cnspec scan
     "
+  $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
   # reset erroractionpreference
   $erroractionpreference = $previous_erroractionpreference
   }
