@@ -13,11 +13,11 @@ on:
 jobs:
   build-mondoo-payloads:
     runs-on: ubuntu-latest
+    env:
+      VERSION: ${{ github.event.inputs.version }}
     steps:
       - uses: actions/checkout@v3
       - name: make destination dir
-        env:
-          VERSION: ${{ github.event.inputs.version }}
         run: |
           mkdir dist
       - name: Tar up mondoo.sh
@@ -30,6 +30,7 @@ jobs:
           zip dist/mondoo_${VERSION}_windows.zip mondoo.ps1
       - name: install RPM tools
         run: |
+          apt update
           apt install -y rpm gpg
       - name: build RPM
         run: |
