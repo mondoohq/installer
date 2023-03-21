@@ -99,10 +99,10 @@ jobs:
           files: |
             helper/dist/mondoo.sh
             helper/dist/mondoo.ps1
-            helper/dist/mondoo_${VERSION}_windows.zip
-            helper/dist/mondoo_${VERSION}_linux.tar.gz
-            helper/dist/mondoo_${VERSION}_linux_noarch.rpm
-            helper/dist/mondoo_${VERSION}_linux_noarch.deb
+            helper/dist/mondoo_${{ github.event.inputs.version }}_windows_noarch.zip
+            helper/dist/mondoo_${{ github.event.inputs.version }}_linux_noarch.tar.gz
+            helper/dist/mondoo_${{ github.event.inputs.version }}_linux_noarch.rpm
+            helper/dist/mondoo_${{ github.event.inputs.version }}_linux_noarch.deb
             
       - name: Create Artifacts
         uses: actions/upload-artifact@v2
