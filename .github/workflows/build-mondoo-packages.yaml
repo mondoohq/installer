@@ -95,6 +95,7 @@ jobs:
       - name: Upload files to Github Release Page
         uses: softprops/action-gh-release@v1
         with:
+          tag_name: ${{ github.event.inputs.version }}
           files: |
             helper/dist/mondoo.sh
             helper/dist/mondoo.ps1
