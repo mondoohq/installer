@@ -86,8 +86,8 @@ jobs:
         run: |
           gsutil cp helper/dist/mondoo.sh                          gs://releases-us.mondoo.io/mondoo/${VERSION}/mondoo.sh
           gsutil cp helper/dist/mondoo.ps1                         gs://releases-us.mondoo.io/mondoo/${VERSION}/mondoo.ps1
-          gsutil cp helper/dist/mondoo_${VERSION}_windows.zip      gs://releases-us.mondoo.io/mondoo/${VERSION}/mondoo_${VERSION}_windows_noarch.zip
-          gsutil cp helper/dist/mondoo_${VERSION}_linux.tar.gz     gs://releases-us.mondoo.io/mondoo/${VERSION}/mondoo_${VERSION}_linux_noarch.tar.gz
+          gsutil cp helper/dist/mondoo_${VERSION}_windows_noarch.zip      gs://releases-us.mondoo.io/mondoo/${VERSION}/mondoo_${VERSION}_windows_noarch.zip
+          gsutil cp helper/dist/mondoo_${VERSION}_linux_noarch.tar.gz     gs://releases-us.mondoo.io/mondoo/${VERSION}/mondoo_${VERSION}_linux_noarch.tar.gz
           gsutil cp helper/dist/mondoo_${VERSION}_linux_noarch.rpm gs://releases-us.mondoo.io/mondoo/${VERSION}/mondoo_${VERSION}_linux_noarch.rpm
           gsutil cp helper/dist/mondoo_${VERSION}_linux_noarch.deb gs://releases-us.mondoo.io/mondoo/${VERSION}/mondoo_${VERSION}_linux_noarch.deb
           gsutil cp helper/dist/checksums.linux.txt                gs://releases-us.mondoo.io/mondoo/${VERSION}/checksums.linux.txt
