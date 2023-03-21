@@ -11,7 +11,67 @@ on:
         default: '1.2.3'
 
 jobs:
+  build-mondoo-payloads:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: make destination dir
+        env:
+          VERSION: ${{ github.event.inputs.version }}
+        run: |
+          mkdir dist
+      - name: Tar up mondoo.sh
+        run: |
+          cp mondoo.sh mondoo
+          tar czf dist/mondoo_${VERSION}_linux.tar.gz ./mondoo
+          rm mondoo
+      - name: zip up mondoo.ps1
+        run: |
+          zip dist/mondoo_${VERSION}_windows.zip mondoo.ps1
+      - name: install RPM tools
+        run: |
+          apt install -y rpm gpg
+      - name: build RPM
+        run: |
+          ./build-rpms.sh ${VERSION} ./dist
+      # PUT GPG FILES IN THEIR RIGHT PLACE
+      - name: sign RPM
+        run: |
+          rpmsign --define='%_gpg_name Hello Mondoo' --addsign ./dist/*rpm
+      - name: build DEB
+        run: |
+          ./build-deb.sh ${VERSION} ./dist
+      #- name: sign DEB???
+      - name: generate checksums
+        run: |
+          cd dist
+          sha256sum *linux* > checksums.linux.txt
+          cd -
+      - name: Authenticate with GCloud
+        uses: 'google-github-actions/auth@v1'
+        with:
+          credentials_json: '${{ secrets.GCP_CREDENTIALS }}'
+      - name: Setup GCloud SDK
+        uses: 'google-github-actions/setup-gcloud@v1'
+      - name: upload files
+        run: |
+          gsutil cp dist/mondoo_${VERSION}_windows.zip gs://releases-us.mondoo.io/mondoo/${VERSION}/mondoo_${VERSION}_windows.zip
+          gsutil cp dist/mondoo_${VERSION}_linux.tar.gz gs://releases-us.mondoo.io/mondoo/${VERSION}/mondoo_${VERSION}_linux.tar.gz
+          gsutil cp dist/mondoo_${VERSION}_linux_noarch.rpm gs://releases-us.mondoo.io/mondoo/${VERSTION}/mondoo_${VERSION}_linux_noarch.rpm
+          gsutil cp dist/mondoo_${VERSION}_linux_noarch.deb gs://releases-us.mondoo.io/mondoo/${VERSION}/mondoo_${VERSION}_linux_noarch.deb
+          gsutil cp dist/checksums.linux.txt gs://releases-us.mondoo.io/mondoo/${VERSION}/checksums.linux.txt
+      - name: release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            dist/mondoo_${VERSION}_windows.zip
+            dist/mondoo_${VERSION}_linux.tar.gz
+            dist/mondoo_${VERSION}_linux_noarch.rpm
+            dist/mondoo_${VERSION}_linux_noarch.deb
+
   update-downstream:
+    needs: 
+      - build-mondoo-payloads
     runs-on: ubuntu-latest
     ## Matrix task, repeats steps for each repo
     strategy:
