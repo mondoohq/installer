@@ -84,16 +84,20 @@ jobs:
 
       - name: Upload files to releases.mondoo.com
         run: |
-          gsutil cp helper/dist/mondoo_${VERSION}_windows.zip gs://releases-us.mondoo.io/mondoo/${VERSION}/mondoo_${VERSION}_windows.zip
-          gsutil cp helper/dist/mondoo_${VERSION}_linux.tar.gz gs://releases-us.mondoo.io/mondoo/${VERSION}/mondoo_${VERSION}_linux.tar.gz
-          gsutil cp helper/dist/mondoo_${VERSION}_linux_noarch.rpm gs://releases-us.mondoo.io/mondoo/${VERSTION}/mondoo_${VERSION}_linux_noarch.rpm
+          gsutil cp helper/dist/mondoo.sh                          gs://releases-us.mondoo.io/mondoo/${VERSION}/mondoo.sh
+          gsutil cp helper/dist/mondoo.ps1                         gs://releases-us.mondoo.io/mondoo/${VERSION}/mondoo.ps1
+          gsutil cp helper/dist/mondoo_${VERSION}_windows.zip      gs://releases-us.mondoo.io/mondoo/${VERSION}/mondoo_${VERSION}_windows.zip
+          gsutil cp helper/dist/mondoo_${VERSION}_linux.tar.gz     gs://releases-us.mondoo.io/mondoo/${VERSION}/mondoo_${VERSION}_linux.tar.gz
+          gsutil cp helper/dist/mondoo_${VERSION}_linux_noarch.rpm gs://releases-us.mondoo.io/mondoo/${VERSION}/mondoo_${VERSION}_linux_noarch.rpm
           gsutil cp helper/dist/mondoo_${VERSION}_linux_noarch.deb gs://releases-us.mondoo.io/mondoo/${VERSION}/mondoo_${VERSION}_linux_noarch.deb
-          gsutil cp dhelper/ist/checksums.linux.txt gs://releases-us.mondoo.io/mondoo/${VERSION}/checksums.linux.txt
+          gsutil cp helper/dist/checksums.linux.txt                gs://releases-us.mondoo.io/mondoo/${VERSION}/checksums.linux.txt
 
       - name: Upload files to Github Release Page
         uses: softprops/action-gh-release@v1
         with:
           files: |
+            helper/dist/mondoo.sh
+            helper/dist/mondoo.ps1
             helper/dist/mondoo_${VERSION}_windows.zip
             helper/dist/mondoo_${VERSION}_linux.tar.gz
             helper/dist/mondoo_${VERSION}_linux_noarch.rpm
