@@ -27,13 +27,13 @@ jobs:
         run: |
           cd helper/
           cp mondoo.sh mondoo
-          tar czf dist/mondoo_${VERSION}_linux.tar.gz ./mondoo
+          tar czf dist/mondoo_${VERSION}_linux_noarch.tar.gz ./mondoo
           rm mondoo
 
       - name: Zip up mondoo.ps1
         run: |
           cd helper/
-          zip dist/mondoo_${VERSION}_windows.zip mondoo.ps1
+          zip dist/mondoo_${VERSION}_windows_noarch.zip mondoo.ps1
 
       - name: Install RPM tools
         run: |
