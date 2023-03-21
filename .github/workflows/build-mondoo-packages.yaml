@@ -84,6 +84,7 @@ jobs:
 
       - name: Upload files to releases.mondoo.com
         run: |
+
           gsutil cp helper/dist/mondoo.sh                          gs://releases-us.mondoo.io/mondoo/${VERSION}/mondoo.sh
           gsutil cp helper/dist/mondoo.ps1                         gs://releases-us.mondoo.io/mondoo/${VERSION}/mondoo.ps1
           gsutil cp helper/dist/mondoo_${VERSION}_windows_noarch.zip      gs://releases-us.mondoo.io/mondoo/${VERSION}/mondoo_${VERSION}_windows_noarch.zip
@@ -91,6 +92,7 @@ jobs:
           gsutil cp helper/dist/mondoo_${VERSION}_linux_noarch.rpm gs://releases-us.mondoo.io/mondoo/${VERSION}/mondoo_${VERSION}_linux_noarch.rpm
           gsutil cp helper/dist/mondoo_${VERSION}_linux_noarch.deb gs://releases-us.mondoo.io/mondoo/${VERSION}/mondoo_${VERSION}_linux_noarch.deb
           gsutil cp helper/dist/checksums.linux.txt                gs://releases-us.mondoo.io/mondoo/${VERSION}/checksums.linux.txt
+
 
       - name: Upload files to Github Release Page
         uses: softprops/action-gh-release@v1
@@ -103,6 +105,7 @@ jobs:
             helper/dist/mondoo_${{ github.event.inputs.version }}_linux_noarch.tar.gz
             helper/dist/mondoo_${{ github.event.inputs.version }}_linux_noarch.rpm
             helper/dist/mondoo_${{ github.event.inputs.version }}_linux_noarch.deb
+
             
       - name: Create Artifacts
         uses: actions/upload-artifact@v2
