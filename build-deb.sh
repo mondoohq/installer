@@ -27,7 +27,7 @@ mkdir -p ${DEBDIR}/DEBIAN ${DEBDIR}/usr/bin
 cp ${REPO_DIR}/mondoo.sh ${DEBDIR}/usr/bin/mondoo
 
 # The control file with all the metadata
-cat << EOF > ./
+cat << EOF > "${DEBDIR}/DEBIAN/control"
 Package: mondoo
 Version: ${MONDOO_VERSION}-1
 Architecture: all
