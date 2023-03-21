@@ -69,7 +69,7 @@ jobs:
       - name: Sign RPMs
         run: |
           cd helper/
-          rpmsign --define='%_gpg_name Hello Mondoo' --addsign ./dist/*rpm
+          rpmsign --define='%_gpg_name Mondoo Inc' --addsign ./dist/*rpm
 
       - name: Build DEBs
         run: |
