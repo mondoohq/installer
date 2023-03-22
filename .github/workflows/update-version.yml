@@ -1,0 +1,45 @@
+name: Update Release Version
+
+on:
+  release:
+    types: [released]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version that should be released'
+        required: true
+        default: '1.2.3'
+
+  update-version:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v3
+        with:
+          ref: 'main'
+          fetch-depth: 0
+      - name: Version from Workflow Dispatch
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
+      - name: Version from Release Tag
+        if: github.event_name == 'release'
+        run: |
+          echo "VERSION=${{ github.event.release.tag_name }}" >> $GITHUB_ENV
+      - name: Verify valid version
+        id: vars
+        run: |
+          if [[ ! $VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Invalid version: $VERSION"
+            exit 1
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+      - name: Commit VERSION file
+        run: |
+          echo ${VERSION} > VERSION
+          echo "VERSION is $VERSION"
+          git add VERSION
+          git config --global user.email "tools@mondoo.com"
+          git config --global user.name "Mondoo Tools"
+          git commit -m "Update VERSION to $VERSION"
+          git push -f

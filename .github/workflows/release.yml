@@ -1,0 +1,38 @@
+name: Execute Downstream Builds
+
+on:
+  release:
+    types: [released]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version that should be released'
+        required: true
+        default: '1.2.3'
+
+jobs:
+  update-downstream:
+    runs-on: ubuntu-latest
+    ## Matrix task, repeats steps for each repo
+    strategy:
+      matrix:
+        repo: ["mondoohq/homebrew-mondoo", "mondoohq/archlinux-package", "mondoohq/mac-pkg", "mondoohq/chocolatey", "mondoohq/msi-builder", "mondoohq/repobuilder"]
+    steps:
+      - uses: actions/checkout@v3
+      - name: Repository Dispatch (Workflow Dispatch)
+        uses: peter-evans/repository-dispatch@v2
+        if: github.event_name == 'workflow_dispatch'
+        with:
+          token: ${{ secrets.REPO_API_TOKEN }}
+          repository: ${{ matrix.repo }}
+          event-type: update
+          client-payload: '{"version": "${{ github.event.inputs.version }}"}'
+      - name: Repository Dispatch (Release)
+        uses: peter-evans/repository-dispatch@v2
+        if: github.event_name == 'release'
+        with:
+          token: ${{ secrets.REPO_API_TOKEN }}
+          repository: ${{ matrix.repo }}
+          event-type: update
+          client-payload: '{"version": "${{ github.event.release.tag_name }}"}'
+
