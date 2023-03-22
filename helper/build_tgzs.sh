@@ -24,7 +24,7 @@ done
 # Create Darwin TGZ's
 echo "Creating Darwin TGZs"
 for arch in amd64 arm64; do
-  cp ${PKG_NAME}.tar.gz ${PKG_NAME}_${VERSION}_linux_${arch}.tar.gz
+  cp ${PKG_NAME}.tar.gz ${PKG_NAME}_${VERSION}_darwin_${arch}.tar.gz
 done
 
 # Clean up
