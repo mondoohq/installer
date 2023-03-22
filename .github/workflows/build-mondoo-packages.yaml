@@ -51,7 +51,7 @@ jobs:
 
       - name: Build Packages
         env: 
-          VERSION=${{ github.event.inputs.version }}
+          VERSION: ${{ github.event.inputs.version }}
         run: |
           cd helper && make
 
