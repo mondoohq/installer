@@ -6,10 +6,10 @@ if [[ ${VERSION} == "" ]]; then
   export VERSION=0.0.1
 fi
 
-echo "- Creating TGZ Package ${PKG_NAME}"
+echo "--------- Creating TGZ Package ${PKG_NAME}"
 
 # Create the base tgz:
-mkdir packages  || true
+mkdir -p packages
 cd packages
 cp ../mondoo.sh mondoo
 tar cfvz ${PKG_NAME}.tar.gz mondoo
@@ -26,5 +26,8 @@ echo "Creating Darwin TGZs"
 for arch in amd64 arm64; do
   cp ${PKG_NAME}.tar.gz ${PKG_NAME}_${VERSION}_linux_${arch}.tar.gz
 done
+
+# Clean up
+rm ${PKG_NAME}.tar.gz
 
 echo "Done"

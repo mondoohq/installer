@@ -6,10 +6,10 @@ if [[ ${VERSION} == "" ]]; then
   export VERSION=0.0.1
 fi
 
-echo "- Creating ZIP Package ${PKG_NAME}"
+echo "--------- Creating ZIP Package ${PKG_NAME}"
 
 # Create the base tgz:
-mkdir packages || true
+mkdir -p packages
 cd packages
 zip ${PKG_NAME}_${VERSION}_windows_amd64.zip ../mondoo.ps1 .
 
