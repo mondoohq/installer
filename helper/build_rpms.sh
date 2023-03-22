@@ -68,7 +68,18 @@ Initial Mondoo shell wrapper script.
 EOF
 
 # Build
+echo "Building RPM..."
 rpmbuild --define "_topdir `pwd`" -v -ba ./SPECS/mondoo.spec
 
 # Save
+echo "Creating NOARCH RPM"
 cp RPMS/noarch/mondoo-${MONDOO_VERSION}-1.noarch.rpm ${OUTDIR}/mondoo_${MONDOO_VERSION}_linux_noarch.rpm
+
+for arch in 386 amd64 arm64 armv7 armv8 ppc64le; do
+  echo "  - Creating RPM for ARCH: ${arch}"
+  cp ${OUTDIR}/mondoo_${MONDOO_VERSION}_linux_noarch.rpm ${OUTDIR}/mondoo_${MONDOO_VERSION}_linux_${arch}.rpm
+done
+
+## To Test:  
+##   curl -sSL https://releases.mondoo.com/rpm/mondoo.repo > /etc/yum.repos.d/mondoo.repo
+##   yum install ./mondoo_0.0.1_linux_noarch.rpm
