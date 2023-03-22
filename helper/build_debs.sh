@@ -46,6 +46,9 @@ for arch in 386 amd64 arm64 armv6 armv7 ppc64le; do
   cp ${PKG_NAME}.deb packages/${PKG_NAME}_${VERSION}_linux_${arch}.deb
 done
 
+# Clean up
+rm -rf ${PKG_NAME}
+
 # Test installation locally like this: sudo apt install ./packages/mondoo_0.0.1_linux_amd64.deb
 
 echo "Debian Packaging Complete!  Upload packages/ to Releases & Repo!"

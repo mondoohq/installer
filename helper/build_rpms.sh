@@ -1,17 +1,7 @@
 #!/bin/bash -e
 
-MONDOO_VERSION=$1
-if [ "${MONDOO_VERSION}" == "" ]; then
-	echo "no version provided as first parameter"
-	exit 1
-fi
-
-if [ "$2" == "" ]; then
-	echo "no destination directory provided as second parameter"
-	exit 1
-fi
-
-OUTDIR=$(readlink -f $2)
+MONDOO_VERSION=$VERSION
+OUTDIR=packages
 
 SCRIPT_LOCATION=$(readlink -f $0)
 REPO_DIR=$(dirname ${SCRIPT_LOCATION})

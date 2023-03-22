@@ -9,9 +9,11 @@ fi
 echo "- Creating TGZ Package ${PKG_NAME}"
 
 # Create the base tgz:
-mkdir packages && cd packages
+mkdir packages  || true
+cd packages
 cp ../mondoo.sh mondoo
 tar cfvz ${PKG_NAME}.tar.gz mondoo
+rm mondoo
 
 # Create Linux TGZ's
 echo "Creating Linux TGZs"

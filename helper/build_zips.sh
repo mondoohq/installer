@@ -9,7 +9,8 @@ fi
 echo "- Creating ZIP Package ${PKG_NAME}"
 
 # Create the base tgz:
-mkdir packages && cd packages
+mkdir packages || true
+cd packages
 zip ${PKG_NAME}_${VERSION}_windows_amd64.zip ../mondoo.ps1 .
 
 echo "Done"
