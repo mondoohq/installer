@@ -1,4 +1,4 @@
-name: Execute Downstream Builds
+name: "Create Shim Packages and Dispatch to Downstream Repositories"
 
 on:
   release:
