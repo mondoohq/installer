@@ -13,10 +13,27 @@ on:
 jobs:
   build-mondoo-payloads:
     runs-on: ubuntu-latest
-    env:
-      VERSION: ${{ github.event.inputs.version }}
     steps:
       - uses: actions/checkout@v3
+
+      - name: Version from Workflow Dispatch
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
+
+      - name: Version from Release Tag
+        if: github.event_name == 'release'
+        run: |
+          echo "VERSION=${{ github.event.release.tag_name }}" >> $GITHUB_ENV
+
+      - name: Verify valid version
+        id: version
+        run: |
+          if [[ ! $VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Invalid version: $VERSION"
+            exit 1
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Create destination folder
         run: |
@@ -52,8 +69,6 @@ jobs:
           gpg --list-secret-keys
 
       - name: Build Packages
-        env: 
-          VERSION: ${{ github.event.inputs.version }}
         run: |
           cd helper && make
 
@@ -73,19 +88,17 @@ jobs:
         run: |
           gsutil cp -r helper/packages/* gs://releases-us.mondoo.io/mondoo/${VERSION}/
 
-
-
       - name: Upload files to Github Release Page
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: ${{ github.event.inputs.version }}
+          tag_name: ${{ steps.version.outputs.version }}
           files: helper/packages/*
 
             
       - name: Create Artifacts
         uses: actions/upload-artifact@v2
         with:
-          name: mondoo-${{ github.event.inputs.version }}
+          name: mondoo-${{ steps.version.outputs.version }}
           path: helper/packages/
           retention-days: 7
 
