@@ -10,6 +10,7 @@ on:
         required: true
         default: '1.2.3'
 
+jobs:
   update-version:
     runs-on: ubuntu-latest
     steps:
