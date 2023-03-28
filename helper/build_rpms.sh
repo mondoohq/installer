@@ -1,17 +1,10 @@
 #!/bin/bash -e
 
-MONDOO_VERSION=$1
-if [ "${MONDOO_VERSION}" == "" ]; then
-	echo "no version provided as first parameter"
-	exit 1
-fi
+MONDOO_VERSION=$VERSION
+OUTDIR=packages
+mkdir -p ${OUTDIR}
 
-if [ "$2" == "" ]; then
-	echo "no destination directory provided as second parameter"
-	exit 1
-fi
-
-OUTDIR=$(readlink -f $2)
+echo "--------- Creating RPM Package"
 
 SCRIPT_LOCATION=$(readlink -f $0)
 REPO_DIR=$(dirname ${SCRIPT_LOCATION})
@@ -68,7 +61,19 @@ Initial Mondoo shell wrapper script.
 EOF
 
 # Build
+echo "Building RPM..."
 rpmbuild --define "_topdir `pwd`" -v -ba ./SPECS/mondoo.spec
 
 # Save
-cp RPMS/noarch/mondoo-${MONDOO_VERSION}-1.noarch.rpm ${OUTDIR}/mondoo_${MONDOO_VERSION}_linux_noarch.rpm
+echo "Creating NOARCH RPM"
+cp RPMS/noarch/mondoo-${MONDOO_VERSION}-1.noarch.rpm ${REPO_DIR}/${OUTDIR}/mondoo_${MONDOO_VERSION}_linux_noarch.rpm
+
+cd ${REPO_DIR}
+for arch in 386 amd64 arm64 armv6 armv7 ppc64le; do
+  echo "  - Creating RPM for ARCH: ${arch}"
+  cp ${OUTDIR}/mondoo_${MONDOO_VERSION}_linux_noarch.rpm ${OUTDIR}/mondoo_${MONDOO_VERSION}_linux_${arch}.rpm
+done
+
+## To Test:  
+##   curl -sSL https://releases.mondoo.com/rpm/mondoo.repo > /etc/yum.repos.d/mondoo.repo
+##   yum install ./mondoo_0.0.1_linux_noarch.rpm

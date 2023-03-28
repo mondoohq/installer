@@ -18,31 +18,14 @@ jobs:
 
       - name: Create destination folder
         run: |
-          cd helper/
-          mkdir dist
-          cp mondoo.sh dist/ 
-          cp mondoo.ps1 dist/
-
-      - name: Tar up mondoo.sh
-        run: |
-          cd helper/
-          cp mondoo.sh mondoo
-          tar czf dist/mondoo_${VERSION}_linux_noarch.tar.gz ./mondoo
-          rm mondoo
-
-      - name: Zip up mondoo.ps1
-        run: |
-          cd helper/
-          zip dist/mondoo_${VERSION}_windows_noarch.zip mondoo.ps1
+          cd  helper
+          mkdir packages
+          cp mondoo.sh  packages/
+          cp mondoo.ps1 packages/
 
       - name: Install RPM tools
         run: |
           sudo apt update && sudo apt install -y rpm gpg
-
-      - name: Build RPM
-        run: |
-          cd helper/
-          ./build-rpms.sh ${VERSION} ./dist
 
       - name: Authenticate with GCloud
         uses: 'google-github-actions/auth@v1'
@@ -66,50 +49,40 @@ jobs:
           gpg --list-keys
           gpg --list-secret-keys
 
+      - name: Build Packages
+        env: 
+          VERSION: ${{ github.event.inputs.version }}
+        run: |
+          cd helper && make
+
       - name: Sign RPMs
         run: |
           cd helper/
-          rpmsign --define='%_gpg_name Mondoo Inc' --addsign ./dist/*rpm
-
-      - name: Build DEBs
-        run: |
-          cd helper/
-          ./build-deb.sh ${VERSION} ./dist
+          rpmsign --define='%_gpg_name Mondoo Inc' --addsign ./packages/*rpm
 
       - name: Generate Checksums
         run: |
-          cd helper/dist
+          cd helper/packages
           sha256sum *linux* > checksums.linux.txt
-          cd -
+          sha256sum *windows* > checksums.windows.txt
+          sha256sum *darwin* > checksums.macos.txt
 
       - name: Upload files to releases.mondoo.com
         run: |
+          gsutil cp -r helper/packages/* gs://releases-us.mondoo.io/mondoo/${VERSION}/
 
-          gsutil cp helper/dist/mondoo.sh                          gs://releases-us.mondoo.io/mondoo/${VERSION}/mondoo.sh
-          gsutil cp helper/dist/mondoo.ps1                         gs://releases-us.mondoo.io/mondoo/${VERSION}/mondoo.ps1
-          gsutil cp helper/dist/mondoo_${VERSION}_windows_noarch.zip      gs://releases-us.mondoo.io/mondoo/${VERSION}/mondoo_${VERSION}_windows_noarch.zip
-          gsutil cp helper/dist/mondoo_${VERSION}_linux_noarch.tar.gz     gs://releases-us.mondoo.io/mondoo/${VERSION}/mondoo_${VERSION}_linux_noarch.tar.gz
-          gsutil cp helper/dist/mondoo_${VERSION}_linux_noarch.rpm gs://releases-us.mondoo.io/mondoo/${VERSION}/mondoo_${VERSION}_linux_noarch.rpm
-          gsutil cp helper/dist/mondoo_${VERSION}_linux_noarch.deb gs://releases-us.mondoo.io/mondoo/${VERSION}/mondoo_${VERSION}_linux_noarch.deb
-          gsutil cp helper/dist/checksums.linux.txt                gs://releases-us.mondoo.io/mondoo/${VERSION}/checksums.linux.txt
 
 
       - name: Upload files to Github Release Page
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ github.event.inputs.version }}
-          files: |
-            helper/dist/mondoo.sh
-            helper/dist/mondoo.ps1
-            helper/dist/mondoo_${{ github.event.inputs.version }}_windows_noarch.zip
-            helper/dist/mondoo_${{ github.event.inputs.version }}_linux_noarch.tar.gz
-            helper/dist/mondoo_${{ github.event.inputs.version }}_linux_noarch.rpm
-            helper/dist/mondoo_${{ github.event.inputs.version }}_linux_noarch.deb
+          files: helper/packages/*
 
             
       - name: Create Artifacts
         uses: actions/upload-artifact@v3
         with:
           name: mondoo-${{ github.event.inputs.version }}
-          path: helper/dist
+          path: helper/packages/
           retention-days: 7
