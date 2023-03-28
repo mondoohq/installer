@@ -2,7 +2,7 @@
 
 PKG_NAME=mondoo
 if [[ ${VERSION} == "" ]]; then
-  echo "ERROR: Please define your version"
+  echo "WARNING: Please define your version. Continuing with version 0.0.1"
   export VERSION=0.0.1
 fi
 
