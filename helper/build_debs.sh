@@ -43,7 +43,7 @@ mkdir packages
 for arch in 386 amd64 arm64 armv6 armv7 ppc64le; do 
   # ex: mondoo_8.2.0_linux_amd64.deb
   echo "Creating Deb for ${arch}..."
-  cp ${PKG_NAME}.deb packages/${PKG_NAME}_${VERSION}_linux_${arch}.deb
+  cp "${PKG_NAME}.deb" "packages/${PKG_NAME}_${VERSION}_linux_${arch}.deb"
 done
 
 # Clean up

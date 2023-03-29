@@ -6,19 +6,19 @@ mkdir -p ${OUTDIR}
 
 echo "--------- Creating RPM Package"
 
-SCRIPT_LOCATION=$(readlink -f $0)
-REPO_DIR=$(dirname ${SCRIPT_LOCATION})
+SCRIPT_LOCATION=$(readlink -f "$0")
+REPO_DIR=$(dirname "${SCRIPT_LOCATION}")
 
 TMPDIR=$(mktemp --directory)
-cd $TMPDIR
+cd "$TMPDIR"
 
 # Set up files/directories for a rpmbuild environment
 mkdir BUILD BUILDROOT RPMS SOURCES SPECS SRPMS
 
 # Make a "release" tarball
 mkdir mondoo-wrapper
-cp ${REPO_DIR}/mondoo.sh mondoo-wrapper/
-tar czf ./SOURCES/mondoo-${MONDOO_VERSION}.tar.gz ./mondoo-wrapper
+cp "${REPO_DIR}/mondoo.sh" mondoo-wrapper/
+tar czf "./SOURCES/mondoo-${MONDOO_VERSION}.tar.gz" ./mondoo-wrapper
 SOURCES_PATH=${TMPDIR}/SOURCES/mondoo-${MONDOO_VERSION}.tar.gz
 
 # The spec file pointing to the location we placed the "release" tarball
@@ -62,16 +62,16 @@ EOF
 
 # Build
 echo "Building RPM..."
-rpmbuild --define "_topdir `pwd`" -v -ba ./SPECS/mondoo.spec
+rpmbuild --define "_topdir $(pwd)" -v -ba ./SPECS/mondoo.spec
 
 # Save
 echo "Creating NOARCH RPM"
-cp RPMS/noarch/mondoo-${MONDOO_VERSION}-1.noarch.rpm ${REPO_DIR}/${OUTDIR}/mondoo_${MONDOO_VERSION}_linux_noarch.rpm
+cp "RPMS/noarch/mondoo-${MONDOO_VERSION}-1.noarch.rpm" "${REPO_DIR}/${OUTDIR}/mondoo_${MONDOO_VERSION}_linux_noarch.rpm"
 
-cd ${REPO_DIR}
+cd "${REPO_DIR}"
 for arch in 386 amd64 arm64 armv6 armv7 ppc64le; do
   echo "  - Creating RPM for ARCH: ${arch}"
-  cp ${OUTDIR}/mondoo_${MONDOO_VERSION}_linux_noarch.rpm ${OUTDIR}/mondoo_${MONDOO_VERSION}_linux_${arch}.rpm
+  cp "${OUTDIR}/mondoo_${MONDOO_VERSION}_linux_noarch.rpm" "${OUTDIR}/mondoo_${MONDOO_VERSION}_linux_${arch}.rpm"
 done
 
 ## To Test:  
