@@ -308,7 +308,7 @@ function Install-Mondoo {
         If (![string]::IsNullOrEmpty($Proxy)) {
           $env:https_proxy = $Proxy;
         }
-        $program = "$Path\$Product.exe"
+        $program = "$Path\cnspec.exe"
         & $program "register", "-t", "$RegistrationToken", "--config", "C:\ProgramData\Mondoo\mondoo.yml"
       }
 
