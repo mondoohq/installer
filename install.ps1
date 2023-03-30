@@ -16,6 +16,7 @@
     Import-Module ./install.ps1; Install-Mondoo -RegistrationToken 'INSERTKEYHERE'
     Import-Module ./install.ps1; Install-Mondoo -Version 6.14.0
     Import-Module ./install.ps1; Install-Mondoo -Proxy 1.1.1.1:3128
+    Import-Module ./install.ps1; Install-Mondoo -APIProxy http://1.1.1.1:3128
     Import-Module ./install.ps1; Install-Mondoo -Service enable
     Import-Module ./install.ps1; Install-Mondoo -UpdateTask enable -Time 12:00 -Interval 3
     Import-Module ./install.ps1; Install-Mondoo -Product cnspec
@@ -30,6 +31,7 @@ function Install-Mondoo {
       [string]   $Version = '',
       [string]   $RegistrationToken = '',
       [string]   $Proxy = '',
+      [string]   $APIProxy = '',
       [string]   $Service = '',
       [string]   $UpdateTask = '',
       [string]   $Time = '',
@@ -308,8 +310,13 @@ function Install-Mondoo {
         If (![string]::IsNullOrEmpty($Proxy)) {
           $env:https_proxy = $Proxy;
         }
+
+        $login_params = @("login", "-t", "$RegistrationToken", "--config", "C:\ProgramData\Mondoo\mondoo.yml")
+        If (![string]::IsNullOrEmpty($APIProxy)) {
+           $login_params = $login_params + @("--api-proxy", "$APIProxy")
+        }
         $program = "$Path\cnspec.exe"
-        & $program "register", "-t", "$RegistrationToken", "--config", "C:\ProgramData\Mondoo\mondoo.yml"
+        & $program $login_params
       }
 
       If (@(0,3010) -contains $process.ExitCode) {
