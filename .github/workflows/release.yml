@@ -94,6 +94,17 @@ jobs:
           tag_name: ${{ steps.version.outputs.version }}
           files: helper/packages/*
 
+          
+      - name: Reindex folder on releaser.mondoo.com
+        uses: peter-evans/repository-dispatch@v2
+        with:
+          token: ${{ secrets.REPO_API_TOKEN }}
+          repository: "mondoohq/releasr"
+          event-type: reindex
+          client-payload: '{
+            "reindex-path": "mondoo/${{ steps.version.outputs.version }}",
+            "bucket": "releases-us.mondoo.io"
+          }'
             
       - name: Create Artifacts
         uses: actions/upload-artifact@v2
@@ -101,7 +112,6 @@ jobs:
           name: mondoo-${{ steps.version.outputs.version }}
           path: helper/packages/
           retention-days: 7
-
 
 
   update-downstream:
