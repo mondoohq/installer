@@ -15,7 +15,7 @@
     .EXAMPLE
     Import-Module ./install.ps1; Install-Mondoo -RegistrationToken 'INSERTKEYHERE'
     Import-Module ./install.ps1; Install-Mondoo -Version 6.14.0
-    Import-Module ./install.ps1; Install-Mondoo -Proxy 1.1.1.1:3128
+    Import-Module ./install.ps1; Install-Mondoo -Proxy 'http://1.1.1.1:3128'
     Import-Module ./install.ps1; Install-Mondoo -Service enable
     Import-Module ./install.ps1; Install-Mondoo -UpdateTask enable -Time 12:00 -Interval 3
     Import-Module ./install.ps1; Install-Mondoo -Product cnspec
@@ -106,10 +106,6 @@ function Install-Mondoo {
   function enable_service() {
     info "Set cnspec to run as a service automatically at startup and start the service"
     Set-Service -Name mondoo -Status Running -StartupType Automatic
-    If(![string]::IsNullOrEmpty($Proxy)) {
-      # set register key for Mondoo Service to use proxy for internet connection
-      reg add hklm\SYSTEM\CurrentControlSet\Services\Mondoo /v Environment /t REG_MULTI_SZ /d "https_proxy=$Proxy" /f
-    }
     If(((Get-Service -Name Mondoo).Status -eq 'Running') -and ((Get-Service -Name Mondoo).StartType -eq 'Automatic') ) {
       success "* Mondoo Service is running and start type is automatic"
     } Else {
@@ -274,7 +270,7 @@ function Install-Mondoo {
       success " * $Product was downloaded successfully! You can find it in $Path\$Product.exe"
 
       If ($UpdateTask.ToLower() -eq 'enable') {
-        # Creating a scheduling task to automatically update the mondoo package
+        # Creating a scheduling task to automatically update the Mondoo package
         $taskname = $Product + "Updater"
         $taskpath = $Product
         If(Get-ScheduledTask -TaskName $taskname -EA 0)
@@ -304,12 +300,12 @@ function Install-Mondoo {
 
       If (![string]::IsNullOrEmpty($RegistrationToken)) {
         info " * Register $Product Client"
-        # Set Proxy if enabled
+        $login_params = @("login", "-t", "$RegistrationToken", "--config", "C:\ProgramData\Mondoo\mondoo.yml")
         If (![string]::IsNullOrEmpty($Proxy)) {
-          $env:https_proxy = $Proxy;
+           $login_params = $login_params + @("--api-proxy", "$Proxy")
         }
         $program = "$Path\cnspec.exe"
-        & $program "register", "-t", "$RegistrationToken", "--config", "C:\ProgramData\Mondoo\mondoo.yml"
+        & $program $login_params
       }
 
       If (@(0,3010) -contains $process.ExitCode) {
@@ -325,7 +321,7 @@ function Install-Mondoo {
       }
 
       If ($UpdateTask.ToLower() -eq 'enable') {
-        # Creating a scheduling task to automatically update the mondoo package
+        # Creating a scheduling task to automatically update the Mondoo package
         $taskname = $Product + "Updater"
         $taskpath = $Product
         If (Get-ScheduledTask -TaskName $taskname -EA 0)
