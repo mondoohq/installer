@@ -15,8 +15,7 @@
     .EXAMPLE
     Import-Module ./install.ps1; Install-Mondoo -RegistrationToken 'INSERTKEYHERE'
     Import-Module ./install.ps1; Install-Mondoo -Version 6.14.0
-    Import-Module ./install.ps1; Install-Mondoo -Proxy 1.1.1.1:3128
-    Import-Module ./install.ps1; Install-Mondoo -APIProxy http://1.1.1.1:3128
+    Import-Module ./install.ps1; Install-Mondoo -Proxy 'http://1.1.1.1:3128'
     Import-Module ./install.ps1; Install-Mondoo -Service enable
     Import-Module ./install.ps1; Install-Mondoo -UpdateTask enable -Time 12:00 -Interval 3
     Import-Module ./install.ps1; Install-Mondoo -Product cnspec
@@ -31,7 +30,6 @@ function Install-Mondoo {
       [string]   $Version = '',
       [string]   $RegistrationToken = '',
       [string]   $Proxy = '',
-      [string]   $APIProxy = '',
       [string]   $Service = '',
       [string]   $UpdateTask = '',
       [string]   $Time = '',
@@ -108,10 +106,6 @@ function Install-Mondoo {
   function enable_service() {
     info "Set cnspec to run as a service automatically at startup and start the service"
     Set-Service -Name mondoo -Status Running -StartupType Automatic
-    If(![string]::IsNullOrEmpty($Proxy)) {
-      # set register key for Mondoo Service to use proxy for internet connection
-      reg add hklm\SYSTEM\CurrentControlSet\Services\Mondoo /v Environment /t REG_MULTI_SZ /d "https_proxy=$Proxy" /f
-    }
     If(((Get-Service -Name Mondoo).Status -eq 'Running') -and ((Get-Service -Name Mondoo).StartType -eq 'Automatic') ) {
       success "* Mondoo Service is running and start type is automatic"
     } Else {
@@ -306,14 +300,9 @@ function Install-Mondoo {
 
       If (![string]::IsNullOrEmpty($RegistrationToken)) {
         info " * Register $Product Client"
-        # Set Proxy if enabled
-        If (![string]::IsNullOrEmpty($Proxy)) {
-          $env:https_proxy = $Proxy;
-        }
-
         $login_params = @("login", "-t", "$RegistrationToken", "--config", "C:\ProgramData\Mondoo\mondoo.yml")
-        If (![string]::IsNullOrEmpty($APIProxy)) {
-           $login_params = $login_params + @("--api-proxy", "$APIProxy")
+        If (![string]::IsNullOrEmpty($Proxy)) {
+           $login_params = $login_params + @("--api-proxy", "$Proxy")
         }
         $program = "$Path\cnspec.exe"
         & $program $login_params
