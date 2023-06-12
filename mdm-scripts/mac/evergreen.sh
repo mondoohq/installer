@@ -4,7 +4,7 @@
 ## Functions
 download () {
   echo "Downloading..."
-  cd /tmp
+  cd /tmp || exit 1
   FILENAME=`curl -sL https://install.mondoo.com/package/mondoo/darwin/universal/pkg/latest/filename`
   curl -sL -o ${FILENAME} https://install.mondoo.com/package/mondoo/darwin/universal/pkg/latest/download
   FILEHASH=$(shasum -a 256 ${FILENAME} | cut -d' ' -f1)
@@ -43,7 +43,8 @@ config () {
     mv -f /etc/opt/mondoo/mondoo-inc.yml /etc/opt/mondoo/mondoo.yml-inc.old
   fi
 
-  LOCALUSER=`dscl . -read /groups/admin GroupMembership | cut -d' ' -f3`
+  ## Get the primary user for tagging in the Mondoo config
+  export LOCALUSER=`dscl . -read /groups/admin GroupMembership | cut -d' ' -f3`
 
 cat <<EOF | sed -e '/^$/d' >/etc/opt/mondoo/mondoo-inc.yml
 
@@ -101,7 +102,7 @@ echo "Checking for Mondoo Client updates..."
 LATEST_VERSION=`curl -sL https://install.mondoo.com/package/mondoo/darwin/universal/pkg/latest/version`
 CURRENT_VERSION=`/Library/Mondoo/bin/cnspec version 2>/dev/null | cut -d' ' -f2`
 
-if [[ ${CURRENT_VERSION} != ${LATEST_VERSION} ]]
+if [[ "${CURRENT_VERSION}" != "${LATEST_VERSION}" ]]
 then
   echo "New version ${LATEST_VERSION} available, upgrading from ${CURRENT_VERSION}..."
 
