@@ -43,9 +43,9 @@ config () {
     mv -f /etc/opt/mondoo/mondoo-inc.yml /etc/opt/mondoo/mondoo.yml-inc.old
   fi
 
-  ## Get the primary user for tagging in the Mondoo config
-  export LOCALUSER=`dscl . -read /groups/admin GroupMembership | cut -d' ' -f3`
-
+  ## Get the primary user for tagging in the Mondoo config:
+  # LOCALUSER=`dscl . -read /groups/admin GroupMembership | cut -d' ' -f3`
+  
 cat <<EOF | sed -e '/^$/d' >/etc/opt/mondoo/mondoo-inc.yml
 
 ####
