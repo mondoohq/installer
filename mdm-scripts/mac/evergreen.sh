@@ -5,9 +5,9 @@
 download () {
   echo "Downloading..."
   cd /tmp || exit 1
-  FILENAME=`curl -sL https://install.mondoo.com/package/mondoo/darwin/universal/pkg/latest/filename`
-  curl -sL -o ${FILENAME} https://install.mondoo.com/package/mondoo/darwin/universal/pkg/latest/download
-  FILEHASH=$(shasum -a 256 ${FILENAME} | cut -d' ' -f1)
+  FILENAME=$(curl -sL https://install.mondoo.com/package/mondoo/darwin/universal/pkg/latest/filename)
+  curl -sL -o "${FILENAME}" https://install.mondoo.com/package/mondoo/darwin/universal/pkg/latest/download
+  FILEHASH=$(shasum -a 256 "${FILENAME}" | cut -d' ' -f1)
   SRCHASH=$(curl -sL https://install.mondoo.com/package/mondoo/darwin/universal/pkg/latest/sha256)
   if [ "${FILEHASH}" != "${SRCHASH}" ]; then
     echo "WARNING: Download failure, hashes do not match -- KNOWN ISSUE (benr)"
@@ -17,12 +17,12 @@ download () {
 
 install () {
   echo "Installing..."
-  /usr/sbin/installer -pkg ${FILENAME} -target /
+  /usr/sbin/installer -pkg "${FILENAME}" -target /
 }
 
 cleanup () {
   echo "Cleaning up..."
-  rm ${FILENAME}
+  rm "${FILENAME}"
 }
 
 register () {
@@ -99,8 +99,8 @@ EOL
 
 ## Main
 echo "Checking for Mondoo Client updates..."
-LATEST_VERSION=`curl -sL https://install.mondoo.com/package/mondoo/darwin/universal/pkg/latest/version`
-CURRENT_VERSION=`/Library/Mondoo/bin/cnspec version 2>/dev/null | cut -d' ' -f2`
+LATEST_VERSION=$(curl -sL https://install.mondoo.com/package/mondoo/darwin/universal/pkg/latest/version)
+CURRENT_VERSION=$(/Library/Mondoo/bin/cnspec version 2>/dev/null | cut -d' ' -f2)
 
 if [[ "${CURRENT_VERSION}" != "${LATEST_VERSION}" ]]
 then
