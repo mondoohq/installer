@@ -28,6 +28,7 @@ docker/build/push:
 test/shellcheck:
 	shellcheck install.sh
 	shellcheck download.sh
+	shellcheck mdm-scripts/mac/evergreen.sh
 
 .PHONY: test/install_sh
 test/install_sh:
