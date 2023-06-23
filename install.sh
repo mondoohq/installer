@@ -15,22 +15,49 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# The Mondoo installation script installs Mondoo on supported
-# Linux distros using its native package manager
+# The Mondoo installation script installs cnspec and cnquery on supported
+# Linux distros and macOS using its native package manager.
+# 
+# The script detects the operating system and uses the appropriate package.
+# To override the automatic detection, you can set the -t flag to specify
+# the package type explicitly (supported on macOS).
+# 
+# Supported package types are:
+# - pkg (macOS)
+# - brew (macOS)
 #
 # The script may use the following environment variables:
 #
 # MONDOO_REGISTRATION_TOKEN
 #     (Optional) Mondoo Registration Token. Systemd services
 #     are only activated if Mondoo is properly authenticated.
-
+# 
+# Use this command to install cnspec and cnquery on your system with this script:
+#
+# bash -c "$(curl -sSL https://install.mondoo.com/sh/cnquery)"
+#
 # Please note that we aim to be POSIX-compatible in this script.
 # If you find anything that violates these constraints, please reach out.
-# - https://unix.stackexchange.com/questions/73750/difference-between-function-foo-and-foo
+# See: https://unix.stackexchange.com/questions/73750/difference-between-function-foo-and-foo
 
 MONDOO_PRODUCT_NAME="mondoo package for cnquery and cnspec" # product name
 MONDOO_PKG_NAME="mondoo" # pkg name in the package repository
 MONDOO_BINARY="mondoo" # binary that we search for
+
+# read bash flags
+MONDOO_INSTALLER=''
+
+print_usage() {
+  echo "usage: [-t]" >&2
+}
+
+while getopts 't:v' flag; do
+  case "${flag}" in
+    t) MONDOO_INSTALLER="${OPTARG}" ;;
+    *) print_usage
+       exit 1 ;;
+  esac
+done
 
 # define colors
 end="\033[0m"
@@ -86,6 +113,10 @@ This installer is licensed under the Apache License, Version 2.0
   * GitHub:
   https://github.com/mondoohq/installer
 "
+
+if [ "${MONDOO_INSTALLER}" != '' ]; then
+  echo "user defined package type: $MONDOO_INSTALLER";
+fi
 
 # Detect operating system
 # -----------------------
@@ -226,8 +257,15 @@ install_portable() {
 # ---------------
 
 configure_macos_installer() {
-  if [ -x "$(command -v brew)" ]; then
-    MONDOO_INSTALLER="brew"
+  # auto-detect installer type
+  if [ "${MONDOO_INSTALLER}" == "" ] && [ -x "$(command -v brew)" ]; then
+      MONDOO_INSTALLER="brew"
+  else
+      MONDOO_INSTALLER="pkg"
+  fi
+
+  if [ "${MONDOO_INSTALLER}" == "brew" ]; then
+    
     mondoo_install() {
       purple_bold "\n* Configuring brew sources for Mondoo Repository via 'brew tap'"
       brew tap mondoohq/mondoo
@@ -247,8 +285,7 @@ configure_macos_installer() {
       fi
     }
 
-  else
-    MONDOO_INSTALLER="pkg"
+  elif [ "${MONDOO_INSTALLER}" == "pkg" ]; then
     mondoo_install() {
       detect_latest_version
       FILE="${MONDOO_BINARY}_${MONDOO_LATEST_VERSION}_darwin_universal.pkg"
@@ -557,6 +594,7 @@ elif [[ "$OS" = "Debian" ]]; then
 
 elif [[ "$OS" = "Suse" ]]; then
   configure_suse_installer
+
 elif [[ "$OS" = "AWSCloudShell" ]]; then
   configure_cloudshell_installer
 
