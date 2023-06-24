@@ -161,6 +161,8 @@ fi
 MONDOO_BINARY_PATH="${MONDOO_BINARY}" # default expects the binary in default path
 MONDOO_EXECUTABLE=""
 MONDOO_INSTALLED=false
+UserAgent="MondooInstallScript/1.0 (+https://mondoo.com/) ShellScript/$BASH_VERSION ($OS $DISTRIBUTION)"
+
 detect_mondoo() {
   MONDOO_EXECUTABLE="$(command -v "$MONDOO_BINARY")"
   if [ -x "$MONDOO_EXECUTABLE" ]; then
@@ -244,7 +246,7 @@ install_portable() {
   URL="https://releases.mondoo.com/${MONDOO_BINARY}/${MONDOO_LATEST_VERSION}/${FILE}"
 
   echo "Downloading the latest version of ${MONDOO_PRODUCT_NAME} from: $URL"
-  curl "${URL}" | tar xz
+  curl -A "${UserAgent}" "${URL}" | tar xz
 
   detect_portable
   if [ -z "$MONDOO_EXECUTABLE" ]; then
@@ -298,7 +300,7 @@ configure_macos_installer() {
       URL="https://releases.mondoo.com/${MONDOO_PKG_NAME}/${MONDOO_LATEST_VERSION}/${FILE}"
 
       purple_bold "\n* Downloading ${MONDOO_PRODUCT_NAME} Universal Package for Mac"
-      curl -sO "${URL}"
+      curl -A "${UserAgent}" -sO "${URL}"
 
       purple_bold "\n* Installing ${MONDOO_PRODUCT_NAME} via 'installer -pkg'"
       sudo_cmd /usr/sbin/installer -pkg "${FILE}" -target /
@@ -347,7 +349,7 @@ configure_rhel_installer() {
     MONDOO_INSTALLER="yum"
     mondoo_install() {
       purple_bold "\n* Configuring YUM sources for Mondoo at /etc/yum.repos.d/mondoo.repo"
-      curl --retry 3 --retry-delay 10 -sSL https://releases.mondoo.com/rpm/mondoo.repo | sudo_cmd tee /etc/yum.repos.d/mondoo.repo
+      curl -A "${UserAgent}" --retry 3 --retry-delay 10 -sSL https://releases.mondoo.com/rpm/mondoo.repo | sudo_cmd tee /etc/yum.repos.d/mondoo.repo
 
       purple_bold "\n* Installing ${MONDOO_PRODUCT_NAME}"
       sudo_cmd yum install -y ${MONDOO_PKG_NAME}
@@ -380,10 +382,10 @@ configure_debian_installer() {
         APT_VERSION=$(dpkg-query --show --showformat '${Version}' apt)
         if dpkg --compare-versions "${APT_VERSION}" le 1.0.2;
         then
-          curl --retry 3 --retry-delay 10 -sSL https://releases.mondoo.com/debian/pubkey.gpg | sudo_cmd apt-key add -
+          curl -A "${UserAgent}" --retry 3 --retry-delay 10 -sSL https://releases.mondoo.com/debian/pubkey.gpg | sudo_cmd apt-key add -
           echo "deb https://releases.mondoo.com/debian/ stable main" | sudo_cmd tee /etc/apt/sources.list.d/mondoo.list
         else
-          curl --retry 3 --retry-delay 10 -sSL https://releases.mondoo.com/debian/pubkey.gpg | sudo_cmd gpg --dearmor --yes --output /usr/share/keyrings/mondoo-archive-keyring.gpg
+          curl -A "${UserAgent}" --retry 3 --retry-delay 10 -sSL https://releases.mondoo.com/debian/pubkey.gpg | sudo_cmd gpg --dearmor --yes --output /usr/share/keyrings/mondoo-archive-keyring.gpg
           echo "deb [signed-by=/usr/share/keyrings/mondoo-archive-keyring.gpg] https://releases.mondoo.com/debian/ stable main" | sudo_cmd tee /etc/apt/sources.list.d/mondoo.list
         fi
     }
@@ -423,7 +425,7 @@ configure_suse_installer() {
     MONDOO_INSTALLER="apt"
     mondoo_install() {
       purple_bold "\n* Configuring ZYPPER sources for Mondoo at /etc/zypp/repos.d/mondoo.repo"
-      curl --retry 3 --retry-delay 10 -sSL https://releases.mondoo.com/rpm/mondoo.repo | sudo_cmd tee /etc/zypp/repos.d/mondoo.repo
+      curl -A "${UserAgent}" --retry 3 --retry-delay 10 -sSL https://releases.mondoo.com/rpm/mondoo.repo | sudo_cmd tee /etc/zypp/repos.d/mondoo.repo
       # zypper does not recognize the gpg key reference from mondoo.repo properly, therefore we need to add this here manually
       sudo_cmd rpm --import https://releases.mondoo.com/rpm/pubkey.gpg
 
