@@ -463,7 +463,7 @@ configure_cloudshell_installer() {
   }
 
   configure_linux_token() {
-    purple_bold "\n* Login to Mondoo Platform"
+    purple_bold "\n* Authenticate with Mondoo Platform"
     config_path="$HOME/.config/mondoo"
     mkdir -p "$config_path"
     ${MONDOO_BINARY_PATH} login --config "$config_path/mondoo.yml" --token "$MONDOO_REGISTRATION_TOKEN"
@@ -485,15 +485,6 @@ detect_mondoo_registered() {
 }
 
 configure_token() {
-  if [ -z "${MONDOO_REGISTRATION_TOKEN}" ]; then
-    if [ "$MONDOO_PRODUCT_NAME" = "mondoo package for cnquery and cnspec" ]; then
-      echo -e "\n* No registration token provided, skipping login."
-    fi
-    return
-  else
-    purple_bold "\n* Registration token detected, checking if ${MONDOO_PRODUCT_NAME} is logged-in..."
-  fi
-
   detect_mondoo_registered
   if [ "$MONDOO_IS_REGISTERED" = true ]; then
     purple_bold "\n* ${MONDOO_PRODUCT_NAME} is already logged-in. Skipping login"
@@ -517,14 +508,14 @@ configure_token() {
 }
 
 configure_macos_token() {
-  purple_bold "\n* Register ${MONDOO_PRODUCT_NAME} with Mondoo Platform"
+  purple_bold "\n* Authenticate with Mondoo Platform"
   config_path="$HOME/.config/mondoo"
   mkdir -p "$config_path"
   ${MONDOO_BINARY_PATH} login --config "$config_path/mondoo.yml" --token "$MONDOO_REGISTRATION_TOKEN"
 }
 
 configure_linux_token() {
-  purple_bold "\n* Register ${MONDOO_PRODUCT_NAME} with Mondoo Platform"
+  purple_bold "\n* Authenticate with Mondoo Platform"
   sudo_cmd mkdir -p "/etc/opt/mondoo/"
   sudo_cmd ${MONDOO_BINARY_PATH} login --config /etc/opt/mondoo/mondoo.yml --token "$MONDOO_REGISTRATION_TOKEN"
 
@@ -552,7 +543,7 @@ postinstall_check() {
 
 finalize_setup() {
 
-  # Login if a registration token is provided
+  # Authenticate with Mondoo platform if a registration token is provided
   configure_token
 
   # Display final message
