@@ -561,7 +561,7 @@ finalize_setup() {
       echo
     else
       echo
-      lightblue_bold "  Run 'mondoo scan local' to scan localhost, or learn more in our\n  quick start docs: https://mondoo.com/docs/"
+      lightblue_bold "  Run 'cnspec scan local' to scan localhost, or learn more in our\n  quick start docs: https://mondoo.com/docs/"
       echo
     fi
   else
