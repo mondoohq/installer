@@ -48,12 +48,13 @@ MONDOO_BINARY="mondoo" # binary that we search for
 MONDOO_INSTALLER=''
 
 print_usage() {
-  echo "usage: [-t]" >&2
+  echo "usage: $0 " >&2
+  echo "  [-i] overwrite install type: macOS (pkg, brew)" >&2
 }
 
-while getopts 't:v' flag; do
+while getopts 'i:v' flag; do
   case "${flag}" in
-    t) MONDOO_INSTALLER="${OPTARG}" ;;
+    i) MONDOO_INSTALLER="${OPTARG}" ;;
     *) print_usage
        exit 1 ;;
   esac
