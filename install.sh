@@ -48,8 +48,10 @@ MONDOO_BINARY="mondoo" # binary that we search for
 MONDOO_INSTALLER=''
 
 print_usage() {
-  echo "usage: $0 " >&2
-  echo "  [-i] overwrite install type: macOS (pkg, brew)" >&2
+  echo "usage: [-i]" >&2
+  echo "  Options: " >&2
+  echo "    -i <installer>:  Select a specific installer, options are:" >&2
+  echo "                     macOS: brew, pkg " >&2
 }
 
 while getopts 'i:v' flag; do
