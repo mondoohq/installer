@@ -9,53 +9,32 @@
 
 # Installation
 
-## cnquery
+The easiest way to install `cnquery` & `cnspec` is to use the install script. It 
 
 ### via Shell Script (Linux and macOS)
 
-[`https://install.mondoo.com/sh/cnquery`](https://install.mondoo.com/sh/cnquery)
+[`https://install.mondoo.com/sh`](https://install.mondoo.com/sh)
 
 ```bash
-bash -c "$(curl -sSL https://install.mondoo.com/sh/cnquery)"
+bash -c "$(curl -sSL https://install.mondoo.com/sh)"
 ```
 
 ### via PowerShell (Windows)
 
-[`https://install.mondoo.com/ps1/cnquery`](https://install.mondoo.com/ps1/cnquery)
+[`https://install.mondoo.com/ps1`](https://install.mondoo.com/ps1)
 
 ```powershell
 Set-ExecutionPolicy Unrestricted -Scope Process -Force;
 [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072;
-iex ((New-Object System.Net.WebClient).DownloadString('https://install.mondoo.com/ps1/cnquery'));
-Install-Mondoo -Product cnquery;
-```
-
-## cnspec
-
-### via Shell Script (Linux and macOS)
-
-[`https://install.mondoo.com/sh/cnspec`](https://install.mondoo.com/sh/cnspec)
-
-```bash
-bash -c "$(curl -sSL https://install.mondoo.com/sh/cnspec)"
-```
-
-### via PowerShell (Windows)
-
-[`https://install.mondoo.com/ps1/cnspec`](https://install.mondoo.com/ps1/cnspec)
-
-```powershell
-Set-ExecutionPolicy Unrestricted -Scope Process -Force;
-[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072;
-iex ((New-Object System.Net.WebClient).DownloadString('https://install.mondoo.com/ps1/cnspec'));
-Install-Mondoo -Product cnspec;
+iex ((New-Object System.Net.WebClient).DownloadString('https://install.mondoo.com/ps1'));
+Install-Mondoo;
 ```
 
 # Scan your target platform
 
 Scan your [target platform](https://github.com/mondoohq/cnspec/#supported-targets):
 
-```
+```bash
 # query system information with incident and inventory query pack
 cnquery scan aws
 # scan the platform for security vulnerabilities
@@ -191,11 +170,11 @@ Mondoo signs Microsoft Windows executables, PowerShell scripts, Linux packages a
 
 ## Microsoft
 
-To verify the integrity of the Mondoo executable, please use Microsoft's Get-AuthenticodeSignature PowerShell command and compare the Thumbprint.
+To verify the integrity of the `cnquery` or `cnspec` executable, please use Microsoft's Get-AuthenticodeSignature PowerShell command and compare the Thumbprint.
 
 ```powershell
-$file = "mondoo_7.15.0_windows_amd64.msi"
-(Get-AuthenticodeSignature -FilePath $file).SignerCertificate | Format-List
+PS > $file = ".\mondoo_8.15.0_windows_amd64.msi"
+PS > (Get-AuthenticodeSignature -FilePath $file).SignerCertificate | Format-List
 
 Subject      : CN="Mondoo, Inc", O="Mondoo, Inc", L=Cary, S=North Carolina, C=US
 Issuer       : CN=DigiCert Global G3 Code Signing ECC SHA384 2021 CA1, O="DigiCert, Inc.", C=US
@@ -219,22 +198,22 @@ EE97D1E3C6CD96E06C47B0233DD7C6CE2684FA50  Valid
 
 ## Apple macOS
 
-To verify the integrity of the Mondoo executable, please use Apple's codesign utility and compare the TeamIdentifier field, which should match the one below.
+To verify the integrity of the `cnquery` or `cnspec` executable, please use Apple's codesign utility and compare the TeamIdentifier field, which should match the one below.
 
 ```bash
-codesign --verify -d --verbose=2 /usr/local/bin/mondoo
-Executable=/Library/Mondoo/bin/mondoo
-Identifier=mondoo
+codesign --verify -d --verbose=2 /usr/local/bin/cnspec
+Executable=/Library/Mondoo/bin/cnspec
+Identifier=cnspec
 Format=Mach-O universal (x86_64 arm64)
-CodeDirectory v=20500 size=2060754 flags=0x10000(runtime) hashes=64393+2 location=embedded
-Signature size=9056
+CodeDirectory v=20500 size=2124850 flags=0x10000(runtime) hashes=66396+2 location=embedded
+Signature size=9054
 Authority=Developer ID Application: Mondoo, Inc. (W2KUBWKG84)
 Authority=Developer ID Certification Authority
 Authority=Apple Root CA
-Timestamp=12. Jan 2023 at 23:51:56
+Timestamp=25. Apr 2023 at 19:47:53
 Info.plist=not bound
 TeamIdentifier=W2KUBWKG84
-Runtime Version=10.9.0
+Runtime Version=11.0.0
 Sealed Resources=none
 Internal requirements count=1 size=168
 ```
