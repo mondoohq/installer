@@ -9,7 +9,7 @@
 
 # Installation
 
-The most easy way to install `cnquery` & `cnspec` is to use the install script. It 
+The easiest way to install `cnquery` & `cnspec` is to use the install script. It 
 
 ### via Shell Script (Linux and macOS)
 
