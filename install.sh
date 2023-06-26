@@ -18,23 +18,22 @@
 # The Mondoo installation script installs cnspec and cnquery on supported
 # Linux distros and macOS using its native package manager.
 # 
+# Use this command to install cnspec and cnquery on your system with this script:
+#
+# bash -c "$(curl -sSL https://install.mondoo.com/sh/cnquery)"
+# 
 # The script detects the operating system and uses the appropriate package.
-# To override the automatic detection, you can set the -t flag to specify
+# To override the automatic detection, you can set the -i flag to specify
 # the package type explicitly (supported on macOS).
 # 
 # Supported package types are:
 # - pkg (macOS)
 # - brew (macOS)
-#
-# The script may use the following environment variables:
-#
-# MONDOO_REGISTRATION_TOKEN
-#     (Optional) Mondoo Registration Token. Systemd services
-#     are only activated if Mondoo is properly authenticated.
 # 
-# Use this command to install cnspec and cnquery on your system with this script:
-#
-# bash -c "$(curl -sSL https://install.mondoo.com/sh/cnquery)"
+# (Optional) To authenticate the installation, you can provide a Mondoo 
+# Registration Token with the -t flag. The token is used to authenticate 
+# the client with Mondoo Platform. Systemd services are only activated 
+# if Mondoo is properly authenticated.
 #
 # Please note that we aim to be POSIX-compatible in this script.
 # If you find anything that violates these constraints, please reach out.
@@ -42,7 +41,7 @@
 
 MONDOO_PRODUCT_NAME="mondoo package for cnquery and cnspec" # product name
 MONDOO_PKG_NAME="mondoo" # pkg name in the package repository
-MONDOO_BINARY="mondoo" # binary that we search for
+MONDOO_BINARY="cnspec" # binary that we search for
 
 # read bash flags
 MONDOO_INSTALLER=''
@@ -51,12 +50,15 @@ print_usage() {
   echo "usage: [-i]" >&2
   echo "  Options: " >&2
   echo "    -i <installer>:  Select a specific installer, options are:" >&2
-  echo "                     macOS: brew, pkg " >&2
+  echo "                     macOS: brew, pkg" >&2
+  echo "    -t <token>:      Registration Token to authenticate with" >&2
+  echo "                     Mondoo Platform" >&2
 }
 
-while getopts 'i:v' flag; do
+while getopts 'i:vt:v' flag; do
   case "${flag}" in
     i) MONDOO_INSTALLER="${OPTARG}" ;;
+    t) MONDOO_REGISTRATION_TOKEN="${OPTARG}" ;;
     *) print_usage
        exit 1 ;;
   esac
@@ -118,7 +120,7 @@ This installer is licensed under the Apache License, Version 2.0
 "
 
 if [ "${MONDOO_INSTALLER}" != '' ]; then
-  echo "user defined package type: $MONDOO_INSTALLER";
+  echo "User defined package type: $MONDOO_INSTALLER";
 fi
 
 # Detect operating system
@@ -461,10 +463,10 @@ configure_cloudshell_installer() {
   }
 
   configure_linux_token() {
-    purple_bold "\n* Register ${MONDOO_PRODUCT_NAME} with Mondoo Platform"
+    purple_bold "\n* Authenticate with Mondoo Platform"
     config_path="$HOME/.config/mondoo"
     mkdir -p "$config_path"
-    ${MONDOO_BINARY_PATH} register --config "$config_path/mondoo.yml" --token "$MONDOO_REGISTRATION_TOKEN"
+    ${MONDOO_BINARY_PATH} login --config "$config_path/mondoo.yml" --token "$MONDOO_REGISTRATION_TOKEN"
   }
 }
 
@@ -483,19 +485,10 @@ detect_mondoo_registered() {
 }
 
 configure_token() {
-  if [ -z "${MONDOO_REGISTRATION_TOKEN}" ]; then
-    if [ "$MONDOO_PRODUCT_NAME" = "mondoo package for cnquery and cnspec" ]; then
-      echo -e "\n* No registration token provided, skipping ${MONDOO_PRODUCT_NAME} registration."
-    fi
-    return
-  else
-    purple_bold "\n* Registration token detected, checking if ${MONDOO_PRODUCT_NAME} is registered..."
-  fi
-
   detect_mondoo_registered
   if [ "$MONDOO_IS_REGISTERED" = true ]; then
-    purple_bold "\n* ${MONDOO_PRODUCT_NAME} is already registered. Skipping registration"
-    purple_bold "(you can manually run '${MONDOO_BINARY} register' to re-register)."
+    purple_bold "\n* ${MONDOO_PRODUCT_NAME} is already logged-in. Skipping login"
+    purple_bold "(you can manually run '${MONDOO_BINARY} login' to re-authenticate)."
     return
   fi
 
@@ -515,16 +508,16 @@ configure_token() {
 }
 
 configure_macos_token() {
-  purple_bold "\n* Register ${MONDOO_PRODUCT_NAME} with Mondoo Platform"
+  purple_bold "\n* Authenticate with Mondoo Platform"
   config_path="$HOME/.config/mondoo"
   mkdir -p "$config_path"
-  ${MONDOO_BINARY_PATH} register --config "$config_path/mondoo.yml" --token "$MONDOO_REGISTRATION_TOKEN"
+  ${MONDOO_BINARY_PATH} login --config "$config_path/mondoo.yml" --token "$MONDOO_REGISTRATION_TOKEN"
 }
 
 configure_linux_token() {
-  purple_bold "\n* Register ${MONDOO_PRODUCT_NAME} with Mondoo Platform"
+  purple_bold "\n* Authenticate with Mondoo Platform"
   sudo_cmd mkdir -p "/etc/opt/mondoo/"
-  sudo_cmd ${MONDOO_BINARY_PATH} register --config /etc/opt/mondoo/mondoo.yml --token "$MONDOO_REGISTRATION_TOKEN"
+  sudo_cmd ${MONDOO_BINARY_PATH} login --config /etc/opt/mondoo/mondoo.yml --token "$MONDOO_REGISTRATION_TOKEN"
 
   if [ "$(cat /proc/1/comm)" = "init" ]; then
     purple_bold "\n* Restart upstart service"
@@ -534,7 +527,7 @@ configure_linux_token() {
     purple_bold "\n* Restart systemd service"
     sudo_cmd systemctl restart mondoo.service
   else
-    red "\nWe could not detect your process supervisor. If ${MONDOO_PRODUCT_NAME} is running as a service, you will need to restart it manually to make sure it is registered."
+    red "\nWe could not detect your process supervisor. If ${MONDOO_PRODUCT_NAME} is running as a service, you will need to restart it manually."
   fi
 }
 
@@ -550,25 +543,25 @@ postinstall_check() {
 
 finalize_setup() {
 
-  # If a registration token is provided, register the client
+  # Authenticate with Mondoo platform if a registration token is provided
   configure_token
 
   # Display final message
   purple_bold "\n${MONDOO_PRODUCT_NAME} is ready to go!"
 
-  # Deprecated: Only relevant for installing the mondoo package, warn the user to register. Do not warn open source users.
+  # Deprecated: Only relevant for installing the mondoo package, warn the user to login. Do not warn open source users.
   if [ "$MONDOO_PRODUCT_NAME" = "mondoo package for cnquery and cnspec" ]; then
     detect_mondoo_registered
     if [ "$MONDOO_IS_REGISTERED" = false ]; then
       echo
-      lightblue_bold "Next you should register ${MONDOO_PRODUCT_NAME} to get access to policies and reports."
+      lightblue_bold "Next you should login to ${MONDOO_PRODUCT_NAME} to get access to policies and reports."
       lightblue_bold "Follow this guide: "
       echo
       lightblue_bold "https://mondoo.com/docs/cnspec/cnspec-adv-install/registration/"
       echo
     else
       echo
-      lightblue_bold "  Run 'mondoo scan local' to scan localhost, or learn more in our\n  quick start docs: https://mondoo.com/docs/"
+      lightblue_bold "  Run 'cnspec scan local' to scan localhost, or learn more in our\n  quick start docs: https://mondoo.com/docs/"
       echo
     fi
   else
