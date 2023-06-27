@@ -45,6 +45,7 @@ MONDOO_BINARY="cnspec" # binary that we search for
 
 # read bash flags
 MONDOO_INSTALLER=''
+MONDOO_REGISTRATION_TOKEN=''
 
 print_usage() {
   echo "usage: [-i]" >&2
@@ -485,7 +486,13 @@ detect_mondoo_registered() {
 }
 
 configure_token() {
+  if [ -z "${MONDOO_REGISTRATION_TOKEN}" ]; then
+    echo -e "\n* No registration token provided, skipping Mondoo Platform authentication."
+    return
+  fi
+
   detect_mondoo_registered
+
   if [ "$MONDOO_IS_REGISTERED" = true ]; then
     purple_bold "\n* ${MONDOO_PRODUCT_NAME} is already logged-in. Skipping login"
     purple_bold "(you can manually run '${MONDOO_BINARY} login' to re-authenticate)."

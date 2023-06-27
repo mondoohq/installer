@@ -6,7 +6,11 @@ on:
     types:
       - completed
   workflow_dispatch:
-
+  push:
+    branches:
+      - main
+    paths:
+      - 'install.sh'
 
 jobs:
   build_container:
