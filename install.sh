@@ -294,8 +294,8 @@ configure_macos_installer() {
   elif [ "${MONDOO_INSTALLER}" == "pkg" ]; then
     mondoo_install() {
       detect_latest_version
-      FILE="${MONDOO_BINARY}_${MONDOO_LATEST_VERSION}_darwin_universal.pkg"
-      URL="https://releases.mondoo.com/${MONDOO_BINARY}/${MONDOO_LATEST_VERSION}/${FILE}"
+      FILE="${MONDOO_PKG_NAME}_${MONDOO_LATEST_VERSION}_darwin_universal.pkg"
+      URL="https://releases.mondoo.com/${MONDOO_PKG_NAME}/${MONDOO_LATEST_VERSION}/${FILE}"
 
       purple_bold "\n* Downloading ${MONDOO_PRODUCT_NAME} Universal Package for Mac"
       curl -sO "${URL}"
