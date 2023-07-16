@@ -1,0 +1,43 @@
+name: "Test Release: Homebrew"
+
+on:
+  workflow_dispatch:
+  workflow_call:
+
+jobs:
+  formulae:
+    runs-on: macos-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        package: ["cnquery", "cnspec", "mondoo"]
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Homebrew
+        run: |
+          /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+      - name: Testing install of ${{ matrix.package }}....
+        run: |
+          brew tap mondoohq/mondoo
+          brew install ${{ matrix.package }}
+
+      - name: Executing ${{ matrix.package }}....
+        run: |
+          ${{ matrix.package }} version
+
+  cask:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Homebrew
+        run: |
+          /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+      - name: Testing install of ${{ matrix.package }}....
+        run: |
+          brew install --cask mondoohq/mondoo/mondoo-cli
+
+      - name: Executing mondoo....
+        run: |
+          mondoo version

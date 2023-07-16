@@ -1,0 +1,42 @@
+name: "Test Release: Arch Linux"
+
+on:
+  workflow_dispatch:
+  workflow_call:
+
+jobs:
+  arch-cnquery-makepkg:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install cnquery with MakePKG on Arch Linux
+        run: |
+          docker run --rm -v $(pwd):/work -w /work archlinux:latest \
+          bash -c "pacman -Syu --noconfirm && \
+                    pacman -S --noconfirm base-devel git &&  \
+                    cd /tmp && \
+                    useradd test && \
+                    su test -c \"git clone https://aur.archlinux.org/cnquery && cd cnquery && makepkg\" && \
+                    cd  cnquery && \
+                    pacman -U --noconfirm  cnquery-*.zst && \
+                    cnquery version"
+
+  arch-cnspec-yay:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install cnspec with Yay on Arch Linux
+        run: |
+          docker run --rm -v $(pwd):/work -w /work archlinux:latest \
+          bash -c " pacman -Syu --noconfirm && \
+                    pacman -S --noconfirm base-devel git go &&  \
+                    cd /tmp && \
+                    useradd -m test && \
+                    echo \"test ALL=(ALL) NOPASSWD: ALL\" >> /etc/sudoers && \
+                    su test -c \"git clone https://aur.archlinux.org/yay && cd yay && makepkg\" && \
+                    cd  yay && \
+                    pacman -U --noconfirm  yay-*.zst && \
+                    su test -c \"yay -S --noconfirm cnspec\" && \
+                    cnspec version"

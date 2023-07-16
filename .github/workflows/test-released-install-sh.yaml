@@ -1,0 +1,79 @@
+name: "Test Release: install.sh"
+
+on:
+  workflow_call:
+    inputs:
+      client:
+        required: true
+        type: string
+        default: "cnspec"
+  workflow_dispatch:
+    inputs:
+      client:
+        description: "Client to Test"
+        type: choice
+        options:
+          - mondoo
+          - cnspec
+          - cnquery
+
+jobs:
+  install-sh-apt:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        distro:
+          [
+            "debian:10",
+            "debian:11",
+            "ubuntu:18.04",
+            "ubuntu:20.04",
+            "ubuntu:22.04",
+          ]
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install.sh/${{ inputs.client }} on ${{ matrix.distro }}
+        run: |
+          docker run --rm -v $(pwd):/work -w /work ${{ matrix.distro }} \
+          bash -c "apt-get update && apt-get install -y curl && curl -sSL https://install.mondoo.com/sh/${{ inputs.client }} | bash - && ${{ inputs.client }} version"
+
+  install-sh-yum:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        distro:
+          [
+            "centos:7",
+            "quay.io/centos/centos:stream9",
+            "fedora:32",
+            "fedora:33",
+            "rockylinux:8",
+            "rockylinux:9",
+            "redhat/ubi8",
+            "redhat/ubi9",
+            "oraclelinux:8",
+            "oraclelinux:9",
+          ]
+        ## Note: centos:8 is obsoleted by Centos Stream 9 and EOL, do not use, refer to https://www.centos.org/centos-linux-eol/
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install.sh/${{ inputs.client }} on ${{ matrix.distro }}
+        run: |
+          docker run --rm -v $(pwd):/work -w /work ${{ matrix.distro }} \
+          bash -c "curl -sSL https://install.mondoo.com/sh/${{ inputs.client }} | bash - && ${{inputs.client }} version"
+
+  install-sh-macos:
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        os: ["macos-latest"]
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install.sh/${{ inputs.client }} on ${{ matrix.os }}
+        run: |
+          bash -c "$(curl -sSL https://install.mondoo.com/sh/${{ inputs.client }})"
+          ${{ inputs.client }} version
