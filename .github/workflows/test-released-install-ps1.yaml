@@ -1,0 +1,33 @@
+name: "Test Release: install.ps1"
+
+on:
+  workflow_call:
+    inputs:
+      client:
+        required: true
+        type: string
+        default: "cnspec"
+  workflow_dispatch:
+    inputs:
+      client:
+        description: "Client to Test"
+        type: choice
+        options:
+          - mondoo
+          - cnspec
+          - cnquery
+
+jobs:
+  install-sh-windows:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        os: ["windows-latest"]
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install.sh/${{ inputs.client }} on ${{ matrix.os }}
+        run: |
+          Set-ExecutionPolicy Unrestricted -Scope Process -Force;
+          [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072;
+          iex ((New-Object System.Net.WebClient).DownloadString('https://install.mondoo.com/ps1/${{ inputs.client }}'));
+          Install-Mondoo -Product ${{ inputs.client }};
