@@ -1,4 +1,4 @@
-name: "Trigger ALL Release Build Tests"
+name: "Test Release: ALL - Trigger Release Build Tests"
 
 on:
   workflow_dispatch:

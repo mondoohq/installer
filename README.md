@@ -9,12 +9,12 @@
 
 ## Status
 
-- Docker Containers: [![TEST: Docker Containers](https://github.com/mondoohq/installer/actions/workflows/docker-test.yaml/badge.svg)](https://github.com/mondoohq/installer/actions/workflows/docker-test.yaml)
-- Homebrew: [![TEST: Homebrew](https://github.com/mondoohq/installer/actions/workflows/brew-test.yaml/badge.svg)](https://github.com/mondoohq/installer/actions/workflows/brew-test.yaml)
-- Install.sh: [![TEST: install.sh](https://github.com/mondoohq/installer/actions/workflows/install-sh-test.yaml/badge.svg)](https://github.com/mondoohq/installer/actions/workflows/install-sh-test.yaml)
-- Install.ps1: [![TEST: install.ps1](https://github.com/mondoohq/installer/actions/workflows/install-ps1-test.yaml/badge.svg)](https://github.com/mondoohq/installer/actions/workflows/install-ps1-test.yaml)
-- macOS Pkg: [![TEST: macOS Package](https://github.com/mondoohq/installer/actions/workflows/osx-pkg-test.yaml/badge.svg)](https://github.com/mondoohq/installer/actions/workflows/osx-pkg-test.yaml)
-- Arch Linux: [![TEST: Arch Linux](https://github.com/mondoohq/installer/actions/workflows/arch-test.yaml/badge.svg)](https://github.com/mondoohq/installer/actions/workflows/arch-test.yaml)
+- Docker Containers: [![TEST: Docker Containers](https://github.com/mondoohq/installer/actions/workflows/test-released-docker.yaml/badge.svg)](https://github.com/mondoohq/installer/actions/workflows/test-released-docker.yaml)
+- Homebrew: [![TEST: Homebrew](https://github.com/mondoohq/installer/actions/workflows/test-released-docker.yaml/badge.svg)](https://github.com/mondoohq/installer/actions/workflows/test-released-docker.yaml)
+- Install.sh: [![TEST: install.sh](https://github.com/mondoohq/installer/actions/workflows/test-released-install-ps1.yaml/badge.svg)](https://github.com/mondoohq/installer/actions/workflows/test-released-install-ps1.yaml)
+- Install.ps1: [![TEST: install.ps1](https://github.com/mondoohq/installer/actions/workflows/test-released-install-ps1.yaml/badge.svg)](https://github.com/mondoohq/installer/actions/workflows/test-released-install-ps1.yaml)
+- macOS Pkg: [![TEST: macOS Package](https://github.com/mondoohq/installer/actions/workflows/test-released-osx-pkg.yaml/badge.svg)](https://github.com/mondoohq/installer/actions/workflows/test-released-osx-pkg.yaml)
+- Arch Linux: [![TEST: Arch Linux](https://github.com/mondoohq/installer/actions/workflows/test-released-archlinux.yaml/badge.svg)](https://github.com/mondoohq/installer/actions/workflows/test-released-archlinux.yaml)
 
 # Installation
 
