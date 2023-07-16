@@ -45,6 +45,7 @@ MONDOO_BINARY="cnspec" # binary that we search for
 
 # read bash flags
 MONDOO_INSTALLER=''
+MONDOO_SERVICE=''
 MONDOO_REGISTRATION_TOKEN=''
 
 print_usage() {
@@ -52,14 +53,20 @@ print_usage() {
   echo "  Options: " >&2
   echo "    -i <installer>:  Select a specific installer, options are:" >&2
   echo "                     macOS: brew, pkg" >&2
+  echo "    -s <service>:    Enables the cnspec service for the system." >&2
+  echo "                     options are: enable" >&2
   echo "    -t <token>:      Registration Token to authenticate with" >&2
   echo "                     Mondoo Platform" >&2
+  echo "    -u <updater>:    Enables the Mondoo auto updater for the system." >&2
+  echo "                     options are: enable" >&2
 }
 
-while getopts 'i:vt:v' flag; do
+while getopts 'i:s:u:vt:v' flag; do
   case "${flag}" in
     i) MONDOO_INSTALLER="${OPTARG}" ;;
+    s) MONDOO_SERVICE="${OPTARG}" ;;
     t) MONDOO_REGISTRATION_TOKEN="${OPTARG}" ;;
+    u) MONDOO_AUTOUPDATER="${OPTARG}" ;;
     *) print_usage
        exit 1 ;;
   esac
@@ -121,7 +128,15 @@ This installer is licensed under the Apache License, Version 2.0
 "
 
 if [ "${MONDOO_INSTALLER}" != '' ]; then
-  echo "User defined package type: $MONDOO_INSTALLER";
+  echo -e "\nUser defined package type: $MONDOO_INSTALLER";
+fi
+
+if [ "${MONDOO_SERVICE}" != '' ]; then
+  echo -e "\nMondoo Service creation enabled";
+fi
+
+if [ "${MONDOO_AUTOUPDATER}" != '' ]; then
+  echo -e "\nMondoo auto updater creation enabled";
 fi
 
 # Detect operating system
@@ -300,13 +315,13 @@ configure_macos_installer() {
       URL="https://releases.mondoo.com/${MONDOO_PKG_NAME}/${MONDOO_LATEST_VERSION}/${FILE}"
 
       purple_bold "\n* Downloading ${MONDOO_PRODUCT_NAME} Universal Package for Mac"
-      curl -A "${UserAgent}" -sO "${URL}"
+      curl -A "${UserAgent}" -s "${URL}" -o "/tmp/${FILE}"
 
       purple_bold "\n* Installing ${MONDOO_PRODUCT_NAME} via 'installer -pkg'"
-      sudo_cmd /usr/sbin/installer -pkg "${FILE}" -target /
+      sudo_cmd /usr/sbin/installer -pkg "/tmp/${FILE}" -target /
 
       purple_bold "\n* Cleaning up downloaded package"
-      rm "${FILE}"
+      rm "/tmp/${FILE}"
     }
     mondoo_update() { mondoo_install "$@"; }
   fi
@@ -393,7 +408,7 @@ configure_debian_installer() {
     mondoo_install() {
       purple_bold "\n* Installing prerequisites for Debian"
       sudo_cmd apt update -y
-      sudo_cmd apt install -y apt-transport-https ca-certificates gnupg
+      sudo_cmd apt install -y apt-transport-https ca-certificates gnupg curl
       apt_update
       
       purple_bold "\n* Installing ${MONDOO_PRODUCT_NAME}"
@@ -498,6 +513,10 @@ configure_token() {
   if [ "$MONDOO_IS_REGISTERED" = true ]; then
     purple_bold "\n* ${MONDOO_PRODUCT_NAME} is already logged-in. Skipping login"
     purple_bold "(you can manually run '${MONDOO_BINARY} login' to re-authenticate)."
+    config_path="$HOME/.config/mondoo"
+    if [ "$MONDOO_SERVICE" = "enable" ] && [ "$OS" = "macOS" ]; then
+      sudo_cmd cp "$config_path/mondoo.yml" /Library/Mondoo/etc/mondoo.yml
+    fi
     return
   fi
 
@@ -521,6 +540,9 @@ configure_macos_token() {
   config_path="$HOME/.config/mondoo"
   mkdir -p "$config_path"
   ${MONDOO_BINARY_PATH} login --config "$config_path/mondoo.yml" --token "$MONDOO_REGISTRATION_TOKEN"
+  if [ "$MONDOO_SERVICE" = "enable" ]; then
+    sudo_cmd cp "$config_path/mondoo.yml" /Library/Mondoo/etc/mondoo.yml
+  fi
 }
 
 configure_linux_token() {
@@ -534,7 +556,7 @@ configure_linux_token() {
     sudo_cmd start mondoo || true
   elif [ "$(cat /proc/1/comm)" = "systemd" ]; then
     purple_bold "\n* Restart systemd service"
-    sudo_cmd systemctl restart mondoo.service
+    sudo_cmd systemctl restart cnspec.service
   else
     red "\nWe could not detect your process supervisor. If ${MONDOO_PRODUCT_NAME} is running as a service, you will need to restart it manually."
   fi
@@ -550,10 +572,106 @@ postinstall_check() {
   echo "${MONDOO_PRODUCT_NAME} installation completed."
 }
 
+service() {
+  if [ "$OS" = "macOS" ]; then
+    purple_bold "\n* Enable and start the mondoo service"
+    # Remove old launchd plists
+    sudo_cmd launchctl bootout system/com.mondoo.client
+    sudo_cmd rm -f /Library/LaunchDaemons/com.mondoo.client.plist
+
+    # Create the new launchd Mondoo service to run cnspec every hour
+    sudo_cmd tee /Library/LaunchDaemons/com.mondoo.client.plist <<EOL
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+        <key>Label</key>
+        <string>com.mondoo.client</string>
+        <key>ProgramArguments</key>
+        <array>
+                <string>/Library/Mondoo/bin/cnspec</string>
+                <string>serve</string>
+                <string>--config</string>
+                <string>/Library/Mondoo/etc/mondoo.yml</string>
+        </array>
+        <key>RunAtLoad</key>
+        <true/>
+        <key>StandardOutPath</key>
+        <string>/var/log/mondoo.log</string>
+        <key>StandardErrorPath</key>
+        <string>/var/log/mondoo.log</string>
+</dict>
+</plist>
+EOL
+
+    sleep 5
+    sudo_cmd launchctl load /Library/LaunchDaemons/com.mondoo.client.plist
+    sudo_cmd launchctl start /Library/LaunchDaemons/com.mondoo.client.plist
+  elif [ "$OS" = "Arch" ]; then
+    purple_bold "\n* Enable and start the mondoo service"
+    sudo_cmd systemctl enable mondoo.service
+    sudo_cmd systemctl start mondoo.service
+    sudo_cmd systemctl daemon-reload
+  else
+    purple_bold "\n* Enable and start the cnspec service"
+    sudo_cmd systemctl enable cnspec.service
+    sudo_cmd systemctl start cnspec.service
+    sudo_cmd systemctl daemon-reload
+  fi
+}
+
+autoupdater() {
+  purple_bold "\n* Enable and start the mondoo auto updater service"
+  if [ "$OS" = "macOS" ]; then
+     ## Remove old launchd plists
+    sudo_cmd launchctl bootout system/com.mondoo.autoupdater
+    sudo_cmd rm -f /Library/LaunchDaemons/com.mondoo.autoupdater.plist
+
+    sudo_cmd curl -sSL https://install.mondoo.com/sh -o /Library/Mondoo/bin/mondoo-updater.sh
+
+    sudo_cmd tee /Library/LaunchDaemons/com.mondoo.autoupdater.plist <<EOL
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+        <key>Label</key>
+        <string>com.mondoo.autoupdater</string>
+        <key>ProgramArguments</key>
+        <array>
+                <string>bash</string>
+                <string>/Library/Mondoo/bin/mondoo-updater.sh</string>
+        </array>
+        <key>StartInterval</key>
+        <integer>518400</integer>
+        <key>StandardOutPath</key>
+        <string>/var/log/mondoo-updater.log</string>
+        <key>StandardErrorPath</key>
+        <string>/var/log/mondoo-updater.log</string>
+</dict>
+</plist>
+EOL
+    sleep 5
+    sudo_cmd launchctl load /Library/LaunchDaemons/com.mondoo.autoupdater.plist
+    sudo_cmd launchctl start /Library/LaunchDaemons/com.mondoo.autoupdater.plist
+  else
+    echo $'#!/bin/sh\nbash -c "$(curl -sSL https://install.mondoo.com/sh)"' > /etc/cron.weekly/mondoo-update
+  fi
+}
+
 finalize_setup() {
 
   # Authenticate with Mondoo platform if a registration token is provided
   configure_token
+
+  # Enable Service
+  if [ "$MONDOO_SERVICE" = "enable" ]; then
+    service
+  fi
+
+  # Enable Mondoo auto updater
+  if [ "$MONDOO_AUTOUPDATER" = "enable" ]; then
+    autoupdater
+  fi
 
   # Display final message
   purple_bold "\n${MONDOO_PRODUCT_NAME} is ready to go!"
