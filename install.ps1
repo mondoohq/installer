@@ -234,7 +234,13 @@ function Install-Mondoo {
     $filetype = 'zip'
   }
   # get the installed mondoo version
-  $installed_version = Get-CIMInstance -Class Win32_Product | Where-Object vendor -eq "Mondoo, Inc."
+  $Apps = @()
+  $Apps += Get-ItemProperty "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*" # 32 Bit
+  $Apps += Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*" # 64 Bit
+  $installed_version = $Apps | where-object Publisher -eq "Mondoo, Inc."
+  if ($installed_version){
+    $installed_version.version = $installed_version.DisplayVersion
+  }
 
   $arch = 'amd64'
   $releaseurl = ''
