@@ -53,7 +53,7 @@ print_usage() {
   echo "  Options: " >&2
   echo "    -i <installer>:  Select a specific installer, options are:" >&2
   echo "                     macOS: brew, pkg" >&2
-  echo "    -s <service>:    Enables the cnspec service for the system." >&2
+  echo "    -s <service>:    Enables the cnspec service for the system. This option requires a registration token" >&2
   echo "                     options are: enable" >&2
   echo "    -t <token>:      Registration Token to authenticate with" >&2
   echo "                     Mondoo Platform" >&2
@@ -182,6 +182,7 @@ detect_mondoo() {
   MONDOO_EXECUTABLE="$(command -v "$MONDOO_BINARY")"
   if [ -x "$MONDOO_EXECUTABLE" ]; then
     MONDOO_INSTALLED=true
+    CURRENT_VERSION=$(cnspec version 2>/dev/null | cut -d' ' -f2)
   else
     MONDOO_INSTALLED=false
   fi
@@ -311,17 +312,23 @@ configure_macos_installer() {
   elif [ "${MONDOO_INSTALLER}" == "pkg" ]; then
     mondoo_install() {
       detect_latest_version
-      FILE="${MONDOO_PKG_NAME}_${MONDOO_LATEST_VERSION}_darwin_universal.pkg"
-      URL="https://releases.mondoo.com/${MONDOO_PKG_NAME}/${MONDOO_LATEST_VERSION}/${FILE}"
+      if [[ "${CURRENT_VERSION}" != "${MONDOO_LATEST_VERSION}" ]]
+      then
+        echo "${CURRENT_VERSION} == ${MONDOO_LATEST_VERSION}"
+        FILE="${MONDOO_PKG_NAME}_${MONDOO_LATEST_VERSION}_darwin_universal.pkg"
+        URL="https://releases.mondoo.com/${MONDOO_PKG_NAME}/${MONDOO_LATEST_VERSION}/${FILE}"
 
-      purple_bold "\n* Downloading ${MONDOO_PRODUCT_NAME} Universal Package for Mac"
-      curl -A "${UserAgent}" -s "${URL}" -o "/tmp/${FILE}"
+        purple_bold "\n* Downloading ${MONDOO_PRODUCT_NAME} Universal Package for Mac"
+        curl -A "${UserAgent}" -s "${URL}" -o "/tmp/${FILE}"
 
-      purple_bold "\n* Installing ${MONDOO_PRODUCT_NAME} via 'installer -pkg'"
-      sudo_cmd /usr/sbin/installer -pkg "/tmp/${FILE}" -target /
+        purple_bold "\n* Installing ${MONDOO_PRODUCT_NAME} via 'installer -pkg'"
+        sudo_cmd /usr/sbin/installer -pkg "/tmp/${FILE}" -target /
 
-      purple_bold "\n* Cleaning up downloaded package"
-      rm "/tmp/${FILE}"
+        purple_bold "\n* Cleaning up downloaded package"
+        rm "/tmp/${FILE}"
+      else
+        purple_bold "\n* Latest ${MONDOO_PRODUCT_NAME} is already installed."
+      fi
     }
     mondoo_update() { mondoo_install "$@"; }
   fi
@@ -572,6 +579,9 @@ postinstall_check() {
   echo "${MONDOO_PRODUCT_NAME} installation completed."
 }
 
+# Service config action
+# ---------------------
+
 service() {
   if [ "$OS" = "macOS" ]; then
     purple_bold "\n* Enable and start the mondoo service"
@@ -620,6 +630,9 @@ EOL
   fi
 }
 
+# Auto updater config action
+# --------------------------
+
 autoupdater() {
   purple_bold "\n* Enable and start the mondoo auto updater service"
   if [ "$OS" = "macOS" ]; then
@@ -628,6 +641,7 @@ autoupdater() {
     sudo_cmd rm -f /Library/LaunchDaemons/com.mondoo.autoupdater.plist
 
     sudo_cmd curl -sSL https://install.mondoo.com/sh -o /Library/Mondoo/bin/mondoo-updater.sh
+    sudo_cmd chmod a+x /Library/Mondoo/bin/mondoo-updater.sh
 
     sudo_cmd tee /Library/LaunchDaemons/com.mondoo.autoupdater.plist <<EOL
 <?xml version="1.0" encoding="UTF-8"?>
@@ -636,13 +650,19 @@ autoupdater() {
 <dict>
         <key>Label</key>
         <string>com.mondoo.autoupdater</string>
+        <key>EnvironmentVariables</key>
+        <dict>
+                <key>PATH</key>
+                <string>/bin:/usr/bin:/usr/local/bin</string>
+        </dict>
         <key>ProgramArguments</key>
         <array>
-                <string>bash</string>
                 <string>/Library/Mondoo/bin/mondoo-updater.sh</string>
+                <string>-i</string>
+                <string>pkg</string>
         </array>
         <key>StartInterval</key>
-        <integer>518400</integer>
+        <integer>86400</integer>
         <key>StandardOutPath</key>
         <string>/var/log/mondoo-updater.log</string>
         <key>StandardErrorPath</key>
