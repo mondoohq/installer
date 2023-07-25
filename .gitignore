@@ -8,3 +8,4 @@ terraform.tfstate
 terraform.tfstate.backup
 **/terraform*/completed.txt
 .terraform.tfstate.lock.info
+**/.**.swp
