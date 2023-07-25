@@ -60,8 +60,8 @@ jobs:
           security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
           security unlock-keychain -p ${{ secrets.APPLE_KEYCHAIN_PASSWORD }} $KEYCHAIN_PATH
           # Import Certificates:
-          echo "${{ secrets.APPLE_KEYS_PRODUCTSIGN }}" | base64 --decode > $RUNNER_TEMP/AppleKeysProductSign.p12
-          echo "${{ secrets.APPLE_KEYS_CODESIGN }}"  | base64 --decode > $RUNNER_TEMP/AppleKeysCodeSign.p12
+          echo "${{ secrets.APPLE_KEYS_PRODUCTSIGN_P12 }}" | base64 --decode > $RUNNER_TEMP/AppleKeysProductSign.p12
+          echo "${{ secrets.APPLE_KEYS_CODESIGN_P12 }}"  | base64 --decode > $RUNNER_TEMP/AppleKeysCodeSign.p12
           security import $RUNNER_TEMP/AppleKeysProductSign.p12 -P ${{ secrets.APPLE_KEYS_PASSWORD }} -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
           security import $RUNNER_TEMP/AppleKeysCodeSign.p12 -P ${{ secrets.APPLE_KEYS_PASSWORD }} -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
           security list-keychain -d user -s $KEYCHAIN_PATH
