@@ -9,7 +9,7 @@ fi
 
 
 rm -rf cnspec/
-mkdir cnspec && cd cnspec
+mkdir cnspec && cd cnspec || exit 1
 
 echo "Generating NuSpec"
 cat >cnspec.nuspec <<NUSPEC
@@ -67,5 +67,5 @@ cat >tools/chocolateyInstall.ps1 <<CHOCOSTALL
   checksumType64= 'sha256' #default is checksumType
 }
 
-Install-ChocolateyZipPackage @packageArgs 
+Install-ChocolateyZipPackage @packageArgs
 CHOCOSTALL

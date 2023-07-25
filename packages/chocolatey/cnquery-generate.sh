@@ -7,7 +7,7 @@ if [[ $VERSION = "" ]]; then
 fi
 
 rm -rf cnquery/
-mkdir cnquery && cd cnquery
+mkdir cnquery && cd cnquery || exit 1
 
 echo "Generating NuSpec"
 cat >cnquery.nuspec <<NUSPEC
@@ -62,5 +62,5 @@ cat >tools/chocolateyInstall.ps1 <<CHOCOSTALL
   checksumType64= 'sha256' #default is checksumType
 }
 
-Install-ChocolateyZipPackage @packageArgs 
+Install-ChocolateyZipPackage @packageArgs
 CHOCOSTALL
