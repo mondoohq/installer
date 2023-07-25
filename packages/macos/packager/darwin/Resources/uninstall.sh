@@ -37,7 +37,7 @@ done
 
 
 #Need to replace these with install preparation script
-VERSION=__VERSION__
+#VERSION=__VERSION__
 PRODUCT=__PRODUCT__
 
 echo "Application uninstalling process started"

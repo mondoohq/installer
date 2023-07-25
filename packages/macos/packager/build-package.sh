@@ -3,7 +3,7 @@
 #Configuration Variables and Parameters
 
 #Parameters
-SCRIPTPATH="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
+SCRIPTPATH="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 || exit; pwd -P )"
 TARGET_DIRECTORY="$SCRIPTPATH/target"
 PRODUCT=`echo ${1} | awk '{for (i=1;i<=NF;i++) $i=toupper(substr($i,1,1)) substr($i,2)} 1'`
 VERSION=${2}
@@ -47,7 +47,7 @@ fi
 
 #Functions
 go_to_dir() {
-    pushd $1 >/dev/null 2>&1
+    pushd $1 >/dev/null 2>&1 || exit
 }
 
 log_info() {
@@ -65,9 +65,9 @@ log_error() {
 deleteInstallationDirectory() {
     log_info "Cleaning $TARGET_DIRECTORY directory."
     rm -rf $TARGET_DIRECTORY
-
-    if [[ $? != 0 ]]; then
-        log_error "Failed to clean $TARGET_DIRECTORY directory" $?
+    RETURNCODE=$?
+    if [[ $RETURNCODE != 0 ]]; then
+        log_error "Failed to clean $TARGET_DIRECTORY directory" $RETURNCODE
         exit 1
     fi
 }
@@ -77,9 +77,9 @@ createInstallationDirectory() {
         deleteInstallationDirectory
     fi
     mkdir $TARGET_DIRECTORY
-
-    if [[ $? != 0 ]]; then
-        log_error "Failed to create $TARGET_DIRECTORY directory" $?
+    RETURNCODE=$?
+    if [[ $RETURNCODE != 0 ]]; then
+        log_error "Failed to create $TARGET_DIRECTORY directory" $RETURNCODE
         exit 1
     fi
 }

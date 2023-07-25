@@ -1,8 +1,5 @@
 #!/bin/bash
 
-#Customize this for your application
-APPLICATION_FILE_PATH=bin/mondoo
-
 #Parameters
 PRODUCT_HOME=/Library/__PRODUCT__
 
@@ -10,7 +7,7 @@ echo "Post installation process started"
 
 #Change permissions in home directory
 echo "Change permissions in product home"
-cd ${PRODUCT_HOME}
+cd ${PRODUCT_HOME} || exit 1
 chmod -R 755 .
 [ -d /usr/local/bin ] || mkdir /usr/local/bin
 

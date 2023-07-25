@@ -22,24 +22,24 @@ if [[ ! $PKGNAME ]]; then
   exit 1
 fi
 
-echo "Packaging Release ${VERSION}"
+echo "Packaging Release ${VERSION}: ${TIME}"
 
 ###############################################################################################################
 # Pull Latest Binaries & Create Universal Binaries
 for DIST in cnquery cnspec; do
-  cd $BLDDIR
+  cd $BLDDIR || return
 
   mkdir -p dist/${DIST}
   for ARCH in amd64 arm64; do
-    cd ${BLDDIR}/dist/${DIST}
+    cd ${BLDDIR}/dist/${DIST} || return
     echo "Downloading ${DIST} for ${ARCH}"
-    mkdir ${ARCH} && cd ${ARCH}
+    mkdir ${ARCH} && cd ${ARCH} || return
     curl -sL -o ${DIST}-${ARCH}.tgz https://github.com/mondoohq/${DIST}/releases/download/v${VERSION}/${DIST}_${VERSION}_darwin_${ARCH}.tar.gz
     tar -xzf ${DIST}-${ARCH}.tgz
     rm ${DIST}-${ARCH}.tgz
   done
 
-  cd $BLDDIR/dist/${DIST}
+  cd $BLDDIR/dist/${DIST} || return
 
   echo "Creating Universal Binary for ${DIST}..."
   /usr/bin/lipo -create -output ${DIST} amd64/${DIST} arm64/${DIST}
@@ -55,12 +55,9 @@ for DIST in cnquery cnspec; do
   cp ${DIST} ${BLDDIR}/packages/macos/packager/application/bin/
 done
 
-# Insert mondoo shim (to be removed in v9.x.x)
-curl -sL -o ${BLDDIR}/packages/macos/packager/application/bin/mondoo https://raw.githubusercontent.com/mondoohq/installer/main/helper/mondoo.sh
-
 ###############################################################################################################
 echo "Building Package...."
-cd ${BLDDIR}/packages/macos/
+cd ${BLDDIR}/packages/macos/ || return
 bash packager/build-package.sh ${PKGNAME} ${VERSION}
 
 PKG=${BLDDIR}/packages/macos/packager/target/pkg/${PKGNAME}-macos-universal-${VERSION}.pkg
