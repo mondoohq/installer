@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?define UpgradeCodeStandard = "b0fee933-ccd2-467c-8fe4-bb0ac6a099c8" ?>
+<?define UpgradeCodeEnterprise = "4ABDD5C7-E1E1-41A6-8119-DCE65634A6CC" ?>
+<?if $(var.MondooSKU) = "standard" ?>
+<?define UpgradeCode = "$(var.UpgradeCodeStandard)"?>
+<?define ProductName = "Mondoo"?>
+<?define ServiceInstallStart = "demand" ?>
+<?define RegistrationTokenRequired = "0"?>
+<?define OtherSKU = "$(var.UpgradeCodeEnterprise)"?>
+<?elseif $(var.MondooSKU) = "enterprise" ?>
+<?define UpgradeCode = "$(var.UpgradeCodeEnterprise)"?>
+<?define ProductName = "Mondoo Enterprise"?>
+<?define ServiceInstallStart = "auto" ?>
+<?define RegistrationTokenRequired = "1"?>
+<?define OtherSKU = "$(var.UpgradeCodeStandard)"?>
+<?else?>
+<?error MondooSKU must be defined as one of "standard" or "enterprise" ?>
+<?endif?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <Product Name="$(var.ProductName)" Version="$(var.ProductVersion)" Manufacturer="Mondoo, Inc." Language="1033" Codepage="1252" Id="*" UpgradeCode="$(var.UpgradeCode)">
+    <!-- custom action do not work if its not privileged-->
+    <Package
+      Description="Mondoo verifies your system for known vulnerabilities"
+      Manufacturer="Mondoo, Inc."
+      InstallerVersion="200"
+      Compressed="yes"
+      Comments="Windows Installer Package"
+      Platform="x64"
+      InstallScope="perMachine"
+      InstallPrivileges="elevated"
+      />
+    <Media Id="1" Cabinet="enterprise.cab" EmbedCab="yes" CompressionLevel="none" />
+  
+    <?include ui.wxi ?>
+    <?include actions.wxi ?>
+    <?include components.wxi ?>
+    
+    <!-- set installer properties -->
+    <Property Id="RegistrationTokenRequired" Value="$(var.RegistrationTokenRequired)" />
+
+    <Property Id="ARPHELPLINK" Value="https://mondoo.com" />
+    <!-- Remove repair -->
+    <Property Id="ARPNOREPAIR" Value="yes" Secure="yes" />
+
+    <!-- Windows 10/2016 or later is required. -->
+    <!-- https://stackoverflow.com/a/42743062, https://support.microsoft.com/en-us/help/3202260/versionnt-value-for-windows-10-and-windows-server-2016 -->
+    <Condition Message="Windows 10/2016 or later is required."><![CDATA[Installed OR VersionNT >= 603]]></Condition>
+
+    <Property Id="OTHERSKUFOUND">
+      <ProductSearch UpgradeCode="$(var.OtherSKU)" Minimum="0.0.0" />
+    </Property>
+
+    <InstallUISequence>
+      <Custom Action="MutualExclusiveError" After="FindRelatedProducts"><![CDATA[OTHERSKUFOUND]]></Custom>
+    </InstallUISequence>
+    <InstallExecuteSequence>
+      <Custom Action="MutualExclusiveError" After="FindRelatedProducts"><![CDATA[OTHERSKUFOUND]]></Custom>
+      <RemoveExistingProducts After="InstallInitialize" />
+      <Custom Action="RegisterMondooAgent" Before="MigrateMondooConfiguration"><![CDATA[REGISTRATIONTOKEN <> "" AND NOT Installed]]></Custom>
+      <Custom Action="MigrateMondooConfiguration" Before="InstallServices"><![CDATA[NOT REMOVE]]></Custom>
+    </InstallExecuteSequence>
+    <!-- Ensure packages cannot be installed twice -->
+    <!-- https://stackoverflow.com/questions/7656509/wix-msi-how-to-avoid-installing-same-msi-twice -->
+    <!-- https://wixtoolset.org/documentation/manual/v3/customactions/wixexitearlywithsuccess.html -->
+    <Upgrade Id="$(var.UpgradeCode)">
+      <!-- Detect older product versions -->
+      <UpgradeVersion OnlyDetect="no" IncludeMinimum="yes" IncludeMaximum="no" Minimum="0.0.0" Maximum="$(var.ProductVersion)" Property="PREVIOUSVERSIONSINSTALLED"/>
+      <!-- Detect newer or same product versions -->
+      <UpgradeVersion OnlyDetect="yes" IncludeMinimum="yes" Minimum="$(var.ProductVersion)" Property="NEWERVERSIONDETECTED"/>
+    </Upgrade>
+    <!-- Exits successfully in the case newer version are already installed -->
+    <CustomActionRef Id="WixExitEarlyWithSuccess"/>
+    <!-- List of features to install -->
+    <Feature Id="MainApplication" Level="1">
+      <ComponentGroupRef Id="MondooClient" />
+    </Feature>
+    <Property Id="WIXUI_INSTALLDIR" Value="INSTALLLOCATION" />
+    <UI>
+      <Property Id="DefaultUIFont" Value="WixUI_Font_Normal" />
+      <TextStyle Id="WixUI_Font_Normal" FaceName="Tahoma" Size="8" />
+      <TextStyle Id="WixUI_Font_Bigger" FaceName="Tahoma" Size="12" />
+      <TextStyle Id="WixUI_Font_Title" FaceName="Tahoma" Size="9" Bold="yes" />
+      <TextStyle Id="WixUI_Font_Normal_White" FaceName="Tahoma" Size="8" Red="255" Green="255" Blue="255" />
+      <TextStyle Id="WixUI_Font_Bigger_White" FaceName="Tahoma" Size="12" Red="255" Green="255" Blue="255" />
+      <TextStyle Id="WixUI_Font_Title_White" FaceName="Tahoma" Size="9" Bold="yes" Red="255" Green="255" Blue="255" />
+      <Property Id="WixUI_Mode" Value="InstallDir" />
+      <DialogRef Id="DiskCostDlg" />
+      <DialogRef Id="LicenseAgreementDlg" />
+      <DialogRef Id="VerifyReadyDlg" />
+      <DialogRef Id="ErrorDlg" />
+      <DialogRef Id="FatalError" />
+      <DialogRef Id="FilesInUse" />
+      <DialogRef Id="MsiRMFilesInUse" />
+      <DialogRef Id="PrepareDlg" />
+      <DialogRef Id="ProgressDlg" />
+      <DialogRef Id="ResumeDlg" />
+      <DialogRef Id="UserExit" />
+      <DialogRef Id="RegistrationTokenDlg" />
+      <Publish Dialog="ExitDialog" Control="Finish" Event="EndDialog" Value="Return" Order="999">1</Publish>
+      <Publish Dialog="WelcomeDlg" Control="Next" Event="NewDialog" Value="LicenseAgreementDlg">NOT Installed</Publish>
+      <Publish Dialog="WelcomeDlg" Control="Next" Event="NewDialog" Value="VerifyReadyDlg">Installed AND PATCH</Publish>
+      <Publish Dialog="LicenseAgreementDlg" Control="Back" Event="NewDialog" Value="WelcomeDlg">1</Publish>
+      <Publish Dialog="LicenseAgreementDlg" Control="Next" Event="NewDialog" Value="RegistrationTokenDlg">LicenseAccepted = "1"</Publish>
+      <Publish Dialog="RegistrationTokenDlg" Control="Back" Event="NewDialog" Value="LicenseAgreementDlg">1</Publish>
+      <Publish Dialog="RegistrationTokenDlg" Control="Next" Event="NewDialog" Value="VerifyReadyDlg">NOT ApiKey</Publish>
+      <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="RegistrationTokenDlg" Order="1">NOT Installed</Publish>
+      <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="MaintenanceTypeDlg" Order="2">Installed AND NOT PATCH</Publish>
+      <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="WelcomeDlg" Order="2">Installed AND PATCH</Publish>
+      <Publish Dialog="MaintenanceWelcomeDlg" Control="Next" Event="NewDialog" Value="MaintenanceTypeDlg">1</Publish>
+      <Publish Dialog="MaintenanceTypeDlg" Control="RepairButton" Event="NewDialog" Value="VerifyReadyDlg">1</Publish>
+      <Publish Dialog="MaintenanceTypeDlg" Control="RemoveButton" Event="NewDialog" Value="VerifyReadyDlg">1</Publish>
+      <Publish Dialog="MaintenanceTypeDlg" Control="Back" Event="NewDialog" Value="MaintenanceWelcomeDlg">1</Publish>
+      <Property Id="ARPNOMODIFY" Value="1" />
+      <UIRef Id="WixUI_Common" />
+    </UI>
+  </Product>
+  <Fragment>
+    <UI>
+      <Dialog Id="RegistrationTokenDlg" Width="370" Height="270" Title="!(loc.InstallDirDlg_Title)">
+        <Control Id="Next" Type="PushButton" X="236" Y="243" Width="56" Height="17" Default="yes" Text="!(loc.WixUINext)">
+          <Publish Event="SpawnDialog" Value="RegistrationTokenError"><![CDATA[REGISTRATIONTOKEN = "" AND RegistrationTokenRequired = "1" AND NOT PREVIOUSVERSIONSINSTALLED]]></Publish>
+        </Control>
+        <Control Id="Back" Type="PushButton" X="180" Y="243" Width="56" Height="17" Text="!(loc.WixUIBack)" />
+        <Control Id="Cancel" Type="PushButton" X="304" Y="243" Width="56" Height="17" Cancel="yes" Text="!(loc.WixUICancel)">
+          <Publish Event="SpawnDialog" Value="CancelDlg">1</Publish>
+        </Control>
+        <Control Id="Description" Type="Text" X="15" Y="23" Width="280" Height="15" Transparent="yes" NoPrefix="yes" Text="You can find the registration token in your Mondoo Dashboard." />
+        <Control Id="Title" Type="Text" X="15" Y="6" Width="200" Height="15" Transparent="yes" NoPrefix="yes" Text="Optional Registration Token" />
+        <Control Id="BannerLine" Type="Line" X="0" Y="44" Width="370" Height="0" />
+        <Control Id="BottomLine" Type="Line" X="0" Y="234" Width="370" Height="0" />
+        <Control Id="RegistrationToken" Type="Edit" X="20" Y="80" Width="328" Height="15" Property="REGISTRATIONTOKEN" Indirect="no" Text="{8192}"/>
+        <Control Id="RegistrationTokenLabel" Type="Text" X="20" Y="60" Width="290" Height="10" NoPrefix="yes" Text="Registration Token" />
+      </Dialog>
+
+      <Dialog Id="RegistrationTokenError" Width="260" Height="85" NoMinimize="no" Title="[ProductName]">
+        <Control Id="RegistrationTokenErrorDesc" Type="Text" Width="194" Height="30" X="48" Y="15" Text="A valid registration token is required" />
+        <Control Id="RegistrationTokenErrorOk" Type="PushButton" X="97" Y="57" Width="56" Height="17" Text="Ok">
+          <Publish  Event="EndDialog" Value="Return">1</Publish>
+        </Control>
+      </Dialog>
+    </UI>
+  </Fragment>
+</Wix>

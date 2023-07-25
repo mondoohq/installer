@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Include>
+    <Directory Id="TARGETDIR" Name="SourceDir">
+      <Directory Id="ProgramFiles64Folder">
+        <Directory Id="INSTALLLOCATION" Name="Mondoo" />
+      </Directory>
+    </Directory>
+
+  <ComponentGroup Id="MondooClient">
+      <Component Id="ServiceFiles" Win64="yes" Directory="INSTALLLOCATION">
+        <!-- Set binary into System Path-->
+        <Environment Id="PATH" Name="PATH" Value="[INSTALLLOCATION]" Permanent="yes" Part="last" Action="set" System="yes" />
+        <!-- Mondoo Binary -->
+        <File Id="ApplicationFileEXE" Source="cnspec.exe" />
+        <!-- Install the Service -->
+
+        <ServiceInstall Id="ServiceInstaller" Type="ownProcess" Vital="yes" Name="Mondoo" DisplayName="Mondoo"
+                        Description="Verifies your system for known vulnerabilities"
+                        Start="$(var.ServiceInstallStart)"
+                        Account="LocalSystem"
+                        ErrorControl="normal" Arguments=" serve --config C:\ProgramData\Mondoo\mondoo.yml" Interactive="no" />
+        <?if $(var.ServiceInstallStart) = "auto" ?>
+        <ServiceControl Id="StartWixServiceInstaller" Name="Mondoo" Start="install" Stop="uninstall" Wait="no" Remove="uninstall" />
+        <?else?>
+        <ServiceControl Id="StartWixServiceInstaller" Name="Mondoo" Stop="uninstall" Wait="no" Remove="uninstall" />
+        <?endif?>
+
+      </Component>
+
+      <Component Id="cnquery" Win64="yes" Directory="INSTALLLOCATION">
+        <File Id="cnqueryEXE" Source="cnquery.exe" />
+      </Component>
+  </ComponentGroup>
+</Include>

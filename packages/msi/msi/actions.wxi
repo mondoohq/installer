@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Include>
+   <Property Id="REGISTRATIONTOKEN" Secure="yes" />
+
+  <CustomAction Id="RegisterMondooAgent" Execute="deferred" Impersonate="no" FileKey="ApplicationFileEXE" ExeCommand="register --config &quot;C:\ProgramData\Mondoo\mondoo.yml&quot; --token  &quot;[REGISTRATIONTOKEN]&quot;" Return="check" />
+  <CustomAction Id="MigrateMondooConfiguration" Execute="deferred" Impersonate="no" FileKey="ApplicationFileEXE" ExeCommand="migrate --config &quot;C:\ProgramData\Mondoo\mondoo.yml&quot;" Return="check" />
+  <CustomAction Id="MutualExclusiveError" Error="Cannot install Mondoo (standard) and Mondoo Enterprise"/>
+</Include>

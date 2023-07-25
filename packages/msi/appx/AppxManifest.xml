@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Package xmlns="http://schemas.microsoft.com/appx/2010/manifest">
+  <Identity Name="Mondoo.Mondoo"
+            Version="1.0.0.0"
+            Publisher="CN=Mondoo, O=Mondoo, L=SF, S=CA, C=USA" />
+  <Properties>
+    <DisplayName>Mondoo</DisplayName>
+    <PublisherDisplayName>Mondoo, Inc</PublisherDisplayName>
+    <Logo>images\hello-agent.png</Logo>
+  </Properties>
+  <Prerequisites>
+    <OSMinVersion>6.2.1</OSMinVersion>
+    <OSMaxVersionTested>6.2.1</OSMaxVersionTested>
+  </Prerequisites>
+  <Resources>
+    <Resource Language="en-us" />
+  </Resources>
+  <!-- <Applications>
+    <Application Id="" StartPage="">
+      <VisualElements DisplayName="" Description=""
+           Logo="" SmallLogo=""
+           ForegroundText="" BackgroundColor="">
+         <SplashScreen Image="" />
+      </VisualElements>
+    </Application>
+  </Applications> -->
+</Package>

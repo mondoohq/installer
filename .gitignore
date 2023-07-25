@@ -8,3 +8,6 @@ terraform.tfstate
 terraform.tfstate.backup
 **/terraform*/completed.txt
 .terraform.tfstate.lock.info
+packages/msi/bin
+packages/msi/obj/**
+packages/msi/v16

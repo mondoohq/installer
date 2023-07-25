@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<WixLocalization Culture="en-us" xmlns="http://schemas.microsoft.com/wix/2006/localization">
+  <String Id="LicenseAgreementDlgTitle">{\WixUI_Font_Title_White}End-User License Agreement</String>
+  <String Id="LicenseAgreementDlgDescription">{\WixUI_Font_Normal_White}Please read the following license agreement carefully</String>
+  <String Id="ProgressDlgTitleInstalling">{\WixUI_Font_Title_White}Installing [ProductName]</String>
+  <String Id="VerifyReadyDlgInstallTitle">{\WixUI_Font_Title_White}Ready to install [ProductName]</String>
+</WixLocalization>
