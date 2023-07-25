@@ -15,7 +15,7 @@ chmod -R 755 .
 [ -d /usr/local/bin ] || mkdir /usr/local/bin
 
 #Add application shortcuts to /usr/local/bin
-for bin in `ls ${PRODUCT_HOME}/bin`; do
+for bin in ${PRODUCT_HOME}/bin/*; do
     ln -sf ${PRODUCT_HOME}/bin/${bin} /usr/local/bin/${bin}
 done
 
@@ -24,7 +24,7 @@ echo "Installing launchd service"
 cp ${PRODUCT_HOME}/etc/com.mondoo.client.plist /Library/LaunchDaemons/
 launchctl load /Library/LaunchDaemons/com.mondoo.client.plist
 
-# Do not automatically start client, to start run: 
+# Do not automatically start client, to start run:
 # sudo launchctl start com.mondoo.client
 # sudo launchctl enable system/com.mondoo.client
 echo "Post installation process finished"

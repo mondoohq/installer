@@ -42,7 +42,7 @@ PRODUCT=__PRODUCT__
 
 echo "Application uninstalling process started"
 # remove link to shorcut file
-for bin in `ls /Library/${PRODUCT}/bin`; do
+for bin in /Library/${PRODUCT}/bin/*; do
     rm /usr/local/bin/${bin}
 done
 if [ $? -eq 0 ]
@@ -58,9 +58,9 @@ launchctl bootout system/com.mondoo.client &&
 if [ $? -eq 0 ]
 then
   echo "[2/4] [DONE] Successfully stopped and deleted launchd service"
-else 
+else
   echo "[2/4] [ERROR] Could not stop and/or delete launchd service" >&2
-fi 
+fi
 
 #forget from pkgutil
 pkgutil --forget "com.mondoo.client" > /dev/null 2>&1
