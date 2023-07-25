@@ -16,8 +16,8 @@ on:
         required: false
         default: false
         type: boolean
-  repository_dispatch:
-    types: [update]
+  release:
+    types: [released]
 
 jobs:
   pkg:
@@ -31,10 +31,10 @@ jobs:
         if: github.event_name == 'workflow_dispatch'
         run: |
           echo VERSION=${{ inputs.version }} >> $GITHUB_ENV
-      - name: Set Version (Repository Dispatch)
-        if: github.event_name == 'repository_dispatch'
+      - name: Set Version (Release Event)
+        if: github.event_name == 'release'
         run: |
-          echo VERSION=${{ github.event.client_payload.version }} >> $GITHUB_ENV
+          echo VERSION=${{ github.event.release.tag_name }} >> $GITHUB_ENV
       - name: Unified Version
         id: version
         run: |
