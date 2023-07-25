@@ -58,10 +58,10 @@ For debugging, add the *-dumplog /path/to/some-file.log* flag to *installer*.
 
 ## Creating Universal (AMD64 & ARM64) Binaries
 
-First, compile your app for both platforms, seperately: 
+First, compile your app for both platforms, seperately:
 
 ```bash
-$ GOOS=darwin GOARCH=amd64 go build -o hello_amd64 hello.go 
+$ GOOS=darwin GOARCH=amd64 go build -o hello_amd64 hello.go
 $ GOOS=darwin GOARCH=arm64 go build -o hello_arm64 hello.go
 ```
 
@@ -110,7 +110,7 @@ You will find the produced PKG here: ***macOS-x64/target/pkg/Mondoo-macos-x64-5.
 
 ## Uninstalling
 
-An uninstaller is provided in the installation directory: 
+An uninstaller is provided in the installation directory:
 
 ```bash
 $ sudo /Library/mondoo/5.8.0/uninstall.sh
@@ -125,18 +125,19 @@ Considering the names of other packages out there:
 * VSCode-darwin-universal.zip
 * go1.17.3.darwin-amd64.pkg
 
-Ultimate, it appears "darwin" is still in common usage and the Hashicorp naming is a good middle ground (plus we already use it and no other format is objectively better), therefore we'll use the naming scheme: mondoo_1.2.3_darwin_universal.pkg
+Ultimately, it appears "darwin" is still in common usage and the Hashicorp naming is a good middle ground (plus we already use it and no other format is objectively better), therefore we'll use the naming scheme: mondoo_1.2.3_darwin_universal.pkg
 
 # Signing and Notarization
 
 This repository requires several Github Action Secrets to sign and notarize:
 
+- APPLE_KEYCHAIN_PASSWORD: Used for setting up and accessing the local Keychain.  Generate a random password, it only needs to be consistent for a single run.
 - APPLE_KEYS_PASSWORD: Cleartext password to decrypt the p12 file's (same pass used on both!)
-- APPLE_KEYS_CODESIGN: base64 encoded p12 for Developer\ ID\ Application-\ Mondoo\,\ Inc.\ \(W2KUBWKG84\)
-- APPLE_KEYS_CODESIGN_ID: Cleartext ID: "Developer ID Application: Mondoo, Inc. (W2KUBWKG84)" 
-- APPLE_KEYS_PRODUCTSIGN: base64 encoded p12 for Developer\ ID\ Installer-\ Mondoo\,\ Inc.\ \(W2KUBWKG84\)
+- APPLE_KEYS_CODESIGN_P12: base64 encoded p12 for Developer\ ID\ Application-\ Mondoo\,\ Inc.\ \(W2KUBWKG84\)
+- APPLE_KEYS_CODESIGN_ID: Cleartext ID: "Developer ID Application: Mondoo, Inc. (W2KUBWKG84)"
+- APPLE_KEYS_PRODUCTSIGN_P12: base64 encoded p12 for Developer\ ID\ Installer-\ Mondoo\,\ Inc.\ \(W2KUBWKG84\)
 - APPLE_KEYS_PRODUCTSIGN_ID: Cleartext ID: "Developer ID Installer: Mondoo, Inc. (W2KUBWKG84)"
-- APPLE_ACCOUNT_USERNAME: The AppleID username for access to the Notarization service ("apple-builder@mondoo.io")
+- APPLE_ACCOUNT_USERNAME: The AppleID username for access to the Notarization service ("appxxxxxxxr@mondooxxxx")
 - APPLE_ACCOUNT_PASSWORD: The "App Specific Password" for use when Notorizing Mac packages, to rotate this password login to appleid.apple.com/account as the above user (login credentials are in BitWarden, in the "Apple ID: Notorizing Account" item)
 
 The Certificates & P12's can be found in Google Drive.  Refer to our internal documentation in [Notion: Apple Developer Network](https://www.notion.so/mondoo/Apple-15b14791a0f54609978a5e52fd8e6cfb#562019a837bf450e89dd3d7926f279ab).
