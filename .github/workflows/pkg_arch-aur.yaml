@@ -1,0 +1,105 @@
+name: 'AUR Release Update (Automated)'
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to release"
+        required: true
+        default: "8.0.0"
+        type: string
+      skip:
+        description: "Skip release"
+        required: false
+        default: "false"
+        type: boolean
+  release:
+    types: [published]
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    name: 'Unify Inputs'
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      - name: Set Version (Workflow Dispatch)
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          echo VERSION=${{ inputs.version }} >> $GITHUB_ENV
+      - name: Set Version (Release Event)
+        if: github.event_name == 'release'
+        run: |
+          echo VERSION=${{ github.event.release.tag_name }} >> $GITHUB_ENV
+      - name: Unified Version
+        id: version
+        run: |
+          INPUT_NAME=${{ inputs.name }}
+          if [[ ${INPUT_NAME} == '' ]]; then
+            echo "Name is empty, using default"
+            echo "name=mondoo" >> $GITHUB_OUTPUT
+          else
+            echo "Name: ${INPUT_NAME}"
+            echo "name=${INPUT_NAME}" >> $GITHUB_OUTPUT
+          fi
+          echo "Version: $VERSION"
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+
+
+  update-pkgs:
+    runs-on: ubuntu-latest
+    name: 'Generate & Locally Commit PKGBUILDs'
+    needs: setup
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: 'master'
+          fetch-depth: 0
+      - name: Setup Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: '>=1.17.0'
+      - name: Execute generator (make update)
+        run: |
+          make update
+      - name: 'DEBUG: Show generated package versions'
+        run: |
+          cd packages/archlinux
+          echo "mondoo: $(cat mondoo/PKGBUILD | grep orignalVersion=)"
+          echo "cnquery: $(cat cnquery/PKGBUILD | grep orignalVersion=)"
+          echo "cnspec: $(cat cnspec/PKGBUILD | grep orignalVersion=)"
+      # - name: Publish mondoo AUR package
+      #   uses: KSXGitHub/github-actions-deploy-aur@v2.5.0
+      #   with:
+      #     pkgname: mondoo
+      #     pkgbuild: ./mondoo/PKGBUILD
+      #     commit_username: ${{ secrets.AUR_USERNAME }}
+      #     commit_email: ${{ secrets.AUR_EMAIL }}
+      #     ssh_private_key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
+      #     commit_message: ${{ needs.setup.outputs.version }}
+      #     force_push: 'true'
+      - name: Publish cnquery AUR package
+        if: ${{ inputs.skip }} != 'true'
+        uses: KSXGitHub/github-actions-deploy-aur@v2.5.0
+        with:
+          pkgname: cnquery
+          pkgbuild: ./cnquery/PKGBUILD
+          commit_username: ${{ secrets.AUR_USERNAME }}
+          commit_email: ${{ secrets.AUR_EMAIL }}
+          ssh_private_key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
+          commit_message: ${{ needs.setup.outputs.version }}
+          force_push: 'true'
+      - name: Publish cnspec AUR package
+        if: ${{ inputs.skip }} != 'true'
+        uses: KSXGitHub/github-actions-deploy-aur@v2.5.0
+        with:
+          pkgname: cnspec
+          pkgbuild: ./cnspec/PKGBUILD
+          commit_username: ${{ secrets.AUR_USERNAME }}
+          commit_email: ${{ secrets.AUR_EMAIL }}
+          ssh_private_key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
+          commit_message: ${{ needs.setup.outputs.version }}
+          force_push: 'true'
