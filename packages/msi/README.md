@@ -5,5 +5,5 @@ and merges them into a single MSI package, signed, sealed and delivered.
 
 # Required Secrets
 
-- MSI_SIGNING_CERT:
-- MSI_SIGNING_PASSWORD:
+- MSI_SIGNING_CERT: The base64 encoded [Digicert Code Signing Certificate](https://www.digicert.com/signing/code-signing-certificates)
+- MSI_SIGNING_PASSWORD: Password protecting the certificate
