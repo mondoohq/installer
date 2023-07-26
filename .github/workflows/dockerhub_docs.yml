@@ -4,6 +4,8 @@ on:
   push:
     branches:
     - main
+    paths:
+    - 'dockerhub/**'
 
 jobs:
   dockerhub_docs:
@@ -31,5 +33,5 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
           repository: mondoo/client
           readme-filepath: ./dockerhub/mondoo/client.md
-            
+
 
