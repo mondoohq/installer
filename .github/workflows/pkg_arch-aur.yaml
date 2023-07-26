@@ -8,6 +8,11 @@ on:
         required: true
         default: "8.0.0"
         type: string
+      skip:
+        description: "Skip release"
+        required: false
+        default: "false"
+        type: boolean
   release:
     types: [published]
 
@@ -77,6 +82,7 @@ jobs:
       #     commit_message: ${{ needs.setup.outputs.version }}
       #     force_push: 'true'
       - name: Publish cnquery AUR package
+        if: ${{ inputs.skip }} != 'true'
         uses: KSXGitHub/github-actions-deploy-aur@v2.5.0
         with:
           pkgname: cnquery
@@ -87,6 +93,7 @@ jobs:
           commit_message: ${{ needs.setup.outputs.version }}
           force_push: 'true'
       - name: Publish cnspec AUR package
+        if: ${{ inputs.skip }} != 'true'
         uses: KSXGitHub/github-actions-deploy-aur@v2.5.0
         with:
           pkgname: cnspec
