@@ -61,6 +61,7 @@ jobs:
           go-version: '>=1.17.0'
       - name: Execute generator (make update)
         run: |
+          cd packages/archlinux
           make update
       - name: 'DEBUG: Show generated package versions'
         run: |
@@ -83,7 +84,7 @@ jobs:
         uses: KSXGitHub/github-actions-deploy-aur@v2.5.0
         with:
           pkgname: cnquery
-          pkgbuild: ./cnquery/PKGBUILD
+          pkgbuild: packages/archlinux/cnquery/PKGBUILD
           commit_username: ${{ secrets.AUR_USERNAME }}
           commit_email: ${{ secrets.AUR_EMAIL }}
           ssh_private_key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
@@ -94,7 +95,7 @@ jobs:
         uses: KSXGitHub/github-actions-deploy-aur@v2.5.0
         with:
           pkgname: cnspec
-          pkgbuild: ./cnspec/PKGBUILD
+          pkgbuild: packages/archlinux/cnspec/PKGBUILD
           commit_username: ${{ secrets.AUR_USERNAME }}
           commit_email: ${{ secrets.AUR_EMAIL }}
           ssh_private_key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
