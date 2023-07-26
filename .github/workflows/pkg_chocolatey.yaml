@@ -1,4 +1,5 @@
-name: Update Chocolatey Releases
+name: 'PKG: Chocolatey NuGet Release'
+
 on:
   workflow_dispatch:
     inputs:
