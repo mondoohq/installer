@@ -9,3 +9,7 @@ terraform.tfstate.backup
 **/terraform*/completed.txt
 .terraform.tfstate.lock.info
 **/.**.swp
+
+# Arch AUR Generated Files
+packages/archlinux/cnquery
+packages/archlinux/cnspec
