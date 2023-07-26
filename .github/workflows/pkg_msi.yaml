@@ -104,8 +104,6 @@ jobs:
           echo "running build job for mondoo ${mondooVersion}"
           $certPath = "$pwd\signing.cert"
           $pass = ${env:PASSWORD}
-          echo "signing executables"
-          .\packages\msi\sign.ps1 -ProgramName "Mondoo CLI" -Certificate $certPath -Password $pass -Executable .\dist\mondoo.exe
           Copy-Item .\dist\cnquery.exe .\packages\msi\msi\
           Copy-Item .\dist\cnspec.exe .\packages\msi\msi\
           Copy-Item .\dist\cnquery.exe .\packages\msi\appx\
@@ -117,7 +115,6 @@ jobs:
           Set-Location -Path '.\..\..'
           .\packages\msi\sign.ps1 -ProgramName "Mondoo Installer" -Certificate $certPath -Password $pass -Executable .\packages\msi\mondoo.msi
           Copy-Item '.\packages\msi\mondoo.msi' '.\dist\'
-          #Compress-Archive -Path .\dist\mondoo.exe -DestinationPath .\dist\mondoo.zip
       - name: Cleanup
         run: |
           Remove-Item -Path .\dist\cnquery.exe -Force
