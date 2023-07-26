@@ -1,4 +1,4 @@
-name: Build Windows MSI Package
+name: 'PKG: Microsoft Software Installer (MSI)'
 
 on:
   workflow_dispatch:
