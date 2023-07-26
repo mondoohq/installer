@@ -15,8 +15,8 @@
 ## Supported tags
 
 - `latest` - always pinned to the latest release of mondoo package
-- `7` - always pinned to the latest release for a given major version
-- `7.12.0` - always pinned to a specific mondoo package release
+- `8` - always pinned to the latest release for a given major version
+- `8.20.0` - always pinned to a specific mondoo package release
 
 ## UBI containers
 
@@ -24,8 +24,8 @@ We offer a Mondoo Client container built on top of [Universal Base Image (UBI)](
 
 Supported tags are:
 - `latest-ubi`
-- `7-ubi`
-- `7.12.0-ubi`
+- `8-ubi`
+- `8.20.0-ubi`
 
 The `Dockerfile` for these images can be found [here](https://github.com/mondoohq/installer/blob/main/Dockerfile-ubi).
 

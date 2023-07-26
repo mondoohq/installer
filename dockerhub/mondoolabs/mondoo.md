@@ -16,9 +16,9 @@
 
 ## Supported tags
 
-- `latest` - always pinned to the latest release of Mondoo Client
-- `7` - always pinned to the latest release for a given major version
-- `7.12.0` - always pinned to a specific Mondoo Client release
+- `latest` - always pinned to the latest release of Mondoo
+- `8` - always pinned to the latest release for a given major version
+- `8.20.0` - always pinned to a specific Mondoo release
 
 # What is Mondoo
 
