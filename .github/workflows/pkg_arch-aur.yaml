@@ -66,21 +66,10 @@ jobs:
       - name: 'DEBUG: Show generated package versions'
         run: |
           cd packages/archlinux
-          echo "mondoo: $(cat mondoo/PKGBUILD | grep orignalVersion=)"
           echo "cnquery: $(cat cnquery/PKGBUILD | grep orignalVersion=)"
           echo "cnspec: $(cat cnspec/PKGBUILD | grep orignalVersion=)"
-      # - name: Publish mondoo AUR package
-      #   uses: KSXGitHub/github-actions-deploy-aur@v2.5.0
-      #   with:
-      #     pkgname: mondoo
-      #     pkgbuild: ./mondoo/PKGBUILD
-      #     commit_username: ${{ secrets.AUR_USERNAME }}
-      #     commit_email: ${{ secrets.AUR_EMAIL }}
-      #     ssh_private_key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
-      #     commit_message: ${{ needs.setup.outputs.version }}
-      #     force_push: 'true'
       - name: Publish cnquery AUR package
-        if: ${{ inputs.skip }} != 'true'
+        if: ${{ inputs.skip != 'true' }}
         uses: KSXGitHub/github-actions-deploy-aur@v2.5.0
         with:
           pkgname: cnquery
@@ -91,7 +80,7 @@ jobs:
           commit_message: ${{ needs.setup.outputs.version }}
           force_push: 'true'
       - name: Publish cnspec AUR package
-        if: ${{ inputs.skip }} != 'true'
+        if: ${{ inputs.skip != 'true' }}
         uses: KSXGitHub/github-actions-deploy-aur@v2.5.0
         with:
           pkgname: cnspec
