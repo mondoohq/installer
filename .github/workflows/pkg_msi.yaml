@@ -69,10 +69,6 @@ jobs:
           unzip cnquery_${VERSION}_windows_amd64.zip
           rm cnquery_${VERSION}_windows_amd64.zip
           ls -lh
-      - name: Fetch Signing Key
-        run: |
-          cd dist
-          echo "${{ secrets.MSI_SIGNING_CERT }}" | base64 -d > signing.cert
       - name: Upload Distribution
         uses: actions/upload-artifact@v3
         with:
@@ -93,6 +89,9 @@ jobs:
         with:
           name: dist
           path: dist
+      - name: Fetch Signing Key
+        run: |
+          echo "${{ secrets.MSI_SIGNING_CERT }}" | base64 -d > signing.cert
       - name: Build MSI
         env:
           VERSION: ${{ needs.setup.outputs.version }}
@@ -101,27 +100,27 @@ jobs:
         run: |
           $mondooVersion = ${env:VERSION}
           echo "running build job for mondoo ${mondooVersion}"
-          $certPath = "$pwd\dist\signing.cert"
+          $certPath = "$pwd\signing.cert"
           $pass = ${env:PASSWORD}
           echo "signing executables"
-          .\scripts\sign.ps1 -ProgramName "Mondoo CLI" -Certificate $certPath -Password $pass -Executable .\dist\mondoo.exe
-          Copy-Item .\dist\cnquery.exe .\scripts\msi\
-          Copy-Item .\dist\cnspec.exe .\scripts\msi\
-          Copy-Item .\dist\cnquery.exe .\scripts\appx\
-          Copy-Item .\dist\cnspec.exe .\scripts\appx\
+          .\packages\msi\sign.ps1 -ProgramName "Mondoo CLI" -Certificate $certPath -Password $pass -Executable .\dist\mondoo.exe
+          Copy-Item .\dist\cnquery.exe .\packages\msi\msi\
+          Copy-Item .\dist\cnspec.exe .\packages\msi\msi\
+          Copy-Item .\dist\cnquery.exe .\packages\msi\appx\
+          Copy-Item .\dist\cnspec.exe .\packages\msi\appx\
           # build msi package
-          Set-Location -Path '.\scripts\'
+          Set-Location -Path '.\packages\msi\'
           ./package.ps1 -version $mondooVersion
           # sign msi package
-          Set-Location -Path '.\..'
-          .\scripts\sign.ps1 -ProgramName "Mondoo Installer" -Certificate $certPath -Password $pass -Executable .\scripts\mondoo.msi
-          Copy-Item '.\scripts\mondoo.msi' '.\dist\'
+          Set-Location -Path '.\..\..'
+          .\packages\msi\sign.ps1 -ProgramName "Mondoo Installer" -Certificate $certPath -Password $pass -Executable .\packages\msi\mondoo.msi
+          Copy-Item '.\packages\msi\mondoo.msi' '.\dist\'
           #Compress-Archive -Path .\dist\mondoo.exe -DestinationPath .\dist\mondoo.zip
       - name: Cleanup
         run: |
           Remove-Item -Path .\dist\cnquery.exe -Force
           Remove-Item -Path .\dist\cnspec.exe -Force
-          Remove-Item -Path .\dist\signing.cert -Force
+          Remove-Item -Path .\signing.cert -Force
       - name: Upload Distribution
         uses: actions/upload-artifact@v3
         with:
