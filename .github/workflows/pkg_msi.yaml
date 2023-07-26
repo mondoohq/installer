@@ -91,7 +91,9 @@ jobs:
           path: dist
       - name: Fetch Signing Key
         run: |
-          echo "${{ secrets.MSI_SIGNING_CERT }}" | base64 -d > signing.cert
+          $base64String = "${{ secrets.MSI_SIGNING_CERT }}"
+          $bytes = [System.Convert]::FromBase64String($base64String)
+          Set-Content -Path "signing.cert" -Value $bytes -Encoding Byte
       - name: Build MSI
         env:
           VERSION: ${{ needs.setup.outputs.version }}
