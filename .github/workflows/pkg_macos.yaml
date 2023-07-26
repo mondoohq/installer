@@ -1,0 +1,171 @@
+name: Build MacOS Package
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Package Version'
+        required: true
+        default: '0.0.1'
+      name:
+        description: 'Package Name'
+        required: false
+        default: 'mondoo'
+      skip-publish:
+        description: 'Skip publish?'
+        required: false
+        default: false
+        type: boolean
+  release:
+    types: [released]
+
+jobs:
+  pkg:
+    name: 'Packaging: Mac'
+    runs-on: macos-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set Version (Workflow Dispatch)
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          echo VERSION=${{ inputs.version }} >> $GITHUB_ENV
+      - name: Set Version (Release Event)
+        if: github.event_name == 'release'
+        run: |
+          echo VERSION=${{ github.event.release.tag_name }} >> $GITHUB_ENV
+      - name: Unified Version
+        id: version
+        run: |
+          INPUT_NAME=${{ inputs.name }}
+          if [[ ${INPUT_NAME} == '' ]]; then
+            echo "Name is empty, using default"
+            echo "name=mondoo" >> $GITHUB_OUTPUT
+          else
+            echo "Name: ${INPUT_NAME}"
+            echo "name=${INPUT_NAME}" >> $GITHUB_OUTPUT
+          fi
+          echo "Version: $VERSION"
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+      - name: Ensure version of cnquery and cnspec are available
+        run: |
+          curl -sL --head --fail https://github.com/mondoohq/cnquery/releases/download/v${VERSION}/cnquery_${VERSION}_darwin_amd64.tar.gz
+          curl -sL --head --fail https://github.com/mondoohq/cnspec/releases/download/v${VERSION}/cnspec_${VERSION}_darwin_amd64.tar.gz
+      - name: Setup local keychain for signing certificates
+        run: |
+          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+          # Setup Keychain:
+          security create-keychain -p ${{ secrets.APPLE_KEYCHAIN_PASSWORD }} $KEYCHAIN_PATH
+          security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
+          security unlock-keychain -p ${{ secrets.APPLE_KEYCHAIN_PASSWORD }} $KEYCHAIN_PATH
+          # Import Certificates:
+          echo "${{ secrets.APPLE_KEYS_PRODUCTSIGN_P12 }}" | base64 --decode > $RUNNER_TEMP/AppleKeysProductSign.p12
+          echo "${{ secrets.APPLE_KEYS_CODESIGN_P12 }}"  | base64 --decode > $RUNNER_TEMP/AppleKeysCodeSign.p12
+          security import $RUNNER_TEMP/AppleKeysProductSign.p12 -P ${{ secrets.APPLE_KEYS_PASSWORD }} -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+          security import $RUNNER_TEMP/AppleKeysCodeSign.p12 -P ${{ secrets.APPLE_KEYS_PASSWORD }} -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+          security list-keychain -d user -s $KEYCHAIN_PATH
+      ########## Build Package. ##########
+      - name: Run Mac Packager
+        env:
+          APPLE_KEYS_CODESIGN_ID: ${{ secrets.APPLE_KEYS_CODESIGN_ID }}
+          APPLE_KEYS_PRODUCTSIGN_ID: ${{ secrets.APPLE_KEYS_PRODUCTSIGN_ID }}
+          PKGNAME: ${{ steps.version.outputs.name }}
+        run: |
+          ${GITHUB_WORKSPACE}/packages/macos/build-pkg.sh ${{ steps.version.outputs.version }}
+      - name: Inspect Distribution
+        if: ${{ always() }}
+        run: ls -lhR
+      ########## Sign Package. ##########
+      - name: Package Sign Sample Package (productsign)
+        run: |
+          productsign --sign "${{ secrets.APPLE_KEYS_PRODUCTSIGN_ID }}" dist/${{ steps.version.outputs.name }}-macos-universal-${{ steps.version.outputs.version }}.pkg dist/${{ steps.version.outputs.name }}_${{ steps.version.outputs.version }}_darwin_universal.pkg
+      ########## Sign Package. ##########
+      - name: "Notarize Signed PKG"
+        uses: devbotsxyz/xcode-notarize@v1
+        with:
+          product-path: dist/${{ steps.version.outputs.name }}_${{ steps.version.outputs.version }}_darwin_universal.pkg
+          appstore-connect-username: ${{ secrets.APPLE_ACCOUNT_USERNAME }}
+          appstore-connect-password: ${{ secrets.APPLE_ACCOUNT_PASSWORD }}
+          primary-bundle-id: 'com.${{ steps.version.outputs.name }}.client'
+
+      - name: "Staple Release Build"
+        uses: devbotsxyz/xcode-staple@v1
+        with:
+          product-path: dist/${{ steps.version.outputs.name }}_${{ steps.version.outputs.version }}_darwin_universal.pkg
+      ########## Save Package as Artifact. ##########
+      - name: Archive Notarized Package
+        uses: actions/upload-artifact@v3
+        with:
+          name: notarized-package
+          path: dist/${{ steps.version.outputs.name }}_${{ steps.version.outputs.version }}_darwin_universal.pkg
+          retention-days: 30
+
+  publish:
+    name: 'Publish: Releases'
+    needs: pkg
+    if: ${{ ! inputs.skip-publish }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      - name: Download Notarized Package
+        uses: actions/download-artifact@v3
+        with:
+          name: notarized-package
+          path: dist
+      - name: Get Version & Checksum
+        run: |
+          cd dist
+          # Ensure we only have a single file
+          FILES=`ls *.pkg | wc -l`
+          if [[ $FILES != 1 ]]; then
+            echo "We have more than one file in the dist folder. This is not expected."
+            exit 1
+          fi
+          # Extract the data we need to upload the package
+          CHECKSUM=`sha256sum *.pkg`
+          PKG=`ls *.pkg`
+          VERSION=`echo $PKG | cut -d_ -f2`
+          # Persist the variables
+          echo "CHECKSUM=${CHECKSUM}" >> $GITHUB_ENV
+          echo "PKG=$PKG" >> $GITHUB_ENV
+          echo "VERSION=${VERSION}" >> $GITHUB_ENV
+      - name: Authenticate with Google Cloud
+        uses: 'google-github-actions/auth@v0'
+        with:
+          credentials_json: '${{secrets.GCP_CREDENTIALS}}'
+      - name: 'Set up Cloud SDK'
+        uses: 'google-github-actions/setup-gcloud@v0'
+      - name: Verify access to release bucket
+        run: |
+          gsutil ls gs://releases-us.mondoo.io/mondoo/${VERSION}/checksums.macos.txt
+      - name: Upload static content to buckets
+        run: |
+          cd dist
+          # Download and re-write the checksum file
+          gsutil cp gs://releases-us.mondoo.io/mondoo/${VERSION}/checksums.macos.txt checksums.orig
+          cat checksums.orig | grep -v universal > checksums.macos.txt
+          echo "${CHECKSUM}" >> checksums.macos.txt
+          gsutil cp checksums.macos.txt gs://releases-us.mondoo.io/mondoo/${VERSION}/checksums.macos.txt
+          # Overwrite the Universal Package
+          gsutil cp ${PKG} gs://releases-us.mondoo.io/mondoo/${VERSION}/${PKG}
+      - name: Reindex folder on releaser.mondoo.com
+        uses: peter-evans/repository-dispatch@v2
+        with:
+          token: ${{ secrets.RELEASR_ACTION_TOKEN }}
+          repository: "mondoohq/releasr"
+          event-type: reindex
+          client-payload: '{
+            "reindex-path": "mondoo/${{ env.VERSION }}",
+            "bucket": "releases-us.mondoo.io"
+            }'
+      - name: Wait a minute...
+        run: sleep 60
+      - name: Trigger Homebrew Generation
+        uses: peter-evans/repository-dispatch@v2
+        with:
+          token: ${{ secrets.REPO_API_TOKEN }}
+          repository: "mondoohq/homebrew-mondoo"
+          event-type: update
+          client-payload: '{"version": "${{ env.VERSION }}"}'
