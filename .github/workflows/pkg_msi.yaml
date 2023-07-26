@@ -93,7 +93,7 @@ jobs:
         run: |
           $base64String = "${{ secrets.MSI_SIGNING_CERT }}"
           $bytes = [System.Convert]::FromBase64String($base64String)
-          Set-Content -Path "signing.cert" -Value $bytes -Encoding Byte
+          Set-Content -Path "signing.cert" -Value $bytes -AsByteStream
       - name: Build MSI
         env:
           VERSION: ${{ needs.setup.outputs.version }}
