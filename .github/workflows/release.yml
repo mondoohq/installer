@@ -94,7 +94,7 @@ jobs:
           tag_name: ${{ steps.version.outputs.version }}
           files: helper/packages/*
 
-          
+
       - name: Reindex folder on releaser.mondoo.com
         uses: peter-evans/repository-dispatch@v2
         with:
@@ -105,7 +105,7 @@ jobs:
             "reindex-path": "mondoo/${{ steps.version.outputs.version }}",
             "bucket": "releases-us.mondoo.io"
           }'
-            
+
       - name: Create Artifacts
         uses: actions/upload-artifact@v3
         with:
@@ -120,7 +120,7 @@ jobs:
     ## Matrix task, repeats steps for each repo
     strategy:
       matrix:
-        repo: ["mondoohq/archlinux-package", "mondoohq/mac-pkg", "mondoohq/chocolatey", "mondoohq/msi-builder", "mondoohq/repobuilder"]
+        repo: ["mondoohq/chocolatey", "mondoohq/msi-builder", "mondoohq/repobuilder"]
     steps:
       - uses: actions/checkout@v3
       - name: Repository Dispatch (Workflow Dispatch)

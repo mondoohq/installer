@@ -8,6 +8,14 @@ terraform.tfstate
 terraform.tfstate.backup
 **/terraform*/completed.txt
 .terraform.tfstate.lock.info
+
+# MSI Generated Files
 packages/msi/bin
 packages/msi/obj/**
 packages/msi/v16
+
+**/.**.swp
+
+# Arch AUR Generated Files
+packages/archlinux/cnquery
+packages/archlinux/cnspec

@@ -1,9 +1,8 @@
 name: "Check Mondoo's code signing certifcate is not expired"
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
+  schedule:
+    - cron: "0 0 * * *"
 
 jobs:
   check_certificate:
@@ -18,7 +17,7 @@ jobs:
         run: |
           echo Installing Mondoo cnspec...
           bash -c "$(curl -sSL https://install.mondoo.com/sh/cnspec)"
-      
+
       - name: Check expiration of public-code-signing.cer
         shell: bash
         run: |

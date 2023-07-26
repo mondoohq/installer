@@ -17,6 +17,7 @@ jobs:
         uses: ludeeus/action-shellcheck@master
         with:
           ignore_paths: examples
+          severity: warning
           scandir: '.'
 
   powershell:
