@@ -1,0 +1,185 @@
+name: Build Windows MSI Package
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Package Version'
+        required: true
+        default: '0.0.1'
+      name:
+        description: 'Package Name'
+        required: false
+        default: 'mondoo'
+      skip-publish:
+        description: 'Skip publish?'
+        required: false
+        default: false
+        type: boolean
+  release:
+    types: [published]
+
+jobs:
+  setup:
+    name: 'Setup'
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      name: ${{ steps.version.outputs.name }}
+    steps:
+      - name: Set Version (Workflow Dispatch)
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          echo VERSION=${{ inputs.version }} >> $GITHUB_ENV
+      - name: Set Version (Release Event)
+        if: github.event_name == 'release'
+        run: |
+          echo VERSION=${{ github.event.release.tag_name }} >> $GITHUB_ENV
+      - name: Unified Version
+        id: version
+        run: |
+          INPUT_NAME=${{ inputs.name }}
+          if [[ ${INPUT_NAME} == '' ]]; then
+            echo "Name is empty, using default"
+            echo "name=mondoo" >> $GITHUB_OUTPUT
+          else
+            echo "Name: ${INPUT_NAME}"
+            echo "name=${INPUT_NAME}" >> $GITHUB_OUTPUT
+          fi
+          echo "Version: $VERSION"
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+
+  dist-prepare:
+    name: 'Prepare Distribution for Packaging'
+    runs-on: ubuntu-latest
+    needs: setup
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      - name: Download Binaries
+        env:
+          VERSION: ${{ needs.setup.outputs.version }}
+        run: |
+          # TODO: We should check the sums here
+          mkdir -p dist && cd dist
+          curl -sSL -O https://releases.mondoo.com/cnspec/${VERSION}/cnspec_${VERSION}_windows_amd64.zip
+          unzip cnspec_${VERSION}_windows_amd64.zip
+          rm cnspec_${VERSION}_windows_amd64.zip
+          curl -sSL -O https://releases.mondoo.com/cnquery/${VERSION}/cnquery_${VERSION}_windows_amd64.zip
+          unzip cnquery_${VERSION}_windows_amd64.zip
+          rm cnquery_${VERSION}_windows_amd64.zip
+          ls -lh
+      - name: Fetch Signing Key
+        run: |
+          cd dist
+          echo "${{ secrets.MSI_SIGNING_CERT }}" | base64 -d > signing.cert
+      - name: Upload Distribution
+        uses: actions/upload-artifact@v3
+        with:
+          name: dist
+          path: dist
+
+
+  msi-build:
+    name: 'Packaging: Windows MSI'
+    runs-on: windows-latest
+    needs: [ setup, dist-prepare ]
+    #  For Version: ${{ needs.setup.outputs.version }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      - name: Download Distribution
+        uses: actions/download-artifact@v3
+        with:
+          name: dist
+          path: dist
+      - name: Build MSI
+        env:
+          VERSION: ${{ needs.setup.outputs.version }}
+          NAME: ${{ needs.setup.outputs.name }}
+          PASSWORD: ${{ secrets.MSI_SIGNING_PASSWORD }}
+        run: |
+          $mondooVersion = ${env:VERSION}
+          echo "running build job for mondoo ${mondooVersion}"
+          $certPath = "$pwd\dist\signing.cert"
+          $pass = ${env:PASSWORD}
+          echo "signing executables"
+          .\scripts\sign.ps1 -ProgramName "Mondoo CLI" -Certificate $certPath -Password $pass -Executable .\dist\mondoo.exe
+          Copy-Item .\dist\cnquery.exe .\scripts\msi\
+          Copy-Item .\dist\cnspec.exe .\scripts\msi\
+          Copy-Item .\dist\cnquery.exe .\scripts\appx\
+          Copy-Item .\dist\cnspec.exe .\scripts\appx\
+          # build msi package
+          Set-Location -Path '.\scripts\'
+          ./package.ps1 -version $mondooVersion
+          # sign msi package
+          Set-Location -Path '.\..'
+          .\scripts\sign.ps1 -ProgramName "Mondoo Installer" -Certificate $certPath -Password $pass -Executable .\scripts\mondoo.msi
+          Copy-Item '.\scripts\mondoo.msi' '.\dist\'
+          #Compress-Archive -Path .\dist\mondoo.exe -DestinationPath .\dist\mondoo.zip
+      - name: Cleanup
+        run: |
+          Remove-Item -Path .\dist\cnquery.exe -Force
+          Remove-Item -Path .\dist\cnspec.exe -Force
+          Remove-Item -Path .\dist\signing.cert -Force
+      - name: Upload Distribution
+        uses: actions/upload-artifact@v3
+        with:
+          name: msi
+          path: dist/
+
+  publish:
+    name: 'Publish: Releases'
+    needs: [setup,msi-build]
+    if: ${{ ! inputs.skip-publish }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      - name: Download MSI Package
+        uses: actions/download-artifact@v3
+        with:
+          name: msi
+          path: dist
+      - name: Authenticate with Google Cloud
+        id: gauth
+        uses: 'google-github-actions/auth@v1'
+        with:
+          credentials_json: '${{secrets.GCP_CREDENTIALS}}'
+      - name: 'Set up Cloud SDK'
+        uses: 'google-github-actions/setup-gcloud@v1'
+      - name: Verify access to release bucket
+        env:
+          VERSION: ${{ needs.setup.outputs.version }}
+        run: |
+          gsutil ls gs://releases-us.mondoo.io/mondoo/${VERSION}/checksums.windows.txt
+      - name: Upload static content to buckets
+        env:
+          VERSION: ${{ needs.setup.outputs.version }}
+        run: |
+          cd dist
+          # Download and re-write the checksum file
+          gsutil cp gs://releases-us.mondoo.io/mondoo/${VERSION}/checksums.windows.txt checksums.windows.txt
+          mv mondoo.zip mondoo_${VERSION}_windows_amd64.zip
+          mv mondoo.msi mondoo_${VERSION}_windows_amd64.msi
+          sha256sum mondoo_${VERSION}_windows_amd64.zip >> checksums.windows.txt
+          sha256sum mondoo_${VERSION}_windows_amd64.msi >> checksums.windows.txt
+          gsutil cp checksums.windows.txt gs://releases-us.mondoo.io/mondoo/${VERSION}/checksums.windows.txt
+          gsutil cp mondoo_${VERSION}_windows_amd64.zip gs://releases-us.mondoo.io/mondoo/${VERSION}/mondoo_${VERSION}_windows_amd64.zip
+          gsutil cp mondoo_${VERSION}_windows_amd64.msi gs://releases-us.mondoo.io/mondoo/${VERSION}/mondoo_${VERSION}_windows_amd64.msi
+      - name: Reindex folder on releaser.mondoo.com
+        uses: peter-evans/repository-dispatch@v2
+        env:
+          VERSION: ${{ needs.setup.outputs.version }}
+        with:
+          token: ${{ secrets.RELEASR_ACTION_TOKEN }}
+          repository: "mondoohq/releasr"
+          event-type: reindex
+          client-payload: '{
+            "reindex-path": "mondoo/${{ env.VERSION }}",
+            "bucket": "releases-us.mondoo.io"
+            }'
+      - name: Cleanup
+        run: |
+          rm -f "${{ steps.gauth.outputs.credentials_file_path }}"
+
