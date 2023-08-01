@@ -120,7 +120,7 @@ jobs:
     ## Matrix task, repeats steps for each repo
     strategy:
       matrix:
-        repo: ["mondoohq/chocolatey", "mondoohq/msi-builder", "mondoohq/repobuilder"]
+        repo: ["mondoohq/archlinux-package", "mondoohq/mac-pkg", "mondoohq/chocolatey", "mondoohq/msi-builder", "mondoohq/repobuilder"]
     steps:
       - uses: actions/checkout@v3
       - name: Repository Dispatch (Workflow Dispatch)
@@ -139,4 +139,3 @@ jobs:
           repository: ${{ matrix.repo }}
           event-type: update
           client-payload: '{"version": "${{ github.event.release.tag_name }}"}'
-
