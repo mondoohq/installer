@@ -99,9 +99,11 @@ pkg_base_url="${base_url}/${product}/${os}/${arch}/tar.gz/${version}"
 download_url="${pkg_base_url}/download"
 sha_url="${pkg_base_url}/sha256"
 
+UserAgent="MondooDownloadScript/1.0 (+https://mondoo.com/) ShellScript/$BASH_VERSION ($OS $DISTRIBUTION)"
+
 # download binary
 purple_bold "Downloading ${download_url}"
-binarySha=$(curl -fsSL "${download_url}" | tee "${filename}" | ${sha256bin} | cut -b 1-64)
+binarySha=$(curl -A "${UserAgent}" -fsSL "${download_url}" | tee "${filename}" | ${sha256bin} | cut -b 1-64)
 echo -e "Downloaded binary hash: ${binarySha}"
 
 # download the checksum
