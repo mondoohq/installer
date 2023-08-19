@@ -26,6 +26,7 @@ Architecture: all
 Maintainer: Mondoo <hello@mondoo.com>
 Description: Mondoo Compatability Wrapper for cnspec
 Depends: cnspec (>= 8.0.0)
+Installed-Size: 261 B
 EOF
 
 # Build Package:
