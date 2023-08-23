@@ -89,6 +89,7 @@ jobs:
         with:
           name: dist
           path: dist
+
       - name: Setup Certificate
         shell: bash
         run: |
@@ -122,19 +123,19 @@ jobs:
         run: |
           $mondooVersion = ${env:VERSION}
           echo "Running build job for version ${mondooVersion}"
-          Copy-Item .\dist\cnquery.exe .\scripts\msi\
-          Copy-Item .\dist\cnspec.exe .\scripts\msi\
-          Copy-Item .\dist\cnquery.exe .\scripts\appx\
-          Copy-Item .\dist\cnspec.exe .\scripts\appx\
+          Copy-Item .\dist\cnquery.exe .\packages\msi\msi\
+          Copy-Item .\dist\cnspec.exe .\packages\msi\msi\
+          Copy-Item .\dist\cnquery.exe .\packages\msi\appx\
+          Copy-Item .\dist\cnspec.exe .\packages\msi\appx\
           # build msi package
           echo " - Packaging MSI..."
-          Set-Location -Path '.\scripts\'
+          Set-Location -Path '.\packages\msi\'
           ./package.ps1 -version $mondooVersion
           # sign msi package
           echo " - Signing MSI..."
           Set-Location -Path '.\..'
-          signtool.exe sign /sha1 ${{ secrets.SM_CODE_SIGNING_CERT_SHA1_HASH }} /tr http://timestamp.digicert.com /td SHA256 /fd SHA256 .\scripts\mondoo.msi
-          Copy-Item '.\scripts\mondoo.msi' '.\dist\'
+          signtool.exe sign /sha1 ${{ secrets.SM_CODE_SIGNING_CERT_SHA1_HASH }} /tr http://timestamp.digicert.com /td SHA256 /fd SHA256 .\packages\msi\mondoo.msi
+          Copy-Item '.\packages\msi\mondoo.msi' '.\dist\'
 
       - name: Cleanup dist before upload
         run: |
