@@ -82,7 +82,7 @@ jobs:
           productsign --sign "${{ secrets.APPLE_KEYS_PRODUCTSIGN_ID }}" dist/${{ steps.version.outputs.name }}-macos-universal-${{ steps.version.outputs.version }}.pkg dist/${{ steps.version.outputs.name }}_${{ steps.version.outputs.version }}_darwin_universal.pkg
       ########## Sign Package. ##########
       - name: "Notarize Signed PKG"
-        uses: devbotsxyz/xcode-notarize@v1
+        uses: mondoohq/xcode-notarize@v1
         with:
           product-path: dist/${{ steps.version.outputs.name }}_${{ steps.version.outputs.version }}_darwin_universal.pkg
           appstore-connect-username: ${{ secrets.APPLE_ACCOUNT_USERNAME }}
@@ -90,7 +90,7 @@ jobs:
           primary-bundle-id: 'com.${{ steps.version.outputs.name }}.client'
 
       - name: "Staple Release Build"
-        uses: devbotsxyz/xcode-staple@v1
+        uses: mondoohq/xcode-staple@v1
         with:
           product-path: dist/${{ steps.version.outputs.name }}_${{ steps.version.outputs.version }}_darwin_universal.pkg
       ########## Save Package as Artifact. ##########
