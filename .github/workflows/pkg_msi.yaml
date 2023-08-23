@@ -133,7 +133,7 @@ jobs:
           ./package.ps1 -version $mondooVersion
           # sign msi package
           echo " - Signing MSI..."
-          Set-Location -Path '.\..'
+          Set-Location -Path '.\..\..'
           signtool.exe sign /sha1 ${{ secrets.SM_CODE_SIGNING_CERT_SHA1_HASH }} /tr http://timestamp.digicert.com /td SHA256 /fd SHA256 .\packages\msi\mondoo.msi
           Copy-Item '.\packages\msi\mondoo.msi' '.\dist\'
 
