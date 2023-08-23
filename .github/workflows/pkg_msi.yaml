@@ -122,11 +122,8 @@ jobs:
         run: |
           $mondooVersion = ${env:VERSION}
           echo "Running build job for version ${mondooVersion}"
-          echo " - Signing executables..."
-          signtool.exe sign /sha1 ${{ secrets.SM_CODE_SIGNING_CERT_SHA1_HASH }} /tr http://timestamp.digicert.com /td SHA256 /fd SHA256 .\dist\mondoo.exe
           Copy-Item .\dist\cnquery.exe .\scripts\msi\
           Copy-Item .\dist\cnspec.exe .\scripts\msi\
-          Copy-Item .\dist\mondoo.exe .\scripts\appx\
           Copy-Item .\dist\cnquery.exe .\scripts\appx\
           Copy-Item .\dist\cnspec.exe .\scripts\appx\
           # build msi package
@@ -143,7 +140,6 @@ jobs:
         run: |
           Remove-Item -Path .\dist\cnquery.exe -Force
           Remove-Item -Path .\dist\cnspec.exe -Force
-          Remove-Item -Path ${env:SM_CLIENT_CERT_FILE} -Force
 
       - name: Upload Distribution
         uses: actions/upload-artifact@v3
