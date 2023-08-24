@@ -13,48 +13,37 @@ on:
 jobs:
   sign_scripts:
     name: Sign PowerShell scripts
-    runs-on: windows-2022
+    runs-on: windows-latest
     steps:
       - name: Check out repository
         uses: actions/checkout@v3
 
-      - name: Sign powershell script
-        shell: powershell
-        env:
-          PFX_CERT: ${{ secrets.PFX_CERT }}
+      - name: Configure DigiCert Signing Variables
+        shell: bash
         run: |
-          Set-Content -Value $([System.Convert]::FromBase64String($env:PFX_CERT)) -Path .\mondoo_code_signing_cert.pfx -Encoding Byte
-          
-          # sign install.sh and ensure proper encoding as UTF8 NoBOM
-          $filename = 'install.ps1'
-          $content = Get-Content $filename
-          [IO.File]::WriteAllLines($filename, $content)
-          Set-AuthenticodeSignature -Certificate (Get-PfxCertificate -FilePath .\mondoo_code_signing_cert.pfx) -FilePath $filename -TimestampServer 'http://timestamp.digicert.com' -HashAlgorithm 'SHA256'
-          (Get-AuthenticodeSignature "$filename").Status -eq 'Valid'
+          # CertLocker Authentication Certifiate
+          CERT_PATH="$(mktemp -t cert.XXX)"
+          echo "${{ secrets.SM_CLIENT_CERT_FILE_B64 }}" | base64 --decode > ${CERT_PATH}
+          echo "SM_CLIENT_CERT_FILE=${CERT_PATH}" >> "$GITHUB_ENV"
+          echo "SM_CLIENT_CERT_PASSWORD=${{ secrets.SM_CLIENT_CERT_PASSWORD }}" >> "$GITHUB_ENV"
+          # CertLocker API Key & Host
+          echo "SM_API_KEY=${{ secrets.SM_API_KEY }}" >> "$GITHUB_ENV"
+          echo "SM_HOST=${{ secrets.SM_HOST }}" >> "$GITHUB_ENV"
+          # DigiCert CertLocker Code Signing Certificate
+          echo "SM_CODE_SIGNING_CERT_SHA1_HASH=${{ secrets.SM_CODE_SIGNING_CERT_SHA1_HASH }}" >> "$GITHUB_ENV"
+          echo "SM_CERT_ALIAS=${{ secrets.SM_CERT_ALIAS }}" >> "$GITHUB_ENV"
 
-          # sign download.sh and ensure proper encoding as UTF8 NoBOM
-          $filename = 'download.ps1'
-          $content = Get-Content $filename
-          [IO.File]::WriteAllLines($filename, $content)
-          Set-AuthenticodeSignature -Certificate (Get-PfxCertificate -FilePath .\mondoo_code_signing_cert.pfx) -FilePath $filename -TimestampServer 'http://timestamp.digicert.com' -HashAlgorithm 'SHA256'
-          (Get-AuthenticodeSignature "$filename").Status -eq 'Valid'
+      - name: Sign powershell script
+        run: |
+          jsign --storetype DIGICERTONE --alias "cert_492206180" --storepass "${SM_API_KEY}|${SM_CLIENT_CERT_FILE}|${SM_CLIENT_CERT_PASSWORD}" --tsaurl "http://timestamp.digicert.com" install.ps1
+          jsign --storetype DIGICERTONE --alias "cert_492206180" --storepass "${SM_API_KEY}|${SM_CLIENT_CERT_FILE}|${SM_CLIENT_CERT_PASSWORD}" --tsaurl "http://timestamp.digicert.com" download.ps1
+          jsign --storetype DIGICERTONE --alias "cert_492206180" --storepass "${SM_API_KEY}|${SM_CLIENT_CERT_FILE}|${SM_CLIENT_CERT_PASSWORD}" --tsaurl "http://timestamp.digicert.com" powershell/Mondoo.Installer/Mondoo.Installer.psm1
+          jsign --storetype DIGICERTONE --alias "cert_492206180" --storepass "${SM_API_KEY}|${SM_CLIENT_CERT_FILE}|${SM_CLIENT_CERT_PASSWORD}" --tsaurl "http://timestamp.digicert.com" powershell/Mondoo.Installer/Mondoo.Installer.psd1
 
-          # sign Mondoo.Installer.psm1 and ensure proper encoding as UTF8 NoBOM
-          $filename = './powershell/Mondoo.Installer/Mondoo.Installer.psm1'
-          $content = Get-Content $filename
-          [IO.File]::WriteAllLines($filename, $content)
-          Set-AuthenticodeSignature -Certificate (Get-PfxCertificate -FilePath .\mondoo_code_signing_cert.pfx) -FilePath $filename -TimestampServer 'http://timestamp.digicert.com' -HashAlgorithm 'SHA256'
-          (Get-AuthenticodeSignature "$filename").Status -eq 'Valid'
-
-          # sign Mondoo.Installer.psd1 and ensure proper encoding as UTF8 NoBOM
-          $filename = './powershell/Mondoo.Installer/Mondoo.Installer.psd1'
-          $content = Get-Content $filename
-          [IO.File]::WriteAllLines($filename, $content)
-          Set-AuthenticodeSignature -Certificate (Get-PfxCertificate -FilePath .\mondoo_code_signing_cert.pfx) -FilePath $filename -TimestampServer 'http://timestamp.digicert.com' -HashAlgorithm 'SHA256'
-          (Get-AuthenticodeSignature "$filename").Status -eq 'Valid'
-          
+      - name: Commit changes
+        run: |
           # ensure windows line-feed
-          git config --global core.autocrlf true 
+          git config --global core.autocrlf true
           # commit changes
           git config --global user.email "tools@mondoo.com"
           git config --global user.name "Mondoo Tools"
@@ -64,3 +53,7 @@ jobs:
           git add powershell/Mondoo.Installer/Mondoo.Installer.psd1
           git commit -m "Sign powershell scripts"
           git push
+
+      - name: Cleanup
+        run:
+          rm -f ${CERT_PATH}
