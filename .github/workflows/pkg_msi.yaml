@@ -55,7 +55,7 @@ jobs:
     needs: setup
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Download Binaries
         env:
           VERSION: ${{ needs.setup.outputs.version }}
@@ -83,7 +83,7 @@ jobs:
     #  For Version: ${{ needs.setup.outputs.version }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Download Distribution
         uses: actions/download-artifact@v3
         with:
@@ -155,7 +155,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Download MSI Package
         uses: actions/download-artifact@v3
         with:
