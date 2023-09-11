@@ -17,7 +17,7 @@ jobs:
     steps:
       # Checkout the branch
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       # Determine which version should be released based on event type
       - name: Set Version (Workflow Dispatch)
         shell: bash

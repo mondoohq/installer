@@ -19,7 +19,7 @@ jobs:
   pkg:
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Download Package
         run: |
           curl -SL -O https://releases.mondoo.com/mondoo/${{ github.event.inputs.version }}/mondoo_${{ github.event.inputs.version }}_darwin_universal.pkg
