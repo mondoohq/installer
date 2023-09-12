@@ -55,7 +55,7 @@ This script source is available at: https://github.com/mondoohq/installer
 "
 
 base_url="${MONDOO_MIRROR:-https://install.mondoo.com/package}"
-product="mondoo"
+product="${MONDOO_PRODUCT:-cnspec}"
 version="${MONDOO_VERSION:-latest}"
 
 fail() {
