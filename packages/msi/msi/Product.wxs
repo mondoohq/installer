@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+ Copyright (c) Mondoo, Inc.
+ SPDX-License-Identifier: BUSL-1.1
+-->
+
 <?define UpgradeCodeStandard = "b0fee933-ccd2-467c-8fe4-bb0ac6a099c8" ?>
 <?define UpgradeCodeEnterprise = "4ABDD5C7-E1E1-41A6-8119-DCE65634A6CC" ?>
 <?if $(var.MondooSKU) = "standard" ?>

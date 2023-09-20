@@ -1,3 +1,6 @@
+# Copyright (c) Mondoo, Inc.
+# SPDX-License-Identifier: BUSL-1.1
+
 FROM almalinux
 ARG mondoo_registration_token
 ENV MONDOO_REGISTRATION_TOKEN=$mondoo_registration_token

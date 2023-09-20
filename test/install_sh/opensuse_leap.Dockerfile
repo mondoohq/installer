@@ -1,3 +1,6 @@
+# Copyright (c) Mondoo, Inc.
+# SPDX-License-Identifier: BUSL-1.1
+
 FROM opensuse/leap:15.4 as opensuse_leap154
 RUN zypper -n install curl
 COPY install.sh /run/install.sh

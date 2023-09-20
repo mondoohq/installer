@@ -1,3 +1,6 @@
+# Copyright (c) Mondoo, Inc.
+# SPDX-License-Identifier: BUSL-1.1
+
 FROM amazonlinux:2018 as amazonlinux2018
 COPY install.sh /run/install.sh
 RUN /run/install.sh

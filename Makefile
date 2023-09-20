@@ -61,3 +61,12 @@ test/powershell:
 	pwsh -Command "Invoke-ScriptAnalyzer -Path .\download.ps1"
 	pwsh -Command "Invoke-ScriptAnalyzer -Path .\powershell/Mondoo.Installer/Mondoo.Installer.psm1"
 	pwsh -Command "Test-ModuleManifest -Path ".\powershell\Mondoo.Installer\Mondoo.Installer.psd1""
+
+# Copywrite Check Tool: https://github.com/hashicorp/copywrite
+license: license/headers/check
+
+license/headers/check:
+	copywrite headers --plan
+
+license/headers/apply:
+	copywrite headers

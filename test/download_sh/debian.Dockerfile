@@ -1,3 +1,6 @@
+# Copyright (c) Mondoo, Inc.
+# SPDX-License-Identifier: BUSL-1.1
+
 FROM debian
 # debian does not ship with curl as default
 RUN apt update -y && apt install -y curl

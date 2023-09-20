@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+ Copyright (c) Mondoo, Inc.
+ SPDX-License-Identifier: BUSL-1.1
+-->
+
 <Package xmlns="http://schemas.microsoft.com/appx/2010/manifest">
   <Identity Name="Mondoo.Mondoo"
             Version="1.0.0.0"

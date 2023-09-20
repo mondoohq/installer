@@ -1,3 +1,6 @@
+# Copyright (c) Mondoo, Inc.
+# SPDX-License-Identifier: BUSL-1.1
+
 FROM amazonlinux
 # amazon linux does not ship with tar as default
 RUN yum install -y tar gzip

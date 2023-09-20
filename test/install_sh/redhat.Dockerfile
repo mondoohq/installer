@@ -1,3 +1,6 @@
+# Copyright (c) Mondoo, Inc.
+# SPDX-License-Identifier: BUSL-1.1
+
 FROM registry.access.redhat.com/ubi8/ubi as rhel8
 COPY install.sh /run/install.sh
 RUN /run/install.sh

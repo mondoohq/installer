@@ -1,3 +1,6 @@
+# Copyright (c) Mondoo, Inc.
+# SPDX-License-Identifier: BUSL-1.1
+
 FROM ubuntu:14.04 as ubuntu1404
 RUN apt update -y && apt install -y curl
 COPY install.sh /run/install.sh

@@ -1,3 +1,6 @@
+# Copyright (c) Mondoo, Inc.
+# SPDX-License-Identifier: BUSL-1.1
+
 # Mondoo Multi-Architecture Container Dockerfile
 # 
 # To build root images with BuildX:   docker buildx build --build-arg VERSION=5.21.0 --platform 
