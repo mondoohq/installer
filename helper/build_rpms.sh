@@ -1,4 +1,7 @@
 #!/bin/bash -e
+# Copyright (c) Mondoo, Inc.
+# SPDX-License-Identifier: BUSL-1.1
+
 
 MONDOO_VERSION=$VERSION
 OUTDIR=packages

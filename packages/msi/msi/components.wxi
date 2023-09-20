@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+ Copyright (c) Mondoo, Inc.
+ SPDX-License-Identifier: BUSL-1.1
+-->
+
 <Include>
     <Directory Id="TARGETDIR" Name="SourceDir">
       <Directory Id="ProgramFiles64Folder">
