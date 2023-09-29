@@ -4,7 +4,7 @@ Here you will find Mac-specific installation scripts and procedures for use with
 
 ## The 'Evergreen' Installer
 
-The so-called 'Evergreen' installer is responsible for always keeping devices updated with the latest version of the Mondoo tools. By using the install.mondoo.com API it looks for the latest version of the Mondoo Mac package and compares it to the installed version, if they differ it upgrades. It will also insert an embedded local configuration file using a non-default file location so that other installations of Mondoo do not conflict with this installation.
+The "Evergreen" installer is responsible for always keeping devices updated with the latest version of the Mondoo tools. By using the install.mondoo.com API, it looks for the latest version of the Mondoo Mac package and compares it to the installed version, if they differ, it upgrades. It also inserts an embedded local configuration file using a non-default file location so that other installations of Mondoo do not conflict with this installation.
 
 Please note that you must upgrade the script with your Mondoo configuration before deploying it.
 
