@@ -4,7 +4,7 @@ This directory contains the PKGBUILD generator for the Arch Linux AUR system. Us
 
 1. Ensure Go, Make & Git are installed
 2. Run ```make update```, this will create cnquery and cnspec directories with the appropriate files
-3. Push those generated files to the appropriate AUR Git repository, eg: https://aur.archlinux.org/cnquery
+3. Push those generated files to the appropriate AUR Git repository, such as: https://aur.archlinux.org/cnquery
 4. Go to the AUR website to verify the package (it can take some time for the web pages to regenerate), eg: https://aur.archlinux.org/packages/cnquery
 
 ## Install cnquery & cnspec
