@@ -11,7 +11,7 @@ Chocolatey is a popular package manager for Windows, similar to Homebrew. This r
 It's very important to be aware of how packages are published for Chocolatey:
 
 1. You create a NuGet and submit it to the Chocolatey API
-2. A series of automated checks are carried out on the packages. If you look at the package page, you will see the new version in the [Version History](https://community.chocolatey.org/packages/cnquery#versionhistory), but it won't be "Listed" and it's Status will not be "Approved"
+2. A series of automated checks are carried out on the packages. If you look at the package page, you see the new version in the [Version History](https://community.chocolatey.org/packages/cnquery#versionhistory), but it isn't be "Listed" and its Status isn't "Approved."
 3. If all the checks pass, it waits until a Moderator (yes, a human) approves the package (***this can take hours to days***)
 4. Once approved, the package is now listed and accessible
 
