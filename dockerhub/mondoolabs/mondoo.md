@@ -20,7 +20,7 @@
 - `8` - always pinned to the latest release for a given major version
 - `8.20.0` - always pinned to a specific Mondoo release
 
-## What is Mondoo
+## What is Mondoo?
 
 Mondoo is a cloud security platform for infrastructure developers. Using Mondoo, your team will get an automated risk assessment and real-time insights into all of your business-critical infrastructure, across all of your infrastructure platforms.
 
