@@ -16,7 +16,7 @@
 - macOS Pkg: [![Release Test: macOS Package](https://github.com/mondoohq/installer/actions/workflows/test-released-osx-pkg.yaml/badge.svg)](https://github.com/mondoohq/installer/actions/workflows/test-released-osx-pkg.yaml)
 - Arch Linux: [![Release Test: Arch Linux](https://github.com/mondoohq/installer/actions/workflows/test-released-archlinux.yaml/badge.svg)](https://github.com/mondoohq/installer/actions/workflows/test-released-archlinux.yaml)
 
-# Installation
+## Installation
 
 The easiest way to install `cnquery` & `cnspec` is to use the install script. It 
 
@@ -39,7 +39,7 @@ iex ((New-Object System.Net.WebClient).DownloadString('https://install.mondoo.co
 Install-Mondoo;
 ```
 
-# Scan your target platform
+## Scan your target platform
 
 Scan your [target platform](https://github.com/mondoohq/cnspec/#supported-targets):
 
@@ -82,7 +82,7 @@ cnspec scan docker container 00fa961d6b6a
 cnspec scan ssh ec2-user@54.76.229.223
 ```
 
-# Package Information
+## Package Information
 
 `https://install.mondoo.com/package/cnspec/{platform}/{arch}/{filetype}/{version}/{method}`
 
@@ -126,7 +126,7 @@ https://install.mondoo.com/package/cnspec/linux/arm64/rpm/5.21.1/download
 https://install.mondoo.com/package/cnspec/linux/arm64/rpm/5.21.1/sha256
 ```
 
-# Kubernetes
+## Kubernetes
 
 ## Kubernetes Manifests to install the operator
 
@@ -136,7 +136,7 @@ https://install.mondoo.com/package/cnspec/linux/arm64/rpm/5.21.1/sha256
 kubectl apply -f https://install.mondoo.com/k8s/operator
 ```
 
-## Kubernetes Manifest to configure the MondooAuditConfig
+### Kubernetes manifest to configure the MondooAuditConfig
 
 [`https://install.mondoo.com/k8s/auditconfig?nodes=true&kubernetesResources=true`](https://install.mondoo.com/k8s/auditconfig?nodes=true&kubernetesResources=true)
 
@@ -146,7 +146,7 @@ kubectl apply -f https://install.mondoo.com/k8s/auditconfig?nodes=true&kubernete
 
 To browse all releases, please visit [https://releases.mondoo.com](https://releases.mondoo.com)
 
-# References
+## References
 
 **Install Scripts Sources**
 
@@ -170,7 +170,7 @@ To browse all releases, please visit [https://releases.mondoo.com](https://relea
 - [Release Notes](https://mondoo.com/releases)
 - [Package Downloads](https://releases.mondoo.com)
 
-# Code Signature Verification
+## Code Signature Verification
 
 Mondoo signs Microsoft Windows executables, PowerShell scripts, Linux packages and code signs Apple macOS executables. The public code signing certificate and public GPG key ist store in the [Installer Repo](https://github.com/mondoohq/installer).
 
@@ -205,7 +205,7 @@ SignerCertificate                         Status
 EE97D1E3C6CD96E06C47B0233DD7C6CE2684FA50  Valid
 ```
 
-## Apple macOS
+### Apple macOS
 
 To verify the integrity of the `cnquery` or `cnspec` executable, please use Apple's codesign utility and compare the TeamIdentifier field, which should match the one below.
 
@@ -301,7 +301,7 @@ Ur8NXko6K6rP77odIXjJSA==
 -----END PGP PUBLIC KEY BLOCK-----
 ```
 
-### Previous Keys
+#### Previous Keys
 
 Key ID `00E1C42B` / fingerprint `4CE909E26AE7439C39CE7647AC69C65100E1C42B`:
 

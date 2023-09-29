@@ -5,6 +5,7 @@ A package builder for Mondoo, initially based on [KosalaHerath/macos-installer-b
 ![Mondoo PKG Installer](mondoo-pkg.png)
 
 ## Package Build from Mondoo Releases
+
 Using the *build-pkg.sh* script, you can build a package locally from tarballs on releases.mondoo.com!  Just give the script a Mondoo version and it will download both ARM and AMD64 tarballs, extract them and build them into a universal binary and then create a PKG.
 
 ```bash
@@ -33,7 +34,7 @@ Application Version : 5.8.0
 [2021-10-08 01:27:28][INFO] Installer generating process started.
 [2021-10-08 01:27:28][INFO] Cleaning /Users/benr/mondoo_pkg/macos-installer-builder/macOS-x64/target directory.
 [2021-10-08 01:27:28][INFO] Application installer generation process started.(3 Steps)
-[2021-10-08 01:27:28][INFO] Apllication installer package building started.(1/3)
+[2021-10-08 01:27:28][INFO] Application installer package building started.(1/3)
 [2021-10-08 01:27:28][INFO] Application installer product building started.(2/3)
 [2021-10-08 01:27:28][INFO] Application installer generation steps finished.
 [2021-10-08 01:27:28][INFO] Installer generating process finished
@@ -43,7 +44,7 @@ Cleaning up.  Good bye.
 
 ## Non-Interactive PKG Installation
 
-From the OSX Terminal:
+From the macOS Terminal:
 
 ```bash
 $ sudo installer -pkg Mondoo-macos-universal-5.8.0.pkg -target /Applications
@@ -58,7 +59,7 @@ For debugging, add the *-dumplog /path/to/some-file.log* flag to *installer*.
 
 ## Creating Universal (AMD64 & ARM64) Binaries
 
-First, compile your app for both platforms, seperately:
+First, compile your app for both platforms, separately:
 
 ```bash
 $ GOOS=darwin GOARCH=amd64 go build -o hello_amd64 hello.go
@@ -98,7 +99,6 @@ Mondoo 5.8.0 (5a8c079a, 2021-10-06T15:27:22Z)
 
 ## Creating a PKG
 
-
 Update the binaries in macOS-x64/application/bin/, then create the PKG:
 
 ```bash
@@ -113,7 +113,7 @@ You will find the produced PKG here: ***macOS-x64/target/pkg/Mondoo-macos-x64-5.
 An uninstaller is provided in the installation directory:
 
 ```bash
-$ sudo /Library/mondoo/5.8.0/uninstall.sh
+sudo /Library/mondoo/5.8.0/uninstall.sh
 ```
 
 ## Package Naming
@@ -127,9 +127,9 @@ Considering the names of other packages out there:
 
 Ultimately, it appears "darwin" is still in common usage and the Hashicorp naming is a good middle ground (plus we already use it and no other format is objectively better), therefore we'll use the naming scheme: mondoo_1.2.3_darwin_universal.pkg
 
-# Signing and Notarization
+## Signing and Notarization
 
-This repository requires several Github Action Secrets to sign and notarize:
+This repository requires several GitHub Action Secrets to sign and notarize:
 
 - APPLE_KEYCHAIN_PASSWORD: Used for setting up and accessing the local Keychain.  Generate a random password, it only needs to be consistent for a single run.
 - APPLE_KEYS_PASSWORD: Cleartext password to decrypt the p12 file's (same pass used on both!)
@@ -137,7 +137,7 @@ This repository requires several Github Action Secrets to sign and notarize:
 - APPLE_KEYS_CODESIGN_ID: Cleartext ID: "Developer ID Application: Mondoo, Inc. (W2KUBWKG84)"
 - APPLE_KEYS_PRODUCTSIGN_P12: base64 encoded p12 for Developer\ ID\ Installer-\ Mondoo\,\ Inc.\ \(W2KUBWKG84\)
 - APPLE_KEYS_PRODUCTSIGN_ID: Cleartext ID: "Developer ID Installer: Mondoo, Inc. (W2KUBWKG84)"
-- APPLE_ACCOUNT_USERNAME: The AppleID username for access to the Notarization service ("appxxxxxxxr@mondooxxxx")
-- APPLE_ACCOUNT_PASSWORD: The "App Specific Password" for use when Notorizing Mac packages, to rotate this password login to appleid.apple.com/account as the above user (login credentials are in BitWarden, in the "Apple ID: Notorizing Account" item)
+- APPLE_ACCOUNT_USERNAME: The AppleID username for access to the Notarization service ("appxxxxxxxr@mondoo.com")
+- APPLE_ACCOUNT_PASSWORD: The "App Specific Password" for use when Notarizing Mac packages, to rotate this password login to appleid.apple.com/account as the above user (login credentials are in BitWarden, in the "Apple ID: Notarizing Account" item)
 
 The Certificates & P12's can be found in Google Drive.  Refer to our internal documentation in [Notion: Apple Developer Network](https://www.notion.so/mondoo/Apple-15b14791a0f54609978a5e52fd8e6cfb#562019a837bf450e89dd3d7926f279ab).

@@ -1,4 +1,4 @@
-name: 'PKG: MacOS Universal pkg Release'
+name: 'PKG: macOS Universal pkg Release'
 
 on:
   workflow_dispatch:

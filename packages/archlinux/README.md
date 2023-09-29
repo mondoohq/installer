@@ -4,9 +4,8 @@ This directory contains the PKGBUILD generator for the Arch Linux AUR system. Us
 
 1. Ensure Go, Make & Git are installed
 2. Run ```make update```, this will create cnquery and cnspec directories with the appropriate files
-3. Push those generated files to the appropriate AUR Git repository, eg: https://aur.archlinux.org/cnquery
+3. Push those generated files to the appropriate AUR Git repository, such as: https://aur.archlinux.org/cnquery
 4. Go to the AUR website to verify the package (it can take some time for the web pages to regenerate), eg: https://aur.archlinux.org/packages/cnquery
-
 
 ## Install cnquery & cnspec
 
@@ -23,7 +22,7 @@ git clone https://aur.archlinux.org/cnquery
  cd cnquery
  makepkg -si
 
-# Install cnsepc (requires cnquery to be installed)
+# Install cnspec (requires cnquery to be installed)
 git clone https://aur.archlinux.org/cnspec
  cd cnspec
  makepkg -si
@@ -31,9 +30,9 @@ git clone https://aur.archlinux.org/cnspec
 
 ### Installation with Yay
 
-We highly recommend using one of the [AUR_helpers](https://wiki.archlinux.org/title/AUR_helpers) like [`yay`](https://github.com/Jguer/yay/) to install the packages.  Note that cnquery is a dependancy of cnspec, so Yay will automatically install it for you.
+We highly recommend using one of the [AUR_helpers](https://wiki.archlinux.org/title/AUR_helpers) like [`yay`](https://github.com/Jguer/yay/) to install the packages. Note that cnquery is a dependency of cnspec, so Yay will automatically install it for you.
 
-```
+```bash
 # install cnquery
 yay -Ss cnquery
 

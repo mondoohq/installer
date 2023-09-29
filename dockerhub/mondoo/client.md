@@ -9,7 +9,7 @@
 * Where to get help: [Mondoo Community GitHub Discussions](https://github.com/orgs/mondoohq/discussions)
 * Dockerfile Source: https://github.com/mondoohq/installer/blob/main/Dockerfile
 * Where to file issues: https://github.com/mondoohq/installer/issues
-* cnquery & cnspecv binary & package downloads (Non-Container):  https://releases.mondoo.com/
+* cnquery & cnspec binary & package downloads (Non-Container):  https://releases.mondoo.com/
 * Supported Architectures: `amd64`, `arm64`, `i386`, `arm32v6`, `arm32v7`
 
 ## Supported tags
@@ -23,6 +23,7 @@
 We offer a Mondoo Client container built on top of [Universal Base Image (UBI)](https://hub.docker.com/r/redhat/ubi8) by Red Hat. Note that the containers built with this base image support only the `amd64` and `arm64` architectures.
 
 Supported tags are:
+
 - `latest-ubi`
 - `8-ubi`
 - `8.20.0-ubi`
@@ -30,9 +31,11 @@ Supported tags are:
 The `Dockerfile` for these images can be found [here](https://github.com/mondoohq/installer/blob/main/Dockerfile-ubi).
 
 ## Rootless containers
+
 The default Mondoo Client container runs our binary as the `root` user. This makes it easy to run a filesystem scan on the host or to use our Cloud Run capabilities. If neither of these use-cases are applicable, we recommend using the rootless containers that we offer. Instead of running under the `root` user, the Mondoo Client will run using the `mondoo` user.
 
 Supported tags are:
+
 - `latest-rootless`
 - `latest-ubi-rootless`
 - `7-rootless`
@@ -59,10 +62,10 @@ Business-critical infrastructure is any infrastructure in which major fault or i
 Some high-level examples of business-critical infrastructure may include:
 
 - Public cloud environments such as AWS, GCP, Azure, and Microsoft 365
-- Private cloud environments such as VMware (VCenter and ESXi)
+- Private cloud environments such as VMware (vCenter and ESXi)
 - Kubernetes Clusters (EKS, GKE, AKS, and self-managed)
 - Servers and Endpoints (Linux, Windows, and macOS)
-- Software Supply Chain services and tooling (GitHub, GitLab, Jenkins, Azure DevOps Pipelines, CircleCI, and more)
+- Software Supply Chain services and tooling (GitHub, GitLab, Jenkins, Azure Pipelines, CircleCI, and more)
 
 Within the examples above there are many individual assets and resources that are critical to operating a secure business such as SSL certificates, system packages, and SSH configurations.
 

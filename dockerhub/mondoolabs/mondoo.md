@@ -11,7 +11,7 @@
 * Where to get help: [Mondoo Community GitHub Discussions](https://github.com/orgs/mondoohq/discussions)
 * Dockerfile Source: https://github.com/mondoohq/installer/blob/main/Dockerfile
 * Where to file issues: https://github.com/mondoohq/installer/issues
-* cnquery & cnspecv binary & package downloads (Non-Container):  https://releases.mondoo.com/mondoo/
+* cnquery & cnspec binary & package downloads (Non-Container):  https://releases.mondoo.com/mondoo/
 * Supported Architectures: `amd64`, `arm64`, `i386`, `arm32v6`, `arm32v7`
 
 ## Supported tags
@@ -20,9 +20,9 @@
 - `8` - always pinned to the latest release for a given major version
 - `8.20.0` - always pinned to a specific Mondoo release
 
-# What is Mondoo
+## What is Mondoo?
 
-Mondoo is a cloud security platform for infrastructure developers. Using Mondoo, your team will get an automated risk assessment and real-time insights into all of your business-critical infrastructure, across all of your infrastructure platforms.
+Mondoo provides full-stack security, asset intelligence, and compliance for your entire infrastructure.
 
 ## Policy as Code
 
@@ -39,10 +39,10 @@ Business-critical infrastructure is any infrastructure in which major fault or i
 Some high-level examples of business-critical infrastructure may include:
 
 - Public cloud environments such as AWS, GCP, Azure, and Microsoft 365
-- Private cloud environments such as VMware (VCenter and ESXi)
+- Private cloud environments such as VMware (vCenter and ESXi)
 - Kubernetes Clusters (EKS, GKE, AKS, and self-managed)
 - Servers and Endpoints (Linux, Windows, and macOS)
-- Software Supply Chain services and tooling (GitHub, GitLab, Jenkins, Azure DevOps Pipelines, CircleCI, and more)
+- Software Supply Chain services and tooling (GitHub, GitLab, Jenkins, Azure Pipelines, CircleCI, and more)
 
 Within the examples above there are many individual assets and resources that are critical to operating a secure business such as SSL certificates, system packages, and SSH configurations.
 
