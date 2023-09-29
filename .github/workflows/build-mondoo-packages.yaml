@@ -73,7 +73,7 @@ jobs:
 
 
 
-      - name: Upload files to Github Release Page
+      - name: Upload files to GitHub Release Page
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ github.event.inputs.version }}

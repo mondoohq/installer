@@ -27,7 +27,7 @@ Section: utils
 Priority: optional
 Architecture: all
 Maintainer: Mondoo <hello@mondoo.com>
-Description: Mondoo Compatability Wrapper for cnspec
+Description: Mondoo Compatibility Wrapper for cnspec
 Depends: cnspec (>= 8.0.0)
 Installed-Size: 261 B
 EOF
@@ -41,8 +41,8 @@ echo "Checking DPKG Contents:"
 dpkg -c ${PKG_NAME}.deb
 echo "Complete!"
 
-# Create arch varieties for compatability with Legacy Mondoo CLI 
-echo "Creating platform varients:"
+# Create arch varieties for compatibility with Legacy Mondoo CLI 
+echo "Creating platform variants:"
 mkdir packages
 for arch in 386 amd64 arm64 armv6 armv7 ppc64le; do 
   # ex: mondoo_8.2.0_linux_amd64.deb

@@ -15,7 +15,7 @@ echo "REFERENCE KEY:"
 < mondoohq-installer-cert.asc gpg --show-keys --no-default-keyring
 echo "--------------"
 
-printf "=> Comparing Github Installer vs RPM Repo..."
+printf "=> Comparing GitHub Installer vs RPM Repo..."
 curl -s -o mondoo-repo-rpm.asc https://releases.mondoo.com/rpm/pubkey.gpg
 if diff mondoohq-installer-cert.asc mondoo-repo-rpm.asc >/dev/null; then
 	echo "PASS"
@@ -24,7 +24,7 @@ else
 	FAIL=1
 fi
 
-printf "=> Comparing Github Installer vs Deb Repo..."
+printf "=> Comparing GitHub Installer vs Deb Repo..."
 curl -s -o mondoo-repo-deb.asc https://releases.mondoo.com/debian/pubkey.gpg
 if diff mondoohq-installer-cert.asc mondoo-repo-deb.asc >/dev/null; then
 	echo "PASS"

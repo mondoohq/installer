@@ -4,7 +4,7 @@
 
 
 if [ ! -f /usr/bin/lipo ]; then
-  echo "ERROR: This script requires the lipo tool from the XCode utilities; please install XCode."
+  echo "ERROR: This script requires the lipo tool from the Xcode utilities; please install XCode."
   exit 1
 fi
 
