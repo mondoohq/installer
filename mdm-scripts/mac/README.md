@@ -14,7 +14,7 @@ This is the installer Mondoo uses to continuously scan its employee workstations
 
 To deploy Evergreen on Kandji, follow these steps:
 
-1. Obtain your Mondoo configuration file or create a new one and embed it into the ___evergreen.sh___ script.  To create a config, login to the [Mondoo Console](https://console.mondoo.com), navigate to your space, then Settings and select the + button on the 'Service Accounts' tab.
+1. Obtain your Mondoo configuration file or create a new one and embed it into the ___evergreen.sh___ script.  To create a config, log into the [Mondoo Console](https://console.mondoo.com), navigate to your space, select **Settings**, go to the **Service Accounts** tab, and select the plus symbol (+) button.
 2. Log in to Kandji and navigate to 'Library'
 3. Select the 'Add New' button, select 'Custom Scripts', and then select 'Add & Configure'
 4. Name it 'Mondoo Evergreen Installer' and select the appropriate Blueprint(s) to add it to. Set the 'Execution Frequency' to 'Run daily'. Do not enable Self Service.
