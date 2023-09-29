@@ -21,4 +21,4 @@ To deploy Evergreen on Kandji, follow these steps:
 5. Copy and paste the ___evergreen.sh___  script contents into the script box.
 6. Select **Save** to finish.
 
-Once set up in the library, you can visit the library items 'Status' tab to see the per device installation progress.
+Once set up in the library, you can visit the library item's **Status** tab to see the per device installation progress.
