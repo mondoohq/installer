@@ -136,7 +136,7 @@ https://install.mondoo.com/package/cnspec/linux/arm64/rpm/5.21.1/sha256
 kubectl apply -f https://install.mondoo.com/k8s/operator
 ```
 
-### Kubernetes Manifest to configure the MondooAuditConfig
+### Kubernetes manifest to configure the MondooAuditConfig
 
 [`https://install.mondoo.com/k8s/auditconfig?nodes=true&kubernetesResources=true`](https://install.mondoo.com/k8s/auditconfig?nodes=true&kubernetesResources=true)
 
