@@ -15,7 +15,7 @@ It's very important to be aware of how packages are published for Chocolatey:
 3. If all the checks pass, it waits until a Moderator (yes, a human) approves the package (***this can take hours to days***)
 4. Once approved, the package is now listed and accessible
 
-To learn more please review the Chocolatey [Package Review Process](https://docs.chocolatey.org/en-us/community-repository/moderation/#package-review-process) documentation.
+To learn more, review the Chocolatey [Package Review Process](https://docs.chocolatey.org/en-us/community-repository/moderation/#package-review-process) documentation.
 
 ## Building Packages
 
