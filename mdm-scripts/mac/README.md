@@ -19,6 +19,6 @@ To deploy Evergreen on Kandji, follow these steps:
 3. Select the **Add New** button, select **Custom Scripts**, and then select **Add & Configure**.
 4. Name it 'Mondoo Evergreen Installer' and select the appropriate Blueprint(s) to add it to. Set the 'Execution Frequency' to 'Run daily'. Do not enable Self Service.
 5. Copy and paste the ___evergreen.sh___  script contents into the script box.
-6. Select 'Save'. Done!
+6. Select **Save** to finish.
 
 Once set up in the library, you can visit the library items 'Status' tab to see the per device installation progress.
