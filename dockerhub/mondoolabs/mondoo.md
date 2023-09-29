@@ -22,7 +22,7 @@
 
 ## What is Mondoo?
 
-Mondoo is a cloud security platform for infrastructure developers. Using Mondoo, your team will get an automated risk assessment and real-time insights into all of your business-critical infrastructure, across all of your infrastructure platforms.
+Mondoo provides full-stack security, asset intelligence, and compliance for your entire infrastructure.
 
 ## Policy as Code
 
