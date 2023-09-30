@@ -314,7 +314,6 @@ configure_macos_installer() {
       detect_latest_version
       if [[ "${CURRENT_VERSION}" != "${MONDOO_LATEST_VERSION}" ]]
       then
-        echo "${CURRENT_VERSION} == ${MONDOO_LATEST_VERSION}"
         FILE="${MONDOO_PKG_NAME}_${MONDOO_LATEST_VERSION}_darwin_universal.pkg"
         URL="https://releases.mondoo.com/${MONDOO_PKG_NAME}/${MONDOO_LATEST_VERSION}/${FILE}"
 
@@ -615,8 +614,8 @@ service() {
 EOL
 
     sleep 5
-    sudo_cmd launchctl load /Library/LaunchDaemons/com.mondoo.client.plist
-    sudo_cmd launchctl start /Library/LaunchDaemons/com.mondoo.client.plist
+    sudo_cmd launchctl bootstrap system /Library/LaunchDaemons/com.mondoo.client.plist
+    sudo_cmd launchctl start com.mondoo.client
   elif [ "$OS" = "Arch" ]; then
     purple_bold "\n* Enable and start the mondoo service"
     sudo_cmd systemctl enable mondoo.service
