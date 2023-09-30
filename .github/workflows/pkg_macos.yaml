@@ -136,7 +136,7 @@ jobs:
         with:
           credentials_json: '${{secrets.GCP_CREDENTIALS}}'
       - name: 'Set up Cloud SDK'
-        uses: 'google-github-actions/setup-gcloud@v0'
+        uses: 'google-github-actions/setup-gcloud@v1'
       - name: Verify access to release bucket
         run: |
           gsutil ls gs://releases-us.mondoo.io/mondoo/${VERSION}/checksums.macos.txt
