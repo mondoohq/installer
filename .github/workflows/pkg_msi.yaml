@@ -123,13 +123,14 @@ jobs:
           smksp_cert_sync.exe
 
       - name: Trim version for beta releases
+        id: trim-version
         run: |
-          echo "VERSION=$(echo ${{ needs.setup.outputs.version }} | sed 's/-.*//')"
-          echo "VERSION=$(echo ${{ needs.setup.outputs.version }} | sed 's/-.*//')" >> $GITHUB_ENV
+          echo "version=$(echo ${{ needs.setup.outputs.version }} | sed 's/-.*//')"
+          echo "version=$(echo ${{ needs.setup.outputs.version }} | sed 's/-.*//')" >> $GITHUB_OUTPUT
 
       - name: Build and Sign MSI
         env:
-          VERSION: ${{ env.VERSION }}
+          VERSION: ${{ steps.trim-version.outputs.version }}
         run: |
           $mondooVersion = ${env:VERSION}
           echo "Running build job for version ${mondooVersion}"
