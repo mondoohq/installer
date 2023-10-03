@@ -128,7 +128,7 @@ jobs:
 
       - name: Build and Sign MSI
         run: |
-          $mondooVersion = ${env:VERSION}
+          $mondooVersion = ${{ env.VERSION }}
           echo "Running build job for version ${mondooVersion}"
           Copy-Item .\dist\cnquery.exe .\packages\msi\msi\
           Copy-Item .\dist\cnspec.exe .\packages\msi\msi\
