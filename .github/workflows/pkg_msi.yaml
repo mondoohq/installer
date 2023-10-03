@@ -48,6 +48,11 @@ jobs:
           fi
           echo "Version: $VERSION"
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
+      - name: Ensure version of cnquery and cnspec are available
+        run: |
+          curl -sL --head --fail https://github.com/mondoohq/cnquery/releases/download/v${VERSION}/cnquery_${VERSION}_windows_amd64.zip
+          curl -sL --head --fail https://github.com/mondoohq/cnspec/releases/download/v${VERSION}/cnspec_${VERSION}_windows_amd64.zip
+
 
   dist-prepare:
     name: 'Prepare Distribution for Packaging'
@@ -62,10 +67,10 @@ jobs:
         run: |
           # TODO: We should check the sums here
           mkdir -p dist && cd dist
-          curl -sSL -O https://releases.mondoo.com/cnspec/${VERSION}/cnspec_${VERSION}_windows_amd64.zip
+          curl -sSL -O https://github.com/mondoohq/cnquery/releases/download/v${VERSION}/cnquery_${VERSION}_windows_amd64.zip
           unzip cnspec_${VERSION}_windows_amd64.zip
           rm cnspec_${VERSION}_windows_amd64.zip
-          curl -sSL -O https://releases.mondoo.com/cnquery/${VERSION}/cnquery_${VERSION}_windows_amd64.zip
+          curl -sSL -O https://github.com/mondoohq/cnspec/releases/download/v${VERSION}/cnspec_${VERSION}_windows_amd64.zip
           unzip cnquery_${VERSION}_windows_amd64.zip
           rm cnquery_${VERSION}_windows_amd64.zip
           ls -lh
