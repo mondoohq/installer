@@ -124,11 +124,14 @@ jobs:
 
       - name: Trim version for beta releases
         run: |
+          echo "VERSION=$(echo ${{ needs.setup.outputs.version }} | sed 's/-.*//')"
           echo "VERSION=$(echo ${{ needs.setup.outputs.version }} | sed 's/-.*//')" >> $GITHUB_ENV
 
       - name: Build and Sign MSI
+        env:
+          VERSION: ${{ env.VERSION }}
         run: |
-          $mondooVersion = ${{ env.VERSION }}
+          $mondooVersion = ${env:VERSION}
           echo "Running build job for version ${mondooVersion}"
           Copy-Item .\dist\cnquery.exe .\packages\msi\msi\
           Copy-Item .\dist\cnspec.exe .\packages\msi\msi\
