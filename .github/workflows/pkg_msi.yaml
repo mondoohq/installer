@@ -25,6 +25,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.version.outputs.version }}
+      trimmed-version: ${{ steps.version.outputs.trimmed_version }}
       name: ${{ steps.version.outputs.name }}
     steps:
       - name: Set Version (Workflow Dispatch)
@@ -48,6 +49,8 @@ jobs:
           fi
           echo "Version: $VERSION"
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
+
+          echo "trimmed_version=$(echo ${VERSION} | sed 's/-.*//')" >> $GITHUB_OUTPUT
       - name: Ensure version of cnquery and cnspec are available
         run: |
           curl -sL --head --fail https://github.com/mondoohq/cnquery/releases/download/v${VERSION}/cnquery_${VERSION}_windows_amd64.zip
@@ -122,15 +125,9 @@ jobs:
           C:\Windows\System32\certutil.exe -csp "DigiCert Signing Manager KSP" -key -user
           smksp_cert_sync.exe
 
-      - name: Trim version for beta releases
-        id: trim-version
-        run: |
-          echo "version=$(echo ${{ needs.setup.outputs.version }} | sed 's/-.*//')"
-          echo "version=$(echo ${{ needs.setup.outputs.version }} | sed 's/-.*//')" >> $GITHUB_OUTPUT
-
       - name: Build and Sign MSI
         env:
-          VERSION: ${{ steps.trim-version.outputs.version }}
+          VERSION: ${{ needs.setup.outputs.trimmed-version }}
         run: |
           $mondooVersion = ${env:VERSION}
           echo "Running build job for version ${mondooVersion}"
