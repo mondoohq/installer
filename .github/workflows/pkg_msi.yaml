@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Package Version'
+        description: 'Package Version (no v prefix)'
         required: true
         default: '0.0.1'
       name:
@@ -25,6 +25,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.version.outputs.version }}
+      trimmed-version: ${{ steps.version.outputs.trimmed_version }}
       name: ${{ steps.version.outputs.name }}
     steps:
       - name: Set Version (Workflow Dispatch)
@@ -54,6 +55,13 @@ jobs:
           curl -sL --head --fail https://github.com/mondoohq/cnspec/releases/download/v${VERSION}/cnspec_${VERSION}_windows_amd64.zip
 
 
+          echo "trimmed_version=$(echo ${VERSION} | sed 's/-.*//')" >> $GITHUB_OUTPUT
+      - name: Ensure version of cnquery and cnspec are available
+        run: |
+          curl -sL --head --fail https://github.com/mondoohq/cnquery/releases/download/v${VERSION}/cnquery_${VERSION}_windows_amd64.zip
+          curl -sL --head --fail https://github.com/mondoohq/cnspec/releases/download/v${VERSION}/cnspec_${VERSION}_windows_amd64.zip
+
+
   dist-prepare:
     name: 'Prepare Distribution for Packaging'
     runs-on: ubuntu-latest
@@ -67,10 +75,10 @@ jobs:
         run: |
           # TODO: We should check the sums here
           mkdir -p dist && cd dist
-          curl -sSL -O https://github.com/mondoohq/cnquery/releases/download/v${VERSION}/cnquery_${VERSION}_windows_amd64.zip
+          curl -sSL -O https://github.com/mondoohq/cnspec/releases/download/v${VERSION}/cnspec_${VERSION}_windows_amd64.zip
           unzip cnspec_${VERSION}_windows_amd64.zip
           rm cnspec_${VERSION}_windows_amd64.zip
-          curl -sSL -O https://github.com/mondoohq/cnspec/releases/download/v${VERSION}/cnspec_${VERSION}_windows_amd64.zip
+          curl -sSL -O https://github.com/mondoohq/cnquery/releases/download/v${VERSION}/cnquery_${VERSION}_windows_amd64.zip
           unzip cnquery_${VERSION}_windows_amd64.zip
           rm cnquery_${VERSION}_windows_amd64.zip
           ls -lh
@@ -124,7 +132,7 @@ jobs:
 
       - name: Build and Sign MSI
         env:
-          VERSION: ${{ needs.setup.outputs.version }}
+          VERSION: ${{ needs.setup.outputs.trimmed-version }}
         run: |
           $mondooVersion = ${env:VERSION}
           echo "Running build job for version ${mondooVersion}"
