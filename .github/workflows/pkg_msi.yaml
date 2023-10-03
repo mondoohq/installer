@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Package Version'
+        description: 'Package Version (no v prefix)'
         required: true
         default: '0.0.1'
       name:
