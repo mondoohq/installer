@@ -122,9 +122,11 @@ jobs:
           C:\Windows\System32\certutil.exe -csp "DigiCert Signing Manager KSP" -key -user
           smksp_cert_sync.exe
 
+      - name: Trim version for beta releases
+        run: |
+          echo "VERSION=$(echo ${{ needs.setup.outputs.version }} | sed 's/-.*//')" >> $GITHUB_ENV
+
       - name: Build and Sign MSI
-        env:
-          VERSION: ${{ needs.setup.outputs.version }}
         run: |
           $mondooVersion = ${env:VERSION}
           echo "Running build job for version ${mondooVersion}"
