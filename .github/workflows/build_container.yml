@@ -43,7 +43,7 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
           
       - name: Build and push root images
-        uses: docker/build-push-action@v4
+        uses: docker/build-push-action@v5
         with:
           context: .
           platforms: linux/amd64,linux/arm64,linux/arm/v6,linux/arm/v7
@@ -59,7 +59,7 @@ jobs:
             mondoo/client:latest
 
       - name: Build and push rootless images
-        uses: docker/build-push-action@v4
+        uses: docker/build-push-action@v5
         with:
           context: .
           platforms: linux/amd64,linux/arm64,linux/arm/v6,linux/arm/v7
@@ -72,7 +72,7 @@ jobs:
             mondoo/client:latest-rootless
 
       - name: Build and push root images (ubi)
-        uses: docker/build-push-action@v4
+        uses: docker/build-push-action@v5
         with:
           context: .
           file: Dockerfile-ubi
@@ -86,7 +86,7 @@ jobs:
             mondoo/client:latest-ubi
 
       - name: Build and push rootless images (ubi)
-        uses: docker/build-push-action@v4
+        uses: docker/build-push-action@v5
         with:
           context: .
           file: Dockerfile-ubi
