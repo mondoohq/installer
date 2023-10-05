@@ -8,8 +8,8 @@ on:
         required: true
         type: string
         default: "8.0.0"
-  # release:
-  #   types: [published]
+  release:
+    types: [published]
 
 jobs:
   chocotize:
