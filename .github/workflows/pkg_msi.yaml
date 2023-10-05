@@ -185,12 +185,9 @@ jobs:
           VERSION: ${{ needs.setup.outputs.version }}
         run: |
           cd dist
-          mv mondoo.zip mondoo_${VERSION}_windows_amd64.zip
           mv mondoo.msi mondoo_${VERSION}_windows_amd64.msi
-          sha256sum mondoo_${VERSION}_windows_amd64.zip >> checksums.windows.txt
           sha256sum mondoo_${VERSION}_windows_amd64.msi >> checksums.windows.txt
           gsutil cp checksums.windows.txt gs://releases-us.mondoo.io/mondoo/${VERSION}/checksums.windows.txt
-          gsutil cp mondoo_${VERSION}_windows_amd64.zip gs://releases-us.mondoo.io/mondoo/${VERSION}/mondoo_${VERSION}_windows_amd64.zip
           gsutil cp mondoo_${VERSION}_windows_amd64.msi gs://releases-us.mondoo.io/mondoo/${VERSION}/mondoo_${VERSION}_windows_amd64.msi
       - name: Reindex folder on releaser.mondoo.com
         uses: peter-evans/repository-dispatch@v2
