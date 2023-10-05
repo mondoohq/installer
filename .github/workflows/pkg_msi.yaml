@@ -179,14 +179,12 @@ jobs:
         env:
           VERSION: ${{ needs.setup.outputs.version }}
         run: |
-          gsutil ls gs://releases-us.mondoo.io/mondoo/${VERSION}/checksums.windows.txt
+          gsutil ls gs://releases-us.mondoo.io/mondoo
       - name: Upload static content to buckets
         env:
           VERSION: ${{ needs.setup.outputs.version }}
         run: |
           cd dist
-          # Download and re-write the checksum file
-          gsutil cp gs://releases-us.mondoo.io/mondoo/${VERSION}/checksums.windows.txt checksums.windows.txt
           mv mondoo.zip mondoo_${VERSION}_windows_amd64.zip
           mv mondoo.msi mondoo_${VERSION}_windows_amd64.msi
           sha256sum mondoo_${VERSION}_windows_amd64.zip >> checksums.windows.txt
