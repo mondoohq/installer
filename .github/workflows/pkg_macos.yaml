@@ -16,8 +16,8 @@ on:
         required: false
         default: false
         type: boolean
-  # release:
-  #   types: [released]
+  release:
+    types: [released]
 
 jobs:
   pkg:
