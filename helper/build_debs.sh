@@ -9,7 +9,7 @@ if [[ ${VERSION} == "" ]]; then
   export VERSION=0.0.1
 fi
 
-echo "--------- Creating Debian Package ${PKG_NAME}"
+echo "--------- Creating Debian Package ${PKG_NAME} ${VERSION} ---------"
 
 # Create the package directory:
 mkdir ${PKG_NAME}

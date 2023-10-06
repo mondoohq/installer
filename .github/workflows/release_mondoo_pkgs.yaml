@@ -1,4 +1,4 @@
-name: "Create mondoo meta-package"
+name: "Build & Release mondoo Meta-Package (Testing)"
 
 on:
   release:
@@ -27,11 +27,12 @@ jobs:
       - name: Verify valid version
         id: version
         run: |
-          if [[ ! $VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+          if [[ ! $VERSION =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             echo "Invalid version: $VERSION"
             exit 1
           fi
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          TRIM_VERSION=$(echo $VERSION | sed 's/v//g')
+          echo "VERSION=$TRIM_VERSION" >> $GITHUB_OUTPUT
       - name: Create destination folder
         run: |
           cd  helper
@@ -78,7 +79,7 @@ jobs:
       - name: Upload files to GitHub Release Page
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: ${{ steps.version.outputs.version }}
+          tag_name: v${{ steps.version.outputs.version }}
           files: helper/packages/*
 
       - name: Reindex folder on releaser.mondoo.com
