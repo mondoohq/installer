@@ -1,4 +1,4 @@
-name: "Create mondoo meta-package"
+name: "Build & Release mondoo Meta-Package (Testing)"
 
 on:
   release:
