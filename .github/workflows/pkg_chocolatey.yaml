@@ -32,8 +32,9 @@ jobs:
         id: version
         shell: bash
         run: |
-          echo "Version: $VERSION"
-          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          V=$(echo $VERSION | sed 's/v//')
+          echo "Version: $V"
+          echo "version=${V}" >> $GITHUB_OUTPUT
 
       - name: Generate Packages
         shell: bash

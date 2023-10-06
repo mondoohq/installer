@@ -46,8 +46,9 @@ jobs:
             echo "Name: ${INPUT_NAME}"
             echo "name=${INPUT_NAME}" >> $GITHUB_OUTPUT
           fi
-          echo "Version: $VERSION"
-          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          V=$(echo $VERSION | sed 's/v//')
+          echo "Version: $V"
+          echo "version=${V}" >> $GITHUB_OUTPUT
       - name: Ensure version of cnquery and cnspec are available
         run: |
           curl -sL --head --fail https://github.com/mondoohq/cnquery/releases/download/v${VERSION}/cnquery_${VERSION}_darwin_amd64.tar.gz
