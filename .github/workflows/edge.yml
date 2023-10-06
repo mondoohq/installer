@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Mondoo client version'     
+        description: 'Mondoo client version'
         required: true
 
 jobs:
@@ -13,6 +13,13 @@ jobs:
     timeout-minutes: 10
     name: Build Docker
     steps:
+      - name: Clean Version
+        id: version
+        run: |
+          VERSON=${{ steps.version.outputs.version | replace('v', '') }}
+          echo "VERSION=${VERSION}" >> $GITHUB_ENV
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+
       - name: Clone repository
         uses: actions/checkout@v4
         with:
@@ -32,7 +39,7 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-          
+
       - name: Build and push root images (alpine)
         uses: docker/build-push-action@v5
         with:
@@ -40,11 +47,11 @@ jobs:
           platforms: linux/386,linux/amd64,linux/arm64,linux/arm/v6,linux/arm/v7
           push: true
           build-args: |
-            BASEURL=https://releases.mondoo.com/edge/mondoo/${{ github.event.inputs.version }}
-            VERSION=${{ github.event.inputs.version }}
+            BASEURL=https://releases.mondoo.com/edge/mondoo/${{ steps.version.outputs.version }}
+            VERSION=${{ steps.version.outputs.version }}
           target: root
           tags: |
-            mondoo/client:edge-${{ github.event.inputs.version }}
+            mondoo/client:edge-${{ steps.version.outputs.version }}
             mondoo/client:edge-latest
 
       - name: Build and push rootless images (alpine)
@@ -54,9 +61,9 @@ jobs:
           platforms: linux/386,linux/amd64,linux/arm64,linux/arm/v6,linux/arm/v7
           push: true
           build-args: |
-            BASEURL=https://releases.mondoo.com/edge/mondoo/${{ github.event.inputs.version }}
-            VERSION=${{ github.event.inputs.version }}
+            BASEURL=https://releases.mondoo.com/edge/mondoo/${{ steps.version.outputs.version }}
+            VERSION=${{ steps.version.outputs.version }}
           target: rootless
           tags: |
-            mondoo/client:edge-${{ github.event.inputs.version }}-rootless
+            mondoo/client:edge-${{ steps.version.outputs.version }}-rootless
             mondoo/client:edge-latest-rootless
