@@ -7,7 +7,7 @@ MONDOO_VERSION=$VERSION
 OUTDIR=packages
 mkdir -p ${OUTDIR}
 
-echo "--------- Creating RPM Package"
+echo "--------- Creating RPM Package mondoo ${MONDOO_VERSION} ---------"
 
 SCRIPT_LOCATION=$(readlink -f "$0")
 REPO_DIR=$(dirname "${SCRIPT_LOCATION}")

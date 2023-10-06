@@ -32,7 +32,7 @@ jobs:
             exit 1
           fi
           TRIM_VERSION=$(echo $VERSION | sed 's/v//g')
-          echo "version=$TRIM_VERSION" >> $GITHUB_OUTPUT
+          echo "VERSION=$TRIM_VERSION" >> $GITHUB_OUTPUT
       - name: Create destination folder
         run: |
           cd  helper
