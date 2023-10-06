@@ -27,7 +27,7 @@ jobs:
       - name: Unify and Validate Version
         id: version
         run: |
-          VERSION=${{ env.VERSION | replace('v', '') }}
+          VERSION=$(echo $VERSION | sed 's/^v//')
           if [[ ! $VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             echo "Invalid version: $VERSION"
             exit 1
