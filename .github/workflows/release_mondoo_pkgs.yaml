@@ -72,8 +72,6 @@ jobs:
         run: |
           cd helper/packages
           sha256sum *linux* > checksums.linux.txt
-          sha256sum *windows* > checksums.windows.txt
-          sha256sum *darwin* > checksums.macos.txt
       - name: Upload files to releases.mondoo.com
         run: |
           gsutil cp -r helper/packages/* gs://releases-us.mondoo.io/mondoo/${VERSION}/

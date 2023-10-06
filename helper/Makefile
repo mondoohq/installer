@@ -4,8 +4,8 @@
 all:
 	./build_debs.sh
 	./build_rpms.sh
-	./build_tgzs.sh
-	./build_zips.sh
+#   ./build_tgzs.sh
+#   ./build_zips.sh
 	file packages/*
 
 clean:
