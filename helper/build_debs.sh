@@ -14,9 +14,10 @@ echo "--------- Creating Debian Package ${PKG_NAME} ${VERSION} ---------"
 # Create the package directory:
 mkdir ${PKG_NAME}
 
+### v9 no longer includes a helper script
 # Copy in contents:
-mkdir -p ${PKG_NAME}/usr/bin
-cp mondoo.sh ${PKG_NAME}/usr/bin/mondoo
+#mkdir -p ${PKG_NAME}/usr/bin
+#cp mondoo.sh ${PKG_NAME}/usr/bin/mondoo
 
 # Create Package Metadata (Control File):
 mkdir ${PKG_NAME}/DEBIAN
@@ -27,8 +28,8 @@ Section: utils
 Priority: optional
 Architecture: all
 Maintainer: Mondoo <hello@mondoo.com>
-Description: Mondoo Compatibility Wrapper for cnspec
-Depends: cnspec (>= 8.0.0)
+Description: Mondoo Metapackage for cnspec
+Depends: cnspec (>= 9.0.0)
 Installed-Size: 261 B
 EOF
 
@@ -41,10 +42,10 @@ echo "Checking DPKG Contents:"
 dpkg -c ${PKG_NAME}.deb
 echo "Complete!"
 
-# Create arch varieties for compatibility with Legacy Mondoo CLI 
+# Create arch varieties for compatibility with Legacy Mondoo CLI
 echo "Creating platform variants:"
 mkdir packages
-for arch in 386 amd64 arm64 armv6 armv7 ppc64le; do 
+for arch in 386 amd64 arm64 armv6 armv7 ppc64le; do
   # ex: mondoo_8.2.0_linux_amd64.deb
   echo "Creating Deb for ${arch}..."
   cp "${PKG_NAME}.deb" "packages/${PKG_NAME}_${VERSION}_linux_${arch}.deb"
