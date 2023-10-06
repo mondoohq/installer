@@ -1,4 +1,4 @@
-name: "Build & Release mondoo Meta-Package (Testing)"
+name: "Build & Release mondoo Meta-Package"
 
 on:
   release:
@@ -13,6 +13,8 @@ on:
 jobs:
   build-mondoo-payloads:
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
     steps:
       - uses: actions/checkout@v4
 
@@ -24,21 +26,20 @@ jobs:
         if: github.event_name == 'release'
         run: |
           echo "VERSION=${{ github.event.release.tag_name }}" >> $GITHUB_ENV
-      - name: Verify valid version
+      - name: Unify and Validate Version
         id: version
         run: |
-          if [[ ! $VERSION =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+          VERSION=$(echo $VERSION | sed 's/^v//')
+          if [[ ! $VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             echo "Invalid version: $VERSION"
             exit 1
           fi
-          TRIM_VERSION=$(echo $VERSION | sed 's/v//g')
-          echo "VERSION=$TRIM_VERSION" >> $GITHUB_OUTPUT
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
       - name: Create destination folder
         run: |
           cd  helper
           mkdir packages
-        #   cp mondoo.sh  packages/
-        #   cp mondoo.ps1 packages/
       - name: Install RPM tools
         run: |
           sudo apt update && sudo apt install -y rpm gpg
@@ -116,7 +117,7 @@ jobs:
           token: ${{ secrets.REPO_API_TOKEN }}
           repository: ${{ matrix.repo }}
           event-type: update
-          client-payload: '{"version": "${{ github.event.inputs.version }}"}'
+          client-payload: '{"version": "${{ needs.build-mondoo-payloads.outputs.version }}"}'
       - name: Repository Dispatch (Release)
         uses: peter-evans/repository-dispatch@v2
         if: github.event_name == 'release'
@@ -124,4 +125,4 @@ jobs:
           token: ${{ secrets.REPO_API_TOKEN }}
           repository: ${{ matrix.repo }}
           event-type: update
-          client-payload: '{"version": "${{ github.event.release.tag_name }}"}'
+          client-payload: '{"version": "${{ needs.build-mondoo-payloads.outputs.version }}"}'
