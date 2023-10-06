@@ -19,13 +19,11 @@ jobs:
       - name: Version from Workflow Dispatch
         if: github.event_name == 'workflow_dispatch'
         run: |
-          echo "${{ github.event.inputs.version }}" | sed 's/^v//' >> version.txt
-          echo "VERSION=$(cat version.txt)" >> $GITHUB_ENV
+          echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
       - name: Version from Release Tag
         if: github.event_name == 'release'
         run: |
-          echo "${{ github.event.release.tag_name }}" | sed 's/^v//' >> version.txt
-          echo "VERSION=$(cat version.txt)" >> $GITHUB_ENV
+          echo "VERSION=${{ github.event.release.tag_name }}" >> $GITHUB_ENV
       - name: Verify valid version
         id: version
         run: |
