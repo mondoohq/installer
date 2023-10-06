@@ -22,10 +22,16 @@ jobs:
         uses: WyriHaximus/github-action-get-previous-tag@v1
 
       - name: Parse semver string
-        id: semver 
+        id: semver
         uses: booxmedialtd/ws-action-parse-semver@v1
         with:
           input_string: ${{ steps.vars.outputs.tag }}
+      - name: Clean Version Tag
+        id: version
+        run: |
+          VERSION=$(echo "${{ steps.vars.outputs.tag }}" | sed -e 's/^v//'')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -41,20 +47,20 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-          
+
       - name: Build and push root images
         uses: docker/build-push-action@v5
         with:
           context: .
           platforms: linux/amd64,linux/arm64,linux/arm/v6,linux/arm/v7
           push: true
-          build-args: VERSION=${{ steps.vars.outputs.tag }}
+          build-args: VERSION=${{ steps.version.outputs.version }}
           target: root
           tags: |
-            mondoolabs/mondoo:${{ steps.vars.outputs.tag }}
+            mondoolabs/mondoo:${{ steps.version.outputs.version }}
             mondoolabs/mondoo:${{ steps.semver.outputs.major }}
             mondoolabs/mondoo:latest
-            mondoo/client:${{ steps.vars.outputs.tag }}
+            mondoo/client:${{ steps.version.outputs.version }}
             mondoo/client:${{ steps.semver.outputs.major }}
             mondoo/client:latest
 
@@ -64,10 +70,10 @@ jobs:
           context: .
           platforms: linux/amd64,linux/arm64,linux/arm/v6,linux/arm/v7
           push: true
-          build-args: VERSION=${{ steps.vars.outputs.tag }}
+          build-args: VERSION=${{ steps.version.outputs.version }}
           target: rootless
           tags: |
-            mondoo/client:${{ steps.vars.outputs.tag }}-rootless
+            mondoo/client:${{ steps.version.outputs.version }}-rootless
             mondoo/client:${{ steps.semver.outputs.major }}-rootless
             mondoo/client:latest-rootless
 
@@ -78,10 +84,10 @@ jobs:
           file: Dockerfile-ubi
           platforms: linux/amd64,linux/arm64
           push: true
-          build-args: VERSION=${{ steps.vars.outputs.tag }}
+          build-args: VERSION=${{ steps.version.outputs.version }}
           target: root
           tags: |
-            mondoo/client:${{ steps.vars.outputs.tag }}-ubi
+            mondoo/client:${{ steps.version.outputs.version }}-ubi
             mondoo/client:${{ steps.semver.outputs.major }}-ubi
             mondoo/client:latest-ubi
 
@@ -92,10 +98,10 @@ jobs:
           file: Dockerfile-ubi
           platforms: linux/amd64,linux/arm64
           push: true
-          build-args: VERSION=${{ steps.vars.outputs.tag }}
+          build-args: VERSION=${{ steps.version.outputs.version }}
           target: rootless
           tags: |
-            mondoo/client:${{ steps.vars.outputs.tag }}-ubi-rootless
+            mondoo/client:${{ steps.version.outputs.version }}-ubi-rootless
             mondoo/client:${{ steps.semver.outputs.major }}-ubi-rootless
             mondoo/client:latest-ubi-rootless
 

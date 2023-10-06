@@ -44,9 +44,9 @@ jobs:
             echo "Name: ${INPUT_NAME}"
             echo "name=${INPUT_NAME}" >> $GITHUB_OUTPUT
           fi
-          echo "Version: $VERSION"
-          echo "version=${VERSION}" >> $GITHUB_OUTPUT
-
+          V=$(echo $VERSION | sed 's/v//')
+          echo "Version: $V"
+          echo "version=${V}" >> $GITHUB_OUTPUT
 
   update-pkgs:
     runs-on: ubuntu-latest
