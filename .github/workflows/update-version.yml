@@ -22,11 +22,13 @@ jobs:
       - name: Version from Workflow Dispatch
         if: github.event_name == 'workflow_dispatch'
         run: |
-          echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
+          V=$(echo ${{ github.event.inputs.version }} | sed 's/v//g')
+          echo "VERSION=${V}" >> $GITHUB_ENV
       - name: Version from Release Tag
         if: github.event_name == 'release'
         run: |
-          echo "VERSION=${{ github.event.release.tag_name }}" >> $GITHUB_ENV
+          V=$(echo ${{ github.event.release.tag_name }} | sed 's/v//g')
+          echo "VERSION=${V}" >> $GITHUB_ENV
       - name: Verify valid version
         id: vars
         run: |
