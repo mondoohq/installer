@@ -6,14 +6,14 @@ on:
       version:
         description: "Version to test"
         required: true
-        default: "8.3.0"
+        default: "9.0.0"
         type: string
   workflow_dispatch:
     inputs:
       version:
         description: "Version to test"
         required: true
-        default: "8.3.0"
+        default: "9.0.0"
 
 jobs:
   pkg:
@@ -29,4 +29,4 @@ jobs:
 
       - name: Executing cnspec...
         run: |
-          cnspec version
+          /Library/Mondoo/bin/cnspec version
