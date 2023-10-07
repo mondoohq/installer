@@ -17,22 +17,22 @@
 #
 # The Mondoo installation script installs cnspec and cnquery on supported
 # Linux distros and macOS using its native package manager.
-# 
+#
 # Use this command to install cnspec and cnquery on your system with this script:
 #
 # bash -c "$(curl -sSL https://install.mondoo.com/sh/cnquery)"
-# 
+#
 # The script detects the operating system and uses the appropriate package.
 # To override the automatic detection, you can set the -i flag to specify
 # the package type explicitly (supported on macOS).
-# 
+#
 # Supported package types are:
 # - pkg (macOS)
 # - brew (macOS)
-# 
-# (Optional) To authenticate the installation, you can provide a Mondoo 
-# Registration Token with the -t flag. The token is used to authenticate 
-# the client with Mondoo Platform. Systemd services are only activated 
+#
+# (Optional) To authenticate the installation, you can provide a Mondoo
+# Registration Token with the -t flag. The token is used to authenticate
+# the client with Mondoo Platform. Systemd services are only activated
 # if Mondoo is properly authenticated.
 #
 # Please note that we aim to be POSIX-compatible in this script.
@@ -289,7 +289,9 @@ configure_macos_installer() {
   fi
 
   if [ "${MONDOO_INSTALLER}" == "brew" ]; then
-    
+    # Homebrew doesn't support empty metapackages, so we redefine the package name to cnspec
+    MONDOO_PKG_NAME="cnspec"
+
     mondoo_install() {
       purple_bold "\n* Configuring brew sources for Mondoo Repository via 'brew tap'"
       brew tap mondoohq/mondoo
@@ -397,7 +399,7 @@ configure_rhel_installer() {
 configure_debian_installer() {
   if [ -x "$(command -v apt)" ]; then
     MONDOO_INSTALLER="apt"
-    
+
     apt_update() {
         purple_bold "\n* Configuring APT package sources for Mondoo at /etc/apt/sources.list.d/mondoo.list"
         APT_VERSION=$(dpkg-query --show --showformat '${Version}' apt)
@@ -410,13 +412,13 @@ configure_debian_installer() {
           echo "deb [signed-by=/usr/share/keyrings/mondoo-archive-keyring.gpg] https://releases.mondoo.com/debian/ stable main" | sudo_cmd tee /etc/apt/sources.list.d/mondoo.list
         fi
     }
-    
+
     mondoo_install() {
       purple_bold "\n* Installing prerequisites for Debian"
       sudo_cmd apt update -y
       sudo_cmd apt install -y apt-transport-https ca-certificates gnupg curl
       apt_update
-      
+
       purple_bold "\n* Installing ${MONDOO_PRODUCT_NAME}"
       sudo_cmd apt update -y && sudo_cmd apt install -y ${MONDOO_PKG_NAME}
     }
