@@ -51,8 +51,8 @@ jobs:
           echo "version=${V}" >> $GITHUB_OUTPUT
       - name: Ensure version of cnquery and cnspec are available
         run: |
-          curl -sL --head --fail https://github.com/mondoohq/cnquery/releases/download/v${VERSION}/cnquery_${VERSION}_darwin_amd64.tar.gz
-          curl -sL --head --fail https://github.com/mondoohq/cnspec/releases/download/v${VERSION}/cnspec_${VERSION}_darwin_amd64.tar.gz
+          curl -sL --head --fail https://github.com/mondoohq/cnquery/releases/download/v${{ steps.version.outputs.version }}/cnquery_${{ steps.version.outputs.version }}_darwin_amd64.tar.gz
+          curl -sL --head --fail https://github.com/mondoohq/cnspec/releases/download/v${{ steps.version.outputs.version }}/cnspec_${{ steps.version.outputs.version }}_darwin_amd64.tar.gz
       - name: Setup local keychain for signing certificates
         run: |
           KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db

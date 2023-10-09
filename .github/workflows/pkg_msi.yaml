@@ -53,8 +53,8 @@ jobs:
           echo "trimmed_version=$(echo ${V} | sed 's/-.*//')" >> $GITHUB_OUTPUT
       - name: Ensure version of cnquery and cnspec are available
         run: |
-          curl -sL --head --fail https://github.com/mondoohq/cnquery/releases/download/v${VERSION}/cnquery_${VERSION}_windows_amd64.zip
-          curl -sL --head --fail https://github.com/mondoohq/cnspec/releases/download/v${VERSION}/cnspec_${VERSION}_windows_amd64.zip
+          curl -sL --head --fail https://github.com/mondoohq/cnquery/releases/download/v${{ steps.version.outputs.version }}/cnquery_${{ steps.version.outputs.version }}windows_amd64.zip
+          curl -sL --head --fail https://github.com/mondoohq/cnspec/releases/download/v${{ steps.version.outputs.version }}/cnspec_${{ steps.version.outputs.version }}_windows_amd64.zip
 
 
   dist-prepare:
