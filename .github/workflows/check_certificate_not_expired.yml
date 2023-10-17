@@ -21,4 +21,5 @@ jobs:
       - name: Check expiration of public-code-signing.cer
         shell: bash
         run: |
+          cnspec provider install network
           cnspec scan local --detect-cicd --score-threshold 100 --policy-bundle test/cnspec/check-certificate.mql.yaml -o full
