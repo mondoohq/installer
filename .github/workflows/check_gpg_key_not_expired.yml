@@ -22,7 +22,7 @@ jobs:
       - name: Check expiration of public-package-signing.gpg
         shell: bash
         run: |
-	  cnspec providers install network
+          cnspec providers install network
           cnspec scan local --detect-cicd --score-threshold 100 --policy-bundle test/cnspec/check-gpg.mql.yaml -o full
 
       - name: Install OpenPGP & cURL
