@@ -13,7 +13,7 @@ chmod -R 755 .
 
 #Add application shortcuts to /usr/local/bin
 for bin in ${PRODUCT_HOME}/bin/*; do
-    ln -sf ${PRODUCT_HOME}/bin/${bin} /usr/local/bin/${bin}
+    ln -sf ${bin} /usr/local/bin/$(basename ${bin})
 done
 
 # Install Launchd:
