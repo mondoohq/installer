@@ -45,8 +45,12 @@ PRODUCT=__PRODUCT__
 
 echo "Application uninstalling process started"
 # remove link to shorcut file
-for bin in /Library/${PRODUCT}/bin/*; do
-    rm /usr/local/bin/${bin}
+for bin in /Library/${PRODUCT_HOME}/bin/*; do
+    binary="$(basename ${bin})"
+    if [[ -f /usr/local/bin/${binary} ]]; then
+        echo "Removing ${binary} link in /usr/local/bin"
+        rm /usr/local/bin/${binary}
+    fi
 done
 if [ $? -eq 0 ]
 then
