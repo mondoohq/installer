@@ -6,14 +6,20 @@ PRODUCT_HOME=/Library/__PRODUCT__
 echo "Post installation process started"
 
 #Change permissions in home directory
-echo "Change permissions in product home"
+echo "Change permissions in product home (${PRODUCT_HOME})"
 cd ${PRODUCT_HOME} || exit 1
 chmod -R 755 .
 [ -d /usr/local/bin ] || mkdir /usr/local/bin
 
 #Add application shortcuts to /usr/local/bin
 for bin in ${PRODUCT_HOME}/bin/*; do
-    ln -sf ${bin} /usr/local/bin/$(basename ${bin})
+    binary="$(basename ${bin})"
+    if [ ! -f /usr/local/bin/${binary} ]; then
+        echo "Linking ${bin} to /usr/local/bin"
+        ln -sf ${PRODUCT_HOME}/bin/${bin} /usr/local/bin/${binary}
+    else
+        echo "There is an existing link for /usr/local/bin/${binary}, skipping"
+    fi
 done
 
 # Install Launchd:
