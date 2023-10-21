@@ -169,7 +169,8 @@ function Install-Mondoo {
       $(New-ScheduledTaskTrigger -Daily -DaysInterval $Interval -At $Time)
     )
     $principal = New-ScheduledTaskPrincipal -GroupId "NT AUTHORITY\SYSTEM" -RunLevel Highest
-    Register-ScheduledTask -Action $action -Trigger $trigger -TaskName $taskname -Description "$Product Updater Task" -TaskPath $taskpath -Principal $principal
+    $settings = New-ScheduledTaskSettingsSet -Compatibility Win8
+    Register-ScheduledTask -Action $action -Settings $settings -Trigger $trigger -TaskName $taskname -Description "$Product Updater Task" -TaskPath $taskpath -Principal $principal
 
     If (Get-ScheduledTask -TaskName $taskname -EA 0)
     {
@@ -237,7 +238,13 @@ function Install-Mondoo {
     $filetype = 'zip'
   }
   # get the installed mondoo version
-  $installed_version = Get-CIMInstance -Class Win32_Product | Where-Object vendor -eq "Mondoo, Inc."
+  $Apps = @()
+  $Apps += Get-ItemProperty "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*" # 32 Bit
+  $Apps += Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*" # 64 Bit
+  $installed_version = $Apps | where-object Publisher -eq "Mondoo, Inc."
+  if ($installed_version){
+    $installed_version.version = $installed_version.DisplayVersion
+  }
 
   $arch = 'amd64'
   $releaseurl = ''
@@ -369,10 +376,10 @@ function Install-Mondoo {
 }
 
 # SIG # Begin signature block
-# MIIfvQYJKoZIhvcNAQcCoIIfrjCCH6oCAQExDzANBglghkgBZQMEAgEFADB5Bgor
+# MIIfvAYJKoZIhvcNAQcCoIIfrTCCH6kCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCCnR+E+/d9yiZ6O
-# pN/h9BKdqxhkXPcxOhHTFWYnhqrlEaCCGmIwggNZMIIC36ADAgECAhAPuKdAuRWN
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCCcYKyC/kA70eSH
+# s2HhfK4vvWjF4/TEPo1x1qq1dqzCWKCCGmIwggNZMIIC36ADAgECAhAPuKdAuRWN
 # A1FDvFnZ8EApMAoGCCqGSM49BAMDMGExCzAJBgNVBAYTAlVTMRUwEwYDVQQKEwxE
 # aWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xIDAeBgNVBAMT
 # F0RpZ2lDZXJ0IEdsb2JhbCBSb290IEczMB4XDTIxMDQyOTAwMDAwMFoXDTM2MDQy
@@ -513,30 +520,30 @@ function Install-Mondoo {
 # oIARyxQMfq68/qTreWWqaNYiyjvrmoI1VygWy2nyMpqy0tg6uLFGhmu6F/3Ed2wV
 # bK6rr3M66ElGt9V/zLY4wNjsHPW2obhDLN9OTH0eaHDAdwrUAuBcYLso/zjlUlrW
 # rBciI0707NMX+1Br/wd3H3GXREHJuEbTbDJ8WC9nR2XlG3O2mflrLAZG70Ee8PBf
-# 4NvZrZCARK+AEEGKMYIEsTCCBK0CAQEweDBkMQswCQYDVQQGEwJVUzEXMBUGA1UE
+# 4NvZrZCARK+AEEGKMYIEsDCCBKwCAQEweDBkMQswCQYDVQQGEwJVUzEXMBUGA1UE
 # ChMORGlnaUNlcnQsIEluYy4xPDA6BgNVBAMTM0RpZ2lDZXJ0IEdsb2JhbCBHMyBD
 # b2RlIFNpZ25pbmcgRUNDIFNIQTM4NCAyMDIxIENBMQIQDEIdg1QjUvYABwFA28gf
 # 0DANBglghkgBZQMEAgEFAKCBhDAYBgorBgEEAYI3AgEMMQowCKACgAChAoAAMBkG
 # CSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwGCisGAQQBgjcCAQsxDjAMBgorBgEE
-# AYI3AgEVMC8GCSqGSIb3DQEJBDEiBCA0zmYv4yLwLtitCU8Hy2+TzAffH68/CP0I
-# pgZGGExr6zALBgcqhkjOPQIBBQAEZzBlAjBpmOkFBjIqWAijIIt0IGpTBjwD3niN
-# Ph3cT8WUixbLejFmgBh6/k9UMbYkD7cu8CYCMQC69km8FHXUpTIWZiI1J42CTgqR
-# kvQm6IAxNCRyVvViVWNWSZkBbgkUgPhFhdcW4uGhggMgMIIDHAYJKoZIhvcNAQkG
-# MYIDDTCCAwkCAQEwdzBjMQswCQYDVQQGEwJVUzEXMBUGA1UEChMORGlnaUNlcnQs
-# IEluYy4xOzA5BgNVBAMTMkRpZ2lDZXJ0IFRydXN0ZWQgRzQgUlNBNDA5NiBTSEEy
-# NTYgVGltZVN0YW1waW5nIENBAhAFRK/zlJ0IOaa/2z9f5WEWMA0GCWCGSAFlAwQC
-# AQUAoGkwGAYJKoZIhvcNAQkDMQsGCSqGSIb3DQEHATAcBgkqhkiG9w0BCQUxDxcN
-# MjMwODIzMDk1ODA0WjAvBgkqhkiG9w0BCQQxIgQgJhTKCcG64/VkLN/n06d+RvAY
-# TnIPICShGKsBNYWg14EwDQYJKoZIhvcNAQEBBQAEggIAbUZ0v68rSTrijMdvk/Gn
-# ubvHBPQXijDurss4DNqHQDTv0Rz+HFfKxebYVgxzf/6IlOEUaxLaLE8AkvfD2t9n
-# Lkd3A8UBy42oEGeF18mcMdEx77TsD3lmbqmV5ubvNx7i5dPm2O2QhhpHunVRj058
-# EZNOF29vjJNx2YIy+6JG/pZCVt/MNSiNhqJAgIhfzDT1eyc3QmSs2MOBHzxu+Wl0
-# MPFtAAuiuZ870VuHEbXno4kjq/ZvB66LQECxxb+NmqGzwjwCtrsUAvwmsPuEH9ij
-# ygarckw7tjHD4LlyqRu3CamtOiWd0sn+tdC03SO0djjC2GZKZ3pVjZdowkt1Bzne
-# Rfwwz4s6rB91Sxlv6aLABTblqAnuGKauvCczRRogseN5YKPEJ7QVAG32j2hqAxo0
-# FwO3+wuq4uKV2Yczi1lYaWdYUriFJsBtTb0lyIO4p4jQfgYW1YA1aIUkvgzX4X2I
-# Szid3K+ymc5NaCvuL34Zqjpj95W6v7asghDTe+T5Lo2CGip71W95qG8l8BCc3Xj0
-# uVWiSIugXiVfkDNrw0fqhE/WHnUT98GC/JAkN2tUaNWrNvOi6WdtLuj3oKv90P18
-# sF7yV1R7AfRW8nDvy+E4epBCWUru4VpNdGzZv1uke4k+LJRnReGH4oMGIU7Hidzh
-# WtaHk8zIiuoZwJL33YNweyE=
+# AYI3AgEVMC8GCSqGSIb3DQEJBDEiBCBoUqcFrQLZwuhKzlzYNOmiBCCFBsqG/zKi
+# qWnE1o5beTALBgcqhkjOPQIBBQAEZjBkAjBKd9tsZJCRyxSRrKGJkpkEFTUhTryZ
+# Jwrce7DRjs4KWOjlo6W6jVJyYTE6qz+A76ICMGwVKnMk7GX7iI9d1k5vJ7NVxkPh
+# oCb0qvtkCfRdN93EW/OrrKvM8niK5INlBDw+JKGCAyAwggMcBgkqhkiG9w0BCQYx
+# ggMNMIIDCQIBATB3MGMxCzAJBgNVBAYTAlVTMRcwFQYDVQQKEw5EaWdpQ2VydCwg
+# SW5jLjE7MDkGA1UEAxMyRGlnaUNlcnQgVHJ1c3RlZCBHNCBSU0E0MDk2IFNIQTI1
+# NiBUaW1lU3RhbXBpbmcgQ0ECEAVEr/OUnQg5pr/bP1/lYRYwDQYJYIZIAWUDBAIB
+# BQCgaTAYBgkqhkiG9w0BCQMxCwYJKoZIhvcNAQcBMBwGCSqGSIb3DQEJBTEPFw0y
+# MzA4MjMwOTU4MDRaMC8GCSqGSIb3DQEJBDEiBCCUb5xmr/7oLfrbcdo5j4lZyFU5
+# jVzd6OMnu20DNV77cTANBgkqhkiG9w0BAQEFAASCAgABgqKsOJGsOPEHm7xI9YF9
+# DLvYyglYk7eeP0v7LWpA+gJFHBuPkyNImHA/y3jqDf/P8SU9geo0ZTAQafYd7NTM
+# /MPJP5CfKSbEQaiUrN6ZG4mAR7nCszuN9x75qtDEPTLkekaQrDELNiupmhUxLvtX
+# 6x8FLU1RW+DHOxLjiFLR5xkd9w//1ogHm3hfKTWoNpbtTonQjlfm1JqF7fnZQ0YE
+# D9LS56EtFW+A+4EQbIMTlXYSDohfKRZzOOIWDMIXPPwW1ge1abDrB2ptPRi1kkL2
+# boxh6TV6H1t03mVLW5cDCKMBH9iYlSfqmsl6grlAQvXcN3cD0/dmMOkJSii+fuQC
+# zP2wsNcdTICFtM12QgODTc4bdI+Ll4f1h0EKV1X22jf9fB82rARXB1TxO8WoQz2V
+# D9jsdMz6hcOxTXR3Rd91yAFt5F7xDsfn6XZkcPgaMXlzBFAzyVNFw7M9QHaWCqBp
+# 0OfMNBgLUtwCfrxVYQeBEG5knI0ZMR3dBHJ2laQWghldYaFBlXWhrJS6PrevH4H7
+# JrNBND3Kx8nPX8pwOwbRMM6zL8a4TH1AqQ6VYdAqq/uUBzMKYqCr2UF1D7puvOYi
+# W5n6PYfEqRqMJLDrOfMQnss2q/MrmTsqBc+zCUzvsWDd3RHvW3Q0SB6x1qj6T3RZ
+# UMRqBscYfwwmlUr/ccJBeg==
 # SIG # End signature block

@@ -169,7 +169,8 @@ function Install-Mondoo {
       $(New-ScheduledTaskTrigger -Daily -DaysInterval $Interval -At $Time)
     )
     $principal = New-ScheduledTaskPrincipal -GroupId "NT AUTHORITY\SYSTEM" -RunLevel Highest
-    Register-ScheduledTask -Action $action -Trigger $trigger -TaskName $taskname -Description "$Product Updater Task" -TaskPath $taskpath -Principal $principal
+    $settings = New-ScheduledTaskSettingsSet -Compatibility Win8
+    Register-ScheduledTask -Action $action -Settings $settings -Trigger $trigger -TaskName $taskname -Description "$Product Updater Task" -TaskPath $taskpath -Principal $principal
 
     If (Get-ScheduledTask -TaskName $taskname -EA 0)
     {
