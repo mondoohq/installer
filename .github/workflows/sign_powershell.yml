@@ -2,6 +2,12 @@ name: Sign PowerShell Scripts
 
 on:
   workflow_dispatch:
+    inputs:
+      skip-publish:
+        description: 'Skip publishing'
+        required: false
+        default: false
+        type: boolean
   push:
     branches:
       - main
@@ -13,10 +19,15 @@ on:
 jobs:
   sign_scripts:
     name: Sign PowerShell scripts
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+
+      - name: Install jSign (Windows Signing Tool) -- Required for public runners
+        run: |
+          curl -LO https://github.com/ebourg/jsign/releases/download/5.0/jsign_5.0_all.deb
+          sudo dpkg -i ./jsign_5.0_all.deb
 
       - name: Configure DigiCert Signing Variables
         shell: bash
@@ -41,6 +52,7 @@ jobs:
           jsign --storetype DIGICERTONE --alias "cert_492206180" --storepass "${SM_API_KEY}|${SM_CLIENT_CERT_FILE}|${SM_CLIENT_CERT_PASSWORD}" --tsaurl "http://timestamp.digicert.com" powershell/Mondoo.Installer/Mondoo.Installer.psd1
 
       - name: Commit changes
+        if: ${{ github.event.inputs.skip-publish != true }}
         run: |
           # ensure windows line-feed
           git config --global core.autocrlf true
