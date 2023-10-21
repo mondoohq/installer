@@ -288,6 +288,9 @@ configure_macos_installer() {
       MONDOO_INSTALLER="pkg"
   fi
 
+  # Brew make be installed but the pkg being used instead
+  pkgutil --pkg-info=com.mondoo.client 2>/dev/null >/dev/null && MONDOO_INSTALLER="pkg"
+
   if [ "${MONDOO_INSTALLER}" == "brew" ]; then
     # Homebrew doesn't support empty metapackages, so we redefine the package name to cnspec
     MONDOO_PKG_NAME="cnspec"
