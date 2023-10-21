@@ -52,7 +52,7 @@ jobs:
           jsign --storetype DIGICERTONE --alias "cert_492206180" --storepass "${SM_API_KEY}|${SM_CLIENT_CERT_FILE}|${SM_CLIENT_CERT_PASSWORD}" --tsaurl "http://timestamp.digicert.com" powershell/Mondoo.Installer/Mondoo.Installer.psd1
 
       - name: Commit changes
-        if: ${{ ! github.event.inputs.skip-publish }}
+        if: ${{ github.event.inputs.skip-publish != true }}
         run: |
           # ensure windows line-feed
           git config --global core.autocrlf true
