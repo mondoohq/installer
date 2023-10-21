@@ -179,6 +179,8 @@ MONDOO_INSTALLED=false
 UserAgent="MondooInstallScript/1.0 (+https://mondoo.com/) ShellScript/$BASH_VERSION ($OS $DISTRIBUTION)"
 
 detect_mondoo() {
+  # Include possible installation locations in $PATH
+  PATH=$PATH:/Library/Mondoo/bin:/usr/local/bin:/opt/homebrew/bin:/opt/homebrew/sbin
   MONDOO_EXECUTABLE="$(command -v "$MONDOO_BINARY")"
   if [ -x "$MONDOO_EXECUTABLE" ]; then
     MONDOO_INSTALLED=true
