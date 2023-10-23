@@ -360,6 +360,7 @@ A8Hssvbbfw==
 -----END PGP PUBLIC KEY BLOCK-----
 ```
 
+
 You can download Mondoo's public PGP key from (both are identical):
 
 - [https://releases.mondoo.com/debian/pubkey.gpg](https://releases.mondoo.com/debian/pubkey.gpg)
