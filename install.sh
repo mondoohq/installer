@@ -179,6 +179,8 @@ MONDOO_INSTALLED=false
 UserAgent="MondooInstallScript/1.0 (+https://mondoo.com/) ShellScript/$BASH_VERSION ($OS $DISTRIBUTION)"
 
 detect_mondoo() {
+  # Include possible installation locations in $PATH
+  PATH=$PATH:/Library/Mondoo/bin:/usr/local/bin:/opt/homebrew/bin:/opt/homebrew/sbin
   MONDOO_EXECUTABLE="$(command -v "$MONDOO_BINARY")"
   if [ -x "$MONDOO_EXECUTABLE" ]; then
     MONDOO_INSTALLED=true
@@ -287,6 +289,9 @@ configure_macos_installer() {
   else
       MONDOO_INSTALLER="pkg"
   fi
+
+  # Brew may be installed but the pkg being used instead
+  pkgutil --pkg-info=com.mondoo.client 2>/dev/null >/dev/null && MONDOO_INSTALLER="pkg"
 
   if [ "${MONDOO_INSTALLER}" == "brew" ]; then
     # Homebrew doesn't support empty metapackages, so we redefine the package name to cnspec
