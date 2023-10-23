@@ -16,7 +16,7 @@ for bin in ${PRODUCT_HOME}/bin/*; do
     binary="$(basename ${bin})"
     if [ ! -f /usr/local/bin/${binary} ]; then
         echo "Linking ${bin} to /usr/local/bin"
-        ln -sf ${PRODUCT_HOME}/bin/${bin} /usr/local/bin/${binary}
+        ln -sf ${PRODUCT_HOME}/bin/${binary} /usr/local/bin/${binary}
     else
         echo "There is an existing link for /usr/local/bin/${binary}, skipping"
     fi
