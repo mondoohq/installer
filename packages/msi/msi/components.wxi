@@ -4,7 +4,7 @@
  SPDX-License-Identifier: BUSL-1.1
 -->
 
-<Include>
+<Include xmlns="http://schemas.microsoft.com/wix/2006/wi" xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
     <Directory Id="TARGETDIR" Name="SourceDir">
       <Directory Id="ProgramFiles64Folder">
         <Directory Id="INSTALLLOCATION" Name="Mondoo" />
@@ -23,7 +23,14 @@
                         Description="Verifies your system for known vulnerabilities"
                         Start="$(var.ServiceInstallStart)"
                         Account="LocalSystem"
-                        ErrorControl="normal" Arguments=" serve --config C:\ProgramData\Mondoo\mondoo.yml" Interactive="no" />
+                        ErrorControl="normal" Arguments=" serve --config C:\ProgramData\Mondoo\mondoo.yml" Interactive="no">
+          <util:ServiceConfig
+            FirstFailureActionType="restart" 
+            SecondFailureActionType="restart"
+            ThirdFailureActionType="none"
+            ResetPeriodInDays="1" 
+            RestartServiceDelayInSeconds="30" />
+        </ServiceInstall>
         <?if $(var.ServiceInstallStart) = "auto" ?>
         <ServiceControl Id="StartWixServiceInstaller" Name="Mondoo" Start="install" Stop="uninstall" Wait="no" Remove="uninstall" />
         <?else?>
