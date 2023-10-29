@@ -1,11 +1,11 @@
-name: Test PowerShell Installer
+name: Test PowerShell Module
 
 on:
   workflow_dispatch:
 
 jobs:
-  sign_scripts:
-    name: Run PowerShell module
+  pwsh_module_installation:
+    name: Run PowerShell install module
     runs-on: windows-2022
     steps:
       - name: Check out repository
