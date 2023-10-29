@@ -1,0 +1,48 @@
+name: Test PowerShell Installer
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '**.ps1'
+
+jobs:
+  pwsh_install_script:
+    name: Run PowerShell install script
+    runs-on: windows-2022
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+
+      - name: Test download.ps1 powershell script
+        shell: powershell
+        run: |
+          ./download.ps1
+          ./cnspec version
+          Remove-Item ./cnspec.exe
+
+      - name: Install mondoo package
+        shell: powershell
+        env:
+          MONDOO_TOKEN: ${{ secrets.MONDOO_TOKEN }}
+        run: |
+          Write-Output "Download and install the mondoo MSI package"
+          Import-Module ./install.ps1
+          Install-Mondoo -RegistrationToken $env:MONDOO_TOKEN -Service enable -UpdateTask enable -Time 12:00 -Interval 3; cnspec status
+          
+          Write-Output "Check if mondoo is installed"
+          & 'C:\Program Files\Mondoo\cnspec.exe' version
+
+          Write-Output "Check if mondoo config exists"
+          Test-Path C:\ProgramData\Mondoo\mondoo.yml
+
+          Write-Output "Check if mondoo service is running"
+          $result=(cnspec  run local -c "service('mondoo').running" --json | ConvertFrom-Json)
+          $result."service.running" -eq 'True'
+          
+          Write-Output "Unregister from mondoo"
+          & 'C:\Program Files\Mondoo\cnspec.exe' logout --force 
+
