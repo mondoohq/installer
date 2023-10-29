@@ -314,8 +314,26 @@ function Install-Mondoo {
         If (![string]::IsNullOrEmpty($Proxy)) {
            $login_params = $login_params + @("--api-proxy", "$Proxy")
         }
+
         $program = "$Path\cnspec.exe"
-        & $program $login_params
+
+        # Cache the error action preference
+        $backupErrorActionPreference = $ErrorActionPreference
+        $ErrorActionPreference = "Continue"
+
+        # Capture all output from mysql
+        $output = (& $program $login_params 2>&1)
+
+        # Restore the error action preference
+        $ErrorActionPreference = $backupErrorActionPreference
+
+        if ($output -match "ERROR") {
+          throw $output
+        } elseif($output) {
+          info "$output"
+        } else {
+          info "No output"
+        }
       }
 
       If (@(0,3010) -contains $process.ExitCode) {
