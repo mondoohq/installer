@@ -321,7 +321,7 @@ function Install-Mondoo {
         $backupErrorActionPreference = $ErrorActionPreference
         $ErrorActionPreference = "Continue"
 
-        # Capture all output from mysql
+        # Capture all output from cnspec
         $output = (& $program $login_params 2>&1)
 
         # Restore the error action preference
