@@ -131,6 +131,12 @@ info "Arguments:"
   info ("  LogDir:            {0}" -f $LogDir)
   info ""
 
+# Set proxy environment variables
+If (![string]::IsNullOrEmpty($Proxy)) {
+  [Environment]::SetEnvironmentVariable("HTTP_PROXY", $Proxy)
+  [Environment]::SetEnvironmentVariable("HTTPS_PROXY", $Proxy)
+}
+
 # Set download location
 If ([string]::IsNullOrEmpty($ExecutionPath)) {
   $ExecutionPath = Get-Location
@@ -162,9 +168,6 @@ If (-not (Test-Path -Path "$($ConfigFile)")) {
   }
   info " * Register $Product Client"
   $login_params = @("login", "-t", "$RegistrationToken", "--config", "$ConfigFile")
-  If (![string]::IsNullOrEmpty($Proxy)) {
-    $login_params = $login_params + @("--api-proxy", "$Proxy")
-  }
 
   # Cache the error action preference
   $backupErrorActionPreference = $ErrorActionPreference
