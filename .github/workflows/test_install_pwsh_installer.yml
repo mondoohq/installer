@@ -17,7 +17,7 @@ jobs:
           fetch-depth: 0
 
 
-      - name: Test download.ps1 powershell script
+      - name: Test download.ps1 PowerShell script
         shell: powershell
         run: |
           ./download.ps1
@@ -46,3 +46,13 @@ jobs:
           Write-Output "Unregister from mondoo"
           & 'C:\Program Files\Mondoo\cnspec.exe' logout --force 
 
+      - name: Test scan.ps1 PowerShell script
+        shell: powershell
+        env:
+          MONDOO_TOKEN: ${{ secrets.MONDOO_TOKEN }}
+        run: |
+          Write-Output "Donwload cnspec client"
+          ./download.ps1 -Path 'C:\Users\Public'
+
+          Write-Output "execute scan.ps1"
+          .\mdm-scripts\windows\scan.ps1 -DownloadPath '\\localhost\C$\Users\Public' -ExecutionPath 'C:\Users' -RegistrationToken $env:MONDOO_TOKEN
