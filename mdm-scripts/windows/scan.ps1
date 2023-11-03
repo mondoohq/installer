@@ -153,6 +153,7 @@ If (![string]::IsNullOrEmpty($DownloadPath)) {
   $program = "$ExecutionPath\$Product.exe"
   # Check if cnspec downloaded successfully
   If (Test-Path -Path "$($program )") {
+    & $program providers install os
     success " * $Product was downloaded successfully!"
   } Else {
     fail "Cnspec is not available at $program"
