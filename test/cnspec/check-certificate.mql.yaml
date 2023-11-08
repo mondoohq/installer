@@ -1,3 +1,7 @@
+# Copyright (c) Mondoo, Inc.
+# SPDX-License-Identifier: BUSL-1.1
+
+# Read more about the policy structure at https://mondoo.com/docs/platform/policies/overview
 policies:
   - uid: check-certificate
     name: Check Mondoo's public code signing certificate
