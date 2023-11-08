@@ -5,23 +5,22 @@
 policies:
   - uid: check-certificate
     name: Check Mondoo's public code signing certificate
-    version: "1.0.0"
+    version: 1.1.0
+    tags:
+      mondoo.com/category: security,certificate
+      mondoo.com/platform: local
     authors:
       - name: Mondoo Inc
         email: hello@mondoo.com
-    tags:
-      mondoo.com/platform: local
-      mondoo.com/category: security,certificate
-    specs:
-      - asset_filter:
-          query: asset.family.contains( _ == 'linux' )
-        scoring_queries:
-          check-certificate-not-expired:
+    groups:
+      - filters: asset.family.contains("unix")
+        checks:
+          - uid: check-certificate-not-expired
+
 queries:
   - uid: check-certificate-not-expired
     title: Ensure the code signing certificate is not expired
     docs:
       desc: |
         Code Signing Certificates are used by Mondoo to digitally sign executables, packages and scripts as a way for end-users to verify that the code they receive has not been altered or compromised by a third party.
-    query: parse.certificates('public-code-signing.cer') { expiresIn.days > 30 }
-
+    mql: parse.certificates('public-code-signing.cer') { expiresIn.days > 30 }
