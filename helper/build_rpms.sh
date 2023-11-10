@@ -48,7 +48,7 @@ Mondoo checks systems for vulnerabilities, security issues and misconfigurations
 
 %changelog
 * Mon Mar 20 2023 Mondoo, Inc <hello@mondoo.com> 1-1
-- Mondoo shell wrapper script.
+- Mondoo metapackage for cnspec and cnquery
 EOF
 
 # Build
