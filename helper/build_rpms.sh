@@ -28,7 +28,7 @@ License: BUSL-1.1
 URL: https://mondoo.com
 Vendor: Mondoo, Inc
 BuildArch: noarch
-Requires: cnspec
+Requires: cnspec >= ${MONDOO_VERSION}
 
 %description
 Mondoo checks systems for vulnerabilities, security issues and misconfigurations

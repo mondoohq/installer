@@ -29,7 +29,7 @@ Priority: optional
 Architecture: all
 Maintainer: Mondoo <hello@mondoo.com>
 Description: Mondoo Metapackage for cnspec
-Depends: cnspec (>= 9.0.0)
+Depends: cnspec (>= ${VERSION})
 Installed-Size: 261 B
 EOF
 
