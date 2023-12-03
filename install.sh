@@ -707,7 +707,7 @@ finalize_setup() {
     detect_mondoo_registered
     if [ "$MONDOO_IS_REGISTERED" = false ]; then
       echo
-      lightblue_bold "Your journey is only beginning!  Register this asset with Mondoo to gain access to policies, reports, and more features."
+      lightblue_bold "Your journey is only beginning! Register this asset with Mondoo to gain access to policies, reports, and more features."
       lightblue_bold "To learn more, go to: "
       echo
       lightblue_bold "https://mondoo.com/docs/cnspec/cnspec-adv-install/registration/"
