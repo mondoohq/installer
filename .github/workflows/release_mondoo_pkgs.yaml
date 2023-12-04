@@ -44,7 +44,7 @@ jobs:
         run: |
           sudo apt update && sudo apt install -y rpm gpg
       - name: Authenticate with GCloud
-        uses: 'google-github-actions/auth@v1'
+        uses: 'google-github-actions/auth@v2'
         with:
           credentials_json: '${{ secrets.GCP_CREDENTIALS }}'
 
