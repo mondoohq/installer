@@ -171,7 +171,7 @@ jobs:
           path: dist
       - name: Authenticate with Google Cloud
         id: gauth
-        uses: 'google-github-actions/auth@v1'
+        uses: 'google-github-actions/auth@v2'
         with:
           credentials_json: '${{secrets.GCP_CREDENTIALS}}'
       - name: 'Set up Cloud SDK'
