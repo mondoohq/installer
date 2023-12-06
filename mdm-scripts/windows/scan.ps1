@@ -25,7 +25,7 @@
     scan.ps1 -Product cnspec
     scan.ps1 -RegistrationToken 'InsertTokenHere'
     scan.ps1 -Proxy 'http://proxy:8080'
-    scan.ps1 -Path 'C:\Users\Administrator\mondoo'
+    scan.ps1 -ExecutionPath 'C:\Users\Administrator\mondoo'
     scan.ps1 -DownloadPath '\\1.1.1.1\share'
     scan.ps1 -ConfigFile 'C:\ProgramData\Mondoo\mondoo.yml'
     scan.ps1 -LogDir 'C:\Windows\Temp'
