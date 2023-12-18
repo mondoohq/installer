@@ -95,7 +95,7 @@ jobs:
             }'
 
       - name: Create Artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: mondoo-${{ steps.version.outputs.version }}
           path: helper/packages/
