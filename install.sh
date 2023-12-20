@@ -666,6 +666,8 @@ autoupdater() {
                 <string>/Library/Mondoo/bin/mondoo-updater.sh</string>
                 <string>-i</string>
                 <string>pkg</string>
+                <string>-s</string>
+                <string>enable</string>
         </array>
         <key>StartInterval</key>
         <integer>86400</integer>
