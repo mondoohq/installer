@@ -20,12 +20,18 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Version
+        id: version
+        run: |
+          V=${{ github.event.inputs.version }}
+          VERSION=$(echo $V | sed 's/^v//')
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
       - name: Download Package
         run: |
-          curl -SL -O https://releases.mondoo.com/mondoo/${{ github.event.inputs.version }}/mondoo_${{ github.event.inputs.version }}_darwin_universal.pkg
+          curl -SL -O https://releases.mondoo.com/mondoo/${{ steps.version.outputs.version }}/mondoo_${{ steps.version.outputs.version }}_darwin_universal.pkg
       - name: Install Package
         run: |
-          sudo installer -pkg mondoo_${{ github.event.inputs.version }}_darwin_universal.pkg -target /
+          sudo installer -pkg mondoo_${{ steps.version.outputs.version }}_darwin_universal.pkg -target /
 
       - name: Executing cnspec...
         run: |
