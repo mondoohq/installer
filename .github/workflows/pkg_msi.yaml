@@ -78,7 +78,7 @@ jobs:
           rm cnquery_${VERSION}_windows_amd64.zip
           ls -lh
       - name: Upload Distribution
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: dist
           path: dist
@@ -151,7 +151,7 @@ jobs:
           Remove-Item -Path .\dist\cnspec.exe -Force
 
       - name: Upload Distribution
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: msi
           path: dist/
