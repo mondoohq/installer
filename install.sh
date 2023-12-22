@@ -626,12 +626,12 @@ EOL
   elif [ "$OS" = "Arch" ]; then
     purple_bold "\n* Enable and start the mondoo service"
     sudo_cmd systemctl enable mondoo.service
-    sudo_cmd systemctl start mondoo.service
+    sudo_cmd systemctl restart mondoo.service
     sudo_cmd systemctl daemon-reload
   else
     purple_bold "\n* Enable and start the cnspec service"
     sudo_cmd systemctl enable cnspec.service
-    sudo_cmd systemctl start cnspec.service
+    sudo_cmd systemctl restart cnspec.service
     sudo_cmd systemctl daemon-reload
   fi
 }
@@ -681,8 +681,13 @@ EOL
     sleep 5
     sudo_cmd launchctl load /Library/LaunchDaemons/com.mondoo.autoupdater.plist
     sudo_cmd launchctl start /Library/LaunchDaemons/com.mondoo.autoupdater.plist
-  else
-    echo $'#!/bin/sh\nbash -c "$(curl -sSL https://install.mondoo.com/sh)"' > /etc/cron.weekly/mondoo-update
+  elif [ "$OS" = "RedHat" ] || [ "$OS" = "Debian" ] || [ "$OS" = "Suse" ]; then
+    sudo_cmd tee /etc/cron.weekly/mondoo-update <<EOL
+#!/bin/sh
+date > /var/log/mondoo-updater.log
+curl -sSL https://install.mondoo.com/sh | bash -s -- -s enable >> /var/log/mondoo-updater.log
+EOL
+    sudo_cmd chmod a+x /etc/cron.weekly/mondoo-update
   fi
 }
 
