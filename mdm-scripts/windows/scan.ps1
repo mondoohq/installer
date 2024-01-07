@@ -22,7 +22,7 @@
     .PARAMETER LogDir
     The script output is logged to a file. Default: C:\Windows\Temp\
     .PARAMETER RandomDelay
-    Random in seconds before execution of the script
+    Random delay in seconds before execution of the script
     .EXAMPLE
     scan.ps1 -Product cnspec
     scan.ps1 -RegistrationToken 'InsertTokenHere'
