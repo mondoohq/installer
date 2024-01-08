@@ -38,12 +38,12 @@ jobs:
         run: |
           V=${{ github.event.inputs.version }}
           VERSION=$(echo $V | sed 's/^v//')
-          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "package_version=${VERSION}" >> $GITHUB_OUTPUT
 
       - name: Executing ${{ matrix.package }}....
         run: |
           ver= $(${{ matrix.package }} version)
-          contains(ver, ${{ steps.version.outputs.version}})
+          contains(ver, ${{ steps.version.outputs.package_version}})
 
   cask:
     runs-on: macos-latest
@@ -62,8 +62,8 @@ jobs:
         run: |
           V=${{ github.event.inputs.version }}
           VERSION=$(echo $V | sed 's/^v//')
-          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "package_version=${VERSION}" >> $GITHUB_OUTPUT
       - name: Executing cnspec from Mondoo package....
         run: |
           ver=$(/Library/Mondoo/bin/cnspec version)
-          contains(ver, ${{ steps.version.outputs.version}})
+          contains(ver, ${{ steps.version.outputs.package_version}})
