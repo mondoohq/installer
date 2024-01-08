@@ -27,3 +27,5 @@ jobs:
       version: ${{ github.event.inputs.version }}
   test-brew:
     uses: ./.github/workflows/test-released-brew.yaml
+    with:
+      version: ${{ github.event.inputs.version }}
