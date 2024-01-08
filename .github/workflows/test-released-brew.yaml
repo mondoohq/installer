@@ -1,8 +1,19 @@
 name: "Test Release: Homebrew"
 
 on:
-  workflow_dispatch:
   workflow_call:
+    inputs:
+      version:
+        description: "Version to test"
+        required: true
+        default: "9.0.0"
+        type: string
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to test"
+        required: true
+        default: "9.0.0"
 
 jobs:
   formulae:
@@ -22,9 +33,17 @@ jobs:
           brew tap mondoohq/mondoo
           brew install ${{ matrix.package }}
 
+      - name: Version
+        id: version
+        run: |
+          V=${{ github.event.inputs.version }}
+          VERSION=$(echo $V | sed 's/^v//')
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+
       - name: Executing ${{ matrix.package }}....
         run: |
-          ${{ matrix.package }} version
+          ver= $(${{ matrix.package }} version)
+          contains(ver, ${{ steps.version.outputs.version}})
 
   cask:
     runs-on: macos-latest
@@ -38,6 +57,13 @@ jobs:
         run: |
           brew install --cask mondoohq/mondoo/mondoo
 
+      - name: Version
+        id: version
+        run: |
+          V=${{ github.event.inputs.version }}
+          VERSION=$(echo $V | sed 's/^v//')
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
       - name: Executing cnspec from Mondoo package....
         run: |
-          /Library/Mondoo/bin/cnspec version
+          ver=$(/Library/Mondoo/bin/cnspec version)
+          contains(ver, ${{ steps.version.outputs.version}})
