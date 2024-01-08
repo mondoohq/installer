@@ -378,7 +378,7 @@ function Install-Mondoo {
 
 
     # Check if Service parameter is set and Parameter Product is set to mondoo
-    If ($Service.ToLower() -eq 'enable' -and $Product.ToLower() -eq 'mondoo') {
+    If (($Service.ToLower() -eq 'enable' -and $Product.ToLower() -eq 'mondoo') -or ((Get-Service -Name Mondoo).Status -eq 'Running')) {
       # start Mondoo service
       enable_service
     }
