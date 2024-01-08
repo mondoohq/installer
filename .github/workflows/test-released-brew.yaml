@@ -66,6 +66,6 @@ jobs:
           echo "package_version=${TRIMMED}" >> $GITHUB_OUTPUT
       - name: Executing cnspec from Mondoo package....
         run: |
-          version=$(${{ matrix.package }} version)
+          version=$(/Library/Mondoo/bin/cnspec version)
           echo $version
           echo $version | grep -q ${{ steps.version.outputs.package_version}}
