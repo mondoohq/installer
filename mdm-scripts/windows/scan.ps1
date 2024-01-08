@@ -21,6 +21,8 @@
     If provided, the cnspec binary will be downloaded to the specified path. Default: C:\ProgramData\Mondoo\mondoo.yml
     .PARAMETER LogDir
     The script output is logged to a file. Default: C:\Windows\Temp\
+    .PARAMETER RandomDelay
+    Random delay in seconds before execution of the script
     .EXAMPLE
     scan.ps1 -Product cnspec
     scan.ps1 -RegistrationToken 'InsertTokenHere'
@@ -38,7 +40,8 @@ Param(
       [string]   $ExecutionPath = '',
       [string]   $DownloadPath = '',
       [string]   $ConfigFile = "C:\ProgramData\Mondoo\mondoo.yml",
-      [string]   $LogDir = ""
+      [string]   $LogDir = "",
+      [int]      $RandomDelay = ""
   )
 
 # Set Log location
@@ -129,7 +132,14 @@ info "Arguments:"
   info ("  DownloadPath:      {0}" -f $DownloadPath)
   info ("  ConfigFile:        {0}" -f $ConfigFile)
   info ("  LogDir:            {0}" -f $LogDir)
+  info ("  RandomDelay:       {0}" -f $RandomDelay)
   info ""
+
+if ($RandomDelay -gt 0) {
+  $delay = Get-Random -Minimum 0 -Maximum $RandomDelay
+  info ("Delaying execution by {0} seconds" -f $delay)
+  Start-Sleep -Seconds $delay
+}
 
 # Set proxy environment variables
 If (![string]::IsNullOrEmpty($Proxy)) {
