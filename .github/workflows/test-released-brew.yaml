@@ -37,8 +37,8 @@ jobs:
         id: version
         run: |
           V=${{ github.event.inputs.version }}
-          VERSION=$(echo $V | sed 's/^v//')
-          echo "package_version=${VERSION}" >> $GITHUB_OUTPUT
+          TRIMMED=$(echo $V | sed 's/^v//')
+          echo "package_version=${TRIMMED}" >> $GITHUB_OUTPUT
 
       - name: Executing ${{ matrix.package }}....
         run: |
@@ -61,8 +61,8 @@ jobs:
         id: version
         run: |
           V=${{ github.event.inputs.version }}
-          VERSION=$(echo $V | sed 's/^v//')
-          echo "package_version=${VERSION}" >> $GITHUB_OUTPUT
+          TRIMMED=$(echo $V | sed 's/^v//')
+          echo "package_version=${TRIMMED}" >> $GITHUB_OUTPUT
       - name: Executing cnspec from Mondoo package....
         run: |
           ver=$(/Library/Mondoo/bin/cnspec version)
