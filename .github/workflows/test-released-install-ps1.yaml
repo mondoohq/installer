@@ -3,10 +3,6 @@ name: "Test Release: install.ps1"
 on:
   workflow_call:
     inputs:
-      client:
-        required: true
-        type: string
-        default: "cnspec"
       version:
         description: "Version to test"
         required: true
@@ -14,13 +10,6 @@ on:
         type: string
   workflow_dispatch:
     inputs:
-      client:
-        description: "Client to Test"
-        type: choice
-        options:
-          - mondoo
-          - cnspec
-          - cnquery
       version:
         description: "Version to test"
         required: true
@@ -32,6 +21,7 @@ jobs:
     strategy:
       matrix:
         os: ["windows-latest"]
+        package: ["cnquery", "cnspec"]
     steps:
       - uses: actions/checkout@v4
       - name: Version
@@ -40,13 +30,13 @@ jobs:
           $v='${{ github.event.inputs.version }}'
           $version=$v.trim("v","V")
           echo "version=$version" >> $env:GITHUB_OUTPUT
-      - name: Install.sh/${{ inputs.client }} on ${{ matrix.os }}
+      - name: Install.sh/${{ matrix.package }} on ${{ matrix.os }}
         run: |
           Set-ExecutionPolicy Unrestricted -Scope Process -Force;
           [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072;
-          iex ((New-Object System.Net.WebClient).DownloadString('https://install.mondoo.com/ps1/${{ inputs.client }}'));
-          Install-Mondoo -Product ${{ inputs.client }};
+          iex ((New-Object System.Net.WebClient).DownloadString('https://install.mondoo.com/ps1/${{ matrix.package }}'));
+          Install-Mondoo -Product ${{ matrix.package }};
       - name: Verify the correct version is installed
         run: |
-          $version=${{ inputs.client }} version
+          $version=& 'C:\Program Files\Mondoo\${{ matrix.package }}.exe' version
           $version -like "*${{ steps.version.outputs.version }}*"

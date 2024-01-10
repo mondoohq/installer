@@ -3,10 +3,6 @@ name: "Test Release: install.sh"
 on:
   workflow_call:
     inputs:
-      client:
-        required: true
-        type: string
-        default: "cnspec"
       version:
         description: "Version to test"
         required: true
@@ -14,13 +10,6 @@ on:
         type: string
   workflow_dispatch:
     inputs:
-      client:
-        description: "Client to Test"
-        type: choice
-        options:
-          - mondoo
-          - cnspec
-          - cnquery
       version:
         description: "Version to test"
         required: true
@@ -32,6 +21,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        package: ["cnspec", "cnquery"]
         distro:
           [
             "debian:10",
@@ -48,16 +38,17 @@ jobs:
           V=${{ github.event.inputs.version }}
           VERSION=$(echo $V | sed 's/^v//')
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
-      - name: Install.sh/${{ inputs.client }} on ${{ matrix.distro }}
+      - name: Install.sh/${{ matrix.package }} on ${{ matrix.distro }}
         run: |
           docker run --rm -v $(pwd):/work -w /work ${{ matrix.distro }} \
-          bash -c "apt-get update && apt-get install -y curl && curl -sSL https://install.mondoo.com/sh/${{ inputs.client }} | bash - && ${{ inputs.client }} version | grep -q ${{ steps.version.outputs.version }}"
+          bash -c "apt-get update && apt-get install -y curl && curl -sSL https://install.mondoo.com/sh/${{ matrix.package }} | bash - && ${{ matrix.package }} version | grep -q ${{ steps.version.outputs.version }}"
 
   install-sh-yum:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
+        package: ["cnspec", "cnquery"]
         distro:
           [
             "centos:7",
@@ -80,16 +71,17 @@ jobs:
           V=${{ github.event.inputs.version }}
           VERSION=$(echo $V | sed 's/^v//')
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
-      - name: Install.sh/${{ inputs.client }} on ${{ matrix.distro }}
+      - name: Install.sh/${{ matrix.package }} on ${{ matrix.distro }}
         run: |
           docker run --rm -v $(pwd):/work -w /work ${{ matrix.distro }} \
-          bash -c "curl -sSL https://install.mondoo.com/sh/${{ inputs.client }} | bash - && ${{inputs.client }} version | grep -q ${{ steps.version.outputs.version }}"
+          bash -c "curl -sSL https://install.mondoo.com/sh/${{ matrix.package }} | bash - && ${{matrix.package }} version | grep -q ${{ steps.version.outputs.version }}"
 
   install-sh-macos:
     runs-on: macos-latest
     strategy:
       matrix:
         os: ["macos-latest"]
+        package: ["cnspec", "cnquery"]
     steps:
       - uses: actions/checkout@v4
       - name: Version
@@ -98,11 +90,11 @@ jobs:
           V=${{ github.event.inputs.version }}
           VERSION=$(echo $V | sed 's/^v//')
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
-      - name: Install.sh/${{ inputs.client }} on ${{ matrix.os }}
+      - name: Install.sh/${{ matrix.package }} on ${{ matrix.os }}
         run: |
-          bash -c "$(curl -sSL https://install.mondoo.com/sh/${{ inputs.client }})"
-          ${{ inputs.client }} version
+          bash -c "$(curl -sSL https://install.mondoo.com/sh/${{ matrix.package }})"
+          ${{ matrix.package }} version
       - name: Verify the correct version is installed
         run: |
-          ${{ inputs.client }} version | grep -q ${{ steps.version.outputs.version }}
+          ${{ matrix.package }} version | grep -q ${{ steps.version.outputs.version }}
 
