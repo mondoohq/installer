@@ -37,9 +37,9 @@ jobs:
       - name: Version
         id: version
         run: |
-          V=${{ github.event.inputs.version }}
-          VERSION=$(echo $V | sed 's/^v//')
-          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          $v='${{ github.event.inputs.version }}'
+          $version=$v.trim("v","V")
+          echo "version=$version" >> $env:GITHUB_OUTPUT
       - name: Install.sh/${{ inputs.client }} on ${{ matrix.os }}
         run: |
           Set-ExecutionPolicy Unrestricted -Scope Process -Force;
