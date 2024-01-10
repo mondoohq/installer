@@ -7,6 +7,11 @@ on:
         required: true
         type: string
         default: "cnspec"
+      version:
+        description: "Version to test"
+        required: true
+        default: "9.0.0"
+        type: string
   workflow_dispatch:
     inputs:
       client:
@@ -16,6 +21,10 @@ on:
           - mondoo
           - cnspec
           - cnquery
+      version:
+        description: "Version to test"
+        required: true
+        default: "9.0.0"
 
 jobs:
   install-sh-windows:
@@ -25,9 +34,19 @@ jobs:
         os: ["windows-latest"]
     steps:
       - uses: actions/checkout@v4
+      - name: Version
+        id: version
+        run: |
+          V=${{ github.event.inputs.version }}
+          VERSION=$(echo $V | sed 's/^v//')
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
       - name: Install.sh/${{ inputs.client }} on ${{ matrix.os }}
         run: |
           Set-ExecutionPolicy Unrestricted -Scope Process -Force;
           [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072;
           iex ((New-Object System.Net.WebClient).DownloadString('https://install.mondoo.com/ps1/${{ inputs.client }}'));
           Install-Mondoo -Product ${{ inputs.client }};
+      - name: Verify the correct version is installed
+        run: |
+          $version = 'C:\Program Files\Mondoo\cnspec.exe' version
+          $version -like "*${{ steps.version.outputs.version }}*"

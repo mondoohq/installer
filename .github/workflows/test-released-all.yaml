@@ -6,21 +6,27 @@ on:
       version:
         description: "Version to test"
         required: true
-        default: "8.3.0"
+        default: "9.0.0"
 
 jobs:
   test-arch:
     uses: ./.github/workflows/test-released-archlinux.yaml
+    with:
+      version: ${{ github.event.inputs.version }}
   test-docker:
     uses: ./.github/workflows/test-released-docker.yaml
+    with:
+      version: ${{ github.event.inputs.version }}
   test-install-sh:
     uses: ./.github/workflows/test-released-install-sh.yaml
     with:
       client: "cnspec"
+      version: ${{ github.event.inputs.version }}
   test-install-ps1:
     uses: ./.github/workflows/test-released-install-ps1.yaml
     with:
       client: "cnspec"
+      version: ${{ github.event.inputs.version }}
   test-osx-pkg:
     uses: ./.github/workflows/test-released-osx-pkg.yaml
     with:
