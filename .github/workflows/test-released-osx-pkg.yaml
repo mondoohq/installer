@@ -36,3 +36,6 @@ jobs:
       - name: Executing cnspec...
         run: |
           /Library/Mondoo/bin/cnspec version
+      - name: Verify the correct version is installed
+        run: |
+          /Library/Mondoo/bin/cnspec version | grep ${{ steps.version.outputs.version }}

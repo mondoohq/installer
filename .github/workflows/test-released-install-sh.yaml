@@ -7,6 +7,11 @@ on:
         required: true
         type: string
         default: "cnspec"
+      version:
+        description: "Version to test"
+        required: true
+        default: "9.0.0"
+        type: string
   workflow_dispatch:
     inputs:
       client:
@@ -16,6 +21,10 @@ on:
           - mondoo
           - cnspec
           - cnquery
+      version:
+        description: "Version to test"
+        required: true
+        default: "9.0.0"
 
 jobs:
   install-sh-apt:
@@ -33,11 +42,16 @@ jobs:
           ]
     steps:
       - uses: actions/checkout@v4
-
+      - name: Version
+        id: version
+        run: |
+          V=${{ github.event.inputs.version }}
+          VERSION=$(echo $V | sed 's/^v//')
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
       - name: Install.sh/${{ inputs.client }} on ${{ matrix.distro }}
         run: |
           docker run --rm -v $(pwd):/work -w /work ${{ matrix.distro }} \
-          bash -c "apt-get update && apt-get install -y curl && curl -sSL https://install.mondoo.com/sh/${{ inputs.client }} | bash - && ${{ inputs.client }} version"
+          bash -c "apt-get update && apt-get install -y curl && curl -sSL https://install.mondoo.com/sh/${{ inputs.client }} | bash - && ${{ inputs.client }} version | grep -q ${{ steps.version.outputs.version }}"
 
   install-sh-yum:
     runs-on: ubuntu-latest
@@ -60,11 +74,16 @@ jobs:
         ## Note: centos:8 is obsoleted by Centos Stream 9 and EOL, do not use, refer to https://www.centos.org/centos-linux-eol/
     steps:
       - uses: actions/checkout@v4
-
+      - name: Version
+        id: version
+        run: |
+          V=${{ github.event.inputs.version }}
+          VERSION=$(echo $V | sed 's/^v//')
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
       - name: Install.sh/${{ inputs.client }} on ${{ matrix.distro }}
         run: |
           docker run --rm -v $(pwd):/work -w /work ${{ matrix.distro }} \
-          bash -c "curl -sSL https://install.mondoo.com/sh/${{ inputs.client }} | bash - && ${{inputs.client }} version"
+          bash -c "curl -sSL https://install.mondoo.com/sh/${{ inputs.client }} | bash - && ${{inputs.client }} version | grep -q ${{ steps.version.outputs.version }}"
 
   install-sh-macos:
     runs-on: macos-latest
@@ -73,7 +92,17 @@ jobs:
         os: ["macos-latest"]
     steps:
       - uses: actions/checkout@v4
+      - name: Version
+        id: version
+        run: |
+          V=${{ github.event.inputs.version }}
+          VERSION=$(echo $V | sed 's/^v//')
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
       - name: Install.sh/${{ inputs.client }} on ${{ matrix.os }}
         run: |
           bash -c "$(curl -sSL https://install.mondoo.com/sh/${{ inputs.client }})"
           ${{ inputs.client }} version
+      - name: Verify the correct version is installed
+        run: |
+          ${{ inputs.client }} version | grep -q ${{ steps.version.outputs.version }}
+

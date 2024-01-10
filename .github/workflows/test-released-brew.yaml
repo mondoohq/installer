@@ -42,9 +42,10 @@ jobs:
 
       - name: Executing ${{ matrix.package }}....
         run: |
-          version=$(${{ matrix.package }} version)
-          echo $version
-          echo $version | grep -q ${{ steps.version.outputs.package_version}}
+          ${{ matrix.package }} version
+      - name: Verify the correct version is installed
+        run: |
+          ${{ matrix.package }} version | grep -q ${{ steps.version.outputs.package_version}}
 
   cask:
     runs-on: macos-latest
@@ -62,10 +63,11 @@ jobs:
         id: version
         run: |
           V=${{ github.event.inputs.version }}
-          TRIMMED=$(echo $V | sed 's/^v//')
-          echo "package_version=${TRIMMED}" >> $GITHUB_OUTPUT
+          VERSION=$(echo $V | sed 's/^v//')
+          echo "package_version=${VERSION}" >> $GITHUB_OUTPUT
       - name: Executing cnspec from Mondoo package....
         run: |
-          version=$(/Library/Mondoo/bin/cnspec version)
-          echo $version
-          echo $version | grep -q ${{ steps.version.outputs.package_version}}
+          /Library/Mondoo/bin/cnspec version
+      - name: Verify the correct version is installed
+        run: |
+          /Library/Mondoo/bin/cnspec version | grep -q ${{ steps.version.outputs.package_version}}

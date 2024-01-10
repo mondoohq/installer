@@ -1,8 +1,19 @@
 name: "Test Release: Docker Containers"
 
 on:
-  workflow_dispatch:
   workflow_call:
+    inputs:
+      version:
+        description: "Version to test"
+        required: true
+        default: "9.0.0"
+        type: string
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to test"
+        required: true
+        default: "9.0.0"
 
 jobs:
   cnquery-containers:
@@ -13,12 +24,16 @@ jobs:
         tag: ["latest", "latest-ubi-rootless", "latest-rootless"]
     steps:
       - uses: actions/checkout@v4
-
+      - name: Version
+        id: version
+        run: |
+          V=${{ github.event.inputs.version }}
+          VERSION=$(echo $V | sed 's/^v//')
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
       - name: Testing mondoo/cnquery:${{ matrix.tag }}....
         run: |
           docker run --rm -v $(pwd):/work -w /work mondoo/cnquery:${{ matrix.tag }} \
-          version
-
+          version && version | grep -q ${{ steps.version.outputs.version }}
   cnspec-containers:
     runs-on: ubuntu-latest
     strategy:
@@ -27,11 +42,16 @@ jobs:
         tag: ["latest", "latest-ubi-rootless", "latest-rootless"]
     steps:
       - uses: actions/checkout@v4
-
+      - name: Version
+        id: version
+        run: |
+          V=${{ github.event.inputs.version }}
+          VERSION=$(echo $V | sed 's/^v//')
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
       - name: Testing mondoo/cnspec:${{ matrix.tag }}....
         run: |
           docker run --rm -v $(pwd):/work -w /work mondoo/cnspec:${{ matrix.tag }} \
-          version
+          version && version | grep -q ${{ steps.version.outputs.version }}
 
   mondoo-containers:
     runs-on: ubuntu-latest
@@ -41,8 +61,13 @@ jobs:
         tag: ["latest", "latest-ubi-rootless", "latest-rootless"]
     steps:
       - uses: actions/checkout@v4
-
+      - name: Version
+        id: version
+        run: |
+          V=${{ github.event.inputs.version }}
+          VERSION=$(echo $V | sed 's/^v//')
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
       - name: Testing mondoo/client:${{ matrix.tag }}....
         run: |
           docker run --rm -v $(pwd):/work -w /work mondoo/client:${{ matrix.tag }} \
-          version
+          version && version | grep -q ${{ steps.version.outputs.version }}
