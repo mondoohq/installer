@@ -48,5 +48,5 @@ jobs:
           Install-Mondoo -Product ${{ inputs.client }};
       - name: Verify the correct version is installed
         run: |
-          $version=C:\Program Files\Mondoo\cnspec.exe version
+          $version=${{ inputs.client }} version
           $version -like "*${{ steps.version.outputs.version }}*"
