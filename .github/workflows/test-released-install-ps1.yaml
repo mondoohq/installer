@@ -39,4 +39,7 @@ jobs:
       - name: Verify the correct version is installed
         run: |
           $version=& 'C:\Program Files\Mondoo\${{ matrix.package }}.exe' version
-          $version -like "*${{ steps.version.outputs.version }}*"
+          $match=$version -like "*${{ steps.version.outputs.version }}*"
+          if (-not $match) {
+            exit 1
+          }
