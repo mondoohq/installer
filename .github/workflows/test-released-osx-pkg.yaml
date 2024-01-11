@@ -28,7 +28,7 @@ jobs:
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
       - name: Download Package
         run: |
-          curl -SL -O https://releases.mondoo.com/mondoo/latest/mondoo_${{ steps.version.outputs.version }}_darwin_universal.pkg
+          curl -SL -O https://releases.mondoo.com/${{ steps.version.outputs.version }}/latest/mondoo_${{ steps.version.outputs.version }}_darwin_universal.pkg
       - name: Install Package
         run: |
           sudo installer -pkg mondoo_${{ steps.version.outputs.version }}_darwin_universal.pkg -target /
