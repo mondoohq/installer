@@ -11,6 +11,7 @@
 * Where to file issues: https://github.com/mondoohq/installer/issues
 * cnquery & cnspec binary & package downloads (Non-Container):  https://releases.mondoo.com/
 * Supported Architectures: `amd64`, `arm64`, `i386`, `arm32v6`, `arm32v7`
+* A `devkit` container for policy/querypack development: ```docker run -v ${PWD}:/mnt -it mondoo/devkit bundle lint bundle.mql.yaml```
 
 ## Supported tags
 

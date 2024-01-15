@@ -64,6 +64,21 @@ jobs:
             mondoo/client:${{ steps.semver.outputs.major }}
             mondoo/client:latest
 
+      - name: Build and push devkit images
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: Dockerfile-dev
+          platforms: linux/amd64,linux/arm64
+          platforms: linux/amd64,linux/arm64,linux/arm/v6,linux/arm/v7
+          push: true
+          build-args: VERSION=${{ steps.version.outputs.version }}
+          target: root
+          tags: |
+            mondoo/devkit:${{ steps.version.outputs.version }}
+            mondoo/devkit:${{ steps.semver.outputs.major }}
+            mondoo/devkit:latest
+
       - name: Build and push rootless images
         uses: docker/build-push-action@v5
         with:
