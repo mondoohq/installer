@@ -21,5 +21,5 @@
 
 # Supported tags
 - `latest` - always pinned to the latest release
-- `7` - always pinned to the latest release for a given major version
-- `7.1.0` - always pinned to a specific release
+- `9` - always pinned to the latest release for a given major version
+- `9.1.0` - always pinned to a specific release
