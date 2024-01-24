@@ -65,6 +65,8 @@ jobs:
             mondoo/client:latest
 
       - name: Build and push devkit images
+        # make it optional until we fixed https://github.com/mondoohq/cnquery/issues/3107
+        continue-on-error: true
         uses: docker/build-push-action@v5
         with:
           context: .
