@@ -34,4 +34,20 @@ jobs:
           repository: mondoo/client
           readme-filepath: ./dockerhub/mondoo/client.md
 
+      - name: Update mondoo/cnquery DockerHub docs
+        uses: peter-evans/dockerhub-description@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+          repository: mondoo/cnquery
+          readme-filepath: ./dockerhub/mondoo/cnquery.md
+
+      - name: Update mondoo/cnspec DockerHub docs
+        uses: peter-evans/dockerhub-description@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+          repository: mondoo/cnspec
+          readme-filepath: ./dockerhub/mondoo/cnspec.md
+
 
