@@ -339,13 +339,7 @@ function Install-Mondoo {
       If ((Test-Path -Path "C:\ProgramData\Mondoo\mondoo.yml")) {
         info " * $Product Client is already registered. Logging out and back in again to update the registration"
         $output = (& $program $logout_params 2>&1)
-        if ($output -match "ERROR") {
-          throw $output
-        } elseif($output) {
-          info "$output"
-        } else {
-          info "No output"
-        }
+        info "$output"
         Remove-Item "C:\ProgramData\Mondoo\mondoo.yml" -Force
       }
 
