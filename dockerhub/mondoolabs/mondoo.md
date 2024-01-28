@@ -6,7 +6,7 @@
 
 * Basic use: ```docker run mondoo/client <args>```
 * Sign up for free: https://console.mondoo.com
-* Release Notes: https://mondoo.com/releases/
+* Release Notes: https://mondoo.com/docs/releases/
 * Documentation: [mondoo.com/docs](https://mondoo.com/docs/)
 * Where to get help: [Mondoo Community GitHub Discussions](https://github.com/orgs/mondoohq/discussions)
 * Dockerfile Source: https://github.com/mondoohq/installer/blob/main/Dockerfile
