@@ -1,6 +1,6 @@
 # chocolatey
 
-Chocolatey is a popular package manager for Windows, similar to Homebrew. This repository generates and updates "NuGet" packages for Chocolately.
+Chocolatey is a popular package manager for Windows, similar to Homebrew. This repository generates and updates "NuGet" packages for Chocolatey.
 
 - [View the Mondoo Overview Chocolatey](https://community.chocolatey.org/profiles/mondoo)
 - [View our published packages here](https://community.chocolatey.org/packages?q=mondoo)
@@ -24,7 +24,7 @@ The basic process is simple:
 ```shell
 choco apikey --key ${CHOCO_API_KEY} --source https://push.chocolatey.org/
 choco pack
-choco push 
+choco push
 ```
 
 To avoid using Windows, instead use a Docker container which runs Choco thanks to Mono. Here is a complete example of using it to pack and push:
