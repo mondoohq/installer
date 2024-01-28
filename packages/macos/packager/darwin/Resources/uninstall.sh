@@ -28,7 +28,7 @@ if (( $EUID != 0 )); then
     exit
 fi
 
-echo "Welcome to the Mondoo Client Uninstaller"
+echo "Welcome to the Mondoo clients uninstaller"
 echo "The following packages will be REMOVED:"
 echo "  __PRODUCT__-__VERSION__"
 while true; do
@@ -44,7 +44,7 @@ done
 PRODUCT=__PRODUCT__
 
 echo "Application uninstalling process started"
-# remove link to shorcut file
+# remove link to shortcut file
 for bin in /Library/${PRODUCT_HOME}/bin/*; do
     binary="$(basename ${bin})"
     if [[ -f /usr/local/bin/${binary} ]]; then
@@ -73,9 +73,9 @@ fi
 pkgutil --forget "com.mondoo.client" > /dev/null 2>&1
 if [ $? -eq 0 ]
 then
-  echo "[3/4] [DONE] Successfully deleted application informations"
+  echo "[3/4] [DONE] Successfully deleted application information"
 else
-  echo "[3/4] [ERROR] Could not delete application informations" >&2
+  echo "[3/4] [ERROR] Could not delete application information" >&2
 fi
 
 #remove application source distribution
@@ -87,5 +87,5 @@ else
   echo "[4/4] [ERROR] Could not delete application" >&2
 fi
 
-echo "Mondoo Client uninstall process finished"
+echo "Mondoo clients uninstall process finished"
 exit 0
