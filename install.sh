@@ -361,7 +361,7 @@ configure_archlinux_installer() {
   else
     MONDOO_INSTALLER=""
     mondoo_install() {
-      red "Mondoo uses yay and paru to install on AUR, but we could not find either command in your path (\$PATH)."
+      red "Mondoo uses yay or paru to install on AUR, but we could not find either command in your path (\$PATH)."
       echo "You can install the ${MONDOO_PRODUCT_NAME} package manually from AUR, or use one of the above installers directly."
       exit 1
     }
