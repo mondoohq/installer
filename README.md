@@ -18,7 +18,7 @@
 
 ## Installation
 
-The easiest way to install `cnquery` & `cnspec` is to use the install script. It 
+The easiest way to install `cnquery` & `cnspec` is to use the install scripts.
 
 ### via Shell Script (Linux and macOS)
 
@@ -73,7 +73,7 @@ cnspec scan azure
 cnspec scan k8s
 
 # scan a docker image from a remote registry
-cnspec scan docker image centos:7
+cnspec scan docker image debian:12
 
 # scan a docker container (get ids from docker ps)
 cnspec scan docker container 00fa961d6b6a
@@ -121,7 +121,7 @@ https://install.mondoo.com/package/cnspec/linux/arm64/rpm/latest/sha256
 https://install.mondoo.com/package/cnspec/linux/arm64/rpm/5.21.1/download
 ```
 
-```
+```bash
 # Get the sha256 for a specific version of cnspec Client
 https://install.mondoo.com/package/cnspec/linux/arm64/rpm/5.21.1/sha256
 ```
@@ -359,7 +359,6 @@ A8Hssvbbfw==
 =dMNn
 -----END PGP PUBLIC KEY BLOCK-----
 ```
-
 
 You can download Mondoo's public PGP key from (both are identical):
 
