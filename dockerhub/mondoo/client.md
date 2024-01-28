@@ -4,7 +4,7 @@
 
 * Basic use: ```docker run mondoo/client <args>```
 * Sign up for free: https://console.mondoo.com
-* Release Notes: https://mondoo.com/releases/
+* Release Notes: https://mondoo.com/docs/releases/
 * Documentation: [mondoo.com/docs](https://mondoo.com/docs/)
 * Where to get help: [Mondoo Community GitHub Discussions](https://github.com/orgs/mondoohq/discussions)
 * Dockerfile Source: https://github.com/mondoohq/installer/blob/main/Dockerfile
@@ -16,8 +16,8 @@
 ## Supported tags
 
 - `latest` - always pinned to the latest release of mondoo package
-- `8` - always pinned to the latest release for a given major version
-- `8.20.0` - always pinned to a specific mondoo package release
+- `10` - always pinned to the latest release for a given major version
+- `10.1.0` - always pinned to a specific mondoo package release
 
 ## UBI containers
 
@@ -26,8 +26,8 @@ We offer a Mondoo Client container built on top of [Universal Base Image (UBI)](
 Supported tags are:
 
 - `latest-ubi`
-- `8-ubi`
-- `8.20.0-ubi`
+- `10-ubi`
+- `10.1.0-ubi`
 
 The `Dockerfile` for these images can be found [here](https://github.com/mondoohq/installer/blob/main/Dockerfile-ubi).
 
@@ -39,10 +39,10 @@ Supported tags are:
 
 - `latest-rootless`
 - `latest-ubi-rootless`
-- `7-rootless`
-- `7-ubi-rootless`
-- `7.12.0-rootless`
-- `7.12.0-ubi-rootless`
+- `10-rootless`
+- `10-ubi-rootless`
+- `10.1.0-rootless`
+- `10.1.0-ubi-rootless`
 
 # What is Mondoo
 

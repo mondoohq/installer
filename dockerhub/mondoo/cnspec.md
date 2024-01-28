@@ -6,12 +6,11 @@
    mondoo™     |_|
 ```
 
-
 # Quick reference
 
 * Basic use: ```docker run mondoo/cnspec <args>```
 * Source Code: https://github.com/mondoohq/cnspec
-* Release Notes: https://mondoo.com/releases/
+* Release Notes: https://mondoo.com/docs/releases/
 * Documentation: [mondoo.com/docs/cnspec/](https://mondoo.com/docs/cnspec/)
 * Where to get help: [Mondoo Community GitHub Discussions](https://github.com/orgs/mondoohq/discussions)
 * Dockerfile Source: https://github.com/mondoohq/cnspec/blob/main/Dockerfile
@@ -21,5 +20,5 @@
 
 # Supported tags
 - `latest` - always pinned to the latest release
-- `9` - always pinned to the latest release for a given major version
-- `9.1.0` - always pinned to a specific release
+- `10` - always pinned to the latest release for a given major version
+- `10.1.0` - always pinned to a specific release

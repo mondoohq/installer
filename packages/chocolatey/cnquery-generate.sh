@@ -29,7 +29,7 @@ cat >cnquery.nuspec <<NUSPEC
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <docsUrl>https://mondoo.com/docs/cnquery/</docsUrl>
     <bugTrackerUrl>https://github.com/mondoohq/cnquery/issues</bugTrackerUrl>
-    <releaseNotes>[Release Notes](https://mondoo.com/releases/)</releaseNotes>
+    <releaseNotes>[Release Notes](https://mondoo.com/docs/releases/)</releaseNotes>
     <tags>cnquery mondoo inventory cloud kubernetes server</tags>
     <summary>cnquery is an open source, cloud-native tool that answers every question about your infrastructure. It provides quick insights into every major technology platform used by developers, security engineers, and DevOps teams today.</summary>
     <description>cnquery is an open source, cloud-native tool that answers every question about your infrastructure. It provides quick insights into every major technology platform used by developers, security engineers, and DevOps teams today.</description>

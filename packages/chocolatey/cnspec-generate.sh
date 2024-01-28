@@ -34,7 +34,7 @@ cat >cnspec.nuspec <<NUSPEC
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <docsUrl>https://mondoo.com/docs/cnspec/</docsUrl>
     <bugTrackerUrl>https://github.com/mondoohq/cnspec/issues</bugTrackerUrl>
-    <releaseNotes>[Release Notes](https://mondoo.com/releases/)</releaseNotes>
+    <releaseNotes>[Release Notes](https://mondoo.com/docs/releases/)</releaseNotes>
     <tags>cnspec mondoo security compliance cloud kubernetes server</tags>
     <summary>cnspec is an open source, cloud-native tool that evaluates the security of your entire infrastructure. Using intuitive policy as code, cnspec scans everything and identifies gaps that attackers can use to breach your systems.</summary>
     <description>cnspec is an open source, cloud-native tool that evaluates the security of your entire infrastructure. Using intuitive policy as code, cnspec scans everything and identifies gaps that attackers can use to breach your systems. Scan public and private cloud environments, Kubernetes clusters, containers, container registries, servers and endpoints, SaaS products, infrastructure as code, APIs, and more.</description>
