@@ -29,7 +29,7 @@ cat >cnspec.nuspec <<NUSPEC
     <authors>Mondoo</authors>
     <projectUrl>https://github.com/mondoohq/cnspec</projectUrl>
     <iconUrl>https://mondoo.com/mondoo_choco_logo.jpg</iconUrl>
-    <copyright>2023 Mondoo, Inc.</copyright>
+    <copyright>2024 Mondoo, Inc.</copyright>
     <licenseUrl>https://github.com/mondoohq/cnspec/blob/main/LICENSE</licenseUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <docsUrl>https://mondoo.com/docs/cnspec/</docsUrl>
