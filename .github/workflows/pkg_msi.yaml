@@ -191,7 +191,7 @@ jobs:
           gsutil cp checksums.windows.txt gs://releases-us.mondoo.io/mondoo/${VERSION}/checksums.windows.txt
           gsutil cp mondoo_${VERSION}_windows_amd64.msi gs://releases-us.mondoo.io/mondoo/${VERSION}/mondoo_${VERSION}_windows_amd64.msi
       - name: Reindex folder on releaser.mondoo.com
-        uses: peter-evans/repository-dispatch@v2
+        uses: peter-evans/repository-dispatch@v3
         env:
           VERSION: ${{ needs.setup.outputs.version }}
         with:

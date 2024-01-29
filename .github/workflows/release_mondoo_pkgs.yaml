@@ -84,7 +84,7 @@ jobs:
           files: helper/packages/*
 
       - name: Reindex folder on releaser.mondoo.com
-        uses: peter-evans/repository-dispatch@v2
+        uses: peter-evans/repository-dispatch@v3
         with:
           token: ${{ secrets.REPO_API_TOKEN }}
           repository: "mondoohq/releasr"
@@ -111,7 +111,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Repository Dispatch (Workflow Dispatch)
-        uses: peter-evans/repository-dispatch@v2
+        uses: peter-evans/repository-dispatch@v3
         if: github.event_name == 'workflow_dispatch'
         with:
           token: ${{ secrets.REPO_API_TOKEN }}
@@ -119,7 +119,7 @@ jobs:
           event-type: update
           client-payload: '{"version": "${{ needs.build-mondoo-payloads.outputs.version }}"}'
       - name: Repository Dispatch (Release)
-        uses: peter-evans/repository-dispatch@v2
+        uses: peter-evans/repository-dispatch@v3
         if: github.event_name == 'release'
         with:
           token: ${{ secrets.REPO_API_TOKEN }}

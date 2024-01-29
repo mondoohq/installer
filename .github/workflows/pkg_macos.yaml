@@ -148,7 +148,7 @@ jobs:
           gsutil cp checksums.macos.txt gs://releases-us.mondoo.io/mondoo/${VERSION}/checksums.macos.txt
           gsutil cp ${PKG} gs://releases-us.mondoo.io/mondoo/${VERSION}/${PKG}
       - name: Reindex folder on releaser.mondoo.com
-        uses: peter-evans/repository-dispatch@v2
+        uses: peter-evans/repository-dispatch@v3
         with:
           token: ${{ secrets.RELEASR_ACTION_TOKEN }}
           repository: "mondoohq/releasr"
@@ -160,7 +160,7 @@ jobs:
       - name: Wait a minute...
         run: sleep 60
       - name: Trigger Homebrew Generation
-        uses: peter-evans/repository-dispatch@v2
+        uses: peter-evans/repository-dispatch@v3
         with:
           token: ${{ secrets.REPO_API_TOKEN }}
           repository: "mondoohq/homebrew-mondoo"
