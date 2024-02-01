@@ -102,3 +102,8 @@ jobs:
           ssh_private_key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
           commit_message: ${{ needs.setup.outputs.version }}
           force_push: 'true'
+          assets:
+            packages/archlinux/mondoo/mondoo.sh
+            packages/archlinux/mondoo/LICENSE.html
+            packages/archlinux/mondoo/OSS-LICENSES.tar.xz
+            packages/archlinux/mondoo/mondoo.service
