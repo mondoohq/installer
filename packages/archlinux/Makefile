@@ -10,3 +10,6 @@ update-cnspec:
 
 update-mondoo:
 	go run ./generator/main.go mondoo ./mondoo
+
+clean:
+	rm -rf cnquery/ cnspec/ mondoo/PKGBUILD mondoo/.SRCINFO

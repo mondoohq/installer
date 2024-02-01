@@ -236,12 +236,8 @@ sha256sums=({{- if .BinFile }}'{{ .Sha256 }}'{{- end }}
 
 
 package() {
+  {{- if .BinFile }}
   install -dm755 ${pkgdir}/usr/bin
-
-  {{- if .IncludeOpt }}
-  install -dm755 ${pkgdir}/opt/$pkgname/bin
-  cp ${srcdir}/$pkgname ${pkgdir}/opt/$pkgname/bin/.
-  {{- else }}
   cp ${srcdir}/$pkgname ${pkgdir}/usr/bin/.
   {{- end }}
 
