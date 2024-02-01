@@ -68,6 +68,7 @@ jobs:
           cd packages/archlinux
           echo "cnquery: $(cat cnquery/PKGBUILD | grep orignalVersion=)"
           echo "cnspec: $(cat cnspec/PKGBUILD | grep orignalVersion=)"
+          echo "mondoo: $(cat mondoo/PKGBUILD | grep orignalVersion=)"
       - name: Publish cnquery AUR package
         if: ${{ !inputs.skip }}
         uses: KSXGitHub/github-actions-deploy-aur@v2.7.0
@@ -90,3 +91,19 @@ jobs:
           ssh_private_key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
           commit_message: ${{ needs.setup.outputs.version }}
           force_push: 'true'
+      - name: Publish mondoo AUR package
+        if: ${{ !inputs.skip }}
+        uses: KSXGitHub/github-actions-deploy-aur@v2.7.0
+        with:
+          pkgname: mondoo
+          pkgbuild: packages/archlinux/mondoo/PKGBUILD
+          commit_username: ${{ secrets.AUR_USERNAME }}
+          commit_email: ${{ secrets.AUR_EMAIL }}
+          ssh_private_key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
+          commit_message: ${{ needs.setup.outputs.version }}
+          force_push: 'true'
+          assets:
+            packages/archlinux/mondoo/mondoo.sh
+            packages/archlinux/mondoo/LICENSE.html
+            packages/archlinux/mondoo/OSS-LICENSES.tar.xz
+            packages/archlinux/mondoo/mondoo.service

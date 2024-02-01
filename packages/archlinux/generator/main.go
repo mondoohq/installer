@@ -31,6 +31,7 @@ type Product struct {
 	Class       string
 	License     string
 	ExtraFiles  []SourceFile
+	BinFile     bool
 	IncludeOpt  bool
 	Depends     []string
 }
@@ -66,6 +67,7 @@ var products = map[string]Product{
 			},
 		},
 		IncludeOpt: true,
+		BinFile:    false,
 		Depends: []string{
 			"cnspec",
 		},
@@ -76,7 +78,8 @@ var products = map[string]Product{
 		Homepage:    "https://mondoo.com",
 		PkgName:     "cnquery",
 		Class:       "Cnquery",
-		License:     "MPL 2.0",
+		License:     "BUSL-1.1",
+		BinFile:     true,
 	},
 	"cnspec": {
 		LatestUrl:   "https://releases.mondoo.com/cnspec/latest.json?ignoreCache=1",
@@ -84,7 +87,8 @@ var products = map[string]Product{
 		Homepage:    "https://mondoo.com",
 		PkgName:     "cnspec",
 		Class:       "Cnspec",
-		License:     "MPL 2.0",
+		License:     "BUSL-1.1",
+		BinFile:     true,
 		Depends: []string{
 			"cnquery",
 		},
@@ -216,7 +220,7 @@ pkgdesc="{{ .Description }}"
 url="https://mondoo.com"
 license=('{{ .License }}')
 source=(
-    "https://releases.mondoo.com/{{ .PkgName }}/${orignalVersion}/{{ .PkgName }}_${orignalVersion}_linux_amd64.tar.gz"
+    {{- if .BinFile }}"https://releases.mondoo.com/{{ .PkgName }}/${orignalVersion}/{{ .PkgName }}_${orignalVersion}_linux_amd64.tar.gz"{{- end }}
     {{ range .ExtraFiles -}}
     '{{ .Name }}'
     {{ end -}}
@@ -224,7 +228,7 @@ source=(
 arch=('x86_64')
 depends=({{ range .Depends }}'{{ . }}'{{ end }})
 
-sha256sums=('{{ .Sha256 }}'
+sha256sums=({{- if .BinFile }}'{{ .Sha256 }}'{{- end }}
             {{ range .ExtraSha256 -}}
             '{{ . }}'
             {{ end -}}
@@ -232,12 +236,8 @@ sha256sums=('{{ .Sha256 }}'
 
 
 package() {
+  {{- if .BinFile }}
   install -dm755 ${pkgdir}/usr/bin
-
-  {{- if .IncludeOpt }}
-  install -dm755 ${pkgdir}/opt/$pkgname/bin
-  cp ${srcdir}/$pkgname ${pkgdir}/opt/$pkgname/bin/.
-  {{- else }}
   cp ${srcdir}/$pkgname ${pkgdir}/usr/bin/.
   {{- end }}
 
