@@ -132,7 +132,7 @@ You can register the client via:
 MONDOO_REGISTRATION_TOKEN=\"ey..iU\"
 mondoo register --token \$MONDOO_REGISTRATION_TOKEN
 
-Further information is available at https://mondoo.com/docs
+Further information is available at https://mondoo.com/docs/
 
 If you have any questions, please come join us in our Mondoo Community:
 
