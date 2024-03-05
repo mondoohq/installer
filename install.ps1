@@ -38,7 +38,9 @@ function Install-Mondoo {
       [string]   $Time = '',
       [string]   $Interval = '',
       [string]   $taskname = "MondooUpdater",
-      [string]   $taskpath = "Mondoo"
+      [string]   $taskpath = "Mondoo",
+      [string]   $Timer = '60',
+      [string]   $Splay = '60'
   )
   Process {
 
@@ -233,6 +235,8 @@ function Install-Mondoo {
   info ("  UpdateTask:        {0}" -f $UpdateTask)
   info ("  Time:              {0}" -f $Time)
   info ("  Interval:          {0}" -f $Interval)
+  info ("  Scan Interval:     {0}" -f $Timer)
+  info ("  Splay:             {0}" -f $Splay)
   info ""
 
   # determine download url
@@ -327,6 +331,12 @@ function Install-Mondoo {
       $login_params = @("login", "-t", "$RegistrationToken", "--config", "C:\ProgramData\Mondoo\mondoo.yml")
       If (![string]::IsNullOrEmpty($Proxy)) {
           $login_params = $login_params + @("--api-proxy", "$Proxy")
+      }
+      If (![string]::IsNullOrEmpty($Timer)) {
+          $login_params = $login_params + @("--timer", "$Timer")
+      }
+      If (![string]::IsNullOrEmpty($Splay)) {
+          $login_params = $login_params + @("--splay", "$Splay")
       }
 
       $program = "$Path\cnspec.exe"
