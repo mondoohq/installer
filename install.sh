@@ -48,6 +48,9 @@ MONDOO_INSTALLER=''
 MONDOO_SERVICE=''
 MONDOO_REGISTRATION_TOKEN=''
 
+TIMER='60'
+SPLAY='60'
+
 print_usage() {
   echo "usage: [-i]" >&2
   echo "  Options: " >&2
@@ -59,14 +62,20 @@ print_usage() {
   echo "                     Mondoo Platform" >&2
   echo "    -u <updater>:    Enables the Mondoo auto updater for the system." >&2
   echo "                     options are: enable" >&2
+  echo "    -r <timer>:      Change the scan interval." >&2
+  echo "                     Default 60 minutes" >&2
+  echo "    -y <splay>:      Change the splay." >&2
+  echo "                     Default 60 minutes" >&2
 }
 
-while getopts 'i:s:u:vt:v' flag; do
+while getopts 'i:s:u:vt:vr:y:' flag; do
   case "${flag}" in
     i) MONDOO_INSTALLER="${OPTARG}" ;;
     s) MONDOO_SERVICE="${OPTARG}" ;;
     t) MONDOO_REGISTRATION_TOKEN="${OPTARG}" ;;
     u) MONDOO_AUTOUPDATER="${OPTARG}" ;;
+    r) TIMER="${OPTARG}" ;;
+    y) SPLAY="${OPTARG}" ;;
     *) print_usage
        exit 1 ;;
   esac
@@ -497,7 +506,7 @@ configure_cloudshell_installer() {
     purple_bold "\n* Authenticate with Mondoo Platform"
     config_path="$HOME/.config/mondoo"
     mkdir -p "$config_path"
-    ${MONDOO_BINARY_PATH} login --config "$config_path/mondoo.yml" --token "$MONDOO_REGISTRATION_TOKEN"
+    ${MONDOO_BINARY_PATH} login --config "$config_path/mondoo.yml" --token "$MONDOO_REGISTRATION_TOKEN" --timer "$TIMER" --splay "$SPLAY"
   }
 }
 
@@ -552,7 +561,7 @@ configure_macos_token() {
   purple_bold "\n* Authenticate with Mondoo Platform"
   config_path="$HOME/.config/mondoo"
   mkdir -p "$config_path"
-  ${MONDOO_BINARY_PATH} login --config "$config_path/mondoo.yml" --token "$MONDOO_REGISTRATION_TOKEN"
+  ${MONDOO_BINARY_PATH} login --config "$config_path/mondoo.yml" --token "$MONDOO_REGISTRATION_TOKEN" --timer "$TIMER" --splay "$SPLAY"
   if [ "$MONDOO_SERVICE" = "enable" ]; then
     sudo_cmd cp "$config_path/mondoo.yml" /Library/Mondoo/etc/mondoo.yml
   fi
@@ -561,7 +570,7 @@ configure_macos_token() {
 configure_linux_token() {
   purple_bold "\n* Authenticate with Mondoo Platform"
   sudo_cmd mkdir -p "/etc/opt/mondoo/"
-  sudo_cmd ${MONDOO_BINARY_PATH} login --config /etc/opt/mondoo/mondoo.yml --token "$MONDOO_REGISTRATION_TOKEN"
+  sudo_cmd ${MONDOO_BINARY_PATH} login --config /etc/opt/mondoo/mondoo.yml --token "$MONDOO_REGISTRATION_TOKEN" --timer "$TIMER" --splay "$PLAY"
 
   if [ "$(cat /proc/1/comm)" = "init" ]; then
     purple_bold "\n* Restart upstart service"
