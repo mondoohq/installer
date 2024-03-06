@@ -570,7 +570,7 @@ configure_macos_token() {
 configure_linux_token() {
   purple_bold "\n* Authenticate with Mondoo Platform"
   sudo_cmd mkdir -p "/etc/opt/mondoo/"
-  sudo_cmd ${MONDOO_BINARY_PATH} login --config /etc/opt/mondoo/mondoo.yml --token "$MONDOO_REGISTRATION_TOKEN" --timer "$TIMER" --splay "$PLAY"
+  sudo_cmd ${MONDOO_BINARY_PATH} login --config /etc/opt/mondoo/mondoo.yml --token "$MONDOO_REGISTRATION_TOKEN" --timer "$TIMER" --splay "$SPLAY"
 
   if [ "$(cat /proc/1/comm)" = "init" ]; then
     purple_bold "\n* Restart upstart service"
