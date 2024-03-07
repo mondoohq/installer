@@ -22,7 +22,7 @@ cd msi
 Remove-Item .\Product.wixobj -ErrorAction Ignore
 Remove-Item .\mondoo.wixpdb -ErrorAction Ignore
 # build package
-dir 'C:\Program Files (x86)\WiX Toolset v3.11\bin'
+dir 'C:\Program Files (x86)\'
 info "run candle (standard)"
 & 'C:\Program Files (x86)\WiX Toolset v3.11\bin\candle' -nologo -arch x64 -dMondooSKU="standard" -dProductVersion="$version" -ext WixUtilExtension Product.wxs
 
