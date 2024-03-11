@@ -78,7 +78,7 @@ jobs:
         run: |
           gsutil cp -r helper/packages/* gs://releases-us.mondoo.io/mondoo/${VERSION}/
       - name: Upload files to GitHub Release Page
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ steps.version.outputs.version }}
           files: helper/packages/*
