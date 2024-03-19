@@ -142,8 +142,19 @@ jobs:
           # sign msi package
           echo " - Signing MSI..."
           Set-Location -Path '.\..\..'
-          signtool.exe sign /sha1 ${{ secrets.SM_CODE_SIGNING_CERT_SHA1_HASH }} /tr http://timestamp.digicert.com /td SHA256 /fd SHA256 .\packages\msi\mondoo.msi
+          signtool.exe sign /debug /sha1 ${{ secrets.SM_CODE_SIGNING_CERT_SHA1_HASH }} /tr http://timestamp.digicert.com /td SHA256 /fd SHA256 .\packages\msi\mondoo.msi
           Copy-Item '.\packages\msi\mondoo.msi' '.\dist\'
+      - name: Dump Signing Log on Failure
+        if: failure()
+        run: |
+          echo "Dumping signing logs..."
+          gc $home\AppData\Local\Temp\signtool.log
+          echo "Dumping signing manager logs..."
+          gc $home\.signingmanager\logs\smctl.log
+          echo "Dumping signing manager KSP logs..."
+          gc $home\.signinmanager\logs\smksp.log
+          echo "Dumping signing manager KSP cert sync logs..."
+          gc $home\.signingmanager\logs\smksp_cert_sync.log
 
       - name: Cleanup dist before upload
         run: |
