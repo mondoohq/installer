@@ -147,8 +147,6 @@ jobs:
       - name: Dump Signing Log on Failure
         if: failure()
         run: |
-          echo "Dumping signing logs..."
-          gc $home\AppData\Local\Temp\signtool.log
           echo "Dumping signing manager logs..."
           gc $home\.signingmanager\logs\smctl.log
           echo "Dumping signing manager KSP logs..."
