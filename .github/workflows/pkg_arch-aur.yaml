@@ -71,7 +71,7 @@ jobs:
           echo "mondoo: $(cat mondoo/PKGBUILD | grep orignalVersion=)"
       - name: Publish cnquery AUR package
         if: ${{ !inputs.skip }}
-        uses: KSXGitHub/github-actions-deploy-aur@v2.7.0
+        uses: KSXGitHub/github-actions-deploy-aur@v2.7.1
         with:
           pkgname: cnquery
           pkgbuild: packages/archlinux/cnquery/PKGBUILD
@@ -82,7 +82,7 @@ jobs:
           force_push: 'true'
       - name: Publish cnspec AUR package
         if: ${{ !inputs.skip }}
-        uses: KSXGitHub/github-actions-deploy-aur@v2.7.0
+        uses: KSXGitHub/github-actions-deploy-aur@v2.7.1
         with:
           pkgname: cnspec
           pkgbuild: packages/archlinux/cnspec/PKGBUILD
@@ -93,7 +93,7 @@ jobs:
           force_push: 'true'
       - name: Publish mondoo AUR package
         if: ${{ !inputs.skip }}
-        uses: KSXGitHub/github-actions-deploy-aur@v2.7.0
+        uses: KSXGitHub/github-actions-deploy-aur@v2.7.1
         with:
           pkgname: mondoo
           pkgbuild: packages/archlinux/mondoo/PKGBUILD
