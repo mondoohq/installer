@@ -29,7 +29,7 @@ RUN microdnf upgrade -y &&\
     tar -xzC /usr/local/bin -f ${CNSPEC_PACKAGE} &&\
     /usr/local/bin/cnspec version &&\
     rm -f ${CNSPEC_PACKAGE} SHA256SUMS &&\
-    microdnf remove wget tar gzip -y &&\
+    microdnf remove wget tar -y &&\
     rm -rf /var/cache/dnf/*
 RUN ln -s /usr/local/bin/cnspec /usr/local/bin/mondoo
 
