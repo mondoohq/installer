@@ -10,7 +10,7 @@
 
     .PARAMETER RegistrationToken
     The registration token for your mondoo installation. See our docs if you do not
-    have one: https://mondoo.com/docs/server/registration
+    have one: https://mondoo.com/docs/cnspec/cnspec-adv-install/registration/
     .PARAMETER DownloadType
     Set 'msi' (default) to download the package or 'zip' for the agent binary instead
     .PARAMETER Version
