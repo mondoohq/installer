@@ -16,7 +16,7 @@ on:
         default: "9.0.0"
 
 jobs:
-  install-sh-windows:
+  install-ps1-windows:
     runs-on: windows-latest
     strategy:
       matrix:
@@ -30,7 +30,7 @@ jobs:
           $v='${{ github.event.inputs.version }}'
           $version=$v.trim("v","V")
           echo "version=$version" >> $env:GITHUB_OUTPUT
-      - name: Install.sh/${{ matrix.package }} on ${{ matrix.os }}
+      - name: Install.ps1/${{ matrix.package }} on ${{ matrix.os }}
         run: |
           Set-ExecutionPolicy Unrestricted -Scope Process -Force;
           [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072;
