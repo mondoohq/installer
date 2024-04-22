@@ -2,6 +2,35 @@
 # Useful for brand capitalizations
 
 #
+# Catch placeholder text
+#
+
+\b[Ll]orem [Ii]psum\b
+
+# PR links left in the release notes
+\bhttps:\/\/github.com\/mondoohq\/.*\/pull\/\d*
+
+#
+# Terms to avoid
+#
+
+# s.b. Allow list
+\s[Ww]hitelist\b
+\s[Ww]hitelisting\b
+\s[Ww]hitelisted\b
+\s[Ww]hite list\b
+\s[Ww]hite listing\b
+\s[Ww]hite listed\b
+
+# s.b. Block list
+\s[Bb]lacklist\b
+\s[Bb]lacklisting\b
+\s[Bb]lacklisted\b
+\s[Bb]lack list\b
+\s[Bb]lack listing\b
+\s[Bb]lack listed\b
+
+#
 # Our Terms
 #
 
@@ -10,39 +39,50 @@
 \sMondoo platform\b
 
 # s.b. Compliance Hub
-\scompliance hub\b
-\sCompliance hubplatform\b
+\s[Cc]ompliance hub\b
+
+#
+# Compliance Terms
+#
+
+# s.b. SOC 2
+\bSOC2\b
+
+# s.b. ISO 270001
+\bISO270001\b
 
 #
 # Industry Terms
 #
 
 # s.b. Side scanning
-\bSidescanning\b
-\bsidescanning\b
+\b[Ss]idescanning\b
 
 # s.b. DevOps
 \bDev Ops\b
 \bDevops\b
 
 # s.b. SaaS
-\bSaas\b
-\bsaas\b
+\b[Ss]aas\b
 
 # s.b. Docker Hub
-\bDockerHub\b
-\bDockerhub\b
+\bDocker[Hh]ub\b
 
 # s.b. REST API
-\bRest API\b
-\brest API\b
+\b[Rr]est API\b
 \brest api\b
 
 # s.b. DevSecOps
-\bDevsecops\b
+\bDevsec[Oo]ps\b
 
 # s.b. on-premises
 \bon-premise\b
+
+# s.b. email
+\be-mail\b
+
+# s.b. APIs
+\bapis\b
 
 #
 # Product Names
@@ -104,6 +144,10 @@
 \bRedHat\b
 \bRedhat\b
 
+# s.b. EuroLinux
+\bEurolinux\b
+\bEuro Linux\b
+
 # s.b. AlmaLinux
 \bAlma Linux\b
 
@@ -141,12 +185,53 @@
 \bOpenssl\b
 \bopenSSL\b
 
+# s.b. CloudBees
+\b[Cc]loudbees\b
+
+# s.b. System76
+\bSystem 76\b
+
+# s.b. VirtualBox
+\b[Vv]irtualbox\b
+\bVirtual Box\b
+
+# s.b. SentinelOne
+\bSentinal[Oo]ne\b
+\bSentinelone\b
+\bSentinal One\b
+
+# s.b. CrowdStrike
+\bCrowd Strike\b
+\b[Cc]rowdstrike\b
+
+#
+# HashiCorp Products
+#
+
+# s.b. HashiCorp
+\bHashicorp\b
+
+# s.b. Terraform
+\bTerraForm\b
+
+# s.b. Vagrantfile
+\bVagrant file\b
+\bVagrantFile\b
+
 #
 # Microsoft Products
 #
 
 # s.b. Microsoft
 \bMicroSoft\b
+
+# s.b. PowerPoint
+\bPower Point\b
+\bPowerpoint\b
+
+# s.b. OneNote
+\bOne Note\b
+\bOnenote\b
 
 # s.b. Windows Server
 \bWindows server\b
@@ -163,6 +248,24 @@
 \bGroup policy object\b
 \bgroup policy object\b
 \bGroup Policy object\b
+
+# s.b. Power BI
+\bPowerBI\b
+
+# s.b. SharePoint
+\bSharepoint\b
+\bShare Point\b
+
+# s.b. BitLocker
+\bBitlocker\b
+\bbitLocker\b
+
+# s.b. VS Code
+# \bVSCode\b # disabled due to false positive
+
+# s.b. LinkedIn
+\bLinked In\b
+\bLinkedin\b
 
 #
 # VMware Products
@@ -201,13 +304,13 @@
 
 # s.b. CloudFormation
 \bCloudformation\b
+\bCloud Formation\b
 
 # s.b. CloudFront
 \bCloudfront\b
 
 # s.b. CloudHSM
-\bCloudHsm\b
-\bCloudhsm\b
+\bCloud[Hh]sm\b
 
 # s.b. CloudSearch
 \bCloudsearch\b
@@ -215,7 +318,7 @@
 # s.b. CloudShell
 # we can't check for Cloud Shell since that's what Azure calls it
 \bCloudshell\b
-\bcloudshell\b
+# cloudshell results in false positives
 
 # s.b. CloudTrail
 \bCloudtrail\b
@@ -244,6 +347,9 @@
 # s.b. CodeStar
 \bCodestar\b
 
+# s.b. AWS Config
+\bAWS config\b
+
 # s.b. Copilot
 \bCoPilot\b
 
@@ -266,6 +372,7 @@
 
 # s.b. Fargate
 \bFarGate\b
+\bFar Gate\b
 
 # s.b. FinSpace
 \bFinSpace\b
@@ -281,6 +388,9 @@
 
 # s.b. Honeycode
 \bHoneyCode\b
+
+# s.b. Lambda
+\bLamba\b
 
 # s.b. Lightsail
 \bLightSail\b
@@ -316,6 +426,9 @@
 # s.b. SiteWise
 \bSitewise\b
 
+# s.b. StackSets
+\bStacksets\b
+
 # s.b. WorkDocs
 \bWorkdocs\b
 
@@ -326,63 +439,14 @@
 # GCP Products
 #
 
-# s.b. Pub/Sub
-\bPubSub\b
-
-# s.b. Cloud SQL
-\bCloudSQL\b
-
-# s.b. Cloud CDN
-\bCloudCDN\b
-
-# s.b. Cloud Functions
-\bCloud functions\b
-
-# s.b. Vertex AI
-\bVertexAI\b
-
-# s.b. Dialogflow
-\bDialogFlow\b
-
-# s.b. Dataplex
-\bDataPlex\b
-
-# s.b. BigLake
-\bBig Lake\b
-
 # s.b. AlloyDB
 \bAlloy DB\b
 
-# s.b. Firestore
-\bFireStore\b
-
-# s.b. Datastream
-\bDataStream\b
-\bData Stream\b
-
-# s.b. Memorystore
-\bMemoryStore\b
-\bMemory Store\b
-
-# s.b. TensorFlow
-\bTensor Flow\b
-
 # s.b. AppEngine
 \bApp Engine\b
 
-# s.b. AppEngine
-\bApp Engine\b
-
-# s.b. Compute Engine
-\bComputeEngine\b
-\bCompute engine\b
-
-# s.b. VMware Engine
-\bVMware engine\b
-\bVMWare Engine\b
-
-# s.b. Knative
-\bKNative\b
+# s.b. BigLake
+\bBig Lake\b
 
 # s.b. BigQuery
 \bBig Query\b
@@ -391,9 +455,59 @@
 \bCloudBuild\b
 \bCloud build\b
 
+# s.b. Cloud CDN
+\bCloudCDN\b
+
+# s.b. Cloud Functions
+\bCloud functions\b
+
+# disabled for now in this repo due to false positives
 # s.b. Cloud Run
-\bCloudRun\b
-\bCloud run\b
+# \bCloudRun\b
+# \bCloud run\b
+
+# s.b. Cloud SQL
+\bCloudSQL\b
+
+# s.b. Compute Engine
+\bComputeEngine\b
+\bCompute engine\b
+
+# s.b. Dataplex
+\bDataPlex\b
+
+# s.b. Datastream
+\bDataStream\b
+\bData Stream\b
+
+# s.b. Dialogflow
+\bDialogFlow\b
+
+# s.b. Firestore
+\bFireStore\b
+
+# s.b. gVNIC
+\bGVNIC\b
+
+# s.b. Knative
+\bKNative\b
+
+# s.b. Memorystore
+\bMemoryStore\b
+\bMemory Store\b
+
+# s.b. Pub/Sub
+\bPubSub\b
+
+# s.b. TensorFlow
+\bTensor Flow\b
+
+# s.b. Vertex AI
+\bVertexAI\b
+
+# s.b. VMware Engine
+\bVMware engine\b
+\bVMWare Engine\b
 
 #
 # Azure Products
@@ -527,3 +641,12 @@
 # Reject duplicate words
 \s([A-Z]{3,}|[A-Z][a-z]{2,}|[a-z]{3,})\s\g{-1}\s
 
+# s.b. it's or its
+\bits['’]
+
+# s.b. understand
+\bunder stand\b
+
+# find spaces before a comma
+# Enable this once https://github.com/check-spelling/check-spelling/wiki/Feature%3A-Block-Ignore ships
+# ( )+,

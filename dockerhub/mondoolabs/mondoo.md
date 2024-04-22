@@ -4,7 +4,7 @@
 
 ## Quick reference
 
-* Basic use: ```docker run mondoo/client <args>```
+* Basic use: ```docker run mondoolabs/mondoo <args>```
 * Sign up for free: https://console.mondoo.com
 * Release Notes: https://mondoo.com/docs/releases/
 * Documentation: [mondoo.com/docs](https://mondoo.com/docs/)
