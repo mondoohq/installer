@@ -1,6 +1,13 @@
-name: 'PKG: Chocolatey NuGet Release'
+name: "PKG: Chocolatey NuGet Release"
 
 on:
+  workflow_call:
+    inputs:
+      version:
+        description: "Version to release"
+        required: true
+        type: string
+        default: "8.0.0"
   workflow_dispatch:
     inputs:
       version:
@@ -8,8 +15,6 @@ on:
         required: true
         type: string
         default: "8.0.0"
-  release:
-    types: [published]
 
 jobs:
   chocotize:
@@ -19,15 +24,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       # Determine which version should be released based on event type
-      - name: Set Version (Workflow Dispatch)
+      - name: Set Version
         shell: bash
-        if: github.event_name == 'workflow_dispatch'
         run: |
           echo VERSION=${{ inputs.version }} >> $GITHUB_ENV
-      - name: Set Version (Release Event)
-        if: github.event_name == 'release'
-        run: |
-          echo VERSION=${{ github.event.release.tag_name }} >> $GITHUB_ENV
       - name: Unified Version
         id: version
         shell: bash
@@ -64,4 +64,3 @@ jobs:
             done
             echo 'Go check for the moderation status:'
             echo 'Mondoo Moderation Queue: https://community.chocolatey.org/packages?q=tag%3Amondoo&moderatorQueue=true&moderationStatus=all-statuses&prerelease=false&sortOrder=relevance'
-

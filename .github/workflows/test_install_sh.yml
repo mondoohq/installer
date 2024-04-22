@@ -1,16 +1,13 @@
 name: Test Mondoo Releases with Container Builds
 
 on:
-  workflow_run:
-    workflows: ['Update Release Version'] # runs after release
-    types:
-      - completed
+  workflow_call:
   workflow_dispatch:
   push:
     branches:
       - main
     paths:
-      - 'install.sh'
+      - "install.sh"
 
 jobs:
   build_container:
@@ -57,4 +54,4 @@ jobs:
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
         with:
-          args: ':warning: Mondoo install failed in test container!  (https://github.com/mondoohq/installer/actions/workflows/test_with_container_build.yml)'
+          args: ":warning: Mondoo install failed in test container!  (https://github.com/mondoohq/installer/actions/workflows/test_with_container_build.yml)"
