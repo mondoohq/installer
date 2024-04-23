@@ -125,7 +125,7 @@ Considering the names of other packages out there:
 * VSCode-darwin-universal.zip
 * go1.17.3.darwin-amd64.pkg
 
-Ultimately, it appears "darwin" is still in common usage and the Hashicorp naming is a good middle ground (plus we already use it and no other format is objectively better), therefore we'll use the naming scheme: mondoo_1.2.3_darwin_universal.pkg
+Ultimately, it appears "darwin" is still in common usage and the HashiCorp naming is a good middle ground (plus we already use it and no other format is objectively better), therefore we'll use the naming scheme: mondoo_1.2.3_darwin_universal.pkg
 
 ## Signing and Notarization
 
