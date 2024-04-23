@@ -51,6 +51,8 @@ jobs:
       - name: Build and push root images
         uses: docker/build-push-action@v5
         with:
+          sbom: true
+          provenance: true
           context: .
           platforms: linux/amd64,linux/arm64
           push: true
@@ -69,6 +71,8 @@ jobs:
         continue-on-error: true
         uses: docker/build-push-action@v5
         with:
+          sbom: true
+          provenance: true
           context: .
           file: Dockerfile-dev
           platforms: linux/amd64,linux/arm64,linux/arm/v6,linux/arm/v7
@@ -83,6 +87,8 @@ jobs:
       - name: Build and push rootless images
         uses: docker/build-push-action@v5
         with:
+          sbom: true
+          provenance: true
           context: .
           platforms: linux/amd64,linux/arm64,linux/arm/v6,linux/arm/v7
           push: true
@@ -96,6 +102,8 @@ jobs:
       - name: Build and push root images (ubi)
         uses: docker/build-push-action@v5
         with:
+          sbom: true
+          provenance: true
           context: .
           file: Dockerfile-ubi
           platforms: linux/amd64,linux/arm64
@@ -110,6 +118,8 @@ jobs:
       - name: Build and push rootless images (ubi)
         uses: docker/build-push-action@v5
         with:
+          sbom: true
+          provenance: true
           context: .
           file: Dockerfile-ubi
           platforms: linux/amd64,linux/arm64
