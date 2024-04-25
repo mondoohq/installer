@@ -1,6 +1,18 @@
-name: 'PKG: Archlinux AUR Release'
+name: "PKG: Archlinux AUR Release"
 
 on:
+  workflow_call:
+    inputs:
+      version:
+        description: "Version to release"
+        required: true
+        default: "8.0.0"
+        type: string
+      skip:
+        description: "Skip release"
+        required: false
+        default: false
+        type: boolean
   workflow_dispatch:
     inputs:
       version:
@@ -13,26 +25,19 @@ on:
         required: false
         default: false
         type: boolean
-  release:
-    types: [published]
 
 jobs:
   setup:
     runs-on: ubuntu-latest
-    name: 'Unify Inputs'
+    name: "Unify Inputs"
     outputs:
       version: ${{ steps.version.outputs.version }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      - name: Set Version (Workflow Dispatch)
-        if: github.event_name == 'workflow_dispatch'
+      - name: Set Version
         run: |
           echo VERSION=${{ inputs.version }} >> $GITHUB_ENV
-      - name: Set Version (Release Event)
-        if: github.event_name == 'release'
-        run: |
-          echo VERSION=${{ github.event.release.tag_name }} >> $GITHUB_ENV
       - name: Unified Version
         id: version
         run: |
@@ -50,7 +55,7 @@ jobs:
 
   update-pkgs:
     runs-on: ubuntu-latest
-    name: 'Generate & Locally Commit PKGBUILDs'
+    name: "Generate & Locally Commit PKGBUILDs"
     needs: setup
     steps:
       - name: Checkout
@@ -58,12 +63,12 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version: '>=1.17.0'
+          go-version: ">=1.17.0"
       - name: Execute generator (make update)
         run: |
           cd packages/archlinux
           make update
-      - name: 'DEBUG: Show generated package versions'
+      - name: "DEBUG: Show generated package versions"
         run: |
           cd packages/archlinux
           echo "cnquery: $(cat cnquery/PKGBUILD | grep orignalVersion=)"
@@ -79,7 +84,7 @@ jobs:
           commit_email: ${{ secrets.AUR_EMAIL }}
           ssh_private_key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
           commit_message: ${{ needs.setup.outputs.version }}
-          force_push: 'true'
+          force_push: "true"
       - name: Publish cnspec AUR package
         if: ${{ !inputs.skip }}
         uses: KSXGitHub/github-actions-deploy-aur@v2.7.1
@@ -90,7 +95,7 @@ jobs:
           commit_email: ${{ secrets.AUR_EMAIL }}
           ssh_private_key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
           commit_message: ${{ needs.setup.outputs.version }}
-          force_push: 'true'
+          force_push: "true"
       - name: Publish mondoo AUR package
         if: ${{ !inputs.skip }}
         uses: KSXGitHub/github-actions-deploy-aur@v2.7.1
@@ -101,9 +106,8 @@ jobs:
           commit_email: ${{ secrets.AUR_EMAIL }}
           ssh_private_key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
           commit_message: ${{ needs.setup.outputs.version }}
-          force_push: 'true'
-          assets:
-            packages/archlinux/mondoo/mondoo.sh
+          force_push: "true"
+          assets: packages/archlinux/mondoo/mondoo.sh
             packages/archlinux/mondoo/LICENSE.html
             packages/archlinux/mondoo/OSS-LICENSES.tar.xz
             packages/archlinux/mondoo/mondoo.service
