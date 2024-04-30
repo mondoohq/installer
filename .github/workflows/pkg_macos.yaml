@@ -1,6 +1,48 @@
 name: 'PKG: macOS Universal pkg Release'
 
 on:
+  workflow_call:
+    inputs:
+      version:
+        description: "Package Version"
+        required: true
+        default: "0.0.1"
+        type: string
+      name:
+        description: "Package Name"
+        required: false
+        default: "mondoo"
+        type: string
+      skip-publish:
+        description: "Skip publish?"
+        required: false
+        default: false
+        type: boolean
+    secrets:
+      APPLE_KEYCHAIN_PASSWORD:
+        required: true
+      APPLE_KEYS_PRODUCTSIGN_P12:
+        required: true
+      APPLE_KEYS_CODESIGN_P12:
+        required: true
+      APPLE_KEYS_PASSWORD:
+        required: true
+      APPLE_KEYS_CODESIGN_ID:
+        required: true
+      APPLE_KEYS_PRODUCTSIGN_ID:
+        required: true
+      APPLE_ACCOUNT_USERNAME:
+        required: true
+      APPLE_ACCOUNT_PASSWORD:
+        required: true
+      APPLE_ACCOUNT_TEAM_ID:
+        required: true
+      GCP_CREDENTIALS:
+        required: true
+      RELEASR_ACTION_TOKEN:
+        required: true
+      REPO_API_TOKEN:
+        required: true
   workflow_dispatch:
     inputs:
       version:
@@ -11,13 +53,12 @@ on:
         description: 'Package Name'
         required: false
         default: 'mondoo'
+        type: string
       skip-publish:
         description: 'Skip publish?'
         required: false
         default: false
         type: boolean
-  release:
-    types: [released]
 
 jobs:
   pkg:
@@ -27,14 +68,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set Version (Workflow Dispatch)
-        if: github.event_name == 'workflow_dispatch'
+      - name: Set Version
         run: |
           echo VERSION=${{ inputs.version }} >> $GITHUB_ENV
-      - name: Set Version (Release Event)
-        if: github.event_name == 'release'
-        run: |
-          echo VERSION=${{ github.event.release.tag_name }} >> $GITHUB_ENV
       - name: Unified Version
         id: version
         run: |

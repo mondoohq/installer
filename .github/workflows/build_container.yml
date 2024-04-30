@@ -1,10 +1,19 @@
 name: Release Mondoo Container Image
 
 on:
-  release:
-    types: [released]
   workflow_dispatch:
-
+  workflow_call:
+    inputs:
+      push:
+        description: "Push docker image?"
+        required: false
+        default: true
+        type: boolean
+    secrets:
+      DOCKER_USERNAME:
+        required: true
+      DOCKER_PASSWORD:
+        required: true
 
 jobs:
   build_container:
@@ -55,7 +64,7 @@ jobs:
           provenance: true
           context: .
           platforms: linux/amd64,linux/arm64
-          push: true
+          push: ${{ inputs.push }}
           build-args: VERSION=${{ steps.version.outputs.version }}
           target: root
           tags: |
@@ -76,7 +85,7 @@ jobs:
           context: .
           file: Dockerfile-dev
           platforms: linux/amd64,linux/arm64,linux/arm/v6,linux/arm/v7
-          push: true
+          push: ${{ inputs.push }}
           build-args: VERSION=${{ steps.version.outputs.version }}
           target: root
           tags: |
@@ -91,7 +100,7 @@ jobs:
           provenance: true
           context: .
           platforms: linux/amd64,linux/arm64,linux/arm/v6,linux/arm/v7
-          push: true
+          push: ${{ inputs.push }}
           build-args: VERSION=${{ steps.version.outputs.version }}
           target: rootless
           tags: |
@@ -107,7 +116,7 @@ jobs:
           context: .
           file: Dockerfile-ubi
           platforms: linux/amd64,linux/arm64
-          push: true
+          push: ${{ inputs.push }}
           build-args: VERSION=${{ steps.version.outputs.version }}
           target: root
           tags: |
@@ -123,11 +132,10 @@ jobs:
           context: .
           file: Dockerfile-ubi
           platforms: linux/amd64,linux/arm64
-          push: true
+          push: ${{ inputs.push }}
           build-args: VERSION=${{ steps.version.outputs.version }}
           target: rootless
           tags: |
             mondoo/client:${{ steps.version.outputs.version }}-ubi-rootless
             mondoo/client:${{ steps.semver.outputs.major }}-ubi-rootless
             mondoo/client:latest-ubi-rootless
-

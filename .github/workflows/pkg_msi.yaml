@@ -1,23 +1,55 @@
 name: 'PKG: Microsoft Software Installer (MSI)'
 
 on:
+  workflow_call:
+    inputs:
+      version:
+        description: "Package Version"
+        required: true
+        default: "0.0.1"
+        type: string
+      name:
+        description: "Package Name"
+        required: false
+        default: "mondoo"
+        type: string
+      skip-publish:
+        description: "Skip publish?"
+        required: false
+        default: false
+        type: boolean
+    secrets:
+      SM_CLIENT_CERT_FILE_B64:
+        required: true
+      SM_HOST:
+        required: true
+      SM_API_KEY:
+        required: true
+      SM_CLIENT_CERT_PASSWORD:
+        required: true
+      SM_CODE_SIGNING_CERT_SHA1_HASH:
+        required: true
+      GCP_CREDENTIALS:
+        required: true
+      RELEASR_ACTION_TOKEN:
+        required: true
   workflow_dispatch:
     inputs:
       version:
         description: 'Package Version'
         required: true
         default: '0.0.1'
+        type: string
       name:
         description: 'Package Name'
         required: false
         default: 'mondoo'
+        type: string
       skip-publish:
         description: 'Skip publish?'
         required: false
         default: false
         type: boolean
-  release:
-    types: [published]
 
 jobs:
   setup:
@@ -28,14 +60,9 @@ jobs:
       trimmed-version: ${{ steps.version.outputs.trimmed_version }}
       name: ${{ steps.version.outputs.name }}
     steps:
-      - name: Set Version (Workflow Dispatch)
-        if: github.event_name == 'workflow_dispatch'
+      - name: Set Version
         run: |
           echo VERSION=${{ inputs.version }} >> $GITHUB_ENV
-      - name: Set Version (Release Event)
-        if: github.event_name == 'release'
-        run: |
-          echo VERSION=${{ github.event.release.tag_name }} >> $GITHUB_ENV
       - name: Unified Version
         id: version
         run: |
@@ -55,7 +82,6 @@ jobs:
         run: |
           curl -sL --head --fail https://github.com/mondoohq/cnquery/releases/download/v${{ steps.version.outputs.version }}/cnquery_${{ steps.version.outputs.version }}_windows_amd64.zip
           curl -sL --head --fail https://github.com/mondoohq/cnspec/releases/download/v${{ steps.version.outputs.version }}/cnspec_${{ steps.version.outputs.version }}_windows_amd64.zip
-
 
   dist-prepare:
     name: 'Prepare Distribution for Packaging'
@@ -82,7 +108,6 @@ jobs:
         with:
           name: dist
           path: dist
-
 
   msi-build:
     name: 'Packaging: Windows MSI'
@@ -216,4 +241,3 @@ jobs:
       - name: Cleanup
         run: |
           rm -f "${{ steps.gauth.outputs.credentials_file_path }}"
-

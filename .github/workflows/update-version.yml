@@ -1,14 +1,25 @@
 name: Update Release Version
 
 on:
-  release:
-    types: [released]
+  workflow_call:
+    inputs:
+      version:
+        description: "Version that should be released"
+        required: true
+        default: "1.2.3"
+        type: string
+      skip-commit:
+        description: "Skip commit?"
+        required: false
+        default: false
+        type: boolean
   workflow_dispatch:
     inputs:
       version:
         description: 'Version that should be released'
         required: true
         default: '1.2.3'
+        type: string
 
 jobs:
   update-version:
@@ -19,15 +30,9 @@ jobs:
         with:
           ref: 'main'
           fetch-depth: 0
-      - name: Version from Workflow Dispatch
-        if: github.event_name == 'workflow_dispatch'
+      - name: Version
         run: |
           V=$(echo ${{ github.event.inputs.version }} | sed 's/v//g')
-          echo "VERSION=${V}" >> $GITHUB_ENV
-      - name: Version from Release Tag
-        if: github.event_name == 'release'
-        run: |
-          V=$(echo ${{ github.event.release.tag_name }} | sed 's/v//g')
           echo "VERSION=${V}" >> $GITHUB_ENV
       - name: Verify valid version
         id: vars
@@ -38,6 +43,7 @@ jobs:
           fi
           echo "version=$VERSION" >> $GITHUB_OUTPUT
       - name: Commit VERSION file
+        if: ${{ ! inputs.skip-commit }}
         run: |
           echo ${VERSION} > VERSION
           echo "VERSION is $VERSION"

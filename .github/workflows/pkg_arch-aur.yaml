@@ -1,6 +1,25 @@
 name: 'PKG: Archlinux AUR Release'
 
 on:
+  workflow_call:
+    inputs:
+      version:
+        description: "Version to release"
+        required: true
+        default: "8.0.0"
+        type: string
+      skip:
+        description: "Skip release"
+        required: false
+        default: false
+        type: boolean
+    secrets:
+      AUR_USERNAME:
+        required: true
+      AUR_EMAIL:
+        required: true
+      AUR_SSH_PRIVATE_KEY:
+        required: true
   workflow_dispatch:
     inputs:
       version:
@@ -13,8 +32,6 @@ on:
         required: false
         default: false
         type: boolean
-  release:
-    types: [published]
 
 jobs:
   setup:
@@ -25,14 +42,9 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      - name: Set Version (Workflow Dispatch)
-        if: github.event_name == 'workflow_dispatch'
+      - name: Set Version
         run: |
           echo VERSION=${{ inputs.version }} >> $GITHUB_ENV
-      - name: Set Version (Release Event)
-        if: github.event_name == 'release'
-        run: |
-          echo VERSION=${{ github.event.release.tag_name }} >> $GITHUB_ENV
       - name: Unified Version
         id: version
         run: |

@@ -19,3 +19,6 @@ packages/msi/v16
 # Arch AUR Generated Files
 packages/archlinux/cnquery
 packages/archlinux/cnspec
+
+# VSCode settings
+.vscode
