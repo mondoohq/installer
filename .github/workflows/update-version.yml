@@ -1,20 +1,14 @@
 name: Update Release Version
 
 on:
-  workflow_call:
-    inputs:
-      version:
-        description: "Version that should be released"
-        required: true
-        default: "1.2.3"
-        type: string
+  release:
+    types: [released]
   workflow_dispatch:
     inputs:
       version:
-        description: "Version that should be released"
+        description: 'Version that should be released'
         required: true
-        default: "1.2.3"
-        type: string
+        default: '1.2.3'
 
 jobs:
   update-version:
@@ -23,10 +17,10 @@ jobs:
       - name: checkout
         uses: actions/checkout@v4
         with:
-          ref: "main"
+          ref: 'main'
           fetch-depth: 0
       - name: Version from Workflow Dispatch
-        if: github.event_name == 'workflow_dispatch' || github.event_name == 'workflow_call'
+        if: github.event_name == 'workflow_dispatch'
         run: |
           V=$(echo ${{ github.event.inputs.version }} | sed 's/v//g')
           echo "VERSION=${V}" >> $GITHUB_ENV
