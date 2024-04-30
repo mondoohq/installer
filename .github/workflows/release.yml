@@ -31,15 +31,13 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
   create-release:
-    runs-on: ubuntu-latest
+    name: Create release
+    uses: softprops/action-gh-release@v2
     needs: get-version
     if: github.event_name == 'workflow_dispatch'
-    steps:
-      - name: Create release
-        uses: softprops/action-gh-release@v2
-        with:
-          name: ${{ inputs.version }}
-          tag_name: ${{ inputs.version }}
+    with:
+      name: ${{ inputs.version }}
+      tag_name: ${{ inputs.version }}
 
   release_mondoo_pkgs:
     name: Trigger release_mondoo_pkgs workflow
