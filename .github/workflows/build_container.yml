@@ -1,8 +1,10 @@
 name: Release Mondoo Container Image
 
 on:
+  release:
+    types: [released]
   workflow_dispatch:
-  workflow_call:
+
 
 jobs:
   build_container:
@@ -128,3 +130,4 @@ jobs:
             mondoo/client:${{ steps.version.outputs.version }}-ubi-rootless
             mondoo/client:${{ steps.semver.outputs.major }}-ubi-rootless
             mondoo/client:latest-ubi-rootless
+

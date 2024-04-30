@@ -1,20 +1,12 @@
 name: "Test Release: ALL - Trigger Release Build Tests"
 
 on:
-  workflow_call:
-    inputs:
-      version:
-        description: "Version to test"
-        required: true
-        default: "9.0.0"
-        type: string
   workflow_dispatch:
     inputs:
       version:
         description: "Version to test"
         required: true
         default: "9.0.0"
-        type: string
 
 jobs:
   test-arch:
