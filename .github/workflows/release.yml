@@ -70,9 +70,7 @@ jobs:
     uses: ./.github/workflows/build_container.yml
     with:
       push: ${{ ! inputs.skip-release }}
-    secrets:
-      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+    secrets: inherit
 
   pkg_macos:
     name: Trigger pkg_macos workflow

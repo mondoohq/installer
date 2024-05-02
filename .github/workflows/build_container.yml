@@ -9,11 +9,6 @@ on:
         required: false
         default: true
         type: boolean
-    secrets:
-      DOCKER_USERNAME:
-        required: true
-      DOCKER_PASSWORD:
-        required: true
 
 jobs:
   build_container:
