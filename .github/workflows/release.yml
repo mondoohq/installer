@@ -53,9 +53,7 @@ jobs:
     with:
       version: ${{ needs.get-version.outputs.version }}
       skip-release: ${{ inputs.skip-release }}
-    secrets:
-      GCP_CREDENTIALS: ${{ secrets.GCP_CREDENTIALS }}
-      REPO_API_TOKEN: ${{ secrets.REPO_API_TOKEN }}
+    secrets: inherit
 
   update-version:
     name: Trigger update-version workflow
@@ -79,19 +77,7 @@ jobs:
     with:
       version: ${{ needs.get-version.outputs.version }}
       skip-publish: ${{ inputs.skip-release }}
-    secrets:
-      APPLE_KEYCHAIN_PASSWORD: ${{ secrets.APPLE_KEYCHAIN_PASSWORD }}
-      APPLE_KEYS_PRODUCTSIGN_P12: ${{ secrets.APPLE_KEYS_PRODUCTSIGN_P12 }}
-      APPLE_KEYS_CODESIGN_P12: ${{ secrets.APPLE_KEYS_CODESIGN_P12 }}
-      APPLE_KEYS_PASSWORD: ${{ secrets.APPLE_KEYS_PASSWORD }}
-      APPLE_KEYS_CODESIGN_ID: ${{ secrets.APPLE_KEYS_CODESIGN_ID }}
-      APPLE_KEYS_PRODUCTSIGN_ID: ${{ secrets.APPLE_KEYS_PRODUCTSIGN_ID }}
-      APPLE_ACCOUNT_USERNAME: ${{ secrets.APPLE_ACCOUNT_USERNAME }}
-      APPLE_ACCOUNT_PASSWORD: ${{ secrets.APPLE_ACCOUNT_PASSWORD }}
-      APPLE_ACCOUNT_TEAM_ID: ${{ secrets.APPLE_ACCOUNT_TEAM_ID }}
-      GCP_CREDENTIALS: ${{ secrets.GCP_CREDENTIALS }}
-      RELEASR_ACTION_TOKEN: ${{ secrets.RELEASR_ACTION_TOKEN }}
-      REPO_API_TOKEN: ${{ secrets.REPO_API_TOKEN }}
+    secrets: inherit
 
   pkg_arch-aur:
     name: Trigger pkg_arch-aur workflow
@@ -100,10 +86,7 @@ jobs:
     with:
       version: ${{ needs.get-version.outputs.version }}
       skip: ${{ inputs.skip-release }}
-    secrets:
-      AUR_USERNAME: ${{ secrets.AUR_USERNAME }}
-      AUR_EMAIL: ${{ secrets.AUR_EMAIL }}
-      AUR_SSH_PRIVATE_KEY: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
+    secrets: inherit
 
   pkg_chocolatey:
     name: Trigger pkg_chocolatey workflow
@@ -112,8 +95,7 @@ jobs:
     with:
       version: ${{ needs.get-version.outputs.version }}
       skip-publish: ${{ inputs.skip-release }}
-    secrets:
-      CHOCOLATEY_API_KEY: ${{ secrets.CHOCOLATEY_API_KEY }}
+    secrets: inherit
 
   pkg_msi:
     name: Trigger pkg_msi workflow
@@ -122,21 +104,13 @@ jobs:
     with:
       version: ${{ needs.get-version.outputs.version }}
       skip-publish: ${{ inputs.skip-release }}
-    secrets:
-      SM_CLIENT_CERT_FILE_B64: ${{ secrets.SM_CLIENT_CERT_FILE_B64 }}
-      SM_HOST: ${{ secrets.SM_HOST }}
-      SM_API_KEY: ${{ secrets.SM_API_KEY }}
-      SM_CLIENT_CERT_PASSWORD: ${{ secrets.SM_CLIENT_CERT_PASSWORD }}
-      SM_CODE_SIGNING_CERT_SHA1_HASH: ${{ secrets.SM_CODE_SIGNING_CERT_SHA1_HASH }}
-      GCP_CREDENTIALS: ${{ secrets.GCP_CREDENTIALS }}
-      RELEASR_ACTION_TOKEN: ${{ secrets.RELEASR_ACTION_TOKEN }}
+    secrets: inherit
 
   test_install_sh:
     name: Trigger test_install_sh workflow
     uses: ./.github/workflows/test_install_sh.yml
     needs: update-version
-    secrets:
-      DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+    secrets: inherit
 
   test-released-all:
     name: Trigger test-released-all workflow

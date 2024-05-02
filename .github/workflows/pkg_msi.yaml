@@ -18,21 +18,6 @@ on:
         required: false
         default: false
         type: boolean
-    secrets:
-      SM_CLIENT_CERT_FILE_B64:
-        required: true
-      SM_HOST:
-        required: true
-      SM_API_KEY:
-        required: true
-      SM_CLIENT_CERT_PASSWORD:
-        required: true
-      SM_CODE_SIGNING_CERT_SHA1_HASH:
-        required: true
-      GCP_CREDENTIALS:
-        required: true
-      RELEASR_ACTION_TOKEN:
-        required: true
   workflow_dispatch:
     inputs:
       version:

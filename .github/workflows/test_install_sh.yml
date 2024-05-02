@@ -2,9 +2,6 @@ name: Test Mondoo Releases with Container Builds
 
 on:
   workflow_call:
-    secrets:
-      DISCORD_WEBHOOK:
-        required: true
   workflow_dispatch:
   push:
     branches:

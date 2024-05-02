@@ -13,9 +13,6 @@ on:
         required: false
         default: false
         type: boolean
-    secrets:
-      CHOCOLATEY_API_KEY:
-        required: true
   workflow_dispatch:
     inputs:
       version:

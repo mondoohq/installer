@@ -13,11 +13,6 @@ on:
         required: false
         default: false
         type: boolean
-    secrets:
-      GCP_CREDENTIALS:
-        required: true
-      REPO_API_TOKEN:
-        required: true
 
 jobs:
   build-mondoo-payloads:
