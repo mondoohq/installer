@@ -50,7 +50,7 @@ cnquery scan aws
 cnspec scan aws
 ```
 
-Sign up for free [Mondoo Platform account](https://mondoo.com/docs/platform/start/plat-start-acct/) to access more policies and store reports:
+Sign up for a Mondoo account to access more policies and store reports. To learn more, [contact us](https://mondoo.com/contact).
 
 ```bash
 cnspec login -t 'eyJh...llZ4BW'
