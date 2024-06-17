@@ -49,7 +49,7 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Build and push root images
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           sbom: true
           provenance: true
@@ -69,7 +69,7 @@ jobs:
       - name: Build and push devkit images
         # make it optional until we fixed https://github.com/mondoohq/cnquery/issues/3107
         continue-on-error: true
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           sbom: true
           provenance: true
@@ -85,7 +85,7 @@ jobs:
             mondoo/devkit:latest
 
       - name: Build and push rootless images
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           sbom: true
           provenance: true
@@ -100,7 +100,7 @@ jobs:
             mondoo/client:latest-rootless
 
       - name: Build and push root images (ubi)
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           sbom: true
           provenance: true
@@ -116,7 +116,7 @@ jobs:
             mondoo/client:latest-ubi
 
       - name: Build and push rootless images (ubi)
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           sbom: true
           provenance: true
