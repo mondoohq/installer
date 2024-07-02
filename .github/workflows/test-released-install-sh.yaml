@@ -51,7 +51,6 @@ jobs:
         package: ["cnspec", "cnquery"]
         distro:
           [
-            "centos:7",
             "quay.io/centos/centos:stream9",
             "fedora:38",
             "fedora:39",
