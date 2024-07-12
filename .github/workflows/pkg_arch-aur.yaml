@@ -71,6 +71,7 @@ jobs:
           echo "mondoo: $(cat mondoo/PKGBUILD | grep orignalVersion=)"
       - name: Publish cnquery AUR package
         if: ${{ !inputs.skip }}
+        continue-on-error: true
         uses: KSXGitHub/github-actions-deploy-aur@v2.7.2
         with:
           pkgname: cnquery
@@ -83,6 +84,7 @@ jobs:
           force_push: 'true'
       - name: Publish cnspec AUR package
         if: ${{ !inputs.skip }}
+        continue-on-error: true
         uses: KSXGitHub/github-actions-deploy-aur@v2.7.2
         with:
           pkgname: cnspec
@@ -95,6 +97,7 @@ jobs:
           force_push: 'true'
       - name: Publish mondoo AUR package
         if: ${{ !inputs.skip }}
+        continue-on-error: true
         uses: KSXGitHub/github-actions-deploy-aur@v2.7.2
         with:
           pkgname: mondoo
