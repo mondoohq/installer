@@ -114,9 +114,15 @@ function Install-Mondoo {
       info " * Restarting $Product Service as it is already running"
       Restart-Service -Name Mondoo -Force
     }
-    Set-Service -Name Mondoo -Status Running -StartupType Automatic
+    IF((Get-Host).Version.Major -le 5) {
+      Set-Service -Name Mondoo -Status Running -StartupType Automatic
+      sc.exe config Mondoo start=delayed-auto
+    } Else {
+      Set-Service -Name Mondoo -Status Running -StartupType AutomaticDelayedStart
+    }
+
     If(((Get-Service -Name Mondoo).Status -eq 'Running') -and ((Get-Service -Name Mondoo).StartType -eq 'Automatic') ) {
-      success "* $Product Service is running and start type is automatic"
+      success "* $Product Service is running and start type is automatic delayed start"
     } Else {
       fail "Mondoo service configuration failed"
     }
