@@ -6,14 +6,14 @@ on:
       version:
         description: "Version to test"
         required: true
-        default: "9.0.0"
+        default: "11.0.0"
         type: string
   workflow_dispatch:
     inputs:
       version:
         description: "Version to test"
         required: true
-        default: "9.0.0"
+        default: "11.0.0"
 
 jobs:
   install-sh-apt:
@@ -29,6 +29,7 @@ jobs:
             "ubuntu:18.04",
             "ubuntu:20.04",
             "ubuntu:22.04",
+            "ubuntu:24.04",
           ]
     steps:
       - uses: actions/checkout@v4
@@ -52,8 +53,8 @@ jobs:
         distro:
           [
             "quay.io/centos/centos:stream9",
-            "fedora:38",
             "fedora:39",
+            "fedora:40",
             "rockylinux:8",
             "rockylinux:9",
             "redhat/ubi8",
