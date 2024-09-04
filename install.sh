@@ -655,7 +655,8 @@ autoupdater() {
     sudo_cmd launchctl bootout system/com.mondoo.autoupdater
     sudo_cmd rm -f /Library/LaunchDaemons/com.mondoo.autoupdater.plist
 
-    sudo_cmd curl -sSL https://install.mondoo.com/sh -o /Library/Mondoo/bin/mondoo-updater.sh
+    sudo_cmd curl -sSL https://install.mondoo.com/sh -o /tmp/mondoo-updater.sh
+    sudo_cmd cp /tmp/mondoo-updater.sh /Library/Mondoo/bin/mondoo-updater.sh
     sudo_cmd chmod a+x /Library/Mondoo/bin/mondoo-updater.sh
 
     sudo_cmd tee /Library/LaunchDaemons/com.mondoo.autoupdater.plist <<EOL
