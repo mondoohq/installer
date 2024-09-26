@@ -17,7 +17,7 @@ jobs:
         shell: bash
         run: |
           echo Installing Mondoo cnspec...
-          bash -c "$(curl -sSL https://install.mondoo.com/sh/cnspec)"
+          bash -xc "$(curl -sSL https://install.mondoo.com/sh/cnspec)"
       
       - name: Check expiration of public-package-signing.gpg
         shell: bash
