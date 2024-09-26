@@ -42,7 +42,7 @@ jobs:
       - name: Install.sh/${{ matrix.package }} on ${{ matrix.distro }}
         run: |
           docker run --rm -v $(pwd):/work -w /work ${{ matrix.distro }} \
-          bash -c "apt-get update && apt-get install -y curl && curl -sSL https://install.mondoo.com/sh/${{ matrix.package }} | bash - && ${{ matrix.package }} version | grep -q ${{ steps.version.outputs.version }}"
+          bash -c "apt-get update && apt-get install -y curl && curl -sSL https://install.mondoo.com/sh/${{ matrix.package }} | bash -x - && ${{ matrix.package }} version | grep -q ${{ steps.version.outputs.version }}"
 
   install-sh-yum:
     runs-on: ubuntu-latest
