@@ -33,6 +33,41 @@ jobs:
         with:
           fetch-depth: 0
 
+      - id: slack
+        uses: slackapi/slack-github-action@v1.27.0
+        with:
+          channel-id: ${{ env.SLACK_BOT_CHANNEL_ID }}
+          payload: |
+            {
+              "attachments": [
+                {
+                  "color": "#FFFF00",
+                  "blocks": [
+                    {
+                      "type": "section",
+                      "fields": [
+                        {
+                          "type": "mrkdwn",
+                          "text": "<${{ env.WORKFLOW_RUN_URL }}|${{ env.WORKFLOW_RUN_NAME }}>"
+                        },
+                        {
+                          "type": "mrkdwn",
+                          "text": "*Status:*\n`In Progress`"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          # C07R9GSGKEU == #mondoo-ops
+          SLACK_BOT_CHANNEL_ID: "C07R9GSGKEU"
+          WORKFLOW_RUN_URL: ${{ github.event.workflow_run.html_url }}
+          WORKFLOW_RUN_NAME: ${{ github.event.workflow_run.name }}
+          JOB_STATUS: ${{ job.status }}
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
         with:
@@ -51,10 +86,39 @@ jobs:
           tags: |
             mondoohq/mondoo-install-test:${{ matrix.dockerfile }}
 
-      - name: Discord notification
-        uses: Ilshidur/action-discord@0.3.2
-        if: failure()
-        env:
-          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+
+      - uses: slackapi/slack-github-action@v1.27.0
+        if: always()
         with:
-          args: ':warning: Mondoo install failed in test container!  (https://github.com/mondoohq/installer/actions/workflows/test_with_container_build.yml)'
+          channel-id: ${{ env.SLACK_BOT_CHANNEL_ID }}
+          update-ts: ${{ steps.slack.outputs.ts }}
+          payload: |
+             {
+              "attachments": [
+                {
+                  "color": "${{ env.JOB_STATUS == 'success' && '#00FF00' || env.JOB_STATUS == 'failure' && '#FF0000' || '#FFA500' }}",
+                  "blocks": [
+                    {
+                      "type": "section",
+                      "fields": [
+                        {
+                          "type": "mrkdwn",
+                          "text": "<${{ env.WORKFLOW_RUN_URL }}|${{ env.WORKFLOW_RUN_NAME }}>"
+                        },
+                        {
+                          "type": "mrkdwn",
+                          "text": "*Status:*\n`${{ env.JOB_STATUS }}`"
+                        }
+                      ]
+                    }
+                  ]
+                }
+                ]
+              }
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          # C07R9GSGKEU == #mondoo-ops
+          SLACK_BOT_CHANNEL_ID: "C07R9GSGKEU"
+          WORKFLOW_RUN_URL: ${{ github.event.workflow_run.html_url }}
+          WORKFLOW_RUN_NAME: ${{ github.event.workflow_run.name }}
+          JOB_STATUS: ${{ job.status }}
