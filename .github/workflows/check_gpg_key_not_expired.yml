@@ -8,11 +8,45 @@ on:
 jobs:
   check_gpg:
     name: Check Mondoo's GPG key has not expired
+    env:
+      # C07R9GSGKEU == #mondoo-ops
+      SLACK_BOT_CHANNEL_ID: "C07R9GSGKEU"
+
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
 
+      - id: slack
+        uses: slackapi/slack-github-action@v1.27.0
+        with:
+          channel-id: ${{ env.SLACK_BOT_CHANNEL_ID }}
+          payload: |
+            {
+              "attachments": [
+                {
+                  "color": "#FFFF00",
+                  "blocks": [
+                    {
+                      "type": "section",
+                      "fields": [
+                        {
+                          "type": "mrkdwn",
+                          "text": "<${{ github.event.workflow_run.html_url }}|${{ github.event.workflow_run.name }}>"
+                        },
+                        {
+                          "type": "mrkdwn",
+                          "text": "*Status:*\n`In Progress`"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          
       - name: Install Mondoo cnspec
         shell: bash
         run: |
@@ -32,11 +66,34 @@ jobs:
         shell: bash
         run: |
           bash test/scripts/cert-harmony.sh
-          
-      - name: Discord notification
-        uses: Ilshidur/action-discord@0.3.2
-        if: failure()
-        env:
-          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+
+      - uses: slackapi/slack-github-action@v1.27.0
+        if: always()
         with:
-          args: ':warning: Mondoo GPG key is expiring or out of sync!  (https://github.com/mondoohq/installer/actions/workflows/check_gpg_key_not_expired.yml)'
+          channel-id: ${{ env.SLACK_BOT_CHANNEL_ID }}
+          update-ts: ${{ steps.slack.outputs.ts }}
+          payload: |
+             {
+              "attachments": [
+                {
+                  "color": "${{ job.status == 'success' && '#00FF00' || job.status == 'failure' && '#FF0000' || '#FFA500' }}",
+                  "blocks": [
+                    {
+                      "type": "section",
+                      "fields": [
+                        {
+                          "type": "mrkdwn",
+                          "text": "<${{ github.event.workflow_run.html_url }}|${{ github.event.workflow_run.name }}>"
+                        },
+                        {
+                          "type": "mrkdwn",
+                          "text": "*Status:*\n`${{ job.status }}`"
+                        }
+                      ]
+                    }
+                  ]
+                }
+                ]
+              }
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
