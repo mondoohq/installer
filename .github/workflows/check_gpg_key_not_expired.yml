@@ -8,6 +8,10 @@ on:
 jobs:
   check_gpg:
     name: Check Mondoo's GPG key has not expired
+    env:
+      # C07R9GSGKEU == #mondoo-ops
+      SLACK_BOT_CHANNEL_ID: "C07R9GSGKEU"
+
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -28,7 +32,7 @@ jobs:
                       "fields": [
                         {
                           "type": "mrkdwn",
-                          "text": "<${{ env.WORKFLOW_RUN_URL }}|${{ env.WORKFLOW_RUN_NAME }}>"
+                          "text": "<${{ github.event.workflow_run.html_url }}|${{ github.event.workflow_run.name }}>"
                         },
                         {
                           "type": "mrkdwn",
@@ -42,11 +46,6 @@ jobs:
             }
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
-          # C07R9GSGKEU == #mondoo-ops
-          SLACK_BOT_CHANNEL_ID: "C07R9GSGKEU"
-          WORKFLOW_RUN_URL: ${{ github.event.workflow_run.html_url }}
-          WORKFLOW_RUN_NAME: ${{ github.event.workflow_run.name }}
-          JOB_STATUS: ${{ job.status }}
           
       - name: Install Mondoo cnspec
         shell: bash
@@ -77,18 +76,18 @@ jobs:
              {
               "attachments": [
                 {
-                  "color": "${{ env.JOB_STATUS == 'success' && '#00FF00' || env.JOB_STATUS == 'failure' && '#FF0000' || '#FFA500' }}",
+                  "color": "${{ job.status == 'success' && '#00FF00' || job.status == 'failure' && '#FF0000' || '#FFA500' }}",
                   "blocks": [
                     {
                       "type": "section",
                       "fields": [
                         {
                           "type": "mrkdwn",
-                          "text": "<${{ env.WORKFLOW_RUN_URL }}|${{ env.WORKFLOW_RUN_NAME }}>"
+                          "text": "<${{ github.event.workflow_run.html_url }}|${{ github.event.workflow_run.name }}>"
                         },
                         {
                           "type": "mrkdwn",
-                          "text": "*Status:*\n`${{ env.JOB_STATUS }}`"
+                          "text": "*Status:*\n`${{ job.status }}`"
                         }
                       ]
                     }
@@ -98,8 +97,3 @@ jobs:
               }
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
-          # C07R9GSGKEU == #mondoo-ops
-          SLACK_BOT_CHANNEL_ID: "C07R9GSGKEU"
-          WORKFLOW_RUN_URL: ${{ github.event.workflow_run.html_url }}
-          WORKFLOW_RUN_NAME: ${{ github.event.workflow_run.name }}
-          JOB_STATUS: ${{ job.status }}
