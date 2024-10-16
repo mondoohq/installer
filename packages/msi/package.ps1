@@ -27,7 +27,7 @@ Remove-Item .\mondoo.wixpdb -ErrorAction Ignore
 # build package
 dir 'C:\Program Files (x86)\'
 info "run candle (standard)"
-& 'C:\Program Files (x86)\WiX Toolset v3.14\bin\candle' -nologo -arch "$platform" -dProductVersion="$version" -ext WixUtilExtension Product.wxs
+& 'C:\Program Files (x86)\WiX Toolset v3.14\bin\candle' -nologo  -dMondooSKU="standard" -darch="$platform" -dProductVersion="$version" -ext WixUtilExtension Product.wxs
 
 info "run light (standard)"
 & 'C:\Program Files (x86)\WiX Toolset v3.14\bin\light' -nologo -dcl:high -cultures:en-us -loc en-us.wxl -ext WixUIExtension -ext WixUtilExtension product.wixobj -o mondoo.msi
@@ -38,3 +38,4 @@ Remove-Item .\mondoo.wixpdb -ErrorAction Ignore
 cd ..
 
 Move-Item .\msi\mondoo.msi .
+
