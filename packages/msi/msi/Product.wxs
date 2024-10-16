@@ -10,6 +10,10 @@
 <?if $(var.arch) = "arm64"?>
 <?define UpgradeCode = "$(var.UpgradeCodeArm64)"?>
 <?define InstallerVersion="500"?>
+<?define ProductName = "Mondoo"?>
+<?define ServiceInstallStart = "demand" ?>
+<?define RegistrationTokenRequired = "0"?>
+<?define OtherSKU = "$(var.UpgradeCodeEnterprise)"?>
 <?else?>
 <?define InstallerVersion="200"?>
 <?if $(var.MondooSKU) = "standard"?>
