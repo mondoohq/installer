@@ -103,8 +103,8 @@ jobs:
       - name: Download Distribution
         uses: actions/download-artifact@v4
         with:
-          name: dist-${{ matrix.arch }}/
-          path: dist/${{ matrix.arch }}/
+          name: dist-${{ matrix.arch }}
+          path: dist/${{ matrix.arch }}
 
       - name: Setup Certificate
         shell: bash
