@@ -74,7 +74,7 @@ jobs:
           VERSION: ${{ needs.setup.outputs.version }}
         run: |
           # TODO: We should check the sums here
-          mkdir -p dist && cd dist
+          mkdir -p dist/${{ matrix.arch }} && cd dist/${{ matrix.arch }}
           curl -sSL -O https://github.com/mondoohq/cnspec/releases/download/v${VERSION}/cnspec_${VERSION}_windows_${{ matrix.arch }}.zip
           unzip cnspec_${VERSION}_windows_${{ matrix.arch }}.zip
           rm cnspec_${VERSION}_windows_${{ matrix.arch }}.zip
