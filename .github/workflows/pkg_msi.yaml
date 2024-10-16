@@ -151,7 +151,7 @@ jobs:
           echo " - Signing MSI..."
           Set-Location -Path '.\..\..'
           signtool.exe sign /debug /sha1 ${{ secrets.SM_CODE_SIGNING_CERT_SHA1_HASH }} /tr http://timestamp.digicert.com /td SHA256 /fd SHA256 .\packages\msi\mondoo_${{ matrix.arch }}.msi
-          Copy-Item '.\packages\msi\mondoo_${{ matrix.arch }}.msi' '.\dist\'
+          Copy-Item '.\packages\msi\mondoo_${{ matrix.arch }}.msi' '.\dist\${{ matrix.arch }}'
       - name: Dump Signing Log on Failure
         if: failure()
         run: |
@@ -177,6 +177,9 @@ jobs:
 
   publish:
     name: 'Publish: Releases'
+    strategy:
+      matrix:
+        arch: ["amd64", "arm64"]
     needs: [setup,msi-build]
     if: ${{ ! inputs.skip-publish }}
     runs-on: ubuntu-latest
@@ -186,7 +189,7 @@ jobs:
       - name: Download MSI Package
         uses: actions/download-artifact@v4
         with:
-          name: msi
+          name: msi-${{ matrix.arch }}
           path: dist
       - name: Authenticate with Google Cloud
         id: gauth
