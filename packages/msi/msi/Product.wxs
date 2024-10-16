@@ -27,6 +27,7 @@
 <?else?>
 <?error MondooSKU must be defined as one of "standard" or "enterprise" ?>
 <?endif?>
+<?endif?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi"
   xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
   <Product Name="$(var.ProductName)" Version="$(var.ProductVersion)" Manufacturer="Mondoo, Inc." Language="1033" Codepage="1252" Id="*" UpgradeCode="$(var.UpgradeCode)">
