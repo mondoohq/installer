@@ -166,8 +166,8 @@ jobs:
 
       - name: Cleanup dist before upload
         run: |
-          Remove-Item -Path .\dist\cnquery.exe -Force
-          Remove-Item -Path .\dist\cnspec.exe -Force
+          Remove-Item -Path .\dist\${{ matrix.arch }}\cnquery.exe -Force
+          Remove-Item -Path .\dist\${{ matrix.arch }}\cnspec.exe -Force
 
       - name: Upload Distribution
         uses: actions/upload-artifact@v4
