@@ -4,6 +4,8 @@
 # use: ./package.ps1 -version 0.32.0
 param (
     [string]$version = 'x.xx.x'
+)
+param (
     [string]$arch = 'amd64|arm64'
 )
 
