@@ -7,18 +7,18 @@
 <?define UpgradeCodeStandard = "b0fee933-ccd2-467c-8fe4-bb0ac6a099c8" ?>
 <?define UpgradeCodeEnterprise = "4ABDD5C7-E1E1-41A6-8119-DCE65634A6CC" ?>
 <?define UpgradeCodeArm64 = "090cfb7d-c00c-4d36-94fe-f649a4b29c91" ?>
-<?if $(var.arch) = "arm64" ?>
-<?define UpgradeCode = "$(var.UpgradeCodeArm64)" ?>
-<?define InstallerVersion="500" ?>
-<? else ?>
-<?define InstallerVersion="200" ?>
-<?if $(var.MondooSKU) = "standard" ?>
+<?if $(var.arch) = "arm64"?>
+<?define UpgradeCode = "$(var.UpgradeCodeArm64)"?>
+<?define InstallerVersion="500"?>
+<?else?>
+<?define InstallerVersion="200"?>
+<?if $(var.MondooSKU) = "standard"?>
 <?define UpgradeCode = "$(var.UpgradeCodeStandard)"?>
 <?define ProductName = "Mondoo"?>
 <?define ServiceInstallStart = "demand" ?>
 <?define RegistrationTokenRequired = "0"?>
 <?define OtherSKU = "$(var.UpgradeCodeEnterprise)"?>
-<?elseif $(var.MondooSKU) = "enterprise" ?>
+<?elseif $(var.MondooSKU) = "enterprise"?>
 <?define UpgradeCode = "$(var.UpgradeCodeEnterprise)"?>
 <?define ProductName = "Mondoo Enterprise"?>
 <?define ServiceInstallStart = "auto" ?>
