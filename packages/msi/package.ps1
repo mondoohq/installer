@@ -19,7 +19,7 @@ function info($msg) {  Write-Host $msg -f white }
 
 info "build msi package $version"
 # delete previous build
-Remove-Item ".\mondoo_${arch}.msi" -ErrorAction Ignore
+Remove-Item ".\mondoo_${arch}.exe" -ErrorAction Ignore
 cd msi
 # delete previous intermediate files
 Remove-Item .\Product.wixobj -ErrorAction Ignore
@@ -31,12 +31,12 @@ info "run candle (standard)"
 
 info "run light (standard)"
 
-& 'C:\Program Files (x86)\WiX Toolset v3.14\bin\light' -nologo -dcl:high -cultures:en-us -loc en-us.wxl -ext WixUIExtension -ext WixUtilExtension product.wixobj -o "mondoo_${arch}.msi"
+& 'C:\Program Files (x86)\WiX Toolset v3.14\bin\light' -nologo -dcl:high -cultures:en-us -loc en-us.wxl -ext WixUIExtension -ext WixUtilExtension product.wixobj -o "mondoo_${arch}.exe"
 
 # delete previous intermediate files
 Remove-Item .\Product.wixobj -ErrorAction Ignore
 Remove-Item .\mondoo.wixpdb -ErrorAction Ignore
 cd ..
 
-Move-Item ".\msi\mondoo_${arch}.msi" .
+Move-Item ".\msi\mondoo_${arch}.exe" .
 
