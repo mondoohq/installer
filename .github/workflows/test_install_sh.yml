@@ -22,7 +22,6 @@ jobs:
     strategy:
       matrix:
         dockerfile:
-          #- "almalinux.arm64.Dockerfile"
           - "almalinux.Dockerfile"
           - "amazonlinux2.Dockerfile"
           - "debian.Dockerfile"
