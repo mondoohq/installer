@@ -150,8 +150,8 @@ jobs:
           # sign msi package
           echo " - Signing MSI..."
           Set-Location -Path '.\..\..'
-          signtool.exe sign /debug /sha1 ${{ secrets.SM_CODE_SIGNING_CERT_SHA1_HASH }} /tr http://timestamp.digicert.com /td SHA256 /fd SHA256 .\packages\msi\mondoo_${{ matrix.arch }}.exe
-          Copy-Item '.\packages\msi\mondoo_${{ matrix.arch }}.exe' '.\dist\${{ matrix.arch }}'
+          signtool.exe sign /debug /sha1 ${{ secrets.SM_CODE_SIGNING_CERT_SHA1_HASH }} /tr http://timestamp.digicert.com /td SHA256 /fd SHA256 .\packages\msi\mondoo_${{ matrix.arch }}.msi
+          Copy-Item '.\packages\msi\mondoo_${{ matrix.arch }}.msi' '.\dist\${{ matrix.arch }}'
       - name: Dump Signing Log on Failure
         if: failure()
         run: |
@@ -208,10 +208,10 @@ jobs:
           VERSION: ${{ needs.setup.outputs.version }}
         run: |
           cd dist
-          mv mondoo_${{ matrix.arch }}.exe mondoo_${VERSION}_windows_${{ matrix.arch }}.exe
-          sha256sum mondoo_${VERSION}_windows_${{ matrix.arch }}.exe >> checksums.windows_${{ matrix.arch }}.txt
+          mv mondoo_${{ matrix.arch }}.msi mondoo_${VERSION}_windows_${{ matrix.arch }}.msi
+          sha256sum mondoo_${VERSION}_windows_${{ matrix.arch }}.msi >> checksums.windows_${{ matrix.arch }}.txt
           gsutil cp checksums.windows_${{ matrix.arch }}.txt gs://releases-us.mondoo.io/mondoo/${VERSION}/checksums.windows_${{ matrix.arch }}.txt
-          gsutil cp mondoo_${VERSION}_windows_${{ matrix.arch }}.exe gs://releases-us.mondoo.io/mondoo/${VERSION}/mondoo_${VERSION}_windows_${{ matrix.arch }}.exe
+          gsutil cp mondoo_${VERSION}_windows_${{ matrix.arch }}.msi gs://releases-us.mondoo.io/mondoo/${VERSION}/mondoo_${VERSION}_windows_${{ matrix.arch }}.msi
       - name: Reindex folder on releaser.mondoo.com
         uses: peter-evans/repository-dispatch@v3
         env:
