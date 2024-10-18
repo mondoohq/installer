@@ -24,9 +24,9 @@ jobs:
     name: 'Setup'
     runs-on: ubuntu-latest
     outputs:
-      version: 11.26.0
-      trimmed-version: 11.26.0
-      name: charismatic chisel
+      version: ${{ steps.version.outputs.version }}
+      trimmed-version: ${{ steps.version.outputs.trimmed_version }}
+      name: ${{ steps.version.outputs.name }}
     steps:
       - name: Set Version (Workflow Dispatch)
         if: github.event_name == 'workflow_dispatch'
