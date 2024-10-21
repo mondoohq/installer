@@ -19,6 +19,7 @@ function info($msg) {  Write-Host $msg -f white }
 
 info "build msi package $version"
 # delete previous build
+Remove-Item ".\mondoo.msi" -ErrorAction Ignore
 Remove-Item ".\mondoo_${arch}.msi" -ErrorAction Ignore
 cd msi
 # delete previous intermediate files
@@ -27,7 +28,7 @@ Remove-Item .\mondoo.wixpdb -ErrorAction Ignore
 # build package
 dir 'C:\Program Files (x86)\'
 info "run candle (standard)"
-& 'C:\Program Files (x86)\WiX Toolset v3.14\bin\candle' -nologo  -dMondooSKU="standard" -darch="$platform" -dProductVersion="$version" -ext WixUtilExtension Product.wxs
+& 'C:\Program Files (x86)\WiX Toolset v3.14\bin\candle' -nologo -dMondooSKU="standard" -darch="$platform" -dProductVersion="$version" -ext WixUtilExtension Product.wxs
 
 info "run light (standard)"
 
