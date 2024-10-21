@@ -42,7 +42,6 @@
       InstallerVersion="$(var.InstallerVersion)"
       Compressed="yes"
       Comments="Windows Installer Package"
-      Platform="x64"
       InstallScope="perMachine"
       InstallPrivileges="elevated"
       />
