@@ -3,8 +3,11 @@
 
 # use: ./package.ps1 -version 0.32.0
 param (
-    [string]$version = 'x.xx.x'
+    [string]$version = 'x.xx.x',
+    [string]$arch = 'amd64|arm64'
 )
+
+$platform = $arch -eq "amd64" ? "x64" : $arch
 
 function info($msg) {  Write-Host $msg -f white }
 
@@ -16,7 +19,8 @@ function info($msg) {  Write-Host $msg -f white }
 
 info "build msi package $version"
 # delete previous build
-Remove-Item .\mondoo.msi -ErrorAction Ignore
+Remove-Item ".\mondoo.msi" -ErrorAction Ignore
+Remove-Item ".\mondoo_${arch}.msi" -ErrorAction Ignore
 cd msi
 # delete previous intermediate files
 Remove-Item .\Product.wixobj -ErrorAction Ignore
@@ -24,14 +28,16 @@ Remove-Item .\mondoo.wixpdb -ErrorAction Ignore
 # build package
 dir 'C:\Program Files (x86)\'
 info "run candle (standard)"
-& 'C:\Program Files (x86)\WiX Toolset v3.14\bin\candle' -nologo -arch x64 -dMondooSKU="standard" -dProductVersion="$version" -ext WixUtilExtension Product.wxs
+& 'C:\Program Files (x86)\WiX Toolset v3.14\bin\candle' -nologo -dMondooSKU="standard" -darch="$platform" -dProductVersion="$version" -ext WixUtilExtension Product.wxs
 
 info "run light (standard)"
-& 'C:\Program Files (x86)\WiX Toolset v3.14\bin\light' -nologo -dcl:high -cultures:en-us -loc en-us.wxl -ext WixUIExtension -ext WixUtilExtension product.wixobj -o mondoo.msi
+
+& 'C:\Program Files (x86)\WiX Toolset v3.14\bin\light' -nologo -dcl:high -cultures:en-us -loc en-us.wxl -ext WixUIExtension -ext WixUtilExtension product.wixobj -o "mondoo_${arch}.msi"
 
 # delete previous intermediate files
 Remove-Item .\Product.wixobj -ErrorAction Ignore
 Remove-Item .\mondoo.wixpdb -ErrorAction Ignore
 cd ..
 
-Move-Item .\msi\mondoo.msi .
+Move-Item ".\msi\mondoo_${arch}.msi" .
+

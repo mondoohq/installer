@@ -53,12 +53,17 @@ jobs:
           echo "trimmed_version=$(echo ${V} | sed 's/-.*//')" >> $GITHUB_OUTPUT
       - name: Ensure version of cnquery and cnspec are available
         run: |
-          curl -sL --head --fail https://github.com/mondoohq/cnquery/releases/download/v${{ steps.version.outputs.version }}/cnquery_${{ steps.version.outputs.version }}_windows_amd64.zip
-          curl -sL --head --fail https://github.com/mondoohq/cnspec/releases/download/v${{ steps.version.outputs.version }}/cnspec_${{ steps.version.outputs.version }}_windows_amd64.zip
+          curl -sL --head --fail https://github.com/mondoohq/cnquery/releases/download/v${{ steps.version.outputs.version }}/cnquery_${{ steps.version.outputs.version }}_windows_amd64.zip \
+            https://github.com/mondoohq/cnspec/releases/download/v${{ steps.version.outputs.version }}/cnspec_${{ steps.version.outputs.version }}_windows_amd64.zip \
+            https://github.com/mondoohq/cnquery/releases/download/v${{ steps.version.outputs.version }}/cnquery_${{ steps.version.outputs.version }}_windows_arm64.zip \
+            https://github.com/mondoohq/cnspec/releases/download/v${{ steps.version.outputs.version }}/cnspec_${{ steps.version.outputs.version }}_windows_arm64.zip
 
 
   dist-prepare:
     name: 'Prepare Distribution for Packaging'
+    strategy:
+      matrix:
+        arch: ["amd64", "arm64"]
     runs-on: ubuntu-latest
     needs: setup
     steps:
@@ -69,24 +74,27 @@ jobs:
           VERSION: ${{ needs.setup.outputs.version }}
         run: |
           # TODO: We should check the sums here
-          mkdir -p dist && cd dist
-          curl -sSL -O https://github.com/mondoohq/cnspec/releases/download/v${VERSION}/cnspec_${VERSION}_windows_amd64.zip
-          unzip cnspec_${VERSION}_windows_amd64.zip
-          rm cnspec_${VERSION}_windows_amd64.zip
-          curl -sSL -O https://github.com/mondoohq/cnquery/releases/download/v${VERSION}/cnquery_${VERSION}_windows_amd64.zip
-          unzip cnquery_${VERSION}_windows_amd64.zip
-          rm cnquery_${VERSION}_windows_amd64.zip
+          mkdir -p dist/${{ matrix.arch }} && cd dist/${{ matrix.arch }}
+          curl -sSL -O https://github.com/mondoohq/cnspec/releases/download/v${VERSION}/cnspec_${VERSION}_windows_${{ matrix.arch }}.zip
+          unzip cnspec_${VERSION}_windows_${{ matrix.arch }}.zip
+          rm cnspec_${VERSION}_windows_${{ matrix.arch }}.zip
+          curl -sSL -O https://github.com/mondoohq/cnquery/releases/download/v${VERSION}/cnquery_${VERSION}_windows_${{ matrix.arch }}.zip
+          unzip cnquery_${VERSION}_windows_${{ matrix.arch }}.zip
+          rm cnquery_${VERSION}_windows_${{ matrix.arch }}.zip
           ls -lh
       - name: Upload Distribution
         uses: actions/upload-artifact@v4
         with:
-          name: dist
-          path: dist
+          name: dist-${{ matrix.arch }}
+          path: dist/${{ matrix.arch }}
 
 
   msi-build:
     name: 'Packaging: Windows MSI'
     runs-on: windows-latest
+    strategy:
+      matrix:
+        arch: ["amd64", "arm64"]
     needs: [ setup, dist-prepare ]
     #  For Version: ${{ needs.setup.outputs.version }}
     steps:
@@ -95,8 +103,8 @@ jobs:
       - name: Download Distribution
         uses: actions/download-artifact@v4
         with:
-          name: dist
-          path: dist
+          name: dist-${{ matrix.arch }}
+          path: dist/${{ matrix.arch }}
 
       - name: Setup Certificate
         shell: bash
@@ -131,19 +139,19 @@ jobs:
         run: |
           $mondooVersion = ${env:VERSION}
           echo "Running build job for version ${mondooVersion}"
-          Copy-Item .\dist\cnquery.exe .\packages\msi\msi\
-          Copy-Item .\dist\cnspec.exe .\packages\msi\msi\
-          Copy-Item .\dist\cnquery.exe .\packages\msi\appx\
-          Copy-Item .\dist\cnspec.exe .\packages\msi\appx\
+          Copy-Item .\dist\${{ matrix.arch }}\cnquery.exe .\packages\msi\msi\
+          Copy-Item .\dist\${{ matrix.arch }}\cnspec.exe .\packages\msi\msi\
+          Copy-Item .\dist\${{ matrix.arch }}\cnquery.exe .\packages\msi\appx\
+          Copy-Item .\dist\${{ matrix.arch }}\cnspec.exe .\packages\msi\appx\
           # build msi package
           echo " - Packaging MSI..."
           Set-Location -Path '.\packages\msi\'
-          ./package.ps1 -version $mondooVersion
+          ./package.ps1 -version $mondooVersion -arch ${{ matrix.arch }}
           # sign msi package
           echo " - Signing MSI..."
           Set-Location -Path '.\..\..'
-          signtool.exe sign /debug /sha1 ${{ secrets.SM_CODE_SIGNING_CERT_SHA1_HASH }} /tr http://timestamp.digicert.com /td SHA256 /fd SHA256 .\packages\msi\mondoo.msi
-          Copy-Item '.\packages\msi\mondoo.msi' '.\dist\'
+          signtool.exe sign /debug /sha1 ${{ secrets.SM_CODE_SIGNING_CERT_SHA1_HASH }} /tr http://timestamp.digicert.com /td SHA256 /fd SHA256 .\packages\msi\mondoo_${{ matrix.arch }}.msi
+          Copy-Item '.\packages\msi\mondoo_${{ matrix.arch }}.msi' '.\dist\${{ matrix.arch }}'
       - name: Dump Signing Log on Failure
         if: failure()
         run: |
@@ -158,17 +166,20 @@ jobs:
 
       - name: Cleanup dist before upload
         run: |
-          Remove-Item -Path .\dist\cnquery.exe -Force
-          Remove-Item -Path .\dist\cnspec.exe -Force
+          Remove-Item -Path .\dist\${{ matrix.arch }}\cnquery.exe -Force
+          Remove-Item -Path .\dist\${{ matrix.arch }}\cnspec.exe -Force
 
       - name: Upload Distribution
         uses: actions/upload-artifact@v4
         with:
-          name: msi
-          path: dist/
+          name: msi-${{ matrix.arch }}
+          path: dist/${{ matrix.arch }}
 
   publish:
     name: 'Publish: Releases'
+    strategy:
+      matrix:
+        arch: ["amd64", "arm64"]
     needs: [setup,msi-build]
     if: ${{ ! inputs.skip-publish }}
     runs-on: ubuntu-latest
@@ -178,7 +189,7 @@ jobs:
       - name: Download MSI Package
         uses: actions/download-artifact@v4
         with:
-          name: msi
+          name: msi-${{ matrix.arch }}
           path: dist
       - name: Authenticate with Google Cloud
         id: gauth
@@ -197,10 +208,10 @@ jobs:
           VERSION: ${{ needs.setup.outputs.version }}
         run: |
           cd dist
-          mv mondoo.msi mondoo_${VERSION}_windows_amd64.msi
-          sha256sum mondoo_${VERSION}_windows_amd64.msi >> checksums.windows.txt
-          gsutil cp checksums.windows.txt gs://releases-us.mondoo.io/mondoo/${VERSION}/checksums.windows.txt
-          gsutil cp mondoo_${VERSION}_windows_amd64.msi gs://releases-us.mondoo.io/mondoo/${VERSION}/mondoo_${VERSION}_windows_amd64.msi
+          mv mondoo_${{ matrix.arch }}.msi mondoo_${VERSION}_windows_${{ matrix.arch }}.msi
+          sha256sum mondoo_${VERSION}_windows_${{ matrix.arch }}.msi >> checksums.windows_${{ matrix.arch }}.txt
+          gsutil cp checksums.windows_${{ matrix.arch }}.txt gs://releases-us.mondoo.io/mondoo/${VERSION}/checksums.windows_${{ matrix.arch }}.txt
+          gsutil cp mondoo_${VERSION}_windows_${{ matrix.arch }}.msi gs://releases-us.mondoo.io/mondoo/${VERSION}/mondoo_${VERSION}_windows_${{ matrix.arch }}.msi
       - name: Reindex folder on releaser.mondoo.com
         uses: peter-evans/repository-dispatch@v3
         env:
