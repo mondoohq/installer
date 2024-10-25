@@ -222,8 +222,8 @@ function Install-Mondoo {
   "
   }
 
-  # we only support x86_64 at this point, stop if we got arm
-  If ($env:PROCESSOR_ARCHITECTURE -ne 'AMD64' -and -not ($env:PROCESSOR_ARCHITECTURE -eq "x86" -and [Environment]::Is64BitOperatingSystem)) {
+  # check if we are on 64-bit intel, 64-bit arm, or a 32-bit process on a 64-bit intel system:
+  If ($env:PROCESSOR_ARCHITECTURE -ne 'AMD64' -and $env:PROCESSOR_ARCHITECTURE -ne 'ARM64' -and -not (($env:PROCESSOR_ARCHITECTURE -eq "x86" -and [Environment]::Is64BitOperatingSystem))) {
     fail "
   Your processor architecture $env:PROCESSOR_ARCHITECTURE is not supported yet. Please come join us in
   our Mondoo Community GitHub Discussions https://github.com/orgs/mondoohq/discussions or email us at hello@mondoo.com
@@ -261,6 +261,9 @@ function Install-Mondoo {
   }
 
   $arch = 'amd64'
+  if ($env:PROCESSOR_ARCHITECTURE -match "ARM") {
+    $arch = 'arm64'
+  }
   $releaseurl = ''
   $version = $Version
 
