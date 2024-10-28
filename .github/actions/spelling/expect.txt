@@ -81,8 +81,8 @@ DAUJA
 DBp
 DBQs
 DBRUKCQg
-DEYWPOPDJc
 devkit
+DEYWPOPDJc
 Dfmno
 DGCc
 Dgoqfxz
@@ -299,11 +299,11 @@ LQLAn
 LSbn
 LSnz
 Luj
-LYDWlv
+LYD
 LYG
 LZPk
 Lzt
-LZZVdhxgh
+LZZ
 MAkcdl
 makepkg
 mbj
@@ -555,6 +555,7 @@ UZu
 Uzv
 Vam
 vbm
+Vdhxgh
 Vdk
 Veq
 Vhj
@@ -591,6 +592,7 @@ WIQRM
 WKZ
 Wlm
 wlu
+Wlv
 wlvil
 WNmz
 Wox
