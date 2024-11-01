@@ -231,7 +231,9 @@ jobs:
         run: |
           & 'C:\Program Files\Mondoo\cnspec.exe' policy download mondoo-windows-installer -f mondoo-windows-installer.mql.yaml
           & 'C:\Program Files\Mondoo\cnspec.exe' scan local --detect-cicd --score-threshold 100 -o full --policy-bundle mondoo-windows-installer.mql.yaml
-
+      - name: Logout from edge with cnspec
+        run: |
+          & 'C:\Program Files\Mondoo\cnspec.exe' logout --config C:\ProgramData\Mondoo\mondoo.yml --force
 
   publish:
     name: 'Publish: Releases'
