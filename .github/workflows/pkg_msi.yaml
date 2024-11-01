@@ -166,10 +166,68 @@ jobs:
         with:
           name: msi
           path: dist/
+  
+
+  test-msi-install:
+    name: Test Signed Package
+    strategy:
+      matrix:
+        arch:
+          - amd64
+#          - arm64 # we currently don't have windows arm64 runners to test arm against
+    needs:
+      - setup
+      - msi-build
+    runs-on: windows-latest
+    steps:
+      - name: Download MSI Package
+        uses: actions/download-artifact@v4
+        with:
+          name: msi-${{ matrix.arch }}
+          path: dist
+      - name: Verify digital signature is valid
+        run: |
+          cd dist
+          Get-AuthenticodeSignature -FilePath .\\mondoo_${{ matrix.arch }}.msi
+      - name: Install artifact
+        run: |
+          cd dist
+          msiexec /qn /i mondoo_${{ matrix.arch }}.msi
+      - name: Verify the correct cnquery version is installed
+        run: |
+          $version=& 'C:\Program Files\Mondoo\cnquery.exe' version
+          $match=$version -like "*${{ needs.setup.outputs.version }}*"
+          if (-not $match) {
+            exit 1
+          }
+      - name: Run a basic cnquery sanity check
+        run: |
+          & 'C:\Program Files\Mondoo\cnquery.exe' run -c "os.base.packages.where(name == 'Mondoo') { name }"
+      - name: Verify the correct cnspec version is installed
+        run: |
+          $version=& 'C:\Program Files\Mondoo\cnspec.exe' version
+          $match=$version -like "*${{ needs.setup.outputs.version }}*"
+          if (-not $match) {
+            exit 1
+          }
+      - name: Run a basic cnspec sanity check
+        run: |
+          & 'C:\Program Files\Mondoo\cnspec.exe' run -c "os.base.packages.where(name == 'Mondoo') { name }"
+      - name: Login to edge with cnspec
+        run: |
+          & 'C:\Program Files\Mondoo\cnspec.exe' login -t "${{ secrets.INSTALL_TEST_MONDOO_REGISTRATION_TOKEN }}" --config C:\ProgramData\Mondoo\mondoo.yml
+      - name: Run a basic cnspec sanity check
+        run: |
+          & 'C:\Program Files\Mondoo\cnspec.exe' policy download mondoo-windows-installer -f mondoo-windows-installer.mql.yaml
+          & 'C:\Program Files\Mondoo\cnspec.exe' scan local --detect-cicd --score-threshold 100 -o full --policy-bundle mondoo-windows-installer.mql.yaml
+
 
   publish:
     name: 'Publish: Releases'
-    needs: [setup,msi-build]
+    needs:
+      - setup
+      - msi-build
+      - test-msi-install
     if: ${{ ! inputs.skip-publish }}
     runs-on: ubuntu-latest
     steps:
