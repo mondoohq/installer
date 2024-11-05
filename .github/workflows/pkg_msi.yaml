@@ -194,16 +194,16 @@ jobs:
       - name: Download MSI Package
         uses: actions/download-artifact@v4
         with:
-          name: msi
+          name: msi-${{ matrix.arch }}
           path: dist
       - name: Verify digital signature is valid
         run: |
           cd dist
-          Get-AuthenticodeSignature -FilePath .\\mondoo.msi
+          Get-AuthenticodeSignature -FilePath .\\mondoo_${{ matrix.arch }}.msi
       - name: Install artifact
         run: |
           cd dist
-          msiexec /qn /i mondoo.msi
+          msiexec /qn /i mondoo_${{ matrix.arch }}.msi
       - name: Verify the correct cnquery version is installed
         run: |
           $version=& 'C:\Program Files\Mondoo\cnquery.exe' version
