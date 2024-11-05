@@ -9,7 +9,7 @@ on:
 jobs:
   build_container:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
     name: Build Docker
     steps:
       - name: Clone repository
