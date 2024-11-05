@@ -21,7 +21,7 @@ jobs:
     strategy:
       matrix:
         os: ["windows-latest"]
-        package: ["cnquery", "cnspec", "mondoo"]
+        package: ["cnquery", "cnspec"]
     steps:
       - uses: actions/checkout@v4
       - name: Version
@@ -38,7 +38,35 @@ jobs:
           Install-Mondoo -Product ${{ matrix.package }};
       - name: Verify the correct version is installed
         run: |
-          $version=& 'C:\Program Files\Mondoo\${{ replace(matrix.package, 'mondoo', 'cnspec') }}".exe' version
+          $version=& 'C:\Program Files\Mondoo\${{ matrix.package }}.exe' version
+          $match=$version -like "*${{ steps.version.outputs.version }}*"
+          if (-not $match) {
+            exit 1
+          }
+
+  install-ps1-windows-mondoo:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        os: ["windows-latest"]
+        package: ["mondoo"]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Version
+        id: version
+        run: |
+          $v='${{ github.event.inputs.version }}'
+          $version=$v.trim("v","V")
+          echo "version=$version" >> $env:GITHUB_OUTPUT
+      - name: Install.ps1/${{ matrix.package }} on ${{ matrix.os }}
+        run: |
+          Set-ExecutionPolicy Unrestricted -Scope Process -Force;
+          [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072;
+          iex ((New-Object System.Net.WebClient).DownloadString('https://install.mondoo.com/ps1/${{ matrix.package }}'));
+          Install-Mondoo -Product ${{ matrix.package }};
+      - name: Verify the correct version is installed
+        run: |
+          $version=& 'C:\Program Files\Mondoo\cnspec.exe' version
           $match=$version -like "*${{ steps.version.outputs.version }}*"
           if (-not $match) {
             exit 1
