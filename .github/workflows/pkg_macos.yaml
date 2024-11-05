@@ -17,7 +17,7 @@ on:
         default: false
         type: boolean
   release:
-    types: [released]
+    types: [published]
 
 jobs:
   pkg:
