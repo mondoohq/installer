@@ -163,8 +163,8 @@ if [ "$DISTRIBUTION" = "Darwin" ]; then
   OS="macOS"
 elif [ -f /etc/debian_version ] || [ "$DISTRIBUTION" == "Debian" ] || [ "$DISTRIBUTION" == "Ubuntu" ]; then
   OS="Debian"
-elif [ "$AWS_EXECUTION_ENV" == "CloudShell" ]; then
-  OS="AWSCloudShell"
+elif [ "$AWS_EXECUTION_ENV" == "CloudShell" ] || [ "$POWERSHELL_DISTRIBUTION_CHANNEL" == "CloudShell" ]; then
+  OS="CloudShell"
 elif [ -f /etc/redhat-release ] || [ "$DISTRIBUTION" == "RedHat" ] || [ "$DISTRIBUTION" == "CentOS" ] || [ "$DISTRIBUTION" == "Amazon" ] || [ "$DISTRIBUTION" == "AlmaLinux" ] || [ "$DISTRIBUTION" == "Rocky Linux" ]; then
   OS="RedHat"
 elif [ -f /etc/photon-release ] || [ "$DISTRIBUTION" == "Photon" ]; then
@@ -761,7 +761,7 @@ elif [[ "$OS" = "Debian" ]]; then
 elif [[ "$OS" = "Suse" ]]; then
   configure_suse_installer
 
-elif [[ "$OS" = "AWSCloudShell" ]]; then
+elif [[ "$OS" = "CloudShell" ]]; then
   configure_cloudshell_installer
 
 else
