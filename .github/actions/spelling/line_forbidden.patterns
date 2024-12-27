@@ -46,8 +46,8 @@
 #
 
 # s.b. Mondoo Platform
-\sthe Mondoo Platform\b
-\sMondoo platform\b
+\bthe Mondoo Platform\b
+\bMondoo platform\b
 
 # s.b. Compliance Hub
 \b[Cc]ompliance hub\b
@@ -68,6 +68,9 @@
 #
 # Industry Terms
 #
+
+# s.b. NetFlow
+\bNetflow\b
 
 # s.b. Side scanning
 \b[Ss]idescanning\b
@@ -102,6 +105,9 @@
 #
 # Product Names
 #
+
+# s.b. Cloudflare
+\bCloudFlare\b
 
 # s.b. Memcached
 \bMemCached\b
@@ -169,6 +175,10 @@
 # s.b. AlmaLinux
 \bAlma Linux\b
 
+# s.b. CloudLinux
+\bCloud Linux\b
+\bCloudlinux\b
+
 # s.b. openSUSE
 \bOpenSUSE\b
 
@@ -229,10 +239,9 @@
 \bService Now\b
 \bServicenow\b
 
-# disabled due to docs false positives
 # s.b. name server
-# \bnameserver\b
-# \bnameservers\b
+\bnameserver\b
+\bnameservers\b
 
 #
 # Kubernetes Terms
@@ -314,7 +323,7 @@
 \bbitLocker\b
 
 # s.b. VS Code
-# \bVSCode\b # disabled due to false positive
+# \bVSCode\b false positives on vscode package name in readme
 \bVScode\b
 
 # s.b. LinkedIn
@@ -379,7 +388,7 @@
 # s.b. CloudShell
 # we can't check for Cloud Shell since that's what Azure calls it
 \bCloudshell\b
-# cloudshell results in false positives
+\bcloudshell\b
 
 # s.b. CloudTrail
 \bCloudtrail\b
@@ -524,10 +533,9 @@
 # s.b. Cloud Functions
 \bCloud functions\b
 
-# disabled for now in this repo due to false positives
 # s.b. Cloud Run
-# \bCloudRun\b
-# \bCloud run\b
+\bCloudRun\b
+\bCloud run\b
 
 # s.b. Cloud SQL
 \bCloudSQL\b
