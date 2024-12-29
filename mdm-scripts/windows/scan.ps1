@@ -11,6 +11,8 @@
     Set 'cnspec' (default) to download from a share and execute it
     .PARAMETER RegistrationToken
     Is required to register the Mondoo Product, if ConfigFile is not existent
+    .PARAMETER ForceRegistration
+    Is required to force re-registration the Mondoo Product. The cnspec client will be logged out and re-registered with the provided RegistrationToken. Default: $false
     .PARAMETER Proxy
     If provided, the proxy will be used for cnspec backend communication
     .PARAMETER Path
@@ -25,7 +27,7 @@
     Random delay in seconds before execution of the script
     .EXAMPLE
     scan.ps1 -Product cnspec
-    scan.ps1 -RegistrationToken 'InsertTokenHere'
+    scan.ps1 -RegistrationToken 'InsertTokenHere' -ForceRegistration $true
     scan.ps1 -Proxy 'http://proxy:8080'
     scan.ps1 -ExecutionPath 'C:\Users\Administrator\mondoo'
     scan.ps1 -DownloadPath '\\1.1.1.1\share'
@@ -36,6 +38,7 @@
 Param(
       [string]   $Product = 'cnspec',
       [string]   $RegistrationToken = '',
+      [bool]     $ForceRegistration = $false,
       [string]   $Proxy = '',
       [string]   $ExecutionPath = '',
       [string]   $DownloadPath = '',
@@ -127,6 +130,7 @@ Your processor architecture $env:PROCESSOR_ARCHITECTURE is not supported yet. Co
 info "Arguments:"
   info ("  Product:           {0}" -f $Product)
   info ("  RegistrationToken: {0}" -f $RegistrationToken)
+  info ("  ForceRegistration: {0}" -f $ForceRegistration)
   info ("  Proxy:             {0}" -f $Proxy)
   info ("  ExecutionPath:     {0}" -f $ExecutionPath)
   info ("  DownloadPath:      {0}" -f $DownloadPath)
@@ -172,6 +176,20 @@ If (![string]::IsNullOrEmpty($DownloadPath)) {
   fail "DownloadPath is required"
 }
 
+ # Cache the error action preference
+ $backupErrorActionPreference = $ErrorActionPreference
+ $ErrorActionPreference = "Continue"
+
+# Check if re-registration is forced
+If ($ForceRegistration -and (Test-Path -Path "$($ConfigFile)")) {
+  # Prepare cnspec logout command
+  $logout_params = @("logout", "--config", "$ConfigFile", "--force")
+  info " * $Product Client is already registered. Logging out and back in again to update the registration"
+  $output = (& $program $logout_params 2>&1)
+  info "$output"
+  Remove-Item -Path "$($ConfigFile)"
+}
+
 # Check if cnspec is registered
 If (-not (Test-Path -Path "$($ConfigFile)")) {
   If ([string]::IsNullOrEmpty($RegistrationToken)) {
@@ -179,10 +197,6 @@ If (-not (Test-Path -Path "$($ConfigFile)")) {
   }
   info " * Register $Product Client"
   $login_params = @("login", "-t", "$RegistrationToken", "--config", "$ConfigFile")
-
-  # Cache the error action preference
-  $backupErrorActionPreference = $ErrorActionPreference
-  $ErrorActionPreference = "Continue"
 
   # Capture all output from cnspec
   $output = (& $program $login_params 2>&1)
