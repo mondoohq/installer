@@ -12,7 +12,7 @@
     .PARAMETER RegistrationToken
     Is required to register the Mondoo Product, if ConfigFile is not existent
     .PARAMETER ForceRegistration
-    Is required to force re-registration the Mondoo Product and overwrite the existing ConfigFile
+    Is required to force re-registration the Mondoo Product. The cnspec client will be logged out and re-registered with the provided RegistrationToken. Default: $false
     .PARAMETER Proxy
     If provided, the proxy will be used for cnspec backend communication
     .PARAMETER Path
