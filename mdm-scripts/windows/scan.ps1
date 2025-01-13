@@ -38,7 +38,7 @@
 Param(
       [string]   $Product = 'cnspec',
       [string]   $RegistrationToken = '',
-      [bool]     $ForceRegistration = $false,
+      [switch]   $ForceRegistration = $false,
       [string]   $Proxy = '',
       [string]   $ExecutionPath = '',
       [string]   $DownloadPath = '',
