@@ -1,0 +1,90 @@
+name: Create installer GitHub Release
+
+on:
+  repository_dispatch:
+    types: [trigger-release]
+  workflow_dispatch:
+    inputs:
+      version:
+        type: string
+        description: "The version to release"
+
+env:
+  # C07QZDJFF89 == #release-coordination
+  SLACK_BOT_CHANNEL_ID: "C07QZDJFF89"
+
+jobs:
+  create-gh-release:
+    name: GH Release
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - id: slack
+        uses: slackapi/slack-github-action@v2.0.0
+        with:
+          method: chat.postMessage
+          token: ${{ secrets.SLACK_BOT_TOKEN }}
+          payload: |
+            channel: "${{ env.SLACK_BOT_CHANNEL_ID }}"
+            text: "GitHub Actions Run"
+            attachments:
+              - color: "#FFFF00"
+                blocks:
+                  - type: "section"
+                    fields:
+                      - type: "mrkdwn"
+                        text: "<${{ github.event.repository.html_url }}/actions/runs/${{ github.run_id }}/attempts/${{ github.run_attempt }}|${{ github.workflow }}>"
+                      - type: "mrkdwn"
+                        text: "*Status:*\n`In Progress`"
+      - name: Checkout
+        uses: actions/checkout@v4
+      # Determine which version should be released based on event type
+      - name: Set Version (Workflow Dispatch)
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          echo VERSION=${{ inputs.version }} >> $GITHUB_ENV
+      - name: Set Version (Repository Dispatch)
+        if: github.event_name == 'repository_dispatch'
+        run: |
+          echo VERSION=${{ github.event.client_payload.version }} >> $GITHUB_ENV
+      - name: Unified Version
+        id: version
+        run: |
+          echo "Version: $VERSION"
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+      # fetch a token for the mondoo-mergebot app
+      - name: Generate token
+        id: generate-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.MONDOO_MERGEBOT_APP_ID }}
+          private-key: ${{ secrets.MONDOO_MERGEBOT_APP_PRIVATE_KEY }}
+      - name: Release
+        id: release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.version }}
+          generate_release_notes: true
+          make_latest: true
+          token: ${{ steps.generate-token.outputs.token }}
+      - uses: slackapi/slack-github-action@v2.0.0
+        if : ${{ always() }}
+        with:
+          method: chat.update
+          token: ${{ secrets.SLACK_BOT_TOKEN }}
+          payload: |
+            channel: "${{ env.SLACK_BOT_CHANNEL_ID }}"
+            ts: "${{ steps.slack.outputs.ts }}"
+            text: "GitHub Actions Run"
+            attachments:
+              - color: "${{ (steps.release.outcome == 'success') && '#00FF00' || (steps.release.outcome == 'failure') && '#FF0000' || '#FFA500' }}"
+                blocks:
+                  - type: "section"
+                    fields:
+                      - type: "mrkdwn"
+                        text: "<${{ github.event.repository.html_url }}/actions/runs/${{ github.run_id }}/attempts/${{ github.run_attempt }}|${{ github.workflow }}>"
+                      - type: "mrkdwn"
+                        text: " "
+                      - type: "mrkdwn"
+                        text: "*Status:*\n`${{ steps.release.outcome }}`"
