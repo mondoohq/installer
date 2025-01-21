@@ -27,7 +27,7 @@ jobs:
       - name: Version
         id: version
         run: |
-          V=${{ github.event.inputs.version }}
+          V=${{ inputs.version }}
           VERSION=$(echo $V | sed 's/^v//')
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
       - name: Testing mondoo/cnquery:${{ matrix.tag }}....
@@ -46,7 +46,7 @@ jobs:
       - name: Version
         id: version
         run: |
-          V=${{ github.event.inputs.version }}
+          V=${{ inputs.version }}
           VERSION=$(echo $V | sed 's/^v//')
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
       - name: Testing mondoo/cnspec:${{ matrix.tag }}....
@@ -66,7 +66,7 @@ jobs:
       - name: Version
         id: version
         run: |
-          V=${{ github.event.inputs.version }}
+          V=${{ inputs.version }}
           VERSION=$(echo $V | sed 's/^v//')
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
       - name: Testing mondoo/client:${{ matrix.tag }}....

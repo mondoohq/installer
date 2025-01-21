@@ -27,7 +27,7 @@ jobs:
       - name: Version
         id: version
         run: |
-          $v='${{ github.event.inputs.version }}'
+          $v='${{ inputs.version }}'
           $version=$v.trim("v","V")
           echo "version=$version" >> $env:GITHUB_OUTPUT
       - name: Install.ps1/${{ matrix.package }} on ${{ matrix.os }}

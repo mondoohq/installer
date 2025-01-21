@@ -36,7 +36,7 @@ jobs:
       - name: Version
         id: version
         run: |
-          V=${{ github.event.inputs.version }}
+          V=${{ inputs.version }}
           VERSION=$(echo $V | sed 's/^v//')
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
       - name: Install.sh/${{ matrix.package }} on ${{ matrix.distro }}
@@ -68,7 +68,7 @@ jobs:
       - name: Version
         id: version
         run: |
-          V=${{ github.event.inputs.version }}
+          V=${{ inputs.version }}
           VERSION=$(echo $V | sed 's/^v//')
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
       - name: Install.sh/${{ matrix.package }} on ${{ matrix.distro }}
@@ -87,7 +87,7 @@ jobs:
       - name: Version
         id: version
         run: |
-          V=${{ github.event.inputs.version }}
+          V=${{ inputs.version }}
           VERSION=$(echo $V | sed 's/^v//')
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
       - name: Install.sh/${{ matrix.package }} on ${{ matrix.os }}
