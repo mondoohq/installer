@@ -23,7 +23,7 @@ jobs:
       - name: Version
         id: version
         run: |
-          V=${{ github.event.inputs.version }}
+          V=${{ inputs.version }}
           VERSION=$(echo $V | sed 's/^v//')
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
       - name: Install cnquery with MakePKG on Arch Linux
@@ -45,7 +45,7 @@ jobs:
       - name: Version
         id: version
         run: |
-          V=${{ github.event.inputs.version }}
+          V=${{ inputs.version }}
           VERSION=$(echo $V | sed 's/^v//')
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
       - name: Install cnspec with Yay on Arch Linux

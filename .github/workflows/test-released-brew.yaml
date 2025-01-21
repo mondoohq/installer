@@ -36,7 +36,7 @@ jobs:
       - name: Version
         id: version
         run: |
-          V=${{ github.event.inputs.version }}
+          V=${{ inputs.version }}
           VERSION=$(echo $V | sed 's/^v//')
           echo "package_version=${VERSION}" >> $GITHUB_OUTPUT
 
@@ -62,7 +62,7 @@ jobs:
       - name: Version
         id: version
         run: |
-          V=${{ github.event.inputs.version }}
+          V=${{ inputs.version }}
           VERSION=$(echo $V | sed 's/^v//')
           echo "package_version=${VERSION}" >> $GITHUB_OUTPUT
       - name: Executing cnspec from Mondoo package....
