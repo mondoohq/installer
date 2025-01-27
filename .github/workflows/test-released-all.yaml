@@ -70,21 +70,24 @@ jobs:
           V=$(echo $VERSION | sed 's/v//')
           echo "Version: $V"
           echo "version=${V}" >> $GITHUB_OUTPUT
-      # wait at least for one package to be published, otherwise tests will fail directly
+      # wait for versioned ubi-rootless container image to be published, otherwise tests will fail directly
+      # This may take some time, it one of the last images to be created
+      # Chances are high, that most of the tests will pass on the first try with this.
       - name: Wait for packages to be published (Release Event)
         if: github.event_name == 'release'
         id: check_release_file
         uses: nick-fields/retry@v3
         with:
-          retry_wait_seconds: 10
+          retry_wait_seconds: 20
           timeout_seconds: 5
-          max_attempts: 60
+          max_attempts: 100
           retry_on: error
           # error on HTTP code different to 200
           command: |
             vSEMVER=${{ steps.version.outputs.version }}
             SEMVER="${vSEMVER//v}"
-            curl -o /dev/null -s -w "%{http_code}\n" "https://releases.mondoo.com/mondoo/${SEMVER}/mondoo_${SEMVER}_windows_amd64.msi" | grep 200
+            curl -o /dev/null -s -w "%{http_code}\n" "https://registry.hub.docker.com/v2/repositories/mondoo/client/tags/${SEMVER}-ubi-rootless" | grep 200
+
 
   test-arch:
     needs: [setup, notification-start]
