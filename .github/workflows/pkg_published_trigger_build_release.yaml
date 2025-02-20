@@ -33,16 +33,19 @@ on:
         required: false
         type: boolean
 jobs:
-  setup:
-    name: 'Setup'
+  parse-inputs:
     runs-on: ubuntu-latest
+    # Default values for variables when we are triggered via github event
     env:
       SKIP_PUBLISH: ${{ inputs.skip-publish || 'false' }}
+      BUCKET: ${{ inputs.bucket || 'releases-us.mondoo.io'}}
+    # Sanitized values, to be used instead of `inputs.XXXX`
     outputs:
+      skip-publish: ${{ steps.evaluate.outputs.skip-publish }}
+      bucket: ${{ steps.evaluate.outputs.skip-publish }}
       version: ${{ steps.evaluate.outputs.version }}
       trimmed-version: ${{ steps.evaluate.outputs.trimmed_version }}
       name: ${{ steps.evaluate.outputs.name }}
-      skip-publish: ${{ steps.evaluate.outputs.skip-publish }}
     steps:
       - name: Set Version (Workflow Dispatch)
         if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'workflow_call' }}
@@ -52,7 +55,7 @@ jobs:
         if: ${{ github.event_name == 'release' }}
         run: |
           echo VERSION=${{ github.event.release.tag_name }} >> $GITHUB_ENV
-      - name: Unified Version
+      - name: Set input variables
         id: evaluate
         run: |
           INPUT_NAME=${{ inputs.name }}
@@ -69,27 +72,20 @@ jobs:
           echo "trimmed_version=$(echo ${V} | sed 's/-.*//')" >> $GITHUB_OUTPUT
 
           echo "skip-publish=$SKIP_PUBLISH" >> "$GITHUB_OUTPUT"
-  parse-inputs:
-    runs-on: ubuntu-latest
-    env:
-      SKIP_PUBLISH: ${{ inputs.skip-publish || 'false' }}
-    outputs:
-    steps:
-      - name: Parse inputs
-        id: evaluate
-        run: |
+          echo "bucket=$BUCKET >> "$GITHUB_OUTPUT"
   build-arch:
     uses: ./.github/workflows/pkg_arch-aur.yaml
     needs: [ parse-inputs ]
     with:
-      version: ${{ github.event.inputs.version }}
+      version: ${{ needs.parse-inputs.outputs.version }}
       skip: ${{ needs.parse-inputs.outputs.skip-publish }}
   build-msi:
     uses: ./.github/workflows/pkg_msi.yaml
     needs: [ parse-inputs ]
     with:
-      version: ${{ github.event.inputs.version }}
+      version: ${{ needs.parse-inputs.outputs.version }}
       skip-publish: ${{ needs.parse-inputs.outputs.skip-publish }}
+      bucket: ${{ needs.parse-inputs.outputs.bucket }}
   build-chocolatey:
     uses: ./.github/workflows/pkg_chocolatey.yaml
     needs: [ parse-inputs ]
@@ -102,12 +98,14 @@ jobs:
     with:
       version: ${{ github.event.inputs.version }}
       skip-publish: ${{ needs.parse-inputs.outputs.skip-publish }}
+      bucket: ${{ needs.parse-inputs.outputs.bucket }}
   build-mondoo-pkgs:
     uses: ./.github/workflows/release_mondoo_pkgs.yaml
     needs: [ parse-inputs ]
     with:
       version: ${{ github.event.inputs.version }}
       skip-publish: ${{ needs.parse-inputs.outputs.skip-publish }}
+      bucket: ${{ needs.parse-inputs.outputs.bucket }}
   reindex:
     runs-on: ubuntu-latest
     steps:

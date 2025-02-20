@@ -10,6 +10,16 @@ on:
         required: true
         default: '8.99.99'
         type: 'string'
+      skip-publish:
+        description: 'Skip publish?'
+        required: false
+        default: false
+        type: boolean
+      bucket:
+        description: 'GCP Release Bucket Name'
+        required: true
+        default: 'releases-us.mondoo.io'
+        type: string
   workflow_dispatch:
     inputs:
       version:
@@ -17,6 +27,19 @@ on:
         required: true
         default: '1.2.3'
         type: 'string'
+      skip-publish:
+        description: 'Skip publish?'
+        required: false
+        default: false
+        type: boolean
+      bucket:
+        description: 'GCP Release Bucket Name'
+        required: true
+        default: 'releases-us.mondoo.io'
+        type: choice
+        options:
+          - 'releases-us.mondoo.io'
+          - 'releases-com-test'
 
 jobs:
   build-mondoo-payloads:
@@ -83,8 +106,9 @@ jobs:
           cd helper/packages
           sha256sum *linux* > checksums.linux.txt
       - name: Upload files to releases.mondoo.com
+        if: ${{ !inputs.skip-publish }}
         run: |
-          gsutil cp -r helper/packages/* gs://releases-us.mondoo.io/mondoo/${VERSION}/
+          gsutil cp -r helper/packages/* gs://${{ inputs.bucket }}/mondoo/${VERSION}/
       - name: Upload files to GitHub Release Page
         uses: softprops/action-gh-release@v2
         with:

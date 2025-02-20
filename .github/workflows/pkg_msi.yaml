@@ -18,6 +18,11 @@ on:
         required: false
         default: false
         type: boolean
+      bucket:
+        description: 'GCP Release Bucket Name'
+        required: true
+        default: 'releases-us.mondoo.io'
+        type: string
   workflow_dispatch:
     inputs:
       version:
@@ -35,8 +40,11 @@ on:
         required: false
         default: false
         type: boolean
-  release:
-    types: [published]
+      bucket:
+        description: 'GCP Release Bucket Name'
+        required: true
+        default: 'releases-us.mondoo.io'
+        type: string
 
 jobs:
   setup:
@@ -286,16 +294,17 @@ jobs:
         env:
           VERSION: ${{ needs.setup.outputs.version }}
         run: |
-          gsutil ls gs://releases-us.mondoo.io/mondoo
+          gsutil ls gs://${{ inputs.bucket }}/mondoo
       - name: Upload static content to buckets
+        if: ${{ !inputs.skip-publish }}
         env:
           VERSION: ${{ needs.setup.outputs.version }}
         run: |
           cd dist
           mv mondoo_${{ matrix.arch }}.msi mondoo_${VERSION}_windows_${{ matrix.arch }}.msi
           sha256sum mondoo_${VERSION}_windows_${{ matrix.arch }}.msi >> checksums.windows_${{ matrix.arch }}.txt
-          gsutil cp checksums.windows_${{ matrix.arch }}.txt gs://releases-us.mondoo.io/mondoo/${VERSION}/checksums.windows_${{ matrix.arch }}.txt
-          gsutil cp mondoo_${VERSION}_windows_${{ matrix.arch }}.msi gs://releases-us.mondoo.io/mondoo/${VERSION}/mondoo_${VERSION}_windows_${{ matrix.arch }}.msi
+          gsutil cp checksums.windows_${{ matrix.arch }}.txt gs://${{ inputs.bucket }}/mondoo/${VERSION}/checksums.windows_${{ matrix.arch }}.txt
+          gsutil cp mondoo_${VERSION}_windows_${{ matrix.arch }}.msi gs://${{ inputs.bucket }}/mondoo/${VERSION}/mondoo_${VERSION}_windows_${{ matrix.arch }}.msi
       - name: Cleanup
         run: |
           rm -f "${{ steps.gauth.outputs.credentials_file_path }}"

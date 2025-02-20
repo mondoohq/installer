@@ -8,6 +8,11 @@ on:
         required: true
         type: string
         default: "8.0.0"
+      skip-publish:
+        description: 'Skip publish?'
+        required: false
+        default: false
+        type: boolean
   workflow_dispatch:
     inputs:
       version:
@@ -15,8 +20,11 @@ on:
         required: true
         type: string
         default: "8.0.0"
-  release:
-    types: [published]
+      skip-publish:
+        description: 'Skip publish?'
+        required: false
+        default: false
+        type: boolean
 
 jobs:
   chocotize:
@@ -58,6 +66,7 @@ jobs:
 
       - name: Update Chocolatey Packages
         uses: addnab/docker-run-action@v3
+        if: ${{ !inputs.skip-publish }}
         with:
           image: chocolatey/choco:latest
           options: -v ${{ github.workspace }}/packages/chocolatey:/packages -e CHOCO_API_KEY=${{ secrets.CHOCOLATEY_API_KEY }} -e VERSION=${{ steps.version.outputs.version }}

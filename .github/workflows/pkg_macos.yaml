@@ -18,6 +18,11 @@ on:
         required: false
         default: false
         type: boolean
+      bucket:
+        description: 'GCP Release Bucket Name'
+        required: true
+        default: 'releases-us.mondoo.io'
+        type: string
   workflow_dispatch:
     inputs:
       version:
@@ -35,8 +40,14 @@ on:
         required: false
         default: false
         type: boolean
-  release:
-    types: [published]
+      bucket:
+        description: 'GCP Release Bucket Name'
+        required: true
+        default: 'releases-us.mondoo.io'
+        type: choice
+        options:
+          - 'releases-us.mondoo.io'
+          - 'releases-com-test'
 
 jobs:
   pkg:
@@ -159,23 +170,15 @@ jobs:
         uses: 'google-github-actions/setup-gcloud@v2'
       - name: Verify access to release bucket
         run: |
-          gsutil ls gs://releases-us.mondoo.io/mondoo
+          gsutil ls gs://${{ inputs.bucket }}/mondoo
       - name: Upload static content to buckets
+        if: ${{ !inputs.skip-publish }}
         run: |
           cd dist
           echo "${CHECKSUM}" >> checksums.macos.txt
-          gsutil cp checksums.macos.txt gs://releases-us.mondoo.io/mondoo/${VERSION}/checksums.macos.txt
-          gsutil cp ${PKG} gs://releases-us.mondoo.io/mondoo/${VERSION}/${PKG}
-      - name: Reindex folder on releaser.mondoo.com
-        uses: peter-evans/repository-dispatch@v3
-        with:
-          token: ${{ secrets.RELEASR_ACTION_TOKEN }}
-          repository: "mondoohq/releasr"
-          event-type: reindex
-          client-payload: '{
-            "reindex-path": "mondoo/${{ env.VERSION }}",
-            "bucket": "releases-us.mondoo.io"
-            }'
+          gsutil cp checksums.macos.txt gs://${{ inputs.bucket }}/mondoo/${VERSION}/checksums.macos.txt
+          gsutil cp ${PKG} gs://${{ inputs.bucket }}/mondoo/${VERSION}/${PKG}
+      # TODO: move this at the end of the parent pipeline
       - name: Wait a bit...
         run: sleep 120
       - name: Trigger Homebrew Generation
