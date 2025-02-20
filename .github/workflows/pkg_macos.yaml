@@ -1,16 +1,35 @@
 name: 'PKG: macOS Universal pkg Release'
 
 on:
+  workflow_call:
+    inputs:
+      version:
+        description: 'Package Version'
+        required: true
+        default: '8.99.99'
+        type: 'string'
+      name:
+        description: 'Package Name'
+        required: false
+        default: 'mondoo'
+        type: 'string'
+      skip-publish:
+        description: 'Skip publish?'
+        required: false
+        default: false
+        type: boolean
   workflow_dispatch:
     inputs:
       version:
         description: 'Package Version'
         required: true
         default: '0.0.1'
+        type: 'string'
       name:
         description: 'Package Name'
         required: false
         default: 'mondoo'
+        type: 'string'
       skip-publish:
         description: 'Skip publish?'
         required: false
@@ -28,11 +47,11 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set Version (Workflow Dispatch)
-        if: github.event_name == 'workflow_dispatch'
+        if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'workflow_call' }}
         run: |
           echo VERSION=${{ inputs.version }} >> $GITHUB_ENV
       - name: Set Version (Release Event)
-        if: github.event_name == 'release'
+        if: ${{ github.event_name == 'release' }}
         run: |
           echo VERSION=${{ github.event.release.tag_name }} >> $GITHUB_ENV
       - name: Unified Version

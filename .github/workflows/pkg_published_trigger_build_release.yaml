@@ -1,0 +1,125 @@
+name: 'PKG: Package, Release, Reindex'
+
+on:
+  release:
+    types: [released]
+  workflow_dispatch:
+    inputs:
+      skip-publish:
+        type: boolean
+        default: false
+      baseurl:
+        type: string
+        default: "https://releases.mondoo.com"
+      version:
+        description: 'Package Version'
+        required: true
+        default: '8.99.99'
+        type: 'string'
+      bucket:
+        description: 'GCP Release Bucket Name'
+        required: true
+        default: 'releases-us.mondoo.io'
+        type: choice
+        options:
+          - 'releases-us.mondoo.io'
+          - 'releases-com-test'
+      reindex-path:
+        description: 'Path to Reindex (Optional)'
+        required: false
+        type: string
+      reindex-full:
+        description: 'Regenerate ALL indexes (Intensive!)'
+        required: false
+        type: boolean
+jobs:
+  setup:
+    name: 'Setup'
+    runs-on: ubuntu-latest
+    env:
+      SKIP_PUBLISH: ${{ inputs.skip-publish || 'false' }}
+    outputs:
+      version: ${{ steps.evaluate.outputs.version }}
+      trimmed-version: ${{ steps.evaluate.outputs.trimmed_version }}
+      name: ${{ steps.evaluate.outputs.name }}
+      skip-publish: ${{ steps.evaluate.outputs.skip-publish }}
+    steps:
+      - name: Set Version (Workflow Dispatch)
+        if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'workflow_call' }}
+        run: |
+          echo VERSION=${{ inputs.version }} >> $GITHUB_ENV
+      - name: Set Version (Release Event)
+        if: ${{ github.event_name == 'release' }}
+        run: |
+          echo VERSION=${{ github.event.release.tag_name }} >> $GITHUB_ENV
+      - name: Unified Version
+        id: evaluate
+        run: |
+          INPUT_NAME=${{ inputs.name }}
+          if [[ ${INPUT_NAME} == '' ]]; then
+            echo "Name is empty, using default"
+            echo "name=mondoo" >> $GITHUB_OUTPUT
+          else
+            echo "Name: ${INPUT_NAME}"
+            echo "name=${INPUT_NAME}" >> $GITHUB_OUTPUT
+          fi
+          V=$(echo $VERSION | sed 's/v//')
+          echo "Version: $V"
+          echo "version=${V}" >> $GITHUB_OUTPUT
+          echo "trimmed_version=$(echo ${V} | sed 's/-.*//')" >> $GITHUB_OUTPUT
+
+          echo "skip-publish=$SKIP_PUBLISH" >> "$GITHUB_OUTPUT"
+  parse-inputs:
+    runs-on: ubuntu-latest
+    env:
+      SKIP_PUBLISH: ${{ inputs.skip-publish || 'false' }}
+    outputs:
+    steps:
+      - name: Parse inputs
+        id: evaluate
+        run: |
+  build-arch:
+    uses: ./.github/workflows/pkg_arch-aur.yaml
+    needs: [ parse-inputs ]
+    with:
+      version: ${{ github.event.inputs.version }}
+      skip: ${{ needs.parse-inputs.outputs.skip-publish }}
+  build-msi:
+    uses: ./.github/workflows/pkg_msi.yaml
+    needs: [ parse-inputs ]
+    with:
+      version: ${{ github.event.inputs.version }}
+      skip-publish: ${{ needs.parse-inputs.outputs.skip-publish }}
+  build-chocolatey:
+    uses: ./.github/workflows/pkg_chocolatey.yaml
+    needs: [ parse-inputs ]
+    with:
+      version: ${{ github.event.inputs.version }}
+      skip-publish: ${{ needs.parse-inputs.outputs.skip-publish }}
+  build-macos:
+    uses: ./.github/workflows/pkg_macos.yaml
+    needs: [ parse-inputs ]
+    with:
+      version: ${{ github.event.inputs.version }}
+      skip-publish: ${{ needs.parse-inputs.outputs.skip-publish }}
+  build-mondoo-pkgs:
+    uses: ./.github/workflows/release_mondoo_pkgs.yaml
+    needs: [ parse-inputs ]
+    with:
+      version: ${{ github.event.inputs.version }}
+      skip-publish: ${{ needs.parse-inputs.outputs.skip-publish }}
+  reindex:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Reindex folder on releaser.mondoo.com
+      uses: peter-evans/repository-dispatch@v3
+      env:
+        VERSION: ${{ needs.setup.outputs.version }}
+      with:
+        token: ${{ secrets.RELEASR_ACTION_TOKEN }}
+        repository: "mondoohq/releasr"
+        event-type: reindex
+        client-payload: '{
+          "reindex-path": "mondoo/${{ env.VERSION }}",
+          "bucket": "releases-us.mondoo.io"
+          }'

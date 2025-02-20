@@ -1,16 +1,35 @@
 name: 'PKG: Microsoft Software Installer (MSI)'
 
 on:
+  workflow_call:
+    inputs:
+      version:
+        description: 'Package Version'
+        required: true
+        default: '8.99.99'
+        type: 'string'
+      name:
+        description: 'Package Name'
+        required: false
+        default: 'mondoo'
+        type: 'string'
+      skip-publish:
+        description: 'Skip publish?'
+        required: false
+        default: false
+        type: boolean
   workflow_dispatch:
     inputs:
       version:
         description: 'Package Version'
         required: true
         default: '0.0.1'
+        type: 'string'
       name:
         description: 'Package Name'
         required: false
         default: 'mondoo'
+        type: 'string'
       skip-publish:
         description: 'Skip publish?'
         required: false
@@ -29,11 +48,11 @@ jobs:
       name: ${{ steps.version.outputs.name }}
     steps:
       - name: Set Version (Workflow Dispatch)
-        if: github.event_name == 'workflow_dispatch'
+        if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'workflow_call' }}
         run: |
           echo VERSION=${{ inputs.version }} >> $GITHUB_ENV
       - name: Set Version (Release Event)
-        if: github.event_name == 'release'
+        if: ${{ github.event_name == 'release' }}
         run: |
           echo VERSION=${{ github.event.release.tag_name }} >> $GITHUB_ENV
       - name: Unified Version
@@ -277,18 +296,6 @@ jobs:
           sha256sum mondoo_${VERSION}_windows_${{ matrix.arch }}.msi >> checksums.windows_${{ matrix.arch }}.txt
           gsutil cp checksums.windows_${{ matrix.arch }}.txt gs://releases-us.mondoo.io/mondoo/${VERSION}/checksums.windows_${{ matrix.arch }}.txt
           gsutil cp mondoo_${VERSION}_windows_${{ matrix.arch }}.msi gs://releases-us.mondoo.io/mondoo/${VERSION}/mondoo_${VERSION}_windows_${{ matrix.arch }}.msi
-      - name: Reindex folder on releaser.mondoo.com
-        uses: peter-evans/repository-dispatch@v3
-        env:
-          VERSION: ${{ needs.setup.outputs.version }}
-        with:
-          token: ${{ secrets.RELEASR_ACTION_TOKEN }}
-          repository: "mondoohq/releasr"
-          event-type: reindex
-          client-payload: '{
-            "reindex-path": "mondoo/${{ env.VERSION }}",
-            "bucket": "releases-us.mondoo.io"
-            }'
       - name: Cleanup
         run: |
           rm -f "${{ steps.gauth.outputs.credentials_file_path }}"

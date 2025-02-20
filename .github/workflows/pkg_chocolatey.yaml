@@ -1,6 +1,13 @@
 name: 'PKG: Chocolatey NuGet Release'
 
 on:
+  workflow_call:
+    inputs:
+      version:
+        description: "Version to release"
+        required: true
+        type: string
+        default: "8.0.0"
   workflow_dispatch:
     inputs:
       version:
@@ -21,11 +28,11 @@ jobs:
       # Determine which version should be released based on event type
       - name: Set Version (Workflow Dispatch)
         shell: bash
-        if: github.event_name == 'workflow_dispatch'
+        if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'workflow_call' }}
         run: |
           echo VERSION=${{ inputs.version }} >> $GITHUB_ENV
       - name: Set Version (Release Event)
-        if: github.event_name == 'release'
+        if: ${{ github.event_name == 'release' }}
         run: |
           echo VERSION=${{ github.event.release.tag_name }} >> $GITHUB_ENV
       - name: Unified Version
