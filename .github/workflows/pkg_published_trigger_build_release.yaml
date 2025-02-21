@@ -31,7 +31,7 @@ on:
         type: boolean
 jobs:
   parse-inputs:
-    uses: ./.github/workflows/helper/parse_inputs.yml
+    uses: ./.github/workflows/parse_inputs.yml
     with:
       skip-publish: ${{ inputs.skip-publish }}
       version: ${{ inputs.version }}
