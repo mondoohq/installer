@@ -50,40 +50,13 @@ jobs:
   setup:
     name: 'Setup'
     runs-on: ubuntu-latest
-    outputs:
-      version: ${{ steps.version.outputs.version }}
-      trimmed-version: ${{ steps.version.outputs.trimmed_version }}
-      name: ${{ steps.version.outputs.name }}
     steps:
-      - name: Set Version (Workflow Dispatch)
-        if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'workflow_call' }}
-        run: |
-          echo VERSION=${{ inputs.version }} >> $GITHUB_ENV
-      - name: Set Version (Release Event)
-        if: ${{ github.event_name == 'release' }}
-        run: |
-          echo VERSION=${{ github.event.release.tag_name }} >> $GITHUB_ENV
-      - name: Unified Version
-        id: version
-        run: |
-          INPUT_NAME=${{ inputs.name }}
-          if [[ ${INPUT_NAME} == '' ]]; then
-            echo "Name is empty, using default"
-            echo "name=mondoo" >> $GITHUB_OUTPUT
-          else
-            echo "Name: ${INPUT_NAME}"
-            echo "name=${INPUT_NAME}" >> $GITHUB_OUTPUT
-          fi
-          V=$(echo $VERSION | sed 's/v//')
-          echo "Version: $V"
-          echo "version=${V}" >> $GITHUB_OUTPUT
-          echo "trimmed_version=$(echo ${V} | sed 's/-.*//')" >> $GITHUB_OUTPUT
       - name: Ensure version of cnquery and cnspec are available
         run: |
-          curl -sL --head --fail https://github.com/mondoohq/cnquery/releases/download/v${{ steps.version.outputs.version }}/cnquery_${{ steps.version.outputs.version }}_windows_amd64.zip \
-            https://github.com/mondoohq/cnspec/releases/download/v${{ steps.version.outputs.version }}/cnspec_${{ steps.version.outputs.version }}_windows_amd64.zip \
-            https://github.com/mondoohq/cnquery/releases/download/v${{ steps.version.outputs.version }}/cnquery_${{ steps.version.outputs.version }}_windows_arm64.zip \
-            https://github.com/mondoohq/cnspec/releases/download/v${{ steps.version.outputs.version }}/cnspec_${{ steps.version.outputs.version }}_windows_arm64.zip
+          curl -sL --head --fail https://github.com/mondoohq/cnquery/releases/download/v${{ inputs.version }}/cnquery_${{ inputs.version }}_windows_amd64.zip \
+            https://github.com/mondoohq/cnspec/releases/download/v${{ inputs.version }}/cnspec_${{ inputs.version }}_windows_amd64.zip \
+            https://github.com/mondoohq/cnquery/releases/download/v${{ inputs.version }}/cnquery_${{ inputs.version }}_windows_arm64.zip \
+            https://github.com/mondoohq/cnspec/releases/download/v${{ inputs.version }}/cnspec_${{ inputs.version }}_windows_arm64.zip
 
   dist-prepare:
     name: Prepare Distribution for Packaging
@@ -99,7 +72,7 @@ jobs:
         uses: actions/checkout@v4
       - name: Download Binaries
         env:
-          VERSION: ${{ needs.setup.outputs.version }}
+          VERSION: ${{ inputs.version }}
         run: |
           # TODO: We should check the sums here
           mkdir -p dist/${{ matrix.arch }} && cd dist/${{ matrix.arch }}
@@ -127,7 +100,7 @@ jobs:
     needs:
       - setup
       - dist-prepare
-    #  For Version: ${{ needs.setup.outputs.version }}
+    #  For Version: ${{ inputs.version }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -166,7 +139,7 @@ jobs:
 
       - name: Build and Sign MSI
         env:
-          VERSION: ${{ needs.setup.outputs.trimmed-version }}
+          VERSION: ${{ inputs.trimmed-version }}
         run: |
           $mondooVersion = ${env:VERSION}
           echo "Running build job for version ${mondooVersion}"
@@ -234,7 +207,7 @@ jobs:
       - name: Verify the correct cnquery version is installed
         run: |
           $version=& 'C:\Program Files\Mondoo\cnquery.exe' version
-          $match=$version -like "*${{ needs.setup.outputs.version }}*"
+          $match=$version -like "*${{ inputs.version }}*"
           if (-not $match) {
             exit 1
           }
@@ -244,7 +217,7 @@ jobs:
       - name: Verify the correct cnspec version is installed
         run: |
           $version=& 'C:\Program Files\Mondoo\cnspec.exe' version
-          $match=$version -like "*${{ needs.setup.outputs.version }}*"
+          $match=$version -like "*${{ inputs.version }}*"
           if (-not $match) {
             exit 1
           }
@@ -292,13 +265,13 @@ jobs:
         uses: google-github-actions/setup-gcloud@v2
       - name: Verify access to release bucket
         env:
-          VERSION: ${{ needs.setup.outputs.version }}
+          VERSION: ${{ inputs.version }}
         run: |
           gsutil ls gs://${{ inputs.bucket }}/mondoo
       - name: Upload static content to buckets
         if: ${{ !inputs.skip-publish }}
         env:
-          VERSION: ${{ needs.setup.outputs.version }}
+          VERSION: ${{ inputs.version }}
         run: |
           cd dist
           mv mondoo_${{ matrix.arch }}.msi mondoo_${VERSION}_windows_${{ matrix.arch }}.msi

@@ -8,9 +8,6 @@ on:
       skip-publish:
         type: boolean
         default: false
-      baseurl:
-        type: string
-        default: "https://releases.mondoo.com"
       version:
         description: 'Package Version'
         required: true
@@ -34,45 +31,10 @@ on:
         type: boolean
 jobs:
   parse-inputs:
-    runs-on: ubuntu-latest
-    # Default values for variables when we are triggered via github event
-    env:
-      SKIP_PUBLISH: ${{ inputs.skip-publish || 'false' }}
-      BUCKET: ${{ inputs.bucket || 'releases-us.mondoo.io'}}
-    # Sanitized values, to be used instead of `inputs.XXXX`
-    outputs:
-      skip-publish: ${{ steps.evaluate.outputs.skip-publish }}
-      bucket: ${{ steps.evaluate.outputs.skip-publish }}
-      version: ${{ steps.evaluate.outputs.version }}
-      trimmed-version: ${{ steps.evaluate.outputs.trimmed_version }}
-      name: ${{ steps.evaluate.outputs.name }}
-    steps:
-      - name: Set Version (Workflow Dispatch)
-        if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'workflow_call' }}
-        run: |
-          echo VERSION=${{ inputs.version }} >> $GITHUB_ENV
-      - name: Set Version (Release Event)
-        if: ${{ github.event_name == 'release' }}
-        run: |
-          echo VERSION=${{ github.event.release.tag_name }} >> $GITHUB_ENV
-      - name: Set input variables
-        id: evaluate
-        run: |
-          INPUT_NAME=${{ inputs.name }}
-          if [[ ${INPUT_NAME} == '' ]]; then
-            echo "Name is empty, using default"
-            echo "name=mondoo" >> $GITHUB_OUTPUT
-          else
-            echo "Name: ${INPUT_NAME}"
-            echo "name=${INPUT_NAME}" >> $GITHUB_OUTPUT
-          fi
-          V=$(echo $VERSION | sed 's/v//')
-          echo "Version: $V"
-          echo "version=${V}" >> $GITHUB_OUTPUT
-          echo "trimmed_version=$(echo ${V} | sed 's/-.*//')" >> $GITHUB_OUTPUT
-
-          echo "skip-publish=$SKIP_PUBLISH" >> "$GITHUB_OUTPUT"
-          echo "bucket=$BUCKET >> "$GITHUB_OUTPUT"
+    uses: ./.github/workflows/helper/parse_inputs.yml
+    with:
+      skip-publish: ${{ inputs.skip-publish }}
+      version: ${{ inputs.version }}
   build-arch:
     uses: ./.github/workflows/pkg_arch-aur.yaml
     needs: [ parse-inputs ]
@@ -108,13 +70,21 @@ jobs:
       bucket: ${{ needs.parse-inputs.outputs.bucket }}
   reindex:
     runs-on: ubuntu-latest
+    needs: [ parse-inputs ]
     steps:
+    # fetch a token for the mondoo-mergebot app
+    - name: Generate token
+      id: generate-token
+      uses: actions/create-github-app-token@v1
+      with:
+        app-id: ${{ secrets.MONDOO_MERGEBOT_APP_ID }}
+        private-key: ${{ secrets.MONDOO_MERGEBOT_APP_PRIVATE_KEY }}
     - name: Reindex folder on releaser.mondoo.com
       uses: peter-evans/repository-dispatch@v3
       env:
-        VERSION: ${{ needs.setup.outputs.version }}
+        VERSION: ${{ needs.parse-inputs.outputs.version }}
       with:
-        token: ${{ secrets.RELEASR_ACTION_TOKEN }}
+        token: ${{ steps.generate-token.outputs.token }}
         repository: "mondoohq/releasr"
         event-type: reindex
         client-payload: '{

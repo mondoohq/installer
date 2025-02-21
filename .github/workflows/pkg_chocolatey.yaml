@@ -33,31 +33,13 @@ jobs:
       # Checkout the branch
       - name: Checkout
         uses: actions/checkout@v4
-      # Determine which version should be released based on event type
-      - name: Set Version (Workflow Dispatch)
-        shell: bash
-        if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'workflow_call' }}
-        run: |
-          echo VERSION=${{ inputs.version }} >> $GITHUB_ENV
-      - name: Set Version (Release Event)
-        if: ${{ github.event_name == 'release' }}
-        run: |
-          echo VERSION=${{ github.event.release.tag_name }} >> $GITHUB_ENV
-      - name: Unified Version
-        id: version
-        shell: bash
-        run: |
-          V=$(echo $VERSION | sed 's/v//')
-          echo "Version: $V"
-          echo "version=${V}" >> $GITHUB_OUTPUT
-
       - name: Generate Packages
         shell: bash
         run: |
           cd packages/chocolatey || exit
           for pkg in cnquery cnspec; do
             echo "------- GENERATING ${pkg} ----------------------"
-            VERSION=${{ steps.version.outputs.version }} bash ${pkg}-generate.sh
+            VERSION=${{ inputs.version }} bash ${pkg}-generate.sh
             echo ""
             echo "Install script:"
             cat ${pkg}/tools/chocolateyInstall.ps1
@@ -69,7 +51,7 @@ jobs:
         if: ${{ !inputs.skip-publish }}
         with:
           image: chocolatey/choco:latest
-          options: -v ${{ github.workspace }}/packages/chocolatey:/packages -e CHOCO_API_KEY=${{ secrets.CHOCOLATEY_API_KEY }} -e VERSION=${{ steps.version.outputs.version }}
+          options: -v ${{ github.workspace }}/packages/chocolatey:/packages -e CHOCO_API_KEY=${{ secrets.CHOCOLATEY_API_KEY }} -e VERSION=${{ inputs.version }}
           run: |
             for pkg in cnquery cnspec; do
               echo "------- PROCESSING ${pkg} ----------------------"
