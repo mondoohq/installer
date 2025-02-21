@@ -70,7 +70,7 @@ jobs:
       bucket: ${{ needs.parse-inputs.outputs.bucket }}
   reindex:
     runs-on: ubuntu-latest
-    needs: [ parse-inputs ]
+    needs: [ parse-inputs, build-arch, build-msi, build-chocolatey, build-macos, build-mondoo-pkgs ]
     steps:
     # fetch a token for the mondoo-mergebot app
     - name: Generate token
