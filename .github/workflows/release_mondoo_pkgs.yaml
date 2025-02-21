@@ -1,8 +1,6 @@
 name: "Build & Release mondoo Meta-Package"
 
 on:
-  release:
-    types: [released]
   workflow_call:
     inputs:
       version:
