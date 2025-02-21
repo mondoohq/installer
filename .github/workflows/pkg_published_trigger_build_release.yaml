@@ -35,38 +35,39 @@ jobs:
     with:
       skip-publish: ${{ inputs.skip-publish }}
       version: ${{ inputs.version }}
+
   build-arch:
     uses: ./.github/workflows/pkg_arch-aur.yaml
     needs: [ parse-inputs ]
     with:
       version: ${{ needs.parse-inputs.outputs.version }}
-      skip: ${{ needs.parse-inputs.outputs.skip-publish }}
+      skip: ${{ needs.parse-inputs.outputs.skip-publish == 'true' }}
   build-msi:
     uses: ./.github/workflows/pkg_msi.yaml
     needs: [ parse-inputs ]
     with:
       version: ${{ needs.parse-inputs.outputs.version }}
-      skip-publish: ${{ needs.parse-inputs.outputs.skip-publish }}
+      skip-publish: ${{ needs.parse-inputs.outputs.skip-publish == 'true' }}
       bucket: ${{ needs.parse-inputs.outputs.bucket }}
   build-chocolatey:
     uses: ./.github/workflows/pkg_chocolatey.yaml
     needs: [ parse-inputs ]
     with:
       version: ${{ github.event.inputs.version }}
-      skip-publish: ${{ needs.parse-inputs.outputs.skip-publish }}
+      skip-publish: ${{ needs.parse-inputs.outputs.skip-publish == 'true' }}
   build-macos:
     uses: ./.github/workflows/pkg_macos.yaml
     needs: [ parse-inputs ]
     with:
       version: ${{ github.event.inputs.version }}
-      skip-publish: ${{ needs.parse-inputs.outputs.skip-publish }}
+      skip-publish: ${{ needs.parse-inputs.outputs.skip-publish == 'true' }}
       bucket: ${{ needs.parse-inputs.outputs.bucket }}
   build-mondoo-pkgs:
     uses: ./.github/workflows/release_mondoo_pkgs.yaml
     needs: [ parse-inputs ]
     with:
       version: ${{ github.event.inputs.version }}
-      skip-publish: ${{ needs.parse-inputs.outputs.skip-publish }}
+      skip-publish: ${{ needs.parse-inputs.outputs.skip-publish == 'true' }}
       bucket: ${{ needs.parse-inputs.outputs.bucket }}
   reindex:
     runs-on: ubuntu-latest

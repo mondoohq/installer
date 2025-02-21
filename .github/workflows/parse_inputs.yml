@@ -18,6 +18,11 @@ on:
         required: false
         default: "false"
         type: string
+      bucket:
+        description: 'Name of google storage bucket to upload to'
+        required: false
+        default: "releases-com-test"
+        type: string
     outputs:
       skip-publish: 
         value: ${{ jobs.parse-inputs.outputs.skip-publish }}
