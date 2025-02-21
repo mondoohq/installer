@@ -42,8 +42,6 @@ on:
 jobs:
   build-mondoo-payloads:
     runs-on: ubuntu-latest
-    outputs:
-      version: ${{ steps.version.outputs.version }}
     steps:
       - uses: actions/checkout@v4
       - name: Create destination folder
