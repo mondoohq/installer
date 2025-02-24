@@ -78,13 +78,6 @@ jobs:
                   "text": "${{ env.mondoo_status != '0' && '*Mondoo:* ❌ Failed\n' || '*Mondoo:* ✅ Passed\n' }}${{ env.cnquery_status != '0' && '*cnquery:* ❌ Failed\n' || '*cnquery:* ✅ Passed\n' }}${{ env.cnspec_status != '0' && '*cnspec:* ❌ Failed' || '*cnspec:* ✅ Passed' }}"
                 }
               },
-              #{
-              #  "type": "section",
-              #  "text": {
-              #    "type": "mrkdwn",
-              #    "text": "*Details:*\n```${{ env.mondoo_status != '0' && cat mondoo_output.txt || '' }}${{ env.cnquery_status != '0' && cat cnquery_output.txt || '' }}${{ env.cnspec_status != '0' && cat cnspec_output.txt || '' }}```"
-              #  }
-              #},
               {
                 "type": "context",
                 "elements": [
