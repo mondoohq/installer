@@ -8,20 +8,20 @@ on:
 jobs:
   validate:
     runs-on: ubuntu-latest
-    
+
     steps:
     - uses: actions/checkout@v4
-    
+
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
         python-version: '3.x'
-    
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install requests
-    
+
     - name: Validate Mondoo releases
       id: mondoo
       continue-on-error: true
@@ -29,7 +29,7 @@ jobs:
         python test/releases/validate_release.py mondoo > mondoo_output.txt
         echo "mondoo_status=$?" >> $GITHUB_ENV
         cat mondoo_output.txt
-    
+
     - name: Validate cnquery releases
       id: cnquery
       continue-on-error: true
@@ -37,7 +37,7 @@ jobs:
         python test/releases/validate_release.py cnquery > cnquery_output.txt
         echo "cnquery_status=$?" >> $GITHUB_ENV
         cat cnquery_output.txt
-    
+
     - name: Validate cnspec releases
       id: cnspec
       continue-on-error: true
@@ -45,16 +45,16 @@ jobs:
         python test/releases/validate_release.py cnspec > cnspec_output.txt
         echo "cnspec_status=$?" >> $GITHUB_ENV
         cat cnspec_output.txt
-    
+
     - name: Send Slack notification on failure
       if: env.mondoo_status != '0' || env.cnquery_status != '0' || env.cnspec_status != '0'
       uses: slackapi/slack-github-action@v2.0.0
       with:
         method: chat.postMessage
-        channel: 'C07QZDJFF89'  
         token: ${{ secrets.SLACK_BOT_TOKEN }}
         payload: |
           {
+            "channel": "C07QZDJFF89"
             "text": "⚠️ Release File Validation Failures Detected",
             "blocks": [
               {
@@ -89,7 +89,7 @@ jobs:
               }
             ]
           }
-    
+
     - name: Final status check
       if: env.mondoo_status != '0' || env.cnquery_status != '0' || env.cnspec_status != '0'
       run: exit 1
