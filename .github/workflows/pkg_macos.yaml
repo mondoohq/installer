@@ -112,7 +112,6 @@ jobs:
   publish:
     name: 'Publish: Releases'
     needs: pkg
-    if: ${{ ! inputs.skip-publish }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -131,14 +130,7 @@ jobs:
             echo "We have more than one file in the dist folder. This is not expected."
             exit 1
           fi
-          # Extract the data we need to upload the package
-          CHECKSUM=`sha256sum *.pkg`
-          PKG=`ls *.pkg`
-          VERSION=`echo $PKG | cut -d_ -f2`
-          # Persist the variables
-          echo "CHECKSUM=${CHECKSUM}" >> $GITHUB_ENV
-          echo "PKG=$PKG" >> $GITHUB_ENV
-          echo "VERSION=${VERSION}" >> $GITHUB_ENV
+          sha256sum ${{ inputs.name }}_${{ inputs.version }}_darwin_universal.pkg | tee -a checksums.macos.txt
       - name: Authenticate with Google Cloud
         uses: 'google-github-actions/auth@v2'
         with:
@@ -149,12 +141,13 @@ jobs:
         run: |
           gsutil ls gs://${{ inputs.bucket }}/mondoo
       - name: Upload static content to buckets
-        if: ${{ !inputs.skip-publish }}
+        env:
+          SKIP: ${{ inputs.skip-publish && 'echo skipping...' || '' }}
         run: |
           cd dist
-          echo "${CHECKSUM}" >> checksums.macos.txt
-          gsutil cp checksums.macos.txt gs://${{ inputs.bucket }}/mondoo/${VERSION}/checksums.macos.txt
-          gsutil cp ${PKG} gs://${{ inputs.bucket }}/mondoo/${VERSION}/${PKG}
+          $SKIP gsutil cp checksums.macos.txt gs://${{ inputs.bucket }}/mondoo/${{ inputs.version }}/checksums.macos.txt
+          $SKIP gsutil cp ${{ inputs.name }}_${{ inputs.version }}_darwin_universal.pkg gs://${{ inputs.bucket }}/mondoo/${{ inputs.version }}/${{ inputs.name }}_${{ inputs.version }}_darwin_universal.pkg
+          
       # TODO: move this at the end of the parent pipeline
       - name: Wait a bit...
         run: sleep 120
@@ -164,4 +157,4 @@ jobs:
           token: ${{ secrets.REPO_API_TOKEN }}
           repository: "mondoohq/homebrew-mondoo"
           event-type: update
-          client-payload: '{"version": "${{ env.VERSION }}"}'
+          client-payload: '{"version": "${{ inputs.version }}"}'

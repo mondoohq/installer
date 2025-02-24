@@ -85,9 +85,10 @@ jobs:
           cd helper/packages
           sha256sum *linux* > checksums.linux.txt
       - name: Upload files to releases.mondoo.com
-        if: ${{ !inputs.skip-publish }}
+        env:
+          SKIP: ${{ inputs.skip-publish && 'echo skipping...' || '' }}
         run: |
-          gsutil cp -r helper/packages/* gs://${{ inputs.bucket }}/mondoo/${{ inputs.version }}/
+          $SKIP gsutil cp -r helper/packages/* gs://${{ inputs.bucket }}/mondoo/${{ inputs.version }}/
       - name: Upload files to GitHub Release Page
         uses: softprops/action-gh-release@v2
         with:

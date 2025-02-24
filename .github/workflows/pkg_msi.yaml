@@ -246,7 +246,6 @@ jobs:
       - setup
       - msi-build
       - test-msi-install
-    if: ${{ ! inputs.skip-publish }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -269,15 +268,15 @@ jobs:
         run: |
           gsutil ls gs://${{ inputs.bucket }}/mondoo
       - name: Upload static content to buckets
-        if: ${{ !inputs.skip-publish }}
         env:
           VERSION: ${{ inputs.version }}
+          SKIP: ${{ inputs.skip-publish && 'echo skipping...' || '' }}
         run: |
           cd dist
           mv mondoo_${{ matrix.arch }}.msi mondoo_${VERSION}_windows_${{ matrix.arch }}.msi
           sha256sum mondoo_${VERSION}_windows_${{ matrix.arch }}.msi >> checksums.windows_${{ matrix.arch }}.txt
-          gsutil cp checksums.windows_${{ matrix.arch }}.txt gs://${{ inputs.bucket }}/mondoo/${VERSION}/checksums.windows_${{ matrix.arch }}.txt
-          gsutil cp mondoo_${VERSION}_windows_${{ matrix.arch }}.msi gs://${{ inputs.bucket }}/mondoo/${VERSION}/mondoo_${VERSION}_windows_${{ matrix.arch }}.msi
+          $SKIP gsutil cp checksums.windows_${{ matrix.arch }}.txt gs://${{ inputs.bucket }}/mondoo/${VERSION}/checksums.windows_${{ matrix.arch }}.txt
+          $SKIP gsutil cp mondoo_${VERSION}_windows_${{ matrix.arch }}.msi gs://${{ inputs.bucket }}/mondoo/${VERSION}/mondoo_${VERSION}_windows_${{ matrix.arch }}.msi
       - name: Cleanup
         run: |
           rm -f "${{ steps.gauth.outputs.credentials_file_path }}"

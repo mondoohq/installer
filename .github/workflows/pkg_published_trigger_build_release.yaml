@@ -89,6 +89,8 @@ jobs:
         repositories: |
           installer
           releasr
+          cnspec
+          cnquery
     - name: Converge Inputs
       id: inputs
       run: |
@@ -116,26 +118,33 @@ jobs:
       run: |
         chmod +x releasr
     - name: 'Remove Artifacts.json & Index.html from path (Optional)'
-      if: ${{ needs.parse-inputs.outputs.skip-publish != 'true' }}
+      env:
+        SKIP: ${{ (needs.parse-inputs.outputs.skip-publish == 'true') && 'echo skipping...' || '' }}
       run: |
         if [ -n "${{ inputs.reindex-path }}" ]; then
           echo "Removing artifacts.json & index.html from path ${{ inputs.reindex-path }}"
           # If the files don't exist this will fail, but that's ok
-          gsutil rm gs://${{ needs.parse-inputs.outputs.bucket }}/${{ inputs.reindex-path }}/artifacts.json || true
-          gsutil rm gs://${{ needs.parse-inputs.outputs.bucket }}/${{ inputs.reindex-path }}/index.html || true
+          $SKIP gsutil rm gs://${{ needs.parse-inputs.outputs.bucket }}/${{ inputs.reindex-path }}/artifacts.json || true
+          $SKIP gsutil rm gs://${{ needs.parse-inputs.outputs.bucket }}/${{ inputs.reindex-path }}/index.html || true
         fi
-    - name: Regenerate Release Indexes
-      if: ${{ needs.parse-inputs.outputs.skip-publish != 'true' }}
+    - name: Release cnspec & cnquery binaries
       env:
         TOKEN: ${{ steps.auth.outputs.id_token }}
         BUCKETNAME: ${{ steps.inputs.outputs.bucket }}
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
+        SKIP: ${{ (needs.parse-inputs.outputs.skip-publish == 'true') && 'echo skipping...' || '' }}
       run: |
-        if [ "${{ github.event.inputs.reindex-full }}" = "true" ]; then
-          ./releasr idx gs://${{ steps.inputs.outputs.bucket }} --force-recompute
-        else
-          ./releasr idx gs://${{ steps.inputs.outputs.bucket }}
-        fi
+          $SKIP ./releasr release cp  https://github.com/mondoohq/cnquery/releases/tag/${{ needs.parse-inputs.outputs.version }} gs://${{ steps.inputs.outputs.bucket }}
+          $SKIP ./releasr release cp  https://github.com/mondoohq/cnspec/releases/tag/${{ needs.parse-inputs.outputs.version }} gs://${{ steps.inputs.outputs.bucket }}
+    - name: Regenerate Release Indexes
+      env:
+        TOKEN: ${{ steps.auth.outputs.id_token }}
+        BUCKETNAME: ${{ steps.inputs.outputs.bucket }}
+        GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
+        IDX_OPTS: ${{ inputs.reindex-full && '--force-recompute' || '' }}
+        SKIP: ${{ (needs.parse-inputs.outputs.skip-publish == 'true') && 'echo skipping...' || '' }}
+      run: |
+          $SKIP ./releasr idx gs://${{ steps.inputs.outputs.bucket }} $IDX_OPTS
     - name: Invalidate Google Load Balancer caches
       run: |
         gcloud compute url-maps invalidate-cdn-cache releases-mondoo-io --path "/${{ inputs.reindex-path }}" --async
