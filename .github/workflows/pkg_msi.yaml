@@ -139,7 +139,7 @@ jobs:
 
       - name: Build and Sign MSI
         env:
-          VERSION: ${{ inputs.trimmed-version }}
+          VERSION: ${{ inputs.version }}
         run: |
           $mondooVersion = ${env:VERSION}
           echo "Running build job for version ${mondooVersion}"
