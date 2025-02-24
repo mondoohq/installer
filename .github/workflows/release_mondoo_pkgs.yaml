@@ -54,17 +54,14 @@ jobs:
         run: |
           sudo apt update && sudo apt install -y rpm gpg
       - name: Authenticate with GCloud
-        if: ${{ ! inputs.skip-publish }}
         uses: 'google-github-actions/auth@v2'
         with:
           credentials_json: '${{ secrets.GCP_CREDENTIALS }}'
 
       - name: Setup GCloud SDK
-        if: ${{ ! inputs.skip-publish }}
         uses: 'google-github-actions/setup-gcloud@v2'
 
       - name: Download Signing Keys
-        if: ${{ ! inputs.skip-publish }}
         env:
           KEY_PATH: ${{ runner.temp }}
         run: |
@@ -80,7 +77,6 @@ jobs:
         run: |
           cd helper && make
       - name: Sign RPMs
-        if: ${{ ! inputs.skip-publish }}
         run: |
           cd helper/
           rpmsign --define='%_gpg_name Mondoo Inc' --addsign ./packages/*rpm

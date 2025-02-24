@@ -61,7 +61,6 @@ jobs:
           curl -sL --head --fail https://github.com/mondoohq/cnquery/releases/download/v${{ inputs.version }}/cnquery_${{ inputs.version }}_darwin_amd64.tar.gz
           curl -sL --head --fail https://github.com/mondoohq/cnspec/releases/download/v${{ inputs.version }}/cnspec_${{ inputs.version }}_darwin_amd64.tar.gz
       - name: Setup local keychain for signing certificates
-        if: ${{ ! inputs.skip-publish }}
         run: |
           KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
           # Setup Keychain:
@@ -76,7 +75,6 @@ jobs:
           security list-keychain -d user -s $KEYCHAIN_PATH
       ########## Build Package. ##########
       - name: Run Mac Packager
-        if: ${{ ! inputs.skip-publish }}
         env:
           APPLE_KEYS_CODESIGN_ID: ${{ secrets.APPLE_KEYS_CODESIGN_ID }}
           APPLE_KEYS_PRODUCTSIGN_ID: ${{ secrets.APPLE_KEYS_PRODUCTSIGN_ID }}
@@ -88,12 +86,10 @@ jobs:
         run: ls -lhR
       ########## Sign Package. ##########
       - name: Package Sign Package (productsign)
-        if: ${{ ! inputs.skip-publish }}
         run: |
           productsign --sign "${{ secrets.APPLE_KEYS_PRODUCTSIGN_ID }}" dist/${{ inputs.name }}-macos-universal-${{ inputs.version }}.pkg dist/${{ inputs.name }}_${{ inputs.version }}_darwin_universal.pkg
       ########## Sign Package. ##########
       - name: Notarize Package
-        if: ${{ ! inputs.skip-publish }}
         uses: lando/notarize-action@v2
         with:
           product-path: dist/${{ inputs.name }}_${{ inputs.version }}_darwin_universal.pkg
@@ -102,13 +98,11 @@ jobs:
           appstore-connect-team-id: ${{ secrets.APPLE_ACCOUNT_TEAM_ID }}
           primary-bundle-id: 'com.${{ inputs.name }}.client'
       - name: "Staple Release Build"
-        if: ${{ ! inputs.skip-publish }}
         uses: mondoohq/xcode-staple@v1
         with:
           product-path: dist/${{ inputs.name }}_${{ inputs.version }}_darwin_universal.pkg
       ########## Save Package as Artifact. ##########
       - name: Archive Notarized Package
-        if: ${{ ! inputs.skip-publish }}
         uses: actions/upload-artifact@v4
         with:
           name: notarized-package
