@@ -48,9 +48,11 @@ jobs:
     
     - name: Send Slack notification on failure
       if: env.mondoo_status != '0' || env.cnquery_status != '0' || env.cnspec_status != '0'
-      uses: slackapi/slack-github-action@v1.24.0
+      uses: slackapi/slack-github-action@v2.0.0
       with:
-        channel-id: 'C07QZDJFF89'  # Replace with your channel ID
+        method: chat.postMessage
+        channel: 'C07QZDJFF89'  
+        token: ${{ secrets.SLACK_BOT_TOKEN }}
         payload: |
           {
             "text": "⚠️ Release File Validation Failures Detected",
@@ -76,13 +78,13 @@ jobs:
                   "text": "${{ env.mondoo_status != '0' && '*Mondoo:* ❌ Failed\n' || '*Mondoo:* ✅ Passed\n' }}${{ env.cnquery_status != '0' && '*cnquery:* ❌ Failed\n' || '*cnquery:* ✅ Passed\n' }}${{ env.cnspec_status != '0' && '*cnspec:* ❌ Failed' || '*cnspec:* ✅ Passed' }}"
                 }
               },
-              {
-                "type": "section",
-                "text": {
-                  "type": "mrkdwn",
-                  "text": "*Details:*\n```${{ env.mondoo_status != '0' && cat mondoo_output.txt || '' }}${{ env.cnquery_status != '0' && cat cnquery_output.txt || '' }}${{ env.cnspec_status != '0' && cat cnspec_output.txt || '' }}```"
-                }
-              },
+              #{
+              #  "type": "section",
+              #  "text": {
+              #    "type": "mrkdwn",
+              #    "text": "*Details:*\n```${{ env.mondoo_status != '0' && cat mondoo_output.txt || '' }}${{ env.cnquery_status != '0' && cat cnquery_output.txt || '' }}${{ env.cnspec_status != '0' && cat cnspec_output.txt || '' }}```"
+              #  }
+              #},
               {
                 "type": "context",
                 "elements": [
@@ -94,8 +96,6 @@ jobs:
               }
             ]
           }
-      env:
-        SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
     
     - name: Final status check
       if: env.mondoo_status != '0' || env.cnquery_status != '0' || env.cnspec_status != '0'
