@@ -129,6 +129,7 @@ jobs:
 
       - name: Setup SSM KSP on windows latest
         shell: cmd
+        if: ${{ ! inputs.skip-publish }}
         run: |
           curl --retry 10 --retry-delay 60 -X GET  https://one.digicert.com/signingmanager/api-ui/v1/releases/smtools-windows-x64.msi/download -H "x-api-key:%SM_API_KEY%" -o smtools-windows-x64.msi
           msiexec /i smtools-windows-x64.msi /quiet /qn
@@ -138,6 +139,7 @@ jobs:
           smksp_cert_sync.exe
 
       - name: Build and Sign MSI
+        if: ${{ ! inputs.skip-publish }}
         env:
           VERSION: ${{ inputs.trimmed-version }}
         run: |
@@ -181,6 +183,7 @@ jobs:
 
   test-msi-install:
     name: Test Signed Package
+    if: ${{ ! inputs.skip-publish }}
     strategy:
       matrix:
         arch:
