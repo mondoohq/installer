@@ -56,14 +56,14 @@ jobs:
     secrets: inherit
     needs: [ parse-inputs ]
     with:
-      version: ${{ github.event.inputs.version }}
+      version: ${{ needs.parse-inputs.outputs.version }}
       skip-publish: ${{ needs.parse-inputs.outputs.skip-publish == 'true' }}
   build-macos:
     uses: ./.github/workflows/pkg_macos.yaml
     secrets: inherit
     needs: [ parse-inputs ]
     with:
-      version: ${{ github.event.inputs.version }}
+      version: ${{ needs.parse-inputs.outputs.version }}
       skip-publish: ${{ needs.parse-inputs.outputs.skip-publish == 'true' }}
       bucket: ${{ needs.parse-inputs.outputs.bucket }}
   build-mondoo-pkgs:
@@ -71,7 +71,7 @@ jobs:
     secrets: inherit
     needs: [ parse-inputs ]
     with:
-      version: ${{ github.event.inputs.version }}
+      version: ${{ needs.parse-inputs.outputs.version }}
       skip-publish: ${{ needs.parse-inputs.outputs.skip-publish == 'true' }}
       bucket: ${{ needs.parse-inputs.outputs.bucket }}
   reindex:
@@ -117,6 +117,15 @@ jobs:
     - name: Make releasr executable
       run: |
         chmod +x releasr
+    - name: Release cnspec & cnquery binaries
+      env:
+        TOKEN: ${{ steps.auth.outputs.id_token }}
+        BUCKETNAME: ${{ steps.inputs.outputs.bucket }}
+        GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
+        SKIP: ${{ (needs.parse-inputs.outputs.skip-publish == 'true') && 'echo skipping...' || '' }}
+      run: |
+          $SKIP ./releasr release cp  https://github.com/mondoohq/cnquery/releases/tag/${{ inputs.version }} gs://${{ steps.inputs.outputs.bucket }}
+          $SKIP ./releasr release cp  https://github.com/mondoohq/cnspec/releases/tag/${{ inputs.version }} gs://${{ steps.inputs.outputs.bucket }}
     - name: 'Remove Artifacts.json & Index.html from path (Optional)'
       env:
         SKIP: ${{ (needs.parse-inputs.outputs.skip-publish == 'true') && 'echo skipping...' || '' }}
@@ -127,15 +136,6 @@ jobs:
           $SKIP gsutil rm gs://${{ needs.parse-inputs.outputs.bucket }}/${{ inputs.reindex-path }}/artifacts.json || true
           $SKIP gsutil rm gs://${{ needs.parse-inputs.outputs.bucket }}/${{ inputs.reindex-path }}/index.html || true
         fi
-    - name: Release cnspec & cnquery binaries
-      env:
-        TOKEN: ${{ steps.auth.outputs.id_token }}
-        BUCKETNAME: ${{ steps.inputs.outputs.bucket }}
-        GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
-        SKIP: ${{ (needs.parse-inputs.outputs.skip-publish == 'true') && 'echo skipping...' || '' }}
-      run: |
-          $SKIP ./releasr release cp  https://github.com/mondoohq/cnquery/releases/tag/${{ needs.parse-inputs.outputs.version }} gs://${{ steps.inputs.outputs.bucket }}
-          $SKIP ./releasr release cp  https://github.com/mondoohq/cnspec/releases/tag/${{ needs.parse-inputs.outputs.version }} gs://${{ steps.inputs.outputs.bucket }}
     - name: Regenerate Release Indexes
       env:
         TOKEN: ${{ steps.auth.outputs.id_token }}
