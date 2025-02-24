@@ -28,7 +28,7 @@ EXPECTED_FILES = {
             "linux_arm64.deb", "linux_arm64.rpm", "linux_arm64.tar.gz",
             "linux_armv6.deb", "linux_armv6.rpm", "linux_armv6.tar.gz",
             "linux_armv7.deb", "linux_armv7.rpm", "linux_armv7.tar.gz",
-            "linux_ppc64le.deb", "linux_ppc64le.rpm", "ppc64le.tar.gz"
+            "linux_ppc64le.deb", "linux_ppc64le.rpm", "linux_ppc64le.tar.gz"
         ],
         "windows": ["windows_amd64.zip", "windows_arm64.zip"]
     },
@@ -40,7 +40,7 @@ EXPECTED_FILES = {
             "linux_arm64.deb", "linux_arm64.rpm", "linux_arm64.tar.gz",
             "linux_armv6.deb", "linux_armv6.rpm", "linux_armv6.tar.gz",
             "linux_armv7.deb", "linux_armv7.rpm", "linux_armv7.tar.gz",
-            "linux_ppc64le.deb", "linux_ppc64le.rpm", "ppc64le.tar.gz"
+            "linux_ppc64le.deb", "linux_ppc64le.rpm", "linux_ppc64le.tar.gz"
         ],
         "windows": ["windows_amd64.zip", "windows_arm64.zip"]
     }
