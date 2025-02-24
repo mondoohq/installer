@@ -26,25 +26,20 @@ jobs:
       id: mondoo
       continue-on-error: true
       run: |
-        python test/releases/validate_release.py mondoo > mondoo_output.txt
-        echo "mondoo_status=$?" >> $GITHUB_ENV
-        cat mondoo_output.txt
+        python test/releases/validate_release.py mondoo && echo "mondoo_status=$?" >> $GITHUB_ENV || echo "mondoo_status=$?" >> $GITHUB_ENV
 
     - name: Validate cnquery releases
       id: cnquery
       continue-on-error: true
       run: |
-        python test/releases/validate_release.py cnquery > cnquery_output.txt
-        echo "cnquery_status=$?" >> $GITHUB_ENV
-        cat cnquery_output.txt
+        python test/releases/validate_release.py cnquery && echo "cnquery_status=$?" >> $GITHUB_ENV || echo "cnquery_status=$?" >> $GITHUB_ENV
 
     - name: Validate cnspec releases
       id: cnspec
       continue-on-error: true
       run: |
-        python test/releases/validate_release.py cnspec > cnspec_output.txt
-        echo "cnspec_status=$?" >> $GITHUB_ENV
-        cat cnspec_output.txt
+        python test/releases/validate_release.py cnspec && echo "cnspec_status=$?" >> $GITHUB_ENV || echo "cnspec_status=$?" >> $GITHUB_ENV
+
 
     - name: Send Slack notification on failure
       if: env.mondoo_status != '0' || env.cnquery_status != '0' || env.cnspec_status != '0'
