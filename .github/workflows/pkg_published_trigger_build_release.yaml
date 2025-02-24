@@ -38,12 +38,14 @@ jobs:
 
   build-arch:
     uses: ./.github/workflows/pkg_arch-aur.yaml
+    secrets: inherit
     needs: [ parse-inputs ]
     with:
       version: ${{ needs.parse-inputs.outputs.version }}
       skip: ${{ needs.parse-inputs.outputs.skip-publish == 'true' }}
   build-msi:
     uses: ./.github/workflows/pkg_msi.yaml
+    secrets: inherit
     needs: [ parse-inputs ]
     with:
       version: ${{ needs.parse-inputs.outputs.version }}
@@ -51,12 +53,14 @@ jobs:
       bucket: ${{ needs.parse-inputs.outputs.bucket }}
   build-chocolatey:
     uses: ./.github/workflows/pkg_chocolatey.yaml
+    secrets: inherit
     needs: [ parse-inputs ]
     with:
       version: ${{ github.event.inputs.version }}
       skip-publish: ${{ needs.parse-inputs.outputs.skip-publish == 'true' }}
   build-macos:
     uses: ./.github/workflows/pkg_macos.yaml
+    secrets: inherit
     needs: [ parse-inputs ]
     with:
       version: ${{ github.event.inputs.version }}
@@ -64,6 +68,7 @@ jobs:
       bucket: ${{ needs.parse-inputs.outputs.bucket }}
   build-mondoo-pkgs:
     uses: ./.github/workflows/release_mondoo_pkgs.yaml
+    secrets: inherit
     needs: [ parse-inputs ]
     with:
       version: ${{ github.event.inputs.version }}
@@ -84,17 +89,6 @@ jobs:
         repositories: |
           installer
           releasr
-    - name: Reindex folder on releases.mondoo.com
-      uses: peter-evans/repository-dispatch@v3
-      with:
-        token: ${{ steps.generate-token.outputs.token }}
-        repository: "mondoohq/releasr"
-        event-type: reindex
-        client-payload: '{
-          "reindex-path": "mondoo/${{ inputs.reindex-path }}",
-          "bucket": "${{ needs.parse-inputs.outputs.bucket }}"
-          }'
-
     - name: Converge Inputs
       id: inputs
       run: |
