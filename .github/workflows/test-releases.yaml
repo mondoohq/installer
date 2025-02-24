@@ -1,8 +1,8 @@
 name: Releases.mondoo.com File Validation
 
 on:
-  #schedule:
-  #  - cron: '*/15 * * * *'  # Run every 15 minutes
+  schedule:
+    - cron: '*/15 * * * *'  # Run every 15 minutes
   workflow_dispatch:  # Allow manual triggers
 
 jobs:
