@@ -150,8 +150,10 @@ jobs:
           
       # TODO: move this at the end of the parent pipeline
       - name: Wait a bit...
+        if: ${{ !inputs.skip-publish }}
         run: sleep 120
       - name: Trigger Homebrew Generation
+        if: ${{ !inputs.skip-publish }}
         uses: peter-evans/repository-dispatch@v3
         with:
           token: ${{ secrets.REPO_API_TOKEN }}

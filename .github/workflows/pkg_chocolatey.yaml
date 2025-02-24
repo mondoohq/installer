@@ -48,12 +48,12 @@ jobs:
 
       - name: Update Chocolatey Packages
         uses: addnab/docker-run-action@v3
-        env:
-          SKIP: ${{ inputs.skip-publish && 'echo skipping...' || '' }}
+        if: ${{ ! inputs.skip-publish }}
         with:
           image: chocolatey/choco:latest
           options: -v ${{ github.workspace }}/packages/chocolatey:/packages -e CHOCO_API_KEY=${{ secrets.CHOCOLATEY_API_KEY }} -e VERSION=${{ inputs.version }}
           run: |
+            SKIP="${{ inputs.skip-publish && 'echo skipping...' || '' }}"
             for pkg in cnquery cnspec; do
               echo "------- PROCESSING ${pkg} ----------------------"
               cd /packages/$pkg
