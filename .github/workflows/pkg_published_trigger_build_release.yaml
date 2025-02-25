@@ -1,0 +1,150 @@
+name: 'PKG: Package, Release, Reindex'
+
+on:
+  release:
+    types: [released]
+  workflow_dispatch:
+    inputs:
+      skip-publish:
+        type: boolean
+        default: false
+      version:
+        description: 'Package Version'
+        required: true
+        default: '8.99.99'
+        type: 'string'
+      bucket:
+        description: 'GCP Release Bucket Name'
+        required: true
+        default: 'releases-us.mondoo.io'
+        type: choice
+        options:
+          - 'releases-us.mondoo.io'
+          - 'releases-com-test'
+      reindex-path:
+        description: 'Path to Reindex (e.g. 8.99.99)'
+        required: false
+        type: string
+      reindex-full:
+        description: 'Regenerate ALL indexes (Intensive!)'
+        required: false
+        type: boolean
+jobs:
+  parse-inputs:
+    uses: ./.github/workflows/parse_inputs.yml
+    with:
+      skip-publish: ${{ inputs.skip-publish }}
+      version: ${{ inputs.version }}
+
+  build-arch:
+    uses: ./.github/workflows/pkg_arch-aur.yaml
+    secrets: inherit
+    needs: [ parse-inputs ]
+    with:
+      version: ${{ needs.parse-inputs.outputs.version }}
+      skip: ${{ needs.parse-inputs.outputs.skip-publish == 'true' }}
+  build-msi:
+    uses: ./.github/workflows/pkg_msi.yaml
+    secrets: inherit
+    needs: [ parse-inputs ]
+    with:
+      version: ${{ needs.parse-inputs.outputs.version }}
+      skip-publish: ${{ needs.parse-inputs.outputs.skip-publish == 'true' }}
+      bucket: ${{ needs.parse-inputs.outputs.bucket }}
+  build-chocolatey:
+    uses: ./.github/workflows/pkg_chocolatey.yaml
+    secrets: inherit
+    needs: [ parse-inputs ]
+    with:
+      version: ${{ needs.parse-inputs.outputs.version }}
+      skip-publish: ${{ needs.parse-inputs.outputs.skip-publish == 'true' }}
+  build-macos:
+    uses: ./.github/workflows/pkg_macos.yaml
+    secrets: inherit
+    needs: [ parse-inputs ]
+    with:
+      version: ${{ needs.parse-inputs.outputs.version }}
+      skip-publish: ${{ needs.parse-inputs.outputs.skip-publish == 'true' }}
+      bucket: ${{ needs.parse-inputs.outputs.bucket }}
+  build-mondoo-pkgs:
+    uses: ./.github/workflows/release_mondoo_pkgs.yaml
+    secrets: inherit
+    needs: [ parse-inputs ]
+    with:
+      version: ${{ needs.parse-inputs.outputs.version }}
+      skip-publish: ${{ needs.parse-inputs.outputs.skip-publish == 'true' }}
+      bucket: ${{ needs.parse-inputs.outputs.bucket }}
+  reindex:
+    runs-on: ubuntu-latest
+    needs: [ parse-inputs, build-arch, build-msi, build-chocolatey, build-macos, build-mondoo-pkgs ]
+    steps:
+    # fetch a token for the mondoo-mergebot app
+    - name: Generate token
+      id: generate-token
+      uses: actions/create-github-app-token@v1
+      with:
+        app-id: ${{ secrets.MONDOO_MERGEBOT_APP_ID }}
+        private-key: ${{ secrets.MONDOO_MERGEBOT_APP_PRIVATE_KEY }}
+        owner: mondoohq
+        repositories: |
+          installer
+          releasr
+          cnspec
+          cnquery
+    - name: Converge Inputs
+      id: inputs
+      run: |
+        echo "bucket=${{ needs.parse-inputs.outputs.bucket }}" >> $GITHUB_OUTPUT
+        echo "reindex-path=${{ inputs.reindex-path }}" >> $GITHUB_OUTPUT
+    - name: 'Authenticate to Google Cloud'
+      uses: 'google-github-actions/auth@v2'
+      with:
+        credentials_json: '${{secrets.GCP_CREDENTIALS}}'
+    - name: 'Set up Cloud SDK'
+      uses: 'google-github-actions/setup-gcloud@v2'
+    - name: Get GCP TOKEN
+      id: auth
+      run:
+        echo "id_token=$(gcloud auth print-identity-token)" >> "$GITHUB_OUTPUT"
+    - name: Get latest Releasr Binary
+      uses: robinraju/release-downloader@v1.11
+      with:
+        repository: mondoohq/releasr
+        latest: true
+        fileName: releasr
+        out-file-path: .
+        token: ${{ steps.generate-token.outputs.token }}
+    - name: Make releasr executable
+      run: |
+        chmod +x releasr
+    - name: Release cnspec & cnquery binaries
+      env:
+        TOKEN: ${{ steps.auth.outputs.id_token }}
+        BUCKETNAME: ${{ steps.inputs.outputs.bucket }}
+        GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
+        SKIP: ${{ (needs.parse-inputs.outputs.skip-publish == 'true') && 'echo skipping...' || '' }}
+      run: |
+          $SKIP ./releasr release cp  https://github.com/mondoohq/cnquery/releases/tag/${{ inputs.version }} gs://${{ steps.inputs.outputs.bucket }}
+          $SKIP ./releasr release cp  https://github.com/mondoohq/cnspec/releases/tag/${{ inputs.version }} gs://${{ steps.inputs.outputs.bucket }}
+    - name: 'Remove Artifacts.json & Index.html from path (Optional)'
+      env:
+        SKIP: ${{ (needs.parse-inputs.outputs.skip-publish == 'true') && 'echo skipping...' || '' }}
+      run: |
+        if [ -n "${{ inputs.reindex-path }}" ]; then
+          echo "Removing artifacts.json & index.html from path ${{ inputs.reindex-path }}"
+          # If the files don't exist this will fail, but that's ok
+          $SKIP gsutil rm gs://${{ needs.parse-inputs.outputs.bucket }}/${{ inputs.reindex-path }}/artifacts.json || true
+          $SKIP gsutil rm gs://${{ needs.parse-inputs.outputs.bucket }}/${{ inputs.reindex-path }}/index.html || true
+        fi
+    - name: Regenerate Release Indexes
+      env:
+        TOKEN: ${{ steps.auth.outputs.id_token }}
+        BUCKETNAME: ${{ steps.inputs.outputs.bucket }}
+        GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
+        IDX_OPTS: ${{ inputs.reindex-full && '--force-recompute' || '' }}
+        SKIP: ${{ (needs.parse-inputs.outputs.skip-publish == 'true') && 'echo skipping...' || '' }}
+      run: |
+          $SKIP ./releasr idx gs://${{ steps.inputs.outputs.bucket }} $IDX_OPTS
+    - name: Invalidate Google Load Balancer caches
+      run: |
+        gcloud compute url-maps invalidate-cdn-cache releases-mondoo-io --path "/${{ inputs.reindex-path }}" --async
