@@ -36,7 +36,6 @@ jobs:
       skip-publish: ${{ inputs.skip-publish }}
       version: ${{ inputs.version }}
       bucket: ${{ inputs.bucket }}
-
   build-arch:
     uses: ./.github/workflows/pkg_arch-aur.yaml
     secrets: inherit
