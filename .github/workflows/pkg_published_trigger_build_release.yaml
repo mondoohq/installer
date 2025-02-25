@@ -120,12 +120,12 @@ jobs:
     - name: Release cnspec & cnquery binaries
       env:
         TOKEN: ${{ steps.auth.outputs.id_token }}
-        BUCKETNAME: ${{ steps.inputs.outputs.bucket }}
+        BUCKETNAME: ${{ needs.parse-inputs.outputs.bucket }}
         GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
         SKIP: ${{ (needs.parse-inputs.outputs.skip-publish == 'true') && 'echo skipping...' || '' }}
       run: |
-          $SKIP ./releasr release cp  https://github.com/mondoohq/cnquery/releases/tag/v${{ needs.parse-inputs.outputs.version }} gs://${{ steps.inputs.outputs.bucket }}
-          $SKIP ./releasr release cp  https://github.com/mondoohq/cnspec/releases/tag/v${{ needs.parse-inputs.outputs.version }} gs://${{ steps.inputs.outputs.bucket }}
+          $SKIP ./releasr release cp  https://github.com/mondoohq/cnquery/releases/tag/v${{ needs.parse-inputs.outputs.version }} gs://${{ needs.parse-inputs.outputs.bucket }}
+          $SKIP ./releasr release cp  https://github.com/mondoohq/cnspec/releases/tag/v${{ needs.parse-inputs.outputs.version }} gs://${{ needs.parse-inputs.outputs.bucket }}
     - name: 'Remove Artifacts.json & Index.html from path (Optional)'
       env:
         SKIP: ${{ (needs.parse-inputs.outputs.skip-publish == 'true') && 'echo skipping...' || '' }}
@@ -139,12 +139,12 @@ jobs:
     - name: Regenerate Release Indexes
       env:
         TOKEN: ${{ steps.auth.outputs.id_token }}
-        BUCKETNAME: ${{ steps.inputs.outputs.bucket }}
+        BUCKETNAME: ${{ needs.parse-inputs.outputs.bucket }}
         GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
         IDX_OPTS: ${{ inputs.reindex-full && '--force-recompute' || '' }}
         SKIP: ${{ (needs.parse-inputs.outputs.skip-publish == 'true') && 'echo skipping...' || '' }}
       run: |
-          $SKIP ./releasr idx gs://${{ steps.inputs.outputs.bucket }} $IDX_OPTS
+          $SKIP ./releasr idx gs://${{ needs.parse-inputs.outputs.bucket }} $IDX_OPTS
     - name: Invalidate Google Load Balancer caches
       run: |
         gcloud compute url-maps invalidate-cdn-cache releases-mondoo-io --path "/${{ inputs.reindex-path }}" --async
