@@ -57,7 +57,6 @@ def human_size(size_in_bytes: int) -> str:
 def validate_release_files(url: str, expected_files: Dict[str, List[str]], min_size: int = 500) -> List[str]:
     """
     Validates that all expected file types are present in a release.
-
     Args:
         url: The URL of the release JSON endpoint
         expected_files: Dictionary of platform-specific expected file suffixes
@@ -70,7 +69,6 @@ def validate_release_files(url: str, expected_files: Dict[str, List[str]], min_s
         response = requests.get(url)
         response.raise_for_status()
         data = response.json()
-
         errors = []
         found_files = {}  # Store filename and size
         version = data.get('version', '')
@@ -115,6 +113,7 @@ def validate_release_files(url: str, expected_files: Dict[str, List[str]], min_s
             print("\nAll files validated successfully")
 
         return errors
+
 
     except requests.exceptions.RequestException as e:
         return [f"Failed to fetch release data: {str(e)}"]

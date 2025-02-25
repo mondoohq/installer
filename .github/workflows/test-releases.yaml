@@ -11,36 +11,29 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
         python-version: '3.x'
-
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install requests
-
     - name: Validate Mondoo releases
       id: mondoo
       continue-on-error: true
       run: |
         python test/releases/validate_release.py mondoo && echo "mondoo_status=$?" >> $GITHUB_ENV || echo "mondoo_status=$?" >> $GITHUB_ENV
-
     - name: Validate cnquery releases
       id: cnquery
       continue-on-error: true
       run: |
         python test/releases/validate_release.py cnquery && echo "cnquery_status=$?" >> $GITHUB_ENV || echo "cnquery_status=$?" >> $GITHUB_ENV
-
     - name: Validate cnspec releases
       id: cnspec
       continue-on-error: true
       run: |
         python test/releases/validate_release.py cnspec && echo "cnspec_status=$?" >> $GITHUB_ENV || echo "cnspec_status=$?" >> $GITHUB_ENV
-
-
     - name: Send Slack notification on failure
       if: env.mondoo_status != '0' || env.cnquery_status != '0' || env.cnspec_status != '0'
       uses: slackapi/slack-github-action@v2.0.0
@@ -74,6 +67,7 @@ jobs:
                 }
               },
               {
+
                 "type": "context",
                 "elements": [
                   {
@@ -84,7 +78,6 @@ jobs:
               }
             ]
           }
-
     - name: Final status check
       if: env.mondoo_status != '0' || env.cnquery_status != '0' || env.cnspec_status != '0'
       run: exit 1
