@@ -9,9 +9,9 @@ on:
         type: boolean
         default: false
       version:
-        description: 'Package Version'
+        description: 'Package Version (e.g. v8.99.99)'
         required: true
-        default: '8.99.99'
+        default: 'v8.99.99'
         type: 'string'
       bucket:
         description: 'GCP Release Bucket Name'
@@ -124,8 +124,8 @@ jobs:
         GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
         SKIP: ${{ (needs.parse-inputs.outputs.skip-publish == 'true') && 'echo skipping...' || '' }}
       run: |
-          $SKIP ./releasr release cp  https://github.com/mondoohq/cnquery/releases/tag/${{ inputs.version }} gs://${{ steps.inputs.outputs.bucket }}
-          $SKIP ./releasr release cp  https://github.com/mondoohq/cnspec/releases/tag/${{ inputs.version }} gs://${{ steps.inputs.outputs.bucket }}
+          $SKIP ./releasr release cp  https://github.com/mondoohq/cnquery/releases/tag/v${{ needs.parse-inputs.outputs.version }} gs://${{ steps.inputs.outputs.bucket }}
+          $SKIP ./releasr release cp  https://github.com/mondoohq/cnspec/releases/tag/v${{ needs.parse-inputs.outputs.version }} gs://${{ steps.inputs.outputs.bucket }}
     - name: 'Remove Artifacts.json & Index.html from path (Optional)'
       env:
         SKIP: ${{ (needs.parse-inputs.outputs.skip-publish == 'true') && 'echo skipping...' || '' }}
