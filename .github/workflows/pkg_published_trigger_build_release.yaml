@@ -150,4 +150,5 @@ jobs:
       bucket: ${{ needs.parse-inputs.outputs.bucket }}
   build-container:
     needs: [ parse-inputs, reindex ]
+    secrets: inherit
     uses: ./.github/workflows/build_container.yml
