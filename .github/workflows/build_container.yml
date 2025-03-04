@@ -1,9 +1,8 @@
 name: Release Mondoo Container Image
 
 on:
-  release:
-    types: [released]
   workflow_dispatch:
+  workflow_call:
 
 
 jobs:
