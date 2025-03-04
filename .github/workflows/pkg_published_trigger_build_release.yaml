@@ -61,7 +61,7 @@ jobs:
       bucket: ${{ needs.parse-inputs.outputs.bucket }}
   reindex:
     runs-on: ubuntu-latest
-    needs: [ parse-inputs, build-arch, build-msi, build-chocolatey, build-macos, build-mondoo-pkgs ]
+    needs: [ parse-inputs, build-msi, build-chocolatey, build-mondoo-pkgs ]
     steps:
     # fetch a token for the mondoo-mergebot app
     - name: Generate token
@@ -136,17 +136,18 @@ jobs:
   build-arch:
     uses: ./.github/workflows/pkg_arch-aur.yaml
     secrets: inherit
-    needs: [ parse-inputs ]
+    needs: [ parse-inputs, reindex ]
     with:
       version: ${{ needs.parse-inputs.outputs.version }}
       skip: ${{ needs.parse-inputs.outputs.skip-publish == 'true' }}
   build-macos:
     uses: ./.github/workflows/pkg_macos.yaml
     secrets: inherit
-    needs: [ parse-inputs ]
+    needs: [ parse-inputs, reindex ]
     with:
       version: ${{ needs.parse-inputs.outputs.version }}
       skip-publish: ${{ needs.parse-inputs.outputs.skip-publish == 'true' }}
       bucket: ${{ needs.parse-inputs.outputs.bucket }}
   build-container:
+    needs: [ parse-inputs, reindex ]
     uses: ./.github/workflows/build_container.yml
