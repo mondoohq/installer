@@ -47,6 +47,16 @@ NUSPEC
 
 
 CHECKSUM=`curl -s https://install.mondoo.com/package/cnspec/windows/amd64/zip/${VERSION}/sha256`
+if [ $CHECKSUM = "internal server error" ]; then
+  echo "--- WARNING: Install service has not yet been updated with the SHAs.  WAITING 3 MINUTES ---"
+  sleep 300
+fi
+
+CHECKSUM=`curl -s https://install.mondoo.com/package/cnspec/windows/amd64/zip/${VERSION}/sha256`
+if [ $CHECKSUM = "internal server error" ]; then
+  echo "--- FATAL ERROR: SHAs not available from https://install.mondoo.com/package/cnspec/windows/amd64/zip/${VERSION}/sha256"
+  exit 1
+fi
 
 echo "Generating Install Script"
 mkdir tools
