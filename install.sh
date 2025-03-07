@@ -514,7 +514,21 @@ configure_cloudshell_installer() {
     purple_bold "\n* Authenticate with Mondoo Platform"
     config_path="$HOME/.config/mondoo"
     mkdir -p "$config_path"
-    ${MONDOO_BINARY_PATH} login --config "$config_path/mondoo.yml" --token "$MONDOO_REGISTRATION_TOKEN" --timer "$TIMER" --splay "$SPLAY" --name "$NAME" --annotation "$ANNOTATION"
+    local _cmd
+    _cmd="${MONDOO_BINARY_PATH} login --config \"$config_path/mondoo.yml\" --token \"$MONDOO_REGISTRATION_TOKEN\" --timer \"$TIMER\" --splay \"$SPLAY\""
+
+    # Add --annotation option if set
+    if [ -n "$ANNOTATION" ]; then
+      _cmd="$_cmd --annotation \"$ANNOTATION\""
+    fi
+
+    # Add --name option if set
+    if [ -n "$NAME" ]; then
+      _cmd="$_cmd --name \"$NAME\""
+    fi
+
+    # Execute the command
+    eval "$_cmd"
   }
 }
 
@@ -567,18 +581,20 @@ configure_token() {
 
 configure_login_cmd() {
   # Base command
-  login_cmd="sudo_cmd ${MONDOO_BINARY_PATH} login --config /etc/opt/mondoo/mondoo.yml --token \"$MONDOO_REGISTRATION_TOKEN\" --timer \"$TIMER\" --splay \"$SPLAY\""
+  local _cmd
+  _cmd=(sudo_cmd "${MONDOO_BINARY_PATH}" login --config /etc/opt/mondoo/mondoo.yml --token "$MONDOO_REGISTRATION_TOKEN" --timer "$TIMER" --splay "$SPLAY")
 
   # Add --annotation option if set
   if [ -n "$ANNOTATION" ]; then
-    login_cmd="$login_cmd --annotation \"$ANNOTATION\""
+    _cmd+=(--annotation "$ANNOTATION")
   fi
 
   # Add --name option if set
   if [ -n "$NAME" ]; then
-    login_cmd="$login_cmd --name \"$NAME\""
+    _cmd+=(--name "$NAME")
   fi
 
+  echo "${_cmd[@]}"
 }
 
 configure_macos_token() {
