@@ -604,6 +604,15 @@ configure_linux_token() {
   # Get the login command
   login_cmd=$(configure_login_cmd "$MONDOO_BINARY_PATH" "$MONDOO_REGISTRATION_TOKEN" "$TIMER" "$SPLAY" "$ANNOTATION" "$NAME")
 
+  # echo login_cmd
+  echo "##########################################"
+  echo "#### LOGIN CMD ###########################"
+  echo "\n" 
+  echo "\n" 
+  echo "$login_cmd" 
+  echo "\n" 
+  echo "\n" 
+
   # Execute the command
   eval "$login_cmd"
 
