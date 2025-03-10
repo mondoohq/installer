@@ -149,6 +149,14 @@ jobs:
       version: ${{ needs.parse-inputs.outputs.version }}
       skip-publish: ${{ needs.parse-inputs.outputs.skip-publish == 'true' }}
   build-container:
+    if: ${{ needs.parse-inputs.outputs.skip-publish != 'true' }}
     needs: [ parse-inputs, reindex ]
     secrets: inherit
     uses: ./.github/workflows/build_container.yml
+  build-homebrew:
+    if: ${{ needs.parse-inputs.outputs.skip-publish != 'true' }}
+    needs: [ parse-inputs, reindex ]
+    secrets: inherit
+    uses: mondoohq/homebrew-mondoo/.github/workflows/release.yml@main
+    with:
+      version: ${{ needs.parse-inputs.outputs.version }}
