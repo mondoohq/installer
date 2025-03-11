@@ -134,6 +134,15 @@ jobs:
     - name: Invalidate Google Load Balancer caches
       run: |
         gcloud compute url-maps invalidate-cdn-cache releases-mondoo-io --path "/${{ inputs.reindex-path }}" --async
+    - name: Restart minstaller Cloud Run Service
+      env:
+        $MINSTALLER: ${{ (needs.parse-inputs.outputs.skip-publish == 'true') && 'minstaller-dev' || 'minstaller' }}
+      run: |
+        gcloud --project mondoo-base-infra \
+            run services describe "$MINSTALLER" --region us-central1 --format export > "$MINSTALLER.yaml"
+        gcloud --project mondoo-base-infra \
+            run services replace "$MINSTALLER.yaml" --region us-central1
+        rm "$MINSTALLER.yaml" 
   build-arch:
     uses: ./.github/workflows/pkg_arch-aur.yaml
     secrets: inherit
@@ -154,7 +163,6 @@ jobs:
     secrets: inherit
     uses: ./.github/workflows/build_container.yml
   build-homebrew:
-    if: ${{ needs.parse-inputs.outputs.skip-publish != 'true' }}
     needs: [ parse-inputs, reindex ]
     secrets: inherit
     uses: mondoohq/homebrew-mondoo/.github/workflows/release.yml@master
