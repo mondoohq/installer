@@ -157,7 +157,7 @@ jobs:
     if: ${{ needs.parse-inputs.outputs.skip-publish != 'true' }}
     needs: [ parse-inputs, reindex ]
     secrets: inherit
-    uses: mondoohq/homebrew-mondoo/.github/workflows/release.yml@main
+    uses: mondoohq/homebrew-mondoo/.github/workflows/release.yml@master
     with:
       version: ${{ needs.parse-inputs.outputs.version }}
       skip-publish: ${{ needs.parse-inputs.outputs.skip-publish == 'true' }}
