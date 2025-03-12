@@ -63,6 +63,8 @@ jobs:
   reindex:
     runs-on: ubuntu-latest
     needs: [ parse-inputs, build-msi, build-mondoo-pkgs ]
+    outputs:
+      token: ${{ steps.generate-token.outputs.token }}
     steps:
     # fetch a token for the mondoo-mergebot app
     - name: Generate token
@@ -166,7 +168,8 @@ jobs:
   build-homebrew:
     needs: [ parse-inputs, reindex ]
     secrets: inherit
-    uses: mondoohq/homebrew-mondoo/.github/workflows/release.yml@master
+    uses: mondoohq/homebrew-mondoo/.github/workflows/release.yml@philip/reusable-release-workflow
     with:
       version: ${{ needs.parse-inputs.outputs.version }}
       skip-publish: ${{ needs.parse-inputs.outputs.skip-publish == 'true' }}
+      token: ${{ needs.reindex.outputs.token }}
