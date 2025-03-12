@@ -8,11 +8,6 @@ on:
         required: true
         default: '8.99.99'
         type: 'string'
-      name:
-        description: 'Package Name'
-        required: false
-        default: 'mondoo'
-        type: 'string'
       skip-publish:
         description: 'Skip publish?'
         required: false
@@ -29,11 +24,6 @@ on:
         description: 'Package Version'
         required: true
         default: '0.0.1'
-        type: 'string'
-      name:
-        description: 'Package Name'
-        required: false
-        default: 'mondoo'
         type: 'string'
       skip-publish:
         description: 'Skip publish?'
@@ -79,6 +69,7 @@ jobs:
           curl -sSL -O https://github.com/mondoohq/cnspec/releases/download/v${VERSION}/cnspec_${VERSION}_windows_${{ matrix.arch }}.zip
           unzip cnspec_${VERSION}_windows_${{ matrix.arch }}.zip
           rm cnspec_${VERSION}_windows_${{ matrix.arch }}.zip
+
           curl -sSL -O https://github.com/mondoohq/cnquery/releases/download/v${VERSION}/cnquery_${VERSION}_windows_${{ matrix.arch }}.zip
           unzip cnquery_${VERSION}_windows_${{ matrix.arch }}.zip
           rm cnquery_${VERSION}_windows_${{ matrix.arch }}.zip
@@ -202,11 +193,17 @@ jobs:
           Get-AuthenticodeSignature -FilePath .\\mondoo_${{ matrix.arch }}.msi
       - name: Install artifact
         run: |
+          $TEMP_PATH = $env:TEMP
           cd dist
-          msiexec /qn /i mondoo_${{ matrix.arch }}.msi
+          $msiexec = Start-Process "msiexec" "/i mondoo_${{ matrix.arch }}.msi /qn /l*! install.log" -NoNewWindow -PassThru
+          $gci = Start-Process "powershell" "Get-Content -Path install.log -Wait" -NoNewWindow -PassThru
+          $msiexec.WaitForExit() 
+          $gci.Kill()
+          gci
       - name: Verify the correct cnquery version is installed
         run: |
           $version=& 'C:\Program Files\Mondoo\cnquery.exe' version
+          Write-Output "comparing $version -like '*${{ inputs.version }}*'"
           $match=$version -like "*${{ inputs.version }}*"
           if (-not $match) {
             exit 1
@@ -217,6 +214,7 @@ jobs:
       - name: Verify the correct cnspec version is installed
         run: |
           $version=& 'C:\Program Files\Mondoo\cnspec.exe' version
+          Write-Output "comparing $version -like '*${{ inputs.version }}*'"
           $match=$version -like "*${{ inputs.version }}*"
           if (-not $match) {
             exit 1
