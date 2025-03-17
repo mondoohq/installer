@@ -77,7 +77,6 @@ jobs:
           releasr
           cnspec
           cnquery
-          homebrew-mondoo
     - name: Converge Inputs
       id: inputs
       run: |
@@ -170,3 +169,4 @@ jobs:
     with:
       version: ${{ needs.parse-inputs.outputs.version }}
       skip-publish: ${{ needs.parse-inputs.outputs.skip-publish == 'true' }}
+      
