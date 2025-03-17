@@ -168,7 +168,7 @@ jobs:
   build-homebrew:
     needs: [ parse-inputs, reindex ]
     secrets: inherit
-    uses: mondoohq/homebrew-mondoo/.github/workflows/release.yml@philip/reusable-release-workflow
+    uses: mondoohq/homebrew-mondoo/.github/workflows/release.yml@master
     with:
       version: ${{ needs.parse-inputs.outputs.version }}
       skip-publish: ${{ needs.parse-inputs.outputs.skip-publish == 'true' }}
