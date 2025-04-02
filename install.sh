@@ -581,8 +581,10 @@ configure_token() {
 
 configure_login_cmd() {
   # Base command
+  local config_dir_path="$1"
+  local config_file_path="${config_dir_path}/mondoo.yml"
   local _cmd
-  _cmd=(sudo_cmd "${MONDOO_BINARY_PATH}" login --config /etc/opt/mondoo/mondoo.yml --token "$MONDOO_REGISTRATION_TOKEN" --timer "$TIMER" --splay "$SPLAY")
+  _cmd=(sudo_cmd "${MONDOO_BINARY_PATH}" login --config "$config_file_path" --token "$MONDOO_REGISTRATION_TOKEN" --timer "$TIMER" --splay "$SPLAY")
 
   # Add --annotation option if set
   if [ -n "$ANNOTATION" ]; then
@@ -603,7 +605,7 @@ configure_macos_token() {
   mkdir -p "$config_path"
 
   # Get the login command
-  login_cmd=$(configure_login_cmd "$MONDOO_BINARY_PATH" "$MONDOO_REGISTRATION_TOKEN" "$TIMER" "$SPLAY" "$ANNOTATION" "$NAME")
+  login_cmd=$(configure_login_cmd "$config_path")
   
   # Execute the command
   eval "$login_cmd"
@@ -615,10 +617,13 @@ configure_macos_token() {
 
 configure_linux_token() {
   purple_bold "\n* Authenticate with Mondoo Platform"
-  sudo_cmd mkdir -p "/etc/opt/mondoo/"
+  local config_path="/etc/opt/mondoo/"
+  sudo_cmd mkdir -p "$config_path"
+
   
   # Get the login command
-  login_cmd=$(configure_login_cmd "$MONDOO_BINARY_PATH" "$MONDOO_REGISTRATION_TOKEN" "$TIMER" "$SPLAY" "$ANNOTATION" "$NAME")
+  login_cmd=$(configure_login_cmd "$config_path")
+
 
   # Execute the command
   eval "$login_cmd"
