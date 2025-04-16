@@ -557,6 +557,7 @@ configure_token() {
   if [ "$MONDOO_IS_REGISTERED" = true ]; then
     purple_bold "\n* ${MONDOO_PRODUCT_NAME} is already logged-in. Skipping login"
     purple_bold "(you can manually run '${MONDOO_BINARY} login' to re-authenticate)."
+    purple_bold "To re-register with a new space, please remove your Mondoo config file first."
     config_path="$HOME/.config/mondoo"
     if [ "$MONDOO_SERVICE" = "enable" ] && [ "$OS" = "macOS" ]; then
       sudo_cmd cp "$config_path/mondoo.yml" /Library/Mondoo/etc/mondoo.yml
