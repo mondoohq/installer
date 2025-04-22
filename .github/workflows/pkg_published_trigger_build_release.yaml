@@ -162,6 +162,9 @@ jobs:
     needs: [ parse-inputs, reindex ]
     secrets: inherit
     uses: ./.github/workflows/build_container.yml
+    with:
+      version: ${{ needs.parse-inputs.outputs.version }}
+      skip-publish: ${{ needs.parse-inputs.outputs.skip-publish == 'true' }}
   build-homebrew:
     needs: [ parse-inputs, reindex ]
     secrets: inherit
