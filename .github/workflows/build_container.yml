@@ -2,13 +2,40 @@ name: Release Mondoo Container Image
 
 on:
   workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version that should be released'
+        required: true
+        default: '8.99.99'
+        type: 'string'
+      skip-publish:
+        description: 'Skip publish?'
+        required: false
+        default: false
+        type: boolean
   workflow_call:
-
+    inputs:
+      version:
+        description: 'Version that should be released'
+        required: true
+        default: '8.99.99'
+        type: 'string'
+      skip-publish:
+        description: 'Skip publish?'
+        required: false
+        default: false
+        type: boolean
 
 jobs:
+  parse-inputs:
+    uses: ./.github/workflows/parse_inputs.yml
+    with:
+      skip-publish: ${{ inputs.skip-publish }}
+      version: ${{ inputs.version }}
   build_container:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    needs: [ parse-inputs ] 
     name: Build Docker
     steps:
       - name: Clone repository
@@ -16,21 +43,11 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Get Latest Tag
-        id: vars
-        uses: WyriHaximus/github-action-get-previous-tag@v1
-
       - name: Parse semver string
         id: semver
         uses: booxmedialtd/ws-action-parse-semver@v1
         with:
-          input_string: ${{ steps.vars.outputs.tag }}
-      - name: Clean Version Tag
-        id: version
-        run: |
-          VERSION=$(echo "${{ steps.vars.outputs.tag }}" | sed -e 's/^v//')
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          input_string: ${{ needs.parse-inputs.outputs.version }}
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -48,6 +65,7 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Build and push root images
+        if: ${{ needs.parse-inputs.outputs.skip-publish != 'true' }}
         uses: docker/build-push-action@v6
         with:
           sbom: true
@@ -55,17 +73,18 @@ jobs:
           context: .
           platforms: linux/amd64,linux/arm64
           push: true
-          build-args: VERSION=${{ steps.version.outputs.version }}
+          build-args: VERSION=${{ needs.parse-inputs.outputs.version }}
           target: root
           tags: |
-            mondoolabs/mondoo:${{ steps.version.outputs.version }}
+            mondoolabs/mondoo:${{ needs.parse-inputs.outputs.version }}
             mondoolabs/mondoo:${{ steps.semver.outputs.major }}
             mondoolabs/mondoo:latest
-            mondoo/client:${{ steps.version.outputs.version }}
+            mondoo/client:${{ needs.parse-inputs.outputs.version }}
             mondoo/client:${{ steps.semver.outputs.major }}
             mondoo/client:latest
 
       - name: Build and push devkit images
+        if: ${{ needs.parse-inputs.outputs.skip-publish != 'true' }}
         # make it optional until we fixed https://github.com/mondoohq/cnquery/issues/3107
         continue-on-error: true
         uses: docker/build-push-action@v6
@@ -76,14 +95,15 @@ jobs:
           file: Dockerfile-dev
           platforms: linux/amd64,linux/arm64,linux/arm/v6,linux/arm/v7
           push: true
-          build-args: VERSION=${{ steps.version.outputs.version }}
+          build-args: VERSION=${{ needs.parse-inputs.outputs.version }}
           target: root
           tags: |
-            mondoo/devkit:${{ steps.version.outputs.version }}
+            mondoo/devkit:${{ needs.parse-inputs.outputs.version }}
             mondoo/devkit:${{ steps.semver.outputs.major }}
             mondoo/devkit:latest
 
       - name: Build and push rootless images
+        if: ${{ needs.parse-inputs.outputs.skip-publish != 'true' }}
         uses: docker/build-push-action@v6
         with:
           sbom: true
@@ -91,14 +111,15 @@ jobs:
           context: .
           platforms: linux/amd64,linux/arm64,linux/arm/v6,linux/arm/v7
           push: true
-          build-args: VERSION=${{ steps.version.outputs.version }}
+          build-args: VERSION=${{ needs.parse-inputs.outputs.version }}
           target: rootless
           tags: |
-            mondoo/client:${{ steps.version.outputs.version }}-rootless
+            mondoo/client:${{ needs.parse-inputs.outputs.version }}-rootless
             mondoo/client:${{ steps.semver.outputs.major }}-rootless
             mondoo/client:latest-rootless
 
       - name: Build and push root images (ubi)
+        if: ${{ needs.parse-inputs.outputs.skip-publish != 'true' }}
         uses: docker/build-push-action@v6
         with:
           sbom: true
@@ -107,14 +128,15 @@ jobs:
           file: Dockerfile-ubi
           platforms: linux/amd64,linux/arm64
           push: true
-          build-args: VERSION=${{ steps.version.outputs.version }}
+          build-args: VERSION=${{ needs.parse-inputs.outputs.version }}
           target: root
           tags: |
-            mondoo/client:${{ steps.version.outputs.version }}-ubi
+            mondoo/client:${{ needs.parse-inputs.outputs.version }}-ubi
             mondoo/client:${{ steps.semver.outputs.major }}-ubi
             mondoo/client:latest-ubi
 
       - name: Build and push rootless images (ubi)
+        if: ${{ needs.parse-inputs.outputs.skip-publish != 'true' }}
         uses: docker/build-push-action@v6
         with:
           sbom: true
@@ -123,10 +145,10 @@ jobs:
           file: Dockerfile-ubi
           platforms: linux/amd64,linux/arm64
           push: true
-          build-args: VERSION=${{ steps.version.outputs.version }}
+          build-args: VERSION=${{ needs.parse-inputs.outputs.version }}
           target: rootless
           tags: |
-            mondoo/client:${{ steps.version.outputs.version }}-ubi-rootless
+            mondoo/client:${{ needs.parse-inputs.outputs.version }}-ubi-rootless
             mondoo/client:${{ steps.semver.outputs.major }}-ubi-rootless
             mondoo/client:latest-ubi-rootless
 
