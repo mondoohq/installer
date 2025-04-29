@@ -345,11 +345,11 @@ function Install-Mondoo {
       If (![string]::IsNullOrEmpty($Splay)) {
           $login_params = $login_params + @("--splay", "$Splay")
       }
-      if (![string]::IsNullOrEmpty($Annotation)) { 
-          $login_params = $login_params + @('--annotation',$Annotation) 
+      if (![string]::IsNullOrEmpty($Annotation)) {
+          $login_params = $login_params + @('--annotation',$Annotation)
       }
-      if (![string]::IsNullOrEmpty($Name))       { 
-          $login_params = $login_params + @('--name',$Name) 
+      if (![string]::IsNullOrEmpty($Name))       {
+          $login_params = $login_params + @('--name',$Name)
       }
 
       $program = "$Path\cnspec.exe"
