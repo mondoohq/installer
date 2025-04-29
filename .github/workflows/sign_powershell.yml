@@ -26,8 +26,8 @@ jobs:
 
       - name: Install jSign (Windows Signing Tool) -- Required for public runners
         run: |
-          curl --retry 10 --retry-delay 60 -LO https://github.com/ebourg/jsign/releases/download/5.0/jsign_5.0_all.deb
-          sudo dpkg -i ./jsign_5.0_all.deb
+          curl --retry 10 --retry-delay 60 -LO https://github.com/ebourg/jsign/releases/download/7.1/jsign_7.1_all.deb
+          sudo dpkg -i ./jsign_7.1_all.deb
 
       - name: Configure DigiCert Signing Variables
         shell: bash
