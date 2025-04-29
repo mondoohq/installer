@@ -15,7 +15,12 @@
     Set 'msi' (default) to download the package or 'zip' for the agent binary instead
     .PARAMETER Version
     If provided, tries to download the specific version instead of the latest
+    .PARAMETER Annotation
+    (Optional) Comma-separated key=value pairs to annotate the asset in mondoo.yml
+    .PARAMETER Name
+    (Optional) A custom asset name (defaults to machine hostname)
     .EXAMPLE
+    Import-Module ./install.ps1; Install-Mondoo -RegistrationToken 'INSERTKEYHERE' -Annotation 'env=prod,role=db' -Name 'db-server-01'
     Import-Module ./install.ps1; Install-Mondoo -RegistrationToken 'INSERTKEYHERE'
     Import-Module ./install.ps1; Install-Mondoo -Version 6.14.0
     Import-Module ./install.ps1; Install-Mondoo -Proxy 'http://1.1.1.1:3128'
@@ -40,32 +45,21 @@ function Install-Mondoo {
       [string]   $taskname = "MondooUpdater",
       [string]   $taskpath = "Mondoo",
       [string]   $Timer = '60',
-      [string]   $Splay = '60'
+      [string]   $Splay = '60',
+      [string]   $Annotation = '',
+      [string]   $Name = ''
   )
   Process {
 
-  function fail($msg) {
-    Write-Error -ErrorAction Stop -Message $msg
-  }
-
-  function info($msg) {
-    $host.ui.RawUI.ForegroundColor = "white"
-    Write-Output $msg
-  }
-
-  function success($msg) {
-    $host.ui.RawUI.ForegroundColor = "darkgreen"
-    Write-Output $msg
-  }
-
-  function purple($msg) {
-    $host.ui.RawUI.ForegroundColor = "magenta"
-    Write-Output $msg
-  }
+  function fail($msg) { Write-Error -ErrorAction Stop -Message $msg }
+  function info($msg) { $host.ui.RawUI.ForegroundColor = "white"; Write-Output $msg }
+  function success($msg) { $host.ui.RawUI.ForegroundColor = "darkgreen"; Write-Output $msg }
+  function purple($msg) { $host.ui.RawUI.ForegroundColor = "magenta"; Write-Output $msg }
 
   function Get-UserAgent() {
     return "MondooInstallScript/1.0 (+https://mondoo.com/) PowerShell/$($PSVersionTable.PSVersion.Major).$($PSVersionTable.PSVersion.Minor) (Windows NT $([System.Environment]::OSVersion.Version.Major).$([System.Environment]::OSVersion.Version.Minor);$PSEdition)"
   }
+
 
   function download($url,$to) {
     $wc = New-Object Net.Webclient
@@ -139,55 +133,45 @@ function Install-Mondoo {
       Finally { $ErrorActionPreference = "continue" }
   }
 
-  function CreateAndRegisterMondooUpdaterTask($taskname, $taskpath)
-  {
+  function CreateAndRegisterMondooUpdaterTask($taskname, $taskpath) {
     info " * Create and register the Mondoo update task"
     NewScheduledTaskFolder $taskpath
 
     $taskArgument = '-NoProfile -WindowStyle Hidden -ExecutionPolicy RemoteSigned -Command &{ [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; $wc = New-Object Net.Webclient; '
-
-    If (![string]::IsNullOrEmpty($Proxy)) {
-      # Add proxy config to scheduling task
-      $taskArgument = $taskArgument += '$wc.proxy = New-Object System.Net.WebProxy(\"' + $Proxy + '\"); '
+    if (![string]::IsNullOrEmpty($Proxy)) {
+      $taskArgument += '$wc.proxy = New-Object System.Net.WebProxy("' + $Proxy + '"); '
     }
+    $taskArgument += 'iex ($wc.DownloadString("https://install.mondoo.com/ps1")); Install-Mondoo '
+    $taskArgument += '-Product ' + $Product + ' '
+    $taskArgument += '-Path "' + $Path + '" '
 
-    $taskArgument = $taskArgument += 'iex ($wc.DownloadString(\"https://install.mondoo.com/ps1\")); Install-Mondoo '
-
-    # Set product name in scheduling task
-    $taskArgument = $taskArgument += '-Product ' + $Product + ' '
-
-    # Set Path in scheduling task
-    $taskArgument = $taskArgument += '-Path \"' + $Path + '\" '
-
-    # Service enabled
-    If ($Service.ToLower() -eq 'enable' -and $Product.ToLower() -eq 'mondoo') {
-      $taskArgument = $taskArgument += '-Service enable '
+    if ($Service.ToLower() -eq 'enable' -and $Product.ToLower() -eq 'mondoo') {
+      $taskArgument += '-Service enable '
     }
-
-    # Proxy enabled
-    If (![string]::IsNullOrEmpty($Proxy)) {
-      $taskArgument = $taskArgument += '-Proxy ' + $Proxy + ' '
+    if (![string]::IsNullOrEmpty($Annotation)) {
+      $taskArgument += '-Annotation ' + $Annotation + ' '
     }
-
-    # Recreate scheduling task
-    If ($UpdateTask.ToLower() -eq 'enable') {
-      $taskArgument = $taskArgument += '-UpdateTask enable -Time ' + $Time + ' -Interval ' + $Interval +' '
+    if (![string]::IsNullOrEmpty($Name)) {
+      $taskArgument += '-Name ' + $Name + ' '
     }
-
-    $taskArgument = $taskArgument += ';}'
+    if (![string]::IsNullOrEmpty($Proxy)) {
+      $taskArgument += '-Proxy ' + $Proxy + ' '
+    }
+    if ($UpdateTask.ToLower() -eq 'enable') {
+      $taskArgument += '-UpdateTask enable -Time ' + $Time + ' -Interval ' + $Interval +' '
+    }
+    $taskArgument += ';}'
 
     $action = New-ScheduledTaskAction -Execute 'Powershell.exe' -Argument $taskArgument
-    $trigger =  @(
-      $(New-ScheduledTaskTrigger -Daily -DaysInterval $Interval -At $Time)
-    )
+    $trigger = New-ScheduledTaskTrigger -Daily -DaysInterval $Interval -At $Time
     $principal = New-ScheduledTaskPrincipal -GroupId "NT AUTHORITY\SYSTEM" -RunLevel Highest
     $settings = New-ScheduledTaskSettingsSet -Compatibility Win8
+
     Register-ScheduledTask -Action $action -Settings $settings -Trigger $trigger -TaskName $taskname -Description "$Product Updater Task" -TaskPath $taskpath -Principal $principal
 
-    If (Get-ScheduledTask -TaskName $taskname -EA 0)
-    {
+    if (Get-ScheduledTask -TaskName $taskname -EA 0) {
         success "* $Product Updater Task installed"
-    } Else {
+    } else {
       fail "Installation of $Product Updater Task failed"
     }
   }
@@ -346,6 +330,12 @@ function Install-Mondoo {
       }
       If (![string]::IsNullOrEmpty($Splay)) {
           $login_params = $login_params + @("--splay", "$Splay")
+      }
+      if (![string]::IsNullOrEmpty($Annotation)) { 
+          $login_params = $login_params + @('--annotation',$Annotation) 
+      }
+      if (![string]::IsNullOrEmpty($Name))       { 
+          $login_params = $login_params + @('--name',$Name) 
       }
 
       $program = "$Path\cnspec.exe"
