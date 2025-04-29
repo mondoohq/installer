@@ -51,10 +51,24 @@ function Install-Mondoo {
   )
   Process {
 
-  function fail($msg) { Write-Error -ErrorAction Stop -Message $msg }
-  function info($msg) { $host.ui.RawUI.ForegroundColor = "white"; Write-Output $msg }
-  function success($msg) { $host.ui.RawUI.ForegroundColor = "darkgreen"; Write-Output $msg }
-  function purple($msg) { $host.ui.RawUI.ForegroundColor = "magenta"; Write-Output $msg }
+  function fail($msg) {
+    Write-Error -ErrorAction Stop -Message $msg
+  }
+
+  function info($msg) {
+    $host.ui.RawUI.ForegroundColor = "white"
+    Write-Output $msg
+  }
+
+  function success($msg) {
+    $host.ui.RawUI.ForegroundColor = "darkgreen"
+    Write-Output $msg
+  }
+
+  function purple($msg) {
+    $host.ui.RawUI.ForegroundColor = "magenta"
+    Write-Output $msg
+  }
 
   function Get-UserAgent() {
     return "MondooInstallScript/1.0 (+https://mondoo.com/) PowerShell/$($PSVersionTable.PSVersion.Major).$($PSVersionTable.PSVersion.Minor) (Windows NT $([System.Environment]::OSVersion.Version.Major).$([System.Environment]::OSVersion.Version.Minor);$PSEdition)"
