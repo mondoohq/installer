@@ -441,3 +441,4 @@ function Install-Mondoo {
   $erroractionpreference = $previous_erroractionpreference
   }
 }
+
