@@ -26,6 +26,7 @@ jobs:
           [
             "debian:10",
             "debian:11",
+            "debian:12",
             "ubuntu:18.04",
             "ubuntu:20.04",
             "ubuntu:22.04",
@@ -53,8 +54,8 @@ jobs:
         distro:
           [
             "quay.io/centos/centos:stream9",
-            "fedora:39",
             "fedora:40",
+            "fedora:41",
             "rockylinux:8",
             "rockylinux:9",
             "redhat/ubi8",
@@ -63,6 +64,29 @@ jobs:
             "oraclelinux:9",
           ]
         ## Note: centos:8 is obsoleted by Centos Stream 9 and EOL, do not use, refer to https://www.centos.org/centos-linux-eol/
+    steps:
+      - uses: actions/checkout@v4
+      - name: Version
+        id: version
+        run: |
+          V=${{ inputs.version }}
+          VERSION=$(echo $V | sed 's/^v//')
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+      - name: Install.sh/${{ matrix.package }} on ${{ matrix.distro }}
+        run: |
+          docker run --rm -v $(pwd):/work -w /work ${{ matrix.distro }} \
+          bash -c "curl -sSL https://install.mondoo.com/sh/${{ matrix.package }} | bash - && ${{matrix.package }} version | grep -q ${{ steps.version.outputs.version }}"
+
+  install-sh-zypper:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        package: ["cnspec", "cnquery"]
+        distro:
+          [
+            "registry.suse.com/suse/sle15:15.6",
+          ]
     steps:
       - uses: actions/checkout@v4
       - name: Version
