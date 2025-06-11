@@ -473,7 +473,7 @@ configure_suse_installer() {
       curl -A "${UserAgent}" --retry 3 --retry-delay 10 -sSL https://releases.mondoo.com/rpm/mondoo.repo | sudo_cmd tee /etc/zypp/repos.d/mondoo.repo
       # zypper does not recognize the gpg key reference from mondoo.repo properly, therefore we need to add this here manually
       sudo_cmd rpm --import https://releases.mondoo.com/rpm/pubkey.gpg
-      sudo zypper refresh
+      sudo_cmd zypper refresh
 
 
       purple_bold "\n* Installing ${MONDOO_PRODUCT_NAME}"
