@@ -442,13 +442,13 @@ configure_debian_installer() {
       apt_update
 
       purple_bold "\n* Installing ${MONDOO_PRODUCT_NAME}"
-      sudo_cmd apt update -y && sudo_cmd apt install -y ${MONDOO_PKG_NAME}
+      sudo_cmd apt update -y && TERM=dumb sudo_cmd apt install -y ${MONDOO_PKG_NAME}
     }
 
     mondoo_update() {
       # Always update GPG Key & Apt Source for Freshness
       apt_update
-      sudo_cmd apt update -y && sudo_cmd apt --only-upgrade install -y ${MONDOO_PKG_NAME}
+      sudo_cmd apt update -y && TERM=dumb sudo_cmd apt --only-upgrade install -y ${MONDOO_PKG_NAME}
     }
 
   else
