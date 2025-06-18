@@ -20,7 +20,7 @@ rm mondoo
 
 # Create Linux TGZ's
 echo "Creating Linux TGZs"
-for arch in 386 amd64 arm64 armv6 armv7 ppc64le; do
+for arch in 386 amd64 arm64 armv6 armv7 ppc64le s390x; do
   cp ${PKG_NAME}.tar.gz ${PKG_NAME}_"${VERSION}"_linux_${arch}.tar.gz  
 done
 

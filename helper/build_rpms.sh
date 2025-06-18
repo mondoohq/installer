@@ -60,7 +60,7 @@ echo "Creating NOARCH RPM"
 cp "RPMS/noarch/mondoo-${MONDOO_VERSION}-1.noarch.rpm" "${REPO_DIR}/${OUTDIR}/mondoo_${MONDOO_VERSION}_linux_noarch.rpm"
 
 cd "${REPO_DIR}"
-for arch in 386 amd64 arm64 armv6 armv7 ppc64le; do
+for arch in 386 amd64 arm64 armv6 armv7 ppc64le s390x; do
   echo "  - Creating RPM for ARCH: ${arch}"
   cp "${OUTDIR}/mondoo_${MONDOO_VERSION}_linux_noarch.rpm" "${OUTDIR}/mondoo_${MONDOO_VERSION}_linux_${arch}.rpm"
 done
