@@ -467,7 +467,7 @@ configure_debian_installer() {
 
 configure_suse_installer() {
   if [ -x "$(command -v zypper)" ]; then
-    MONDOO_INSTALLER="apt"
+    MONDOO_INSTALLER="zypper"
     mondoo_install() {
       purple_bold "\n* Configuring ZYPPER sources for Mondoo at /etc/zypp/repos.d/mondoo.repo"
       curl -A "${UserAgent}" --retry 3 --retry-delay 10 -sSL https://releases.mondoo.com/rpm/mondoo.repo | sudo_cmd tee /etc/zypp/repos.d/mondoo.repo
