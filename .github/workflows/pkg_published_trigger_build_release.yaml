@@ -130,6 +130,12 @@ jobs:
         IDX_OPTS: ${{ inputs.reindex-full && '--force-recompute' || '' }}
         SKIP: ${{ (needs.parse-inputs.outputs.skip-publish == 'true') && 'echo skipping...' || '' }}
       run: |
+          # force regenerate cnspec & cnquery artifacts.json on release, as we have a race condition with the cloud run releasr function
+          if [[ -z "$IDX_OPTS" ]]
+          then
+            $SKIP ./releasr idx gs://${{ needs.parse-inputs.outputs.bucket }} --app "cnquery/${{ steps.parse-inputs.outputs.version }}"
+            $SKIP ./releasr idx gs://${{ needs.parse-inputs.outputs.bucket }}  --app "cnquery/${{ steps.parse-inputs.outputs.version }}"
+          fi
           $SKIP ./releasr idx gs://${{ needs.parse-inputs.outputs.bucket }} $IDX_OPTS
     - name: Restart minstaller Cloud Run Service
       env:
