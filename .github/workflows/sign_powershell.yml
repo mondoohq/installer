@@ -92,7 +92,7 @@ jobs:
           done
 
       - name: Upload signed scripts
-        if: ${{ github.event.inputs.skip-upload != true }}
+        if: ${{ github.event.inputs.skip-upload != 'true' }}
         uses: actions/upload-artifact@v4
         with:
           name: signed-powershell-scripts
@@ -100,7 +100,7 @@ jobs:
           retention-days: 14
 
       - name: Commit changes
-        if: ${{ github.event.inputs.skip-publish != true }}
+        if: ${{ github.event.inputs.skip-publish != 'true' }}
         run: |
           # ensure windows line-feed
           git config --global core.autocrlf true
