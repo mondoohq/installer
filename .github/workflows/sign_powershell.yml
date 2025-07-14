@@ -4,7 +4,12 @@ on:
   workflow_dispatch:
     inputs:
       skip-publish:
-        description: 'Skip publishing'
+        description: "Skip publishing"
+        required: false
+        default: false
+        type: boolean
+      skip-upload:
+        description: "Skip uploading signed artifacts to workflow"
         required: false
         default: false
         type: boolean
@@ -12,9 +17,9 @@ on:
     branches:
       - main
     paths:
-      - '**.ps1'
-      - '**.psm1'
-      - '**.psd1'
+      - "**.ps1"
+      - "**.psm1"
+      - "**.psd1"
 
 jobs:
   sign_scripts:
@@ -26,8 +31,8 @@ jobs:
 
       - name: Install jSign (Windows Signing Tool) -- Required for public runners
         run: |
-          curl --retry 10 --retry-delay 60 -LO https://github.com/ebourg/jsign/releases/download/5.0/jsign_5.0_all.deb
-          sudo dpkg -i ./jsign_5.0_all.deb
+          curl --retry 10 --retry-delay 60 -LO https://github.com/ebourg/jsign/releases/download/7.1/jsign_7.1_all.deb
+          sudo dpkg -i ./jsign_7.1_all.deb
 
       - name: Configure DigiCert Signing Variables
         shell: bash
@@ -44,12 +49,56 @@ jobs:
           echo "SM_CODE_SIGNING_CERT_SHA1_HASH=${{ secrets.SM_CODE_SIGNING_CERT_SHA1_HASH }}" >> "$GITHUB_ENV"
           echo "SM_CERT_ALIAS=${{ secrets.SM_CERT_ALIAS }}" >> "$GITHUB_ENV"
 
-      - name: Sign powershell script
+      - name: Sign PowerShell scripts
         run: |
-          jsign --storetype DIGICERTONE --alias "${SM_CERT_ALIAS}" --storepass "${SM_API_KEY}|${SM_CLIENT_CERT_FILE}|${SM_CLIENT_CERT_PASSWORD}" --tsaurl "http://timestamp.digicert.com" install.ps1
-          jsign --storetype DIGICERTONE --alias "${SM_CERT_ALIAS}" --storepass "${SM_API_KEY}|${SM_CLIENT_CERT_FILE}|${SM_CLIENT_CERT_PASSWORD}" --tsaurl "http://timestamp.digicert.com" download.ps1
-          jsign --storetype DIGICERTONE --alias "${SM_CERT_ALIAS}" --storepass "${SM_API_KEY}|${SM_CLIENT_CERT_FILE}|${SM_CLIENT_CERT_PASSWORD}" --tsaurl "http://timestamp.digicert.com" powershell/Mondoo.Installer/Mondoo.Installer.psm1
-          jsign --storetype DIGICERTONE --alias "${SM_CERT_ALIAS}" --storepass "${SM_API_KEY}|${SM_CLIENT_CERT_FILE}|${SM_CLIENT_CERT_PASSWORD}" --tsaurl "http://timestamp.digicert.com" powershell/Mondoo.Installer/Mondoo.Installer.psd1
+          set -e  # Exit on error
+
+          SIGN_ARGS="--storetype DIGICERTONE \
+                     --alias \"${SM_CERT_ALIAS}\" \
+                     --storepass \"${SM_API_KEY}|${SM_CLIENT_CERT_FILE}|${SM_CLIENT_CERT_PASSWORD}\" \
+                     --tsaurl http://timestamp.digicert.com \
+                     --replace \
+                     --encoding utf-8-bom"
+
+          FILES=(
+            install.ps1
+            download.ps1
+            powershell/Mondoo.Installer/Mondoo.Installer.psm1
+            powershell/Mondoo.Installer/Mondoo.Installer.psd1
+          )
+
+          # Validate all files first
+          for FILE in "${FILES[@]}"; do
+            INFO=$(file "$FILE")
+            echo "$INFO"
+
+            if [[ "$INFO" != *"with BOM"* ]]; then
+              echo "❌ Error: $FILE missing BOM"
+              exit 1
+            fi
+
+            if [[ "$INFO" != *"CRLF"* ]]; then
+              echo "❌ Error: $FILE missing CRLF line endings"
+              exit 1
+            fi
+          done
+
+          mkdir -p signed-artifacts
+
+          # Sign each file
+          for FILE in "${FILES[@]}"; do
+            echo "Signing $FILE"
+            jsign $SIGN_ARGS "$FILE"
+            cp "$FILE" signed-artifacts/
+          done
+
+      - name: Upload signed scripts
+        if: ${{ github.event.inputs.skip-upload != true }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: signed-powershell-scripts
+          path: signed-artifacts/
+          retention-days: 14
 
       - name: Commit changes
         if: ${{ github.event.inputs.skip-publish != true }}
@@ -67,5 +116,4 @@ jobs:
           git push
 
       - name: Cleanup
-        run:
-          rm -f ${CERT_PATH}
+        run: rm -f ${CERT_PATH}
