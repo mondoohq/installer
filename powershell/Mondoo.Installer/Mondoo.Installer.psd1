@@ -1,4 +1,4 @@
-# Copyright (c) 2022 Mondoo, Inc. All rights reserved.
+﻿# Copyright (c) 2022 Mondoo, Inc. All rights reserved.
 # Licensed under the Apache 2 License.
 
 @{
