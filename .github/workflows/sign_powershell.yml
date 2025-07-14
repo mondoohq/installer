@@ -57,8 +57,7 @@ jobs:
                      --alias \"${SM_CERT_ALIAS}\" \
                      --storepass \"${SM_API_KEY}|${SM_CLIENT_CERT_FILE}|${SM_CLIENT_CERT_PASSWORD}\" \
                      --tsaurl http://timestamp.digicert.com \
-                     --replace \
-                     --encoding utf-8-bom"
+                     --replace"
 
           FILES=(
             install.ps1
