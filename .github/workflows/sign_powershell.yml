@@ -102,8 +102,7 @@ jobs:
       - name: Commit changes
         if: ${{ github.event.inputs.skip-publish != 'true' }}
         run: |
-          # ensure windows line-feed
-          git config --global core.autocrlf true
+          # No need for core.autocrlf true here; .gitattributes with eol=crlf handles it
           # commit changes
           git config --global user.email "tools@mondoo.com"
           git config --global user.name "Mondoo Tools"
