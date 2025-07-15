@@ -1,4 +1,7 @@
-# Declare files these files are stored as it, git contines to change EOL to LF on commit
+# Force Git to store these PowerShell files with CRLF line endings and UTF-8 BOM exactly as-is.
+# We use `-text` to disable Git's automatic line-ending normalization, because `text eol=crlf`
+# still allowed Git to store files with LF-only endings during commits in CI environments (e.g., GitHub runners).
+# WARNING: Using `-text` disables Git diffs for these files, but is necessary to preserve formatting.
 *.ps1 -text
 *.psm1 -text
 *.psd1 -text
