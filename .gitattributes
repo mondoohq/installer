@@ -1,4 +1,4 @@
-# Declare files that will always have CRLF line endings on checkout
-*.ps1 text eol=crlf
-*.psm1 text eol=crlf
-*.psd1 text eol=crlf
+# Declare files these files are stored as it, git contines to change EOL to LF on commit
+*.ps1 -text
+*.psm1 -text
+*.psd1 -text
