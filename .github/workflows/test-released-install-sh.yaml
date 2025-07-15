@@ -24,7 +24,6 @@ jobs:
         package: ["cnspec", "cnquery"]
         distro:
           [
-            "debian:10",
             "debian:11",
             "debian:12",
             "ubuntu:18.04",
@@ -60,6 +59,7 @@ jobs:
             "rockylinux:9",
             "redhat/ubi8",
             "redhat/ubi9",
+            "redhat/ubi10",
             "oraclelinux:8",
             "oraclelinux:9",
           ]
