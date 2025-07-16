@@ -179,6 +179,8 @@ Mondoo signs Microsoft Windows executables, PowerShell scripts, Linux packages a
 
 ## Microsoft
 
+**Note:** The cmdlet 'Get-AuthenticodeSignature' is currently not available in PowerShell Core, so you will need a Windows installation to run it.
+
 To verify the integrity of the `cnquery` or `cnspec` executable, please use Microsoft's Get-AuthenticodeSignature PowerShell command and compare the Thumbprint.
 
 ```powershell

@@ -1,0 +1,49 @@
+name: Verify PowerShell Files
+
+on:
+  workflow_dispatch: # Allows manual triggering
+  pull_request: # Triggers on pull requests
+    paths:
+      - "**.ps1"
+      - "**.psm1"
+      - "**.psd1"
+
+jobs:
+  verify_powershell:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verify PowerShell Encoding and Line endings
+        run: |
+          set -e # Exit on error
+
+          FILES=(
+            install.ps1
+            download.ps1
+            powershell/Mondoo.Installer/Mondoo.Installer.psm1
+            powershell/Mondoo.Installer/Mondoo.Installer.psd1
+          )
+
+          # Validate all files first
+          for FILE in "${FILES[@]}"; do
+            if [ ! -f "$FILE" ]; then
+              echo "ℹ️ Warning: $FILE not found, skipping verification."
+              continue
+            fi
+
+            INFO=$(file "$FILE")
+            echo "Checking: $FILE"
+            echo "$INFO"
+
+            if [[ "$INFO" != *"with BOM"* ]]; then
+              echo "❌ Error: $FILE missing BOM"
+              exit 1
+            fi
+
+            if [[ "$INFO" != *"CRLF"* ]]; then
+              echo "❌ Error: $FILE missing CRLF line endings"
+              exit 1
+            fi
+          done
