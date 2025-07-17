@@ -11,6 +11,12 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+    - name: Run release-site-checker to ensure the release site doesn't just list providers
+      id: html
+      continue-on-error: true
+      run: |
+        chmod +x ./test/releases/release-site-checker-linux
+        ./test/releases/release-site-checker-linux && echo "html_status=$?" >> $GITHUB_ENV || echo "html_status=$?" >> $GITHUB_ENV
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
@@ -35,7 +41,7 @@ jobs:
       run: |
         python test/releases/validate_release.py cnspec && echo "cnspec_status=$?" >> $GITHUB_ENV || echo "cnspec_status=$?" >> $GITHUB_ENV
     - name: Send Slack notification on failure
-      if: env.mondoo_status != '0' || env.cnquery_status != '0' || env.cnspec_status != '0'
+      if: env.mondoo_status != '0' || env.cnquery_status != '0' || env.cnspec_status != '0' || env.html_status != '0'
       uses: slackapi/slack-github-action@v2.0.0
       with:
         method: chat.postMessage
@@ -63,7 +69,7 @@ jobs:
                 "type": "section",
                 "text": {
                   "type": "mrkdwn",
-                  "text": "${{ env.mondoo_status != '0' && '*Mondoo:* ❌ Failed\n' || '*Mondoo:* ✅ Passed\n' }}${{ env.cnquery_status != '0' && '*cnquery:* ❌ Failed\n' || '*cnquery:* ✅ Passed\n' }}${{ env.cnspec_status != '0' && '*cnspec:* ❌ Failed' || '*cnspec:* ✅ Passed' }}"
+                  "text": "${{ env.mondoo_status != '0' && '*Mondoo:* ❌ Failed\n' || '*Mondoo:* ✅ Passed\n' }}${{ env.cnquery_status != '0' && '*cnquery:* ❌ Failed\n' || '*cnquery:* ✅ Passed\n' }}${{ env.cnspec_status != '0' && '*cnspec:* ❌ Failed' || '*cnspec:* ✅ Passed' }}${{ env.html_status != '0' && '*html:* ❌ Failed' || '*html:* ✅ Passed' }}"
                 }
               },
               {
@@ -79,5 +85,5 @@ jobs:
             ]
           }
     - name: Final status check
-      if: env.mondoo_status != '0' || env.cnquery_status != '0' || env.cnspec_status != '0'
+      if: env.mondoo_status != '0' || env.cnquery_status != '0' || env.cnspec_status != '0' || env.html_status != '0'
       run: exit 1
