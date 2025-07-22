@@ -65,9 +65,7 @@ jobs:
           iex ((New-Object System.Net.WebClient).DownloadString('https://install.mondoo.com/ps1/${{ matrix.package }}'));
           Install-Mondoo -Product ${{ matrix.package }};
       - name: Verify the correct version is installed
+        shell: powershell
         run: |
-          $version=& 'C:\Program Files\Mondoo\cnspec.exe' version
-          $match=$version -like "*${{ steps.version.outputs.version }}*"
-          if (-not $match) {
-            exit 1
-          }
+          # Logic to validate version has been moved to separate file
+          ./test/powershell/verify-cnspec-version.ps1 -ExpectedVersion "${{ steps.version.outputs.version }}"
