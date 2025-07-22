@@ -51,7 +51,7 @@ jobs:
         env:
           MONDOO_TOKEN: ${{ secrets.MONDOO_TOKEN }}
         run: |
-          Write-Output "Donwload cnspec client"
+          Write-Output "Download cnspec client"
           ./download.ps1 -Path 'C:\Users\Public'
 
           Write-Output "execute scan.ps1"
