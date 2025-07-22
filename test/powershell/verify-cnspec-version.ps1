@@ -33,7 +33,7 @@ $exitCode = -1 # Initialize with a non-zero value
 
 try {
     # Capture all output (stdout + stderr) into $cnspecRawLines (array of lines).
-    $cnspecRawLines = Invoke-Expression "& `"$cnspecPath`" version 2>&1" 
+    $cnspecRawLines = Invoke-Expression "& `"$cnspecPath`" version --auto-update=false 2>&1" 
     $cnspecFullOutput = ($cnspecRawLines | Out-String).Trim() # For displaying full output in error messages
 
     $exitCode = $LASTEXITCODE
