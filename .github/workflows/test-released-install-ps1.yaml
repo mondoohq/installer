@@ -6,14 +6,14 @@ on:
       version:
         description: "Version to test"
         required: true
-        default: "9.0.0"
+        default: "11.63.1"
         type: string
   workflow_dispatch:
     inputs:
       version:
         description: "Version to test"
         required: true
-        default: "9.0.0"
+        default: "11.63.1"
 
 jobs:
   install-ps1-windows:
@@ -37,12 +37,10 @@ jobs:
           iex ((New-Object System.Net.WebClient).DownloadString('https://install.mondoo.com/ps1/${{ matrix.package }}'));
           Install-Mondoo -Product ${{ matrix.package }};
       - name: Verify the correct version is installed
+        shell: pwsh
         run: |
-          $version=& 'C:\Program Files\Mondoo\${{ matrix.package }}.exe' version
-          $match=$version -like "*${{ steps.version.outputs.version }}*"
-          if (-not $match) {
-            exit 1
-          }
+          # Logic to validate version has been moved to separate file
+          ./test/powershell/verify-cnspec-version.ps1 -ExpectedVersion "${{ steps.version.outputs.version }}"  -BinaryBaseName "${{ matrix.package }}"
 
   install-ps1-windows-mondoo:
     runs-on: windows-latest
