@@ -49,10 +49,10 @@ jobs:
           trusted-signing-account-name: ${{ vars.TSIGN_ACCOUNT_NAME }}
           certificate-profile-name: ${{ vars.TSIGN_CERT_PROFILE_NAME }}
           files: |
-            ${GITHUB_WORKSPACE}/install.ps1
-            ${GITHUB_WORKSPACE}/download.ps1
-            ${GITHUB_WORKSPACE}/powershell/Mondoo.Installer/Mondoo.Installer.psm1
-            ${GITHUB_WORKSPACE}/powershell/Mondoo.Installer/Mondoo.Installer.psd1
+            ${{ github.workspace }}\install.ps1
+            ${{ github.workspace }}\download.ps1
+            ${{ github.workspace }}\powershell\Mondoo.Installer\Mondoo.Installer.psm1
+            ${{ github.workspace }}\powershell\Mondoo.Installer\Mondoo.Installer.psd1
           file-digest: SHA256
           timestamp-rfc3161: http://timestamp.acs.microsoft.com
           timestamp-digest: SHA384
