@@ -72,7 +72,11 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: signed-powershell-scripts
-          path: signed-artifacts/
+          path: |
+            ${{ github.workspace }}\install.ps1
+            ${{ github.workspace }}\download.ps1
+            ${{ github.workspace }}\powershell\Mondoo.Installer\Mondoo.Installer.psm1
+            ${{ github.workspace }}\powershell\Mondoo.Installer\Mondoo.Installer.psd1
           retention-days: 14
 
       - name: Commit changes
