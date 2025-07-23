@@ -21,6 +21,16 @@ on:
       - "**.psm1"
       - "**.psd1"
 
+# Once this is live, remember to delete
+# - "secrets.SM_CLIENT_CERT_FILE_B64
+# - "secrets.SM_CLIENT_CERT_PASSWORD"
+# - "secrets.SM_API_KEY"
+# - "secrets.SM_HOST"
+# - "secrets.SM_CODE_SIGNING_CERT_SHA1_HASH"
+# - "secrets.SM_CERT_ALIAS"
+# These where from the old Digicert setup
+# and are no longer used.
+
 jobs:
   sign_scripts:
     name: Sign PowerShell scripts
@@ -29,67 +39,33 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: Install jSign (Windows Signing Tool) -- Required for public runners
-        run: |
-          curl --retry 10 --retry-delay 60 -LO https://github.com/ebourg/jsign/releases/download/7.1/jsign_7.1_all.deb
-          sudo dpkg -i ./jsign_7.1_all.deb
-
-      - name: Configure DigiCert Signing Variables
-        shell: bash
-        run: |
-          # CertLocker Authentication Certifiate
-          CERT_PATH="$(mktemp -t cert.XXX)"
-          echo "${{ secrets.SM_CLIENT_CERT_FILE_B64 }}" | base64 --decode > ${CERT_PATH}
-          echo "SM_CLIENT_CERT_FILE=${CERT_PATH}" >> "$GITHUB_ENV"
-          echo "SM_CLIENT_CERT_PASSWORD=${{ secrets.SM_CLIENT_CERT_PASSWORD }}" >> "$GITHUB_ENV"
-          # CertLocker API Key & Host
-          echo "SM_API_KEY=${{ secrets.SM_API_KEY }}" >> "$GITHUB_ENV"
-          echo "SM_HOST=${{ secrets.SM_HOST }}" >> "$GITHUB_ENV"
-          # DigiCert CertLocker Code Signing Certificate
-          echo "SM_CODE_SIGNING_CERT_SHA1_HASH=${{ secrets.SM_CODE_SIGNING_CERT_SHA1_HASH }}" >> "$GITHUB_ENV"
-          echo "SM_CERT_ALIAS=${{ secrets.SM_CERT_ALIAS }}" >> "$GITHUB_ENV"
-
-      - name: Sign PowerShell scripts
-        run: |
-          set -e  # Exit on error
-
-          SIGN_ARGS="--storetype DIGICERTONE \
-                     --alias \"${SM_CERT_ALIAS}\" \
-                     --storepass \"${SM_API_KEY}|${SM_CLIENT_CERT_FILE}|${SM_CLIENT_CERT_PASSWORD}\" \
-                     --tsaurl http://timestamp.digicert.com \
-                     --replace"
-
-          FILES=(
-            install.ps1
-            download.ps1
-            powershell/Mondoo.Installer/Mondoo.Installer.psm1
-            powershell/Mondoo.Installer/Mondoo.Installer.psd1
-          )
-
-          # Validate all files first
-          for FILE in "${FILES[@]}"; do
-            INFO=$(file "$FILE")
-            echo "$INFO"
-
-            if [[ "$INFO" != *"with BOM"* ]]; then
-              echo "❌ Error: $FILE missing BOM"
-              exit 1
-            fi
-
-            if [[ "$INFO" != *"CRLF"* ]]; then
-              echo "❌ Error: $FILE missing CRLF line endings"
-              exit 1
-            fi
-          done
-
-          mkdir -p signed-artifacts
-
-          # Sign each file
-          for FILE in "${FILES[@]}"; do
-            echo "Signing $FILE"
-            jsign $SIGN_ARGS "$FILE"
-            cp "$FILE" signed-artifacts/
-          done
+      - name: Sign files with Trusted Signing
+        uses: azure/trusted-signing-action@v0
+        with:
+          azure-tenant-id: ${{ vars.TSIGN_AZURE_TENANT_ID }}
+          azure-client-id: ${{ secrets.TSIGN_AZURE_CLIENT_ID }}
+          azure-client-secret: ${{ secrets.TSIGN_AZURE_CLIENT_SECRET }}
+          endpoint: ${{ vars.TSIGN_AZURE_ENDPOINT }}
+          trusted-signing-account-name: ${{ vars.TSIGN_ACCOUNT_NAME }}
+          certificate-profile-name: ${{ vars.TSIGN_CERT_PROFILE_NAME }}
+          files: |
+            ${GITHUB_WORKSPACE}/install.ps1
+            ${GITHUB_WORKSPACE}/download.ps1
+            ${GITHUB_WORKSPACE}/powershell/Mondoo.Installer/Mondoo.Installer.psm1
+            ${GITHUB_WORKSPACE}/powershell/Mondoo.Installer/Mondoo.Installer.psd1
+          file-digest: SHA256
+          timestamp-rfc3161: http://timestamp.acs.microsoft.com
+          timestamp-digest: SHA384
+          exclude-environment-credential: false
+          exclude-workload-identity-credential: true
+          exclude-managed-identity-credential: true
+          exclude-shared-token-cache-credential: true
+          exclude-visual-studio-credential: true
+          exclude-visual-studio-code-credential: true
+          exclude-azure-cli-credential: true
+          exclude-azure-powershell-credential: true
+          exclude-azure-developer-cli-credential: true
+          exclude-interactive-browser-credential: true
 
       - name: Upload signed scripts
         if: ${{ github.event.inputs.skip-upload != 'true' }}
@@ -114,6 +90,3 @@ jobs:
           git add powershell/Mondoo.Installer/Mondoo.Installer.psd1
           git commit -m "Sign powershell scripts"
           git push
-
-      - name: Cleanup
-        run: rm -f ${CERT_PATH}
