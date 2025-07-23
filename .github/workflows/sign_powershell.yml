@@ -34,7 +34,7 @@ on:
 jobs:
   sign_scripts:
     name: Sign PowerShell scripts
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -49,10 +49,10 @@ jobs:
           trusted-signing-account-name: ${{ vars.TSIGN_ACCOUNT_NAME }}
           certificate-profile-name: ${{ vars.TSIGN_CERT_PROFILE_NAME }}
           files: |
-            install.ps1
-            download.ps1
-            powershell/Mondoo.Installer/Mondoo.Installer.psm1
-            powershell/Mondoo.Installer/Mondoo.Installer.psd1
+            ${{ github.workspace }}\install.ps1
+            ${{ github.workspace }}\download.ps1
+            ${{ github.workspace }}\powershell\Mondoo.Installer\Mondoo.Installer.psm1
+            ${{ github.workspace }}\powershell\Mondoo.Installer\Mondoo.Installer.psd1
           file-digest: SHA256
           timestamp-rfc3161: http://timestamp.acs.microsoft.com
           timestamp-digest: SHA384
