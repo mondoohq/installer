@@ -3,13 +3,18 @@ name: Sign PowerShell Scripts
 on:
   workflow_dispatch:
     inputs:
-      skip-publish:
-        description: "Skip publishing"
+      skip-commit:
+        description: "Skip committing changes to the repository"
         required: false
         default: false
         type: boolean
       skip-upload:
         description: "Skip uploading signed artifacts to workflow"
+        required: false
+        default: false
+        type: boolean
+      use-test-cert:
+        description: "Use test certificate profile (not publicly trusted)"
         required: false
         default: false
         type: boolean
@@ -47,7 +52,8 @@ jobs:
           azure-client-secret: ${{ secrets.TSIGN_AZURE_CLIENT_SECRET }}
           endpoint: ${{ vars.TSIGN_AZURE_ENDPOINT }}
           trusted-signing-account-name: ${{ vars.TSIGN_ACCOUNT_NAME }}
-          certificate-profile-name: ${{ vars.TSIGN_CERT_PROFILE_NAME }}
+          # Conditional logic for switching certificate-profile-name type
+          certificate-profile-name: ${{ github.event.inputs.use-test-cert == 'true' && vars.TSIGN_TEST_CERT_PROFILE_NAME || vars.TSIGN_CERT_PROFILE_NAME }}
           files: |
             ${{ github.workspace }}\install.ps1
             ${{ github.workspace }}\download.ps1
@@ -80,7 +86,10 @@ jobs:
           retention-days: 14
 
       - name: Commit changes
-        if: ${{ github.event.inputs.skip-publish != 'true' }}
+        # Only commit changes if not skipping AND not using a test certificate.
+        # We don't want test-signed artifacts to be
+        # potentially merged into our production branches.
+        if: ${{ github.event.inputs.skip-commit != 'true' && github.event.inputs.use-test-cert != 'true' }}
         run: |
           # Force Git Config to use CRLF
           git config core.autocrlf false
