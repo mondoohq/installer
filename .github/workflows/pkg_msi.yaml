@@ -1,44 +1,54 @@
-name: 'PKG: Microsoft Software Installer (MSI)'
+name: "PKG: Microsoft Software Installer (MSI)"
 
 on:
   workflow_call:
     inputs:
       version:
-        description: 'Package Version'
+        description: "Package Version"
         required: true
-        default: '8.99.99'
-        type: 'string'
+        default: "8.99.99"
+        type: "string"
       skip-publish:
-        description: 'Skip publish?'
+        description: "Skip publish?"
         required: false
         default: false
         type: boolean
       bucket:
-        description: 'GCP Release Bucket Name'
+        description: "GCP Release Bucket Name"
         required: true
-        default: 'releases-us.mondoo.io'
+        default: "releases-us.mondoo.io"
         type: string
+      use-test-cert:
+        description: "Use test certificate profile (not publicly trusted)"
+        required: false
+        default: false
+        type: boolean
   workflow_dispatch:
     inputs:
       version:
-        description: 'Package Version'
+        description: "Package Version"
         required: true
-        default: '0.0.1'
-        type: 'string'
+        default: "0.0.1"
+        type: "string"
       skip-publish:
-        description: 'Skip publish?'
+        description: "Skip publish?"
         required: false
         default: false
         type: boolean
       bucket:
-        description: 'GCP Release Bucket Name'
+        description: "GCP Release Bucket Name"
         required: true
-        default: 'releases-us.mondoo.io'
+        default: "releases-us.mondoo.io"
         type: string
+      use-test-cert:
+        description: "Use test certificate profile (not publicly trusted)"
+        required: false
+        default: false
+        type: boolean
 
 jobs:
   setup:
-    name: 'Setup'
+    name: "Setup"
     runs-on: ubuntu-latest
     steps:
       - name: Ensure version of cnquery and cnspec are available
@@ -81,7 +91,7 @@ jobs:
           path: dist/${{ matrix.arch }}
 
   msi-build:
-    name: 'Packaging: Windows MSI'
+    name: "Packaging: Windows MSI"
     runs-on: windows-latest
     strategy:
       matrix:
@@ -101,34 +111,7 @@ jobs:
           name: dist-${{ matrix.arch }}
           path: dist/${{ matrix.arch }}
 
-      - name: Setup Certificate
-        shell: bash
-        run: |
-          echo "${{ secrets.SM_CLIENT_CERT_FILE_B64 }}" | base64 --decode > /d/Certificate_pkcs12.p12
-
-      - name: Set signing variables
-        shell: bash
-        run: |
-          echo "SM_HOST=${{ secrets.SM_HOST }}" >> "$GITHUB_ENV"
-          echo "SM_API_KEY=${{ secrets.SM_API_KEY }}" >> "$GITHUB_ENV"
-          echo "SM_CLIENT_CERT_FILE=D:\\Certificate_pkcs12.p12" >> "$GITHUB_ENV"
-          echo "SM_CLIENT_CERT_PASSWORD=${{ secrets.SM_CLIENT_CERT_PASSWORD }}" >> "$GITHUB_ENV"
-          echo "SM_CODE_SIGNING_CERT_SHA1_HASH=${{ secrets.SM_CODE_SIGNING_CERT_SHA1_HASH }}" >> "$GITHUB_ENV"
-          echo "C:\Program Files (x86)\Windows Kits\10\App Certification Kit" >> $GITHUB_PATH
-          echo "C:\Program Files (x86)\Microsoft SDKs\Windows\v10.0A\bin\NETFX 4.8 Tools" >> $GITHUB_PATH
-          echo "C:\Program Files\DigiCert\DigiCert One Signing Manager Tools" >> $GITHUB_PATH
-
-      - name: Setup SSM KSP on windows latest
-        shell: cmd
-        run: |
-          curl --retry 10 --retry-delay 60 -X GET  https://one.digicert.com/signingmanager/api-ui/v1/releases/smtools-windows-x64.msi/download -H "x-api-key:%SM_API_KEY%" -o smtools-windows-x64.msi
-          msiexec /i smtools-windows-x64.msi /quiet /qn
-          smksp_registrar.exe list
-          smctl.exe keypair ls
-          C:\Windows\System32\certutil.exe -csp "DigiCert Signing Manager KSP" -key -user
-          smctl.exe windows certsync
-
-      - name: Build and Sign MSI
+      - name: Build MSI
         env:
           VERSION: ${{ inputs.version }}
         run: |
@@ -142,25 +125,36 @@ jobs:
           echo " - Packaging MSI..."
           Set-Location -Path '.\packages\msi\'
           ./package.ps1 -version $mondooVersion -arch ${{ matrix.arch }}
-          # sign msi package
-          echo " - Signing MSI..."
-          Set-Location -Path '.\..\..'
-          signtool.exe sign /debug /sha1 ${{ secrets.SM_CODE_SIGNING_CERT_SHA1_HASH }} /tr http://timestamp.digicert.com /td SHA256 /fd SHA256 .\packages\msi\mondoo_${{ matrix.arch }}.msi
-          Copy-Item '.\packages\msi\mondoo_${{ matrix.arch }}.msi' '.\dist\${{ matrix.arch }}'
-      - name: Dump Signing Log on Failure
-        if: failure()
-        run: |
-          echo "Dumping signing logs..."
-          gc $home\AppData\Local\Temp\signtool.log
-          echo "Dumping signing manager logs..."
-          gc $home\.signingmanager\logs\smctl.log
-          echo "Dumping signing manager KSP logs..."
-          gc $home\.signinmanager\logs\smksp.log
-          echo "Dumping signing manager KSP cert sync logs..."
-          gc $home\.signingmanager\logs\smksp_cert_sync.log
+
+      - name: Sign files with Trusted Signing
+        uses: azure/trusted-signing-action@v0
+        with:
+          azure-tenant-id: ${{ vars.TSIGN_AZURE_TENANT_ID }}
+          azure-client-id: ${{ secrets.TSIGN_AZURE_CLIENT_ID }}
+          azure-client-secret: ${{ secrets.TSIGN_AZURE_CLIENT_SECRET }}
+          endpoint: ${{ vars.TSIGN_AZURE_ENDPOINT }}
+          trusted-signing-account-name: ${{ vars.TSIGN_ACCOUNT_NAME }}
+          # Conditional logic for switching certificate-profile-name type
+          certificate-profile-name: ${{ github.event.inputs.use-test-cert == 'true' && vars.TSIGN_TEST_CERT_PROFILE_NAME || vars.TSIGN_CERT_PROFILE_NAME }}
+          files: |
+            .\packages\msi\mondoo_${{ matrix.arch }}.msi
+          file-digest: SHA256
+          timestamp-rfc3161: http://timestamp.acs.microsoft.com
+          timestamp-digest: SHA384
+          exclude-environment-credential: false
+          exclude-workload-identity-credential: true
+          exclude-managed-identity-credential: true
+          exclude-shared-token-cache-credential: true
+          exclude-visual-studio-credential: true
+          exclude-visual-studio-code-credential: true
+          exclude-azure-cli-credential: true
+          exclude-azure-powershell-credential: true
+          exclude-azure-developer-cli-credential: true
+          exclude-interactive-browser-credential: true
 
       - name: Cleanup dist before upload
         run: |
+          Copy-Item '.\packages\msi\mondoo_${{ matrix.arch }}.msi' '.\dist\${{ matrix.arch }}'
           Remove-Item -Path .\dist\${{ matrix.arch }}\cnquery.exe -Force
           Remove-Item -Path .\dist\${{ matrix.arch }}\cnspec.exe -Force
 
@@ -176,7 +170,7 @@ jobs:
       matrix:
         arch:
           - amd64
-#          - arm64 # we currently don't have windows arm64 runners to test arm against
+    #          - arm64 # we currently don't have windows arm64 runners to test arm against
     needs:
       - setup
       - msi-build
@@ -234,7 +228,7 @@ jobs:
           & 'C:\Program Files\Mondoo\cnspec.exe' logout --config C:\ProgramData\Mondoo\mondoo.yml --force
 
   publish:
-    name: 'Publish: Releases'
+    name: "Publish: Releases"
     strategy:
       matrix:
         arch:
