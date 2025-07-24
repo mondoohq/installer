@@ -64,7 +64,7 @@ jobs:
       matrix:
         arch:
           - amd64
-#TODO - REENABLE          - arm64
+          - arm64
     runs-on: ubuntu-latest
     needs: setup
     steps:
@@ -97,7 +97,7 @@ jobs:
       matrix:
         arch:
           - amd64
- #TODO - REENABLE         - arm64
+          - arm64
     needs:
       - setup
       - dist-prepare
@@ -181,10 +181,58 @@ jobs:
         with:
           name: msi-${{ matrix.arch }}
           path: dist
-      - name: Verify digital signature is valid
+      - name: Verify Signed MSI Status
+        shell: powershell
         run: |
-          cd dist
-          Get-AuthenticodeSignature -FilePath .\\mondoo_${{ matrix.arch }}.msi
+          $msiFileName = "mondoo_${{ matrix.arch }}.msi"
+          $msiFilePath = Join-Path -Path (Get-Location) -ChildPath "dist\$msiFileName"
+
+          Write-Host "Attempting to verify digital signature for MSI: $msiFilePath"
+
+          # --- Pre-check: Ensure the file exists ---
+          if (-not (Test-Path $msiFilePath)) {
+              Write-Error "Error: MSI file not found at '$msiFilePath'. Cannot verify signature."
+              exit 1 # Fail the step if the file is missing
+          }
+
+          # --- Signature Verification ---
+          try {
+              $signature = Get-AuthenticodeSignature -FilePath $msiFilePath
+
+              Write-Host "Signature Status: $($signature.Status)"
+
+              if ($signature.Status -eq "Valid") {
+                  Write-Host "Success: The MSI has a valid signature."
+                  Write-Host "Signed by: $($signature.SignerCertificate.Subject)"
+                  Write-Host "Issued by: $($signature.SignerCertificate.Issuer)"
+                  Write-Host "Valid From: $($signature.SignerCertificate.NotBefore)"
+                  Write-Host "Valid To: $($signature.SignerCertificate.NotAfter)"
+              }
+              else {
+                  # For any status other than 'Valid', treat as a failure
+                  Write-Error "Error: MSI signature verification failed or is not valid. Status: $($signature.Status)"
+
+                  # Provide more context for common non-valid statuses
+                  if ($signature.Status -eq "NotSigned") {
+                      Write-Error "Reason: The MSI is not digitally signed."
+                  } elseif ($signature.Status -eq "HashMismatch") {
+                      Write-Error "Reason: The file has been tampered with since signing (hash mismatch)."
+                  } elseif ($signature.Status -eq "Untrusted") {
+                      Write-Error "Reason: The certificate chain could not be built to a trusted root authority."
+                      # Output details of the certificate if untrusted, for debugging
+                      Write-Host "Untrusted Certificate Subject: $($signature.SignerCertificate.Subject)"
+                      Write-Host "Untrusted Certificate Thumbprint: $($signature.SignerCertificate.Thumbprint)"
+                  } elseif ($signature.Status -eq "UnknownError") {
+                      Write-Error "Reason: An unknown error occurred during signature verification."
+                  }
+
+                  exit 1 # Fail the step
+              }
+          }
+          catch {
+              Write-Error "An unexpected error occurred during signature verification: $($_.Exception.Message)"
+              exit 1 # Fail the step
+          }
       - name: Install artifact
         run: |
           $TEMP_PATH = $env:TEMP
