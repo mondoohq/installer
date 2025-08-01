@@ -67,7 +67,7 @@ jobs:
           endpoint: ${{ vars.TSIGN_AZURE_ENDPOINT }}
           trusted-signing-account-name: ${{ vars.TSIGN_ACCOUNT_NAME }}
           # Conditional logic for switching certificate-profile-name type
-          certificate-profile-name: ${{ github.event.inputs.use-test-cert == 'true' && vars.TSIGN_TEST_CERT_PROFILE_NAME || vars.TSIGN_CERT_PROFILE_NAME }}
+          certificate-profile-name: ${{ inputs.use-test-cert == true && vars.TSIGN_TEST_CERT_PROFILE_NAME || vars.TSIGN_CERT_PROFILE_NAME }}
           files: |
             ${{ github.workspace }}\install.ps1
             ${{ github.workspace }}\download.ps1
@@ -88,7 +88,7 @@ jobs:
           exclude-interactive-browser-credential: true
 
       - name: Upload signed scripts
-        if: ${{ github.event.inputs.skip-upload != 'true' }}
+        if: ${{ inputs.skip-upload != true }}
         uses: actions/upload-artifact@v4
         with:
           name: signed-powershell-scripts
@@ -103,7 +103,7 @@ jobs:
         # Only commit changes if not skipping AND not using a test certificate.
         # We don't want test-signed artifacts to be
         # potentially merged into our production branches.
-        if: ${{ github.event.inputs.skip-skip-publish != 'true' && github.event.inputs.use-test-cert != 'true' }}
+        if: ${{ inputs.skip-publish != true && inputs.use-test-cert != true }}
         run: |
           # Force Git Config to use CRLF
           git config core.autocrlf false
