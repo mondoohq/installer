@@ -2,6 +2,9 @@ name: tools - Federate to Azure OpenID Connect
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+        - gary/azure-trusted-signer-ps
 
 permissions:
   id-token: write
