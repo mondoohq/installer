@@ -96,6 +96,7 @@ jobs:
         with:
           name: dist-${{ matrix.arch }}
           path: dist/${{ matrix.arch }}
+          retention-days: 7
 
   msi-build:
     name: "Packaging: Windows MSI"
@@ -176,6 +177,7 @@ jobs:
         with:
           name: msi-${{ matrix.arch }}
           path: dist/${{ matrix.arch }}
+          retention-days: 7
 
   test-msi-install:
     name: Test Signed Package
