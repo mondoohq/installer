@@ -197,6 +197,7 @@ jobs:
           name: msi-${{ matrix.arch }}
           path: dist
       - name: Verify Signed MSI Status
+        if: ${{ inputs.use-test-cert == false }}
         shell: powershell
         run: |
           $msiFileName = "mondoo_${{ matrix.arch }}.msi"
