@@ -51,7 +51,11 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
         with:
-          sparse-checkout: |
+          # Use sparse checkout to only get the necessary files
+          # This helps speed up the checkout process
+          # Please ensure any new files that need signing are added here
+          # and all the other tasks in this workflow.
+          sparse-checkout: |-
             install.ps1
             download.ps1
             powershell/Mondoo.Installer/Mondoo.Installer.psm1
