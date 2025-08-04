@@ -6,7 +6,7 @@ on:
       version:
         description: "Package Version"
         required: true
-        default: "8.99.99"
+        default: "0.0.1"
         type: "string"
       skip-publish:
         description: "Skip publish?"
@@ -46,11 +46,18 @@ on:
         default: false
         type: boolean
 
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   setup:
     name: "Setup"
     runs-on: ubuntu-latest
     steps:
+      - name: Dump all inputs
+        run: echo "${{ toJSON(inputs) }}"
+
       - name: Ensure version of cnquery and cnspec are available
         run: |
           curl -sL --head --fail https://github.com/mondoohq/cnquery/releases/download/v${{ inputs.version }}/cnquery_${{ inputs.version }}_windows_amd64.zip \
@@ -92,6 +99,7 @@ jobs:
 
   msi-build:
     name: "Packaging: Windows MSI"
+    environment: prod
     runs-on: windows-latest
     strategy:
       matrix:
@@ -105,6 +113,7 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
       - name: Download Distribution
         uses: actions/download-artifact@v4
         with:
@@ -126,28 +135,32 @@ jobs:
           Set-Location -Path '.\packages\msi\'
           ./package.ps1 -version $mondooVersion -arch ${{ matrix.arch }}
 
+      - name: Azure login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.TSIGN_AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.TSIGN_AZURE_TENANT_ID}}
+          subscription-id: ${{ vars.TSIGN_AZURE_SUBSCRIPTION_ID }}
+
       - name: Sign files with Trusted Signing
         uses: azure/trusted-signing-action@v0
         with:
-          azure-tenant-id: ${{ vars.TSIGN_AZURE_TENANT_ID }}
-          azure-client-id: ${{ secrets.TSIGN_AZURE_CLIENT_ID }}
-          azure-client-secret: ${{ secrets.TSIGN_AZURE_CLIENT_SECRET }}
           endpoint: ${{ vars.TSIGN_AZURE_ENDPOINT }}
           trusted-signing-account-name: ${{ vars.TSIGN_ACCOUNT_NAME }}
           # Conditional logic for switching certificate-profile-name type
-          certificate-profile-name: ${{ github.event.inputs.use-test-cert == 'true' && vars.TSIGN_TEST_CERT_PROFILE_NAME || vars.TSIGN_CERT_PROFILE_NAME }}
+          certificate-profile-name: ${{ inputs.use-test-cert == true && vars.TSIGN_TEST_CERT_PROFILE_NAME || vars.TSIGN_CERT_PROFILE_NAME }}
           files: |
             ${{ github.workspace }}\packages\msi\mondoo_${{ matrix.arch }}.msi
           file-digest: SHA256
           timestamp-rfc3161: http://timestamp.acs.microsoft.com
           timestamp-digest: SHA384
-          exclude-environment-credential: false
+          exclude-environment-credential: true
           exclude-workload-identity-credential: true
           exclude-managed-identity-credential: true
           exclude-shared-token-cache-credential: true
           exclude-visual-studio-credential: true
           exclude-visual-studio-code-credential: true
-          exclude-azure-cli-credential: true
+          exclude-azure-cli-credential: false
           exclude-azure-powershell-credential: true
           exclude-azure-developer-cli-credential: true
           exclude-interactive-browser-credential: true
@@ -277,6 +290,7 @@ jobs:
 
   publish:
     name: "Publish: Releases"
+    if: ${{ inputs.skip-publish == false }}
     strategy:
       matrix:
         arch:
