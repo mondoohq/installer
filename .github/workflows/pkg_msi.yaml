@@ -101,7 +101,7 @@ jobs:
   msi-build:
     name: "Packaging: Windows MSI"
     environment: prod
-    runs-on: windows-latest
+    runs-on: windows-2025
     strategy:
       matrix:
         arch:
@@ -189,7 +189,7 @@ jobs:
     needs:
       - setup
       - msi-build
-    runs-on: windows-latest
+    runs-on: windows-2025
     steps:
       - name: Download MSI Package
         uses: actions/download-artifact@v4
