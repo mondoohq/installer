@@ -179,9 +179,11 @@ Mondoo signs Microsoft Windows executables, PowerShell scripts, Linux packages a
 
 ## Microsoft
 
-**Note:** The cmdlet 'Get-AuthenticodeSignature' is currently not available in PowerShell Core, so you will need a Windows installation to run it.
+**Note:** The cmdlet `Get-AuthenticodeSignature` is currently not available in PowerShell Core, so you will need a Windows installation to run it.
 
-To verify the integrity of the `cnquery` or `cnspec` executable, please use Microsoft's Get-AuthenticodeSignature PowerShell command and compare the Thumbprint.
+We use [Azure Trusted Signing](https://learn.microsoft.com/en-us/azure/developer/devcenter/azure-trusted-signing/overview), which issues short-lived code signing certificates that rotate approximately every 72 hours. As a result, the certificate thumbprint will change frequently and should not be used for validation.
+
+To verify the integrity of the `cnquery` or `cnspec` executable, please use Microsoft's `Get-AuthenticodeSignature` PowerShell command and verify the **signature status** is `Valid`.  Additionally the **Signer (Subject)** is: `CN=Mondoo, Inc` and the **Issuer** is: `CN=Microsoft ID Verified CS EOC CA 01, O=Microsoft Corporation, C=US`
 
 ```powershell
 PS > $file = ".\mondoo_8.15.0_windows_amd64.msi"
@@ -197,14 +199,14 @@ Extensions   : {System.Security.Cryptography.Oid, System.Security.Cryptography.O
                System.Security.Cryptography.Oid...}
 ```
 
-To verify the integrity of the Mondoo PowerShell `install.ps1` script, please use Microsoft's Get-AuthenticodeSignature PowerShell command and compare the SignerCertificate.
+To verify the integrity of the Mondoo PowerShell `install.ps1` script, please use Microsoft's `Get-AuthenticodeSignature` PowerShell and verify the **signature status** is `Valid`.
 
 ```powershell
 Get-AuthenticodeSignature .\install.ps1
 
 SignerCertificate                         Status
 -----------------                         ------
-EE97D1E3C6CD96E06C47B0233DD7C6CE2684FA50  Valid
+6134EB03311452EFFFA36EFC767F4BEBE29A4107  Valid
 ```
 
 ### Apple macOS
