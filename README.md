@@ -184,17 +184,17 @@ Mondoo signs Microsoft Windows executables, PowerShell scripts, Linux packages a
 To verify the integrity of the `cnquery` or `cnspec` executable, please use Microsoft's Get-AuthenticodeSignature PowerShell command and compare the Thumbprint.
 
 ```powershell
-PS > $file = ".\mondoo_8.15.0_windows_amd64.msi"
-PS > (Get-AuthenticodeSignature -FilePath $file).SignerCertificate | Format-List
+$file = ".\mondoo_11.66.1_windows_amd64.msi"
+(Get-AuthenticodeSignature -FilePath $file).SignerCertificate | Format-List
 
-Subject      : CN="Mondoo, Inc", O="Mondoo, Inc", L=Cary, S=North Carolina, C=US
-Issuer       : CN=DigiCert Global G3 Code Signing ECC SHA384 2021 CA1, O="DigiCert, Inc.", C=US
-Thumbprint   : EE97D1E3C6CD96E06C47B0233DD7C6CE2684FA50
+Subject      : CN="Mondoo, Inc.", O="Mondoo, Inc.", L=Cary, S=North Carolina, C=US
+Issuer       : CN=Microsoft ID Verified CS EOC CA 01, O=Microsoft Corporation, C=US
+Thumbprint   : 6134EB03311452EFFFA36EFC767F4BEBE29A4107
 FriendlyName :
-NotBefore    : 7/26/2022 12:00:00 AM
-NotAfter     : 8/23/2023 11:59:59 PM
-Extensions   : {System.Security.Cryptography.Oid, System.Security.Cryptography.Oid, System.Security.Cryptography.Oid,
-               System.Security.Cryptography.Oid...}
+NotBefore    : 05/08/2025 14:08:51
+NotAfter     : 08/08/2025 14:08:51
+Extensions   : {System.Security.Cryptography.Oid, System.Security.Cryptography.Oid,
+               System.Security.Cryptography.Oid, System.Security.Cryptography.Oid...}
 ```
 
 To verify the integrity of the Mondoo PowerShell `install.ps1` script, please use Microsoft's Get-AuthenticodeSignature PowerShell command and compare the SignerCertificate.
