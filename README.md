@@ -181,9 +181,9 @@ Mondoo signs Microsoft Windows executables, PowerShell scripts, Linux packages a
 
 **Note:** The cmdlet `Get-AuthenticodeSignature` is currently not available in PowerShell Core, so you will need a Windows installation to run it.
 
-We use [Azure Trusted Signing](https://learn.microsoft.com/en-us/azure/developer/devcenter/azure-trusted-signing/overview), which issues short-lived code signing certificates that rotate approximately every 72 hours. As a result, the certificate thumbprint will change frequently and should not be used for validation.
+Since the `11.66.1` release, we have adopted [Azure Trusted Signing](https://learn.microsoft.com/en-us/azure/trusted-signing/overview), which provides short-lived code signing certificates that rotate approximately every 72 hours. This means the certificate thumbprint will differ between releases and cannot be used as a reliable method of validation.
 
-To verify the integrity of the `cnquery` or `cnspec` executable, please use Microsoft's `Get-AuthenticodeSignature` PowerShell command and verify the **signature status** is `Valid`.  Additionally the **Signer (Subject)** is: `CN=Mondoo, Inc` and the **Issuer** is: `CN=Microsoft ID Verified CS EOC CA 01, O=Microsoft Corporation, C=US`
+To verify the integrity of the `cnquery` or `cnspec` executable, please use Microsoft's `Get-AuthenticodeSignature` PowerShell command and verify the **signature status** is `Valid`.  Additionally the **Signer (Subject)** is: `CN=Mondoo, Inc.` and the **Issuer** is: `CN=Microsoft ID Verified CS EOC CA 01, O=Microsoft Corporation, C=US`
 
 ```powershell
 $file = ".\mondoo_11.66.1_windows_amd64.msi"
@@ -208,6 +208,9 @@ SignerCertificate                         Status
 -----------------                         ------
 6134EB03311452EFFFA36EFC767F4BEBE29A4107  Valid
 ```
+
+### Previous Signer
+Prior to version `11.66.1`, we used DigiCert to sign our Microsoft releases. These were signed with a certificate issued by `CN=DigiCert Global G3 Code Signing ECC SHA384 2021 CA1, O="DigiCert, Inc.", C=US` and had a static thumbprint of `EE97D1E3C6CD96E06C47B0233DD7C6CE2684FA50`.
 
 ### Apple macOS
 
