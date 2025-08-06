@@ -181,7 +181,7 @@ Mondoo signs Microsoft Windows executables, PowerShell scripts, Linux packages a
 
 **Note:** The cmdlet `Get-AuthenticodeSignature` is currently not available in PowerShell Core, so you will need a Windows installation to run it.
 
-Since the `11.66.1` release, we have adopted [Azure Trusted Signing](https://learn.microsoft.com/en-us/azure/developer/devcenter/azure-trusted-signing/overview), which provides short-lived code signing certificates that rotate approximately every 72 hours. This means the certificate thumbprint will differ between releases and cannot be used as a reliable method of validation.
+Since the `11.66.1` release, we have adopted [Azure Trusted Signing](https://learn.microsoft.com/en-us/azure/trusted-signing/overview), which provides short-lived code signing certificates that rotate approximately every 72 hours. This means the certificate thumbprint will differ between releases and cannot be used as a reliable method of validation.
 
 To verify the integrity of the `cnquery` or `cnspec` executable, please use Microsoft's `Get-AuthenticodeSignature` PowerShell command and verify the **signature status** is `Valid`.  Additionally the **Signer (Subject)** is: `CN=Mondoo, Inc.` and the **Issuer** is: `CN=Microsoft ID Verified CS EOC CA 01, O=Microsoft Corporation, C=US`
 
