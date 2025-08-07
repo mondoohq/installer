@@ -36,8 +36,10 @@ on:
 # These where from the old Digicert setup
 # and are no longer used.
 permissions:
+  # Required for OIDC to be generated
   id-token: write
-  contents: read
+  # Required for the commit back of the signed scripts
+  contents: write
 
 jobs:
   sign_scripts:
