@@ -22,11 +22,12 @@ on:
     branches:
       - main
     paths:
-      - "**.ps1"
-      - "**.psm1"
-      - "**.psd1"
+      - "install.ps1"
+      - "download.ps1"
+      - "powershell/Mondoo.Installer/Mondoo.Installer.psm1"
+      - "powershell/Mondoo.Installer/Mondoo.Installer.psd1"
 
-# Once this is live, remember to delete
+# Once Azure Signing is live, remember to delete
 # - "secrets.SM_CLIENT_CERT_FILE_B64
 # - "secrets.SM_CLIENT_CERT_PASSWORD"
 # - "secrets.SM_API_KEY"
@@ -35,6 +36,7 @@ on:
 # - "secrets.SM_CERT_ALIAS"
 # These where from the old Digicert setup
 # and are no longer used.
+
 permissions:
   # Required for OIDC to be generated
   id-token: write
