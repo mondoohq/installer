@@ -2,17 +2,81 @@ name: Release PowerShell Module
 
 on:
   workflow_dispatch:
+    inputs:
+      skip-publish:
+        description: "Skip publishing"
+        required: false
+        default: false
+        type: boolean
+  push:
+    branches:
+      - main
+    paths:
+      - "powershell/Mondoo.Installer/Mondoo.Installer.psm1"
+      - "powershell/Mondoo.Installer/Mondoo.Installer.psd1"
 
 jobs:
   publish:
-    runs-on: windows-2022
+    runs-on: windows-2025
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+        with:
+          sparse-checkout: |-
+            powershell/Mondoo.Installer/Mondoo.Installer.psm1
+            powershell/Mondoo.Installer/Mondoo.Installer.psd1
+
+      - name: Validation Module Manifest and Signatures
+        shell: pwsh
+        run: |
+          $manifestPath = ".\powershell\Mondoo.Installer\Mondoo.Installer.psd1"
+          $moduleFile   = ".\powershell\Mondoo.Installer\Mondoo.Installer.psm1"
+
+          # Check existence
+          if (-not (Test-Path $manifestPath)) {
+            Write-Error "❌ Manifest not found: $manifestPath"
+            exit 1
+          }
+          if (-not (Test-Path $moduleFile)) {
+            Write-Error "❌ Module file not found: $moduleFile"
+            exit 1
+          }
+
+          # Validate manifest
+          try {
+            Write-Host "🧪 Testing module manifest..."
+            Test-ModuleManifest -Path $manifestPath -ErrorAction Stop | Out-Null
+            Write-Host "✅ Manifest is valid."
+          } catch {
+            Write-Error "❌ Test-ModuleManifest failed: $($_.Exception.Message)"
+            exit 1
+          }
+
+          # Validate .psm1 signature
+          Write-Host "🔒 Checking signature on module file..."
+          $sig = Get-AuthenticodeSignature $moduleFile
+          if ($sig.Status -ne 'Valid') {
+            Write-Error "❌ Invalid signature on ${moduleFile}: $($sig.Status)"
+            exit 1
+          }
+
+          Write-Host "✅ Signature is valid on $moduleFile"
+          Write-Host "`n🎉 All checks passed."
+
       - name: Publish PowerShell Module
-        shell: powershell
+        if: ${{ inputs.skip-publish == false }}
+        shell: pwsh
         env:
           NUGETAPIKEY: ${{ secrets.NUGETAPIKEY }}
         run: |
-          Test-ModuleManifest -Path ".\powershell\Mondoo.Installer\Mondoo.Installer.psd1"
-          Publish-Module -Path .\powershell\Mondoo.Installer -NuGetApiKey $env:NUGETAPIKEY
+          $modulePath = ".\powershell\Mondoo.Installer"
+
+          # Ensure required files exist
+          if (-not (Test-Path "$modulePath\Mondoo.Installer.psd1")) {
+            Write-Error "❌ Module manifest not found."
+            exit 1
+          }
+
+          Write-Host "📦 Publishing module to PowerShell Gallery..."
+          Publish-Module -Path $modulePath -NuGetApiKey $env:NUGETAPIKEY -ErrorAction Stop
+          Write-Host "✅ Module published successfully."
