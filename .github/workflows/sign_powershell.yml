@@ -46,7 +46,7 @@ permissions:
 jobs:
   sign_scripts:
     name: Sign PowerShell scripts
-    runs-on: windows-latest
+    runs-on: windows-2025
     environment: prod
     steps:
       - name: Dump all inputs
