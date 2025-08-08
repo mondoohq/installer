@@ -189,7 +189,7 @@ function Install-Mondoo {
 
       # Wrap command in quotes for -Command argument
       $taskArgument = "-NoProfile -WindowStyle Hidden -ExecutionPolicy RemoteSigned -Command `"&{ $($command -join ' ') }`""
-      info " * Task argument: $taskArgument"
+      info " * Scheduled Task argument: $taskArgument"
 
       # Build scheduled task components
       $action = New-ScheduledTaskAction -Execute 'Powershell.exe' -Argument $taskArgument
