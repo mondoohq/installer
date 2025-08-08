@@ -22,7 +22,7 @@ jobs:
       update-ts: ${{ steps.slack.outputs.ts }}
     steps:
       - id: slack
-        uses: slackapi/slack-github-action@v2.0.0
+        uses: slackapi/slack-github-action@v2.1.1
         with:
           method: chat.postMessage
           token: ${{ secrets.SLACK_BOT_TOKEN }}
@@ -130,7 +130,7 @@ jobs:
         id: status
         run: |
           echo "status_success=${{ needs.setup.result == 'success' && needs.test-arch.result == 'success' && needs.test-docker.result == 'success' && needs.test-install-sh.result == 'success' && needs.test-install-ps1.result == 'success' && needs.test-osx-pkg.result == 'success' && needs.test-brew.result == 'success' }}" >> $GITHUB_OUTPUT
-      - uses: slackapi/slack-github-action@v2.0.0
+      - uses: slackapi/slack-github-action@v2.1.1
         if : ${{ always() }}
         with:
           method: chat.update
