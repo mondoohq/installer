@@ -101,12 +101,13 @@ Set-ExecutionPolicy RemoteSigned -scope CurrentUser
 "
 }
 
-# we only support x86_64 at this point, stop if we got arm
-If ($env:PROCESSOR_ARCHITECTURE -ne 'AMD64') {
-  fail "
-Your processor architecture $env:PROCESSOR_ARCHITECTURE is not supported yet. Contact hello@mondoo.com or join the Mondoo Community GitHub Discussions https://github.com/orgs/mondoohq/discussions
-"
-}
+ # check if we are on either a 64-bit intel or 64-bit arm system:
+  If ($env:PROCESSOR_ARCHITECTURE -ne 'AMD64' -and $env:PROCESSOR_ARCHITECTURE -ne 'ARM64') {
+    fail "
+  Your processor architecture $env:PROCESSOR_ARCHITECTURE is not supported yet. Please come join us in
+  our Mondoo Community GitHub Discussions https://github.com/orgs/mondoohq/discussions or email us at hello@mondoo.com
+  "
+  }
 
 info "Arguments:"
   info ("  Product:           {0}" -f $Product)
@@ -124,7 +125,7 @@ If ([string]::IsNullOrEmpty($Path)) {
 }
 
 $filetype = 'zip'
-$arch = 'amd64'
+$arch = $($env:PROCESSOR_ARCHITECTURE).ToLower()
 $releaseurl = ''
 
 If ([string]::IsNullOrEmpty($version)) {
