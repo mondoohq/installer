@@ -147,35 +147,51 @@ function Install-Mondoo {
       Finally { $ErrorActionPreference = "continue" }
   }
 
-  function CreateAndRegisterMondooUpdaterTask($taskname, $taskpath) {
+function CreateAndRegisterMondooUpdaterTask($taskname, $taskpath) {
     info " * Create and register the Mondoo update task"
     NewScheduledTaskFolder $taskpath
 
-    $taskArgument = '-NoProfile -WindowStyle Hidden -ExecutionPolicy RemoteSigned -Command &{ [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; $wc = New-Object Net.Webclient; '
+    # Start building the command string
+    $command = @(
+        '[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12;'
+        '$wc = New-Object Net.Webclient;'
+    )
+
     if (![string]::IsNullOrEmpty($Proxy)) {
-      $taskArgument += '$wc.proxy = New-Object System.Net.WebProxy("' + $Proxy + '"); '
+        $command += '$wc.proxy = New-Object System.Net.WebProxy(' + "'$Proxy'" + ');'
     }
-    $taskArgument += 'iex ($wc.DownloadString("https://install.mondoo.com/ps1")); Install-Mondoo '
-    $taskArgument += '-Product ' + $Product + ' '
-    $taskArgument += '-Path "' + $Path + '" '
+
+    $command += 'iex ($wc.DownloadString(' + "'https://install.mondoo.com/ps1'" + '));'
+
+    # Start building the Install-Mondoo command
+    $installCmd = @("Install-Mondoo")
+    $installCmd += "-Product $Product"
+    $installCmd += "-Path `"$Path`""
 
     if ($Service.ToLower() -eq 'enable' -and $Product.ToLower() -eq 'mondoo') {
-      $taskArgument += '-Service enable '
+        $installCmd += "-Service enable"
     }
     if (![string]::IsNullOrEmpty($Annotation)) {
-      $taskArgument += '-Annotation ' + $Annotation + ' '
+        $installCmd += "-Annotation $Annotation"
     }
     if (![string]::IsNullOrEmpty($Name)) {
-      $taskArgument += '-Name ' + $Name + ' '
+        $installCmd += "-Name $Name"
     }
     if (![string]::IsNullOrEmpty($Proxy)) {
-      $taskArgument += '-Proxy ' + $Proxy + ' '
+        $installCmd += "-Proxy $Proxy"
     }
     if ($UpdateTask.ToLower() -eq 'enable') {
-      $taskArgument += '-UpdateTask enable -Time ' + $Time + ' -Interval ' + $Interval +' '
+        $installCmd += "-UpdateTask enable -Time $Time -Interval $Interval"
     }
-    $taskArgument += ';}'
 
+    $command += ($installCmd -join ' ')
+    $command += '; }'
+
+    # Wrap command in quotes for -Command argument
+    $taskArgument = "-NoProfile -WindowStyle Hidden -ExecutionPolicy RemoteSigned -Command `"&{ $($command -join ' ') }`""
+    info " * Task argument: $taskArgument"
+
+    # Build scheduled task components
     $action = New-ScheduledTaskAction -Execute 'Powershell.exe' -Argument $taskArgument
     $trigger = New-ScheduledTaskTrigger -Daily -DaysInterval $Interval -At $Time
     $principal = New-ScheduledTaskPrincipal -GroupId "NT AUTHORITY\SYSTEM" -RunLevel Highest
@@ -186,9 +202,9 @@ function Install-Mondoo {
     if (Get-ScheduledTask -TaskName $taskname -EA 0) {
         success "* $Product Updater Task installed"
     } else {
-      fail "Installation of $Product Updater Task failed"
+        fail "Installation of $Product Updater Task failed"
     }
-  }
+}
 
   purple "Mondoo Windows Installer Script"
   purple "
