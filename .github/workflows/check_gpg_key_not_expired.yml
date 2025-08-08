@@ -18,7 +18,7 @@ jobs:
         uses: actions/checkout@v4
 
       - id: slack
-        uses: slackapi/slack-github-action@v1.27.0
+        uses: slackapi/slack-github-action@v2.1.1
         with:
           channel-id: ${{ env.SLACK_BOT_CHANNEL_ID }}
           payload: |
@@ -67,7 +67,7 @@ jobs:
         run: |
           bash test/scripts/cert-harmony.sh
 
-      - uses: slackapi/slack-github-action@v1.27.0
+      - uses: slackapi/slack-github-action@v2.1.1
         if: always()
         with:
           channel-id: ${{ env.SLACK_BOT_CHANNEL_ID }}
