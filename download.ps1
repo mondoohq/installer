@@ -141,12 +141,32 @@ $downloadlocation = "$path\$Product.$filetype"
 info " * Downloading $Product from $releaseurl to $downloadlocation"
 download $releaseurl $downloadlocation
 
+# build checksum URL
+$checksumurl = $releaseurl -replace "download$", "sha256"
+$checksumfile = "$downloadlocation.sha256"
+info " * Downloading checksum from $checksumurl to $checksumfile"
+download $checksumurl $checksumfile
+
+# read expected hash from file (it's usually in the format: "<hash> <filename>")
+$expectedHash = (Get-Content $checksumfile).Split(" ")[0].Trim()
+
+# compute actual file hash
+$actualHash = (Get-FileHash -Algorithm SHA256 -Path $downloadlocation).Hash.ToLower()
+
+info " * Validating checksum..."
+if ($expectedHash.ToLower() -ne $actualHash) {
+    Write-Error " x SHA256 checksum mismatch! Expected: $expectedHash, Got: $actualHash"
+    exit 1
+}
+
+info ' + Checksum validated successfully!'
 info ' * Extracting zip...'
 # remove older version if it is still there
 Remove-Item "$path\$Product.exe" -Force -ErrorAction Ignore
 Add-Type -Assembly "System.IO.Compression.FileSystem"
 [IO.Compression.ZipFile]::ExtractToDirectory($downloadlocation,$path)
 Remove-Item $downloadlocation -Force
+Remove-Item $checksumfile -Force
 
 success " * $Product was downloaded successfully!"
 
