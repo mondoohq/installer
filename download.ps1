@@ -101,12 +101,13 @@ Set-ExecutionPolicy RemoteSigned -scope CurrentUser
 "
 }
 
-# we only support x86_64 at this point, stop if we got arm
-If ($env:PROCESSOR_ARCHITECTURE -ne 'AMD64') {
-  fail "
-Your processor architecture $env:PROCESSOR_ARCHITECTURE is not supported yet. Contact hello@mondoo.com or join the Mondoo Community GitHub Discussions https://github.com/orgs/mondoohq/discussions
-"
-}
+ # check if we are on either a 64-bit intel or 64-bit arm system:
+  If ($env:PROCESSOR_ARCHITECTURE -ne 'AMD64' -and $env:PROCESSOR_ARCHITECTURE -ne 'ARM64') {
+    fail "
+  Your processor architecture $env:PROCESSOR_ARCHITECTURE is not supported yet. Please come join us in
+  our Mondoo Community GitHub Discussions https://github.com/orgs/mondoohq/discussions or email us at hello@mondoo.com
+  "
+  }
 
 info "Arguments:"
   info ("  Product:           {0}" -f $Product)
@@ -124,7 +125,7 @@ If ([string]::IsNullOrEmpty($Path)) {
 }
 
 $filetype = 'zip'
-$arch = 'amd64'
+$arch = $($env:PROCESSOR_ARCHITECTURE).ToLower()
 $releaseurl = ''
 
 If ([string]::IsNullOrEmpty($version)) {
@@ -140,12 +141,32 @@ $downloadlocation = "$path\$Product.$filetype"
 info " * Downloading $Product from $releaseurl to $downloadlocation"
 download $releaseurl $downloadlocation
 
+# build checksum URL
+$checksumurl = $releaseurl -replace "download$", "sha256"
+$checksumfile = "$downloadlocation.sha256"
+info " * Downloading checksum from $checksumurl to $checksumfile"
+download $checksumurl $checksumfile
+
+# read expected hash from file (it's usually in the format: "<hash> <filename>")
+$expectedHash = (Get-Content $checksumfile).Split(" ")[0].Trim()
+
+# compute actual file hash
+$actualHash = (Get-FileHash -Algorithm SHA256 -Path $downloadlocation).Hash.ToLower()
+
+info " * Validating checksum..."
+if ($expectedHash.ToLower() -ne $actualHash) {
+    Write-Error " x SHA256 checksum mismatch! Expected: $expectedHash, Got: $actualHash"
+    exit 1
+}
+
+info ' + Checksum validated successfully!'
 info ' * Extracting zip...'
 # remove older version if it is still there
 Remove-Item "$path\$Product.exe" -Force -ErrorAction Ignore
 Add-Type -Assembly "System.IO.Compression.FileSystem"
 [IO.Compression.ZipFile]::ExtractToDirectory($downloadlocation,$path)
 Remove-Item $downloadlocation -Force
+Remove-Item $checksumfile -Force
 
 success " * $Product was downloaded successfully!"
 
