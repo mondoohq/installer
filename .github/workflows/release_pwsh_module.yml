@@ -63,8 +63,28 @@ jobs:
           Write-Host "✅ Signature is valid on $moduleFile"
           Write-Host "`n🎉 All checks passed."
 
+      - name: Check if version already exists
+        id: version-check
+        shell: pwsh
+        run: |
+          $manifestPath = ".\powershell\Mondoo.Installer\Mondoo.Installer.psd1"
+          $manifest = Test-ModuleManifest -Path $manifestPath
+          $localVersion = $manifest.Version.ToString()
+
+          try {
+            $galleryModule = Find-Module -Name $manifest.Name -Repository PSGallery -ErrorAction Stop
+            if ($galleryModule.Version -eq $localVersion) {
+              Write-Host "⚠️ Version $localVersion already published to PSGallery."
+              Write-Host "skip=true" >> $env:GITHUB_OUTPUT
+              exit 0
+            }
+          } catch {
+            Write-Host "ℹ️ Module not found in gallery, publishing new version."
+          }
+          Write-Host "skip=false" >> $env:GITHUB_OUTPUT
+
       - name: Publish PowerShell Module
-        if: ${{ inputs.skip-publish == false }}
+        if: ${{ steps.version-check.outputs.skip == 'false' && inputs.skip-publish == false }}
         shell: pwsh
         env:
           NUGETAPIKEY: ${{ secrets.NUGETAPIKEY }}
