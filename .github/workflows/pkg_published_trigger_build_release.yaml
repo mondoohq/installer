@@ -93,7 +93,7 @@ jobs:
       run:
         echo "id_token=$(gcloud auth print-identity-token)" >> "$GITHUB_OUTPUT"
     - name: Get latest Releasr Binary
-      uses: robinraju/release-downloader@v1.11
+      uses: robinraju/release-downloader@v1.12
       with:
         repository: mondoohq/releasr
         latest: true
