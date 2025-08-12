@@ -23,7 +23,7 @@ jobs:
       matrix:
         tag: ["latest", "latest-ubi-rootless", "latest-rootless"]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Version
         id: version
         run: |
@@ -42,7 +42,7 @@ jobs:
       matrix:
         tag: ["latest", "latest-ubi-rootless", "latest-rootless"]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Version
         id: version
         run: |
@@ -62,7 +62,7 @@ jobs:
       matrix:
         tag: ["latest", "latest-ubi-rootless", "latest-rootless"]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Version
         id: version
         run: |
