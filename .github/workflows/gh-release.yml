@@ -38,7 +38,7 @@ jobs:
                       - type: "mrkdwn"
                         text: "*Status:*\n`In Progress`"
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       # Determine which version should be released based on event type
       - name: Set Version (Workflow Dispatch)
         if: github.event_name == 'workflow_dispatch'

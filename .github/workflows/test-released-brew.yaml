@@ -23,7 +23,7 @@ jobs:
       matrix:
         package: ["cnquery", "cnspec"]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Install Homebrew
         run: |
           /bin/bash -c "$(curl --retry 10 --retry-delay 60 -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
@@ -50,7 +50,7 @@ jobs:
   cask:
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Install Homebrew
         run: |
           /bin/bash -c "$(curl --retry 10 --retry-delay 60 -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
