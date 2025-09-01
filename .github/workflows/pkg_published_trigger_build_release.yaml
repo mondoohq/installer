@@ -76,7 +76,7 @@ jobs:
       bucket: ${{ needs.parse-inputs.outputs.bucket }}
   reindex:
     runs-on: ubuntu-latest
-    needs: [ check-version, build-msi, build-mondoo-pkgs ]
+    needs: [ check-version, build-msi, build-mondoo-pkgs, build-macos ]
     steps:
     # fetch a token for the mondoo-mergebot app
     - name: Generate token
