@@ -53,7 +53,7 @@ jobs:
   build-msi:
     uses: ./.github/workflows/pkg_msi.yaml
     secrets: inherit
-    needs: [ parse-inputs ]
+    needs: [ check-version ]
     with:
       version: ${{ needs.parse-inputs.outputs.version }}
       skip-publish: ${{ needs.parse-inputs.outputs.skip-publish == 'true' }}
@@ -61,7 +61,7 @@ jobs:
   build-mondoo-pkgs:
     uses: ./.github/workflows/release_mondoo_pkgs.yaml
     secrets: inherit
-    needs: [ parse-inputs ]
+    needs: [ check-version ]
     with:
       version: ${{ needs.parse-inputs.outputs.version }}
       skip-publish: ${{ needs.parse-inputs.outputs.skip-publish == 'true' }}
@@ -69,14 +69,14 @@ jobs:
   build-macos:
     uses: ./.github/workflows/pkg_macos.yaml
     secrets: inherit
-    needs: [ parse-inputs ]
+    needs: [ check-version ]
     with:
       version: ${{ needs.parse-inputs.outputs.version }}
       skip-publish: ${{ needs.parse-inputs.outputs.skip-publish == 'true' }}
       bucket: ${{ needs.parse-inputs.outputs.bucket }}
   reindex:
     runs-on: ubuntu-latest
-    needs: [ parse-inputs, build-msi, build-mondoo-pkgs ]
+    needs: [ check-version, build-msi, build-mondoo-pkgs ]
     steps:
     # fetch a token for the mondoo-mergebot app
     - name: Generate token
