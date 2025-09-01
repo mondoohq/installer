@@ -36,6 +36,20 @@ jobs:
       skip-publish: ${{ inputs.skip-publish }}
       version: ${{ inputs.version }}
       bucket: ${{ inputs.bucket }}
+
+  check-version:
+    needs: [parse-inputs]
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          VERSION="${{ needs.parse-inputs.outputs.version }}"
+          echo "Checking version: $VERSION"
+          if [[ "$VERSION" == *"-"* ]]; then
+            echo "❌ Prerelease versions are not allowed ($VERSION)"
+            exit 1
+          fi
+          echo "✅ Version $VERSION is allowed"
+
   build-msi:
     uses: ./.github/workflows/pkg_msi.yaml
     secrets: inherit
