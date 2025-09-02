@@ -2,7 +2,7 @@ name: Test Mondoo Releases with Container Builds
 
 on:
   workflow_run:
-    workflows: ['Update Release Version'] # runs after release
+    workflows: ["Update Release Version"] # runs after release
     types:
       - completed
   workflow_dispatch:
@@ -10,7 +10,7 @@ on:
     branches:
       - main
     paths:
-      - 'install.sh'
+      - "install.sh"
 
 jobs:
   build_container:
@@ -36,34 +36,22 @@ jobs:
           fetch-depth: 0
 
       - id: slack
-        uses: slackapi/slack-github-action@v1.27.0
+        uses: slackapi/slack-github-action@v2.1.1
         with:
-          channel-id: ${{ env.SLACK_BOT_CHANNEL_ID }}
+          method: chat.postMessage
+          token: ${{ secrets.SLACK_BOT_TOKEN }}
           payload: |
-            {
-              "attachments": [
-                {
-                  "color": "#FFFF00",
-                  "blocks": [
-                    {
-                      "type": "section",
-                      "fields": [
-                        {
-                          "type": "mrkdwn",
-                          "text": "<${{ github.event.repository.html_url }}/actions/runs/${{ github.run_id }}/attempts/${{ github.run_attempt }}|${{ github.workflow }} (${{ matrix.dockerfile}})>"
-                        },
-                        {
-                          "type": "mrkdwn",
-                          "text": "*Status:*\n`In Progress`"
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ]
-            }
-        env:
-          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+            channel: "${{ env.SLACK_BOT_CHANNEL_ID }}"
+            text: "GitHub Actions Run"
+            attachments:
+              - color: "#FFFF00"
+                blocks:
+                  - type: "section"
+                    fields:
+                      - type: "mrkdwn"
+                        text: "<${{ github.event.repository.html_url }}/actions/runs/${{ github.run_id }}/attempts/${{ github.run_attempt }}|${{ github.workflow }} (${{ matrix.dockerfile}})>"
+                      - type: "mrkdwn"
+                        text: "*Status:*\n`In Progress`"
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -83,33 +71,21 @@ jobs:
           tags: |
             mondoohq/mondoo-install-test:${{ matrix.dockerfile }}
 
-      - uses: slackapi/slack-github-action@v1.27.0
+      - uses: slackapi/slack-github-action@v2.1.1
         if: always()
         with:
-          channel-id: ${{ env.SLACK_BOT_CHANNEL_ID }}
-          update-ts: ${{ steps.slack.outputs.ts }}
+          method: chat.update
+          token: ${{ secrets.SLACK_BOT_TOKEN }}
           payload: |
-             {
-              "attachments": [
-                {
-                  "color": "${{ job.status == 'success' && '#00FF00' || job.status == 'failure' && '#FF0000' || '#FFA500' }}",
-                  "blocks": [
-                    {
-                      "type": "section",
-                      "fields": [
-                        {
-                          "type": "mrkdwn",
-                          "text": "<${{ github.event.repository.html_url }}/actions/runs/${{ github.run_id }}/attempts/${{ github.run_attempt }}|${{ github.workflow }} (${{ matrix.dockerfile }})>"
-                        },
-                        {
-                          "type": "mrkdwn",
-                          "text": "*Status:*\n`${{ job.status }}`"
-                        }
-                      ]
-                    }
-                  ]
-                }
-                ]
-              }
-        env:
-          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+            channel: "${{ env.SLACK_BOT_CHANNEL_ID }}"
+            ts: "${{ steps.slack.outputs.ts }}"
+            text: "GitHub Actions Run"
+            attachments:
+              - color: "${{ job.status == 'success' && '#00FF00' || job.status == 'failure' && '#FF0000' || '#FFA500' }}"
+                blocks:
+                  - type: "section"
+                    fields:
+                      - type: "mrkdwn"
+                        text: "<${{ github.event.repository.html_url }}/actions/runs/${{ github.run_id }}/attempts/${{ github.run_attempt }}|${{ github.workflow }} (${{ matrix.dockerfile }})>"
+                      - type: "mrkdwn"
+                        text: "*Status:*\n`${{ job.status }}`"
