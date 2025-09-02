@@ -20,7 +20,7 @@ jobs:
     runs-on: windows-2025
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           sparse-checkout: |-
             powershell/Mondoo.Installer/Mondoo.Installer.psm1

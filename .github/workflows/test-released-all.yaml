@@ -47,7 +47,7 @@ jobs:
       version: ${{ steps.version.outputs.version }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Set Version (Workflow Dispatch)
         if: github.event_name == 'workflow_dispatch'
         run: |

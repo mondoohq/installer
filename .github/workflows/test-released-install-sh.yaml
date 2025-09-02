@@ -32,7 +32,7 @@ jobs:
             "ubuntu:24.04",
           ]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Version
         id: version
         run: |
@@ -65,7 +65,7 @@ jobs:
           ]
         ## Note: centos:8 is obsoleted by Centos Stream 9 and EOL, do not use, refer to https://www.centos.org/centos-linux-eol/
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Version
         id: version
         run: |
@@ -88,7 +88,7 @@ jobs:
             "registry.suse.com/suse/sle15:15.6",
           ]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Version
         id: version
         run: |
@@ -107,7 +107,7 @@ jobs:
         os: ["macos-latest"]
         package: ["cnspec", "cnquery"]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Version
         id: version
         run: |
