@@ -39,7 +39,7 @@ Key Vault Vault
 \broot root\b
 
 # AWS resources
-(ami|subnet|vpc|sg|fs)-[0-9a-fA-F]{17}
+(i|ami|subnet|vpc|sg|fs)-[0-9a-fA-F]{17}
 
 # http and https URLs
 https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)
@@ -114,5 +114,32 @@ db.\w{2}.\w*
 # rsa private keys
 MII[BCEJ]\w*
 
-# UID in MQL policy
+# ID data MQL policies / query packs
 - uid: \S*
+secret_id: \S*
+secret: \S*
+publicKeyData: \S*
+fingerprint: "\S*
+p=MII\S*
+BackupPlanVersion: "\S*
+id: "\S*
+pkix.extension id = \S*
+id="\S*
+identifier="\S*
+
+# OCI config
+user=\S*
+fingerprint=\S*
+tenancy=\S*
+
+# Mondoo registration token https://rubular.com/r/3UzGvhUamOAa0U
+MONDOO_REGISTRATION_TOKEN='\S*'
+
+# IPv6 addresses
+\b([a-f0-9:]+:+)+[a-f0-9]+\b
+
+# cnquery shell commands
+cnquery shell.*
+
+# Ip.Foo is an acceptable value
+Ip\..*

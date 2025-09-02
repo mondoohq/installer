@@ -72,6 +72,9 @@
 # s.b. NetFlow
 \bNetflow\b
 
+# s.b. IPsec
+\bIPSec\b
+
 # s.b. Side scanning
 \b[Ss]idescanning\b
 
@@ -102,9 +105,104 @@
 # s.b. APIs
 \bapis\b
 
+# s.b. Base64
+\bBase 64\b
+
+# s.b. CRC32
+\bCRC 32\b
+
+# s.b. IaC
+\bIAC\b
+
+# s.b. Wi-Fi
+\bWi[Ff]i\b
+
+# s.b. screensaver
+\bscreen saver\b
+
+# s.b. SmartCard
+\bSmartcard\b
+\bSmart Card\b
+
+# s.b. 802.1Q, etc. Letter is always uppercase
+\b802.1[a-f]\b
+
+# s.b. LAN
+\bLan\b
+
+# s.b. IP
+\bIp\b
+
 #
 # Product Names
 #
+
+# s.b. YubiKey
+\bYubikey\b
+\bYubi Key\b
+
+# s.b. ChatGPT
+\bChat GPT\b
+
+# s.b. Copilot
+\bCoPilot\b
+
+# s.b. OpenAI
+\bOpen AI\b
+
+# s.b. auditd
+\bAuditd\b
+
+# s.b. WatchGuard
+\bWatchguard\b
+
+# s.b. Airtable
+\bAirTable\b
+
+# s.b. Tailscale
+\bTailScale\b
+
+# s.b. TeamCity
+\bTeamcity\b
+
+# s.b. Bitbucket
+\bBitBucket\b
+
+# s.b. Logstash
+\bLogStash\b
+
+# s.b. CyberArk
+\bCyberark\b
+
+# s.b. Chef Infra Server
+\bChef Server\b
+
+# s.b. Chef Infra Client
+\bChef Client\b
+
+# s.b. containerd
+\bContainerd\b
+
+# s.b. systemd
+\bSystemd\b
+
+# s.b. journald
+\bJournald\b
+
+# s.b. OpenLDAP
+\bOpen LDAP\b
+
+# s.b. WebSphere
+\bWebsphere\b
+
+# s.b. JBoss
+\bJboss\b
+
+# s.b. WildFly
+\bWildfly\b
+
+# s.b. DigiCert
+\bDigicert\b
 
 # s.b. Cloudflare
 \bCloudFlare\b
@@ -131,10 +229,14 @@
 \bCent OS\b
 \bcentOS\b
 
-# s.b. macOS
-\bOS X\b
-\bMacOS\b
-\bMac OS\b
+# s.b. Bluetooth
+\bBlueTooth\b
+
+# s.b. Jamf
+\bJAMF\b
+
+# s.b. POSIX
+\b[Pp]osix\b
 
 # s.b. Okta
 \bOcta\b
@@ -239,9 +341,68 @@
 \bService Now\b
 \bServicenow\b
 
-# s.b. name server
-\bnameserver\b
-\bnameservers\b
+# s.b. Nmap
+\b[Nn]Map\b
+
+# s.b. NX-OS
+\bNX OS\b
+\bNXOS\b
+
+#
+# Fortinet Terms
+#
+
+# s.b. FortiGate
+\bFortigate\b
+
+# s.b. Fortinet
+\bFortiNet\b
+
+# s.b. FortiGuard
+\bFortiguard\b
+
+# s.b. FortiAnalyzer
+\bFortianalyzer\b
+
+# s.b. FortiManager
+\bFortimanager\b
+
+# s.b. FortiOS
+\bForti OS\b
+
+#
+# Apple Terms
+#
+
+# s.b. macOS
+\bOS X\b
+\bMacOS\b
+\b[Mm]ac OS\b
+
+# s.b. AirDrop
+\bAirdrop\b
+
+# s.b. iPadOS
+\biPad OS\b
+
+# s.b. AppleScript
+\bApplescript\b
+
+# s.b. FileVault
+\bFilevault\b
+\bFile Vault\b
+
+# s.b. Apple Pay
+\bApplePay\b
+
+# s.b. Touch ID
+\bTouchID\b
+
+# s.b. AppleID
+\bAppleID\b
+
+# s.b. XProtect
+\bX Protect\b
 
 #
 # Kubernetes Terms
@@ -283,6 +444,16 @@
 #
 # Microsoft Products
 #
+
+# s.b. M365
+\bMS365\b
+
+# s.b. Entra ID
+\bEntraID\b
+
+# s.b. WinRM
+\bwinRM\b
+\bWin RM\b
 
 # s.b. Microsoft
 \bMicroSoft\b
@@ -566,6 +737,7 @@
 # s.b. Memorystore
 \bMemoryStore\b
 \bMemory Store\b
+\bMem[Ss]tore\b
 
 # s.b. Pub/Sub
 \bPubSub\b
@@ -586,9 +758,6 @@
 
 # s.b. Datastore
 \bDataStore\b
-
-# s.b. Memorystore
-\bMemoryStore\b
 
 #
 # Azure Products

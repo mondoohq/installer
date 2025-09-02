@@ -137,7 +137,7 @@ This repository requires several GitHub Action Secrets to sign and notarize:
 - APPLE_KEYS_CODESIGN_ID: Cleartext ID: "Developer ID Application: Mondoo, Inc. (W2KUBWKG84)"
 - APPLE_KEYS_PRODUCTSIGN_P12: base64 encoded p12 for Developer\ ID\ Installer-\ Mondoo\,\ Inc.\ \(W2KUBWKG84\)
 - APPLE_KEYS_PRODUCTSIGN_ID: Cleartext ID: "Developer ID Installer: Mondoo, Inc. (W2KUBWKG84)"
-- APPLE_ACCOUNT_USERNAME: The AppleID username for access to the Notarization service ("appxxxxxxxr@mondoo.com")
+- APPLE_ACCOUNT_USERNAME: The Apple ID username for access to the Notarization service ("appxxxxxxxr@mondoo.com")
 - APPLE_ACCOUNT_PASSWORD: The "App Specific Password" for use when Notarizing Mac packages, to rotate this password login to appleid.apple.com/account as the above user (login credentials are in BitWarden, in the "Apple ID: Notarizing Account" item)
 
 The Certificates & P12's can be found in Google Drive.  Refer to our internal documentation in [Notion: Apple Developer Network](https://www.notion.so/mondoo/Apple-15b14791a0f54609978a5e52fd8e6cfb#562019a837bf450e89dd3d7926f279ab).

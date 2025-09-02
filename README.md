@@ -56,7 +56,7 @@ Sign up for a Mondoo account to access more policies and store reports. To learn
 cnspec login -t 'eyJh...llZ4BW'
 ```
 
-cnquery & cnspec support local and remote targets, including servers (Linux, Windows, macOS), Cloud (AWS, Azure, Google, VMware), Kubernetes (EKS, GKE, AKS, self-managed), containers, container registries, SaaS products (Google Workspace, MS365, GitHub, GitLab), and more.
+cnquery & cnspec support local and remote targets, including servers (Linux, Windows, macOS), Cloud (AWS, Azure, Google, VMware), Kubernetes (EKS, GKE, AKS, self-managed), containers, container registries, SaaS products (Google Workspace, M365, GitHub, GitLab), and more.
 
 Run a scan:
 
