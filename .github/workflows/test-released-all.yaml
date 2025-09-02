@@ -6,7 +6,7 @@ on:
       version:
         description: "Version to test"
         required: true
-        default: "9.0.0"
+        default: "12.0.0"
   release:
     types: [published]
 
@@ -15,14 +15,35 @@ env:
   SLACK_BOT_CHANNEL_ID: "C07QZDJFF89"
 
 jobs:
+  parse-inputs:
+    uses: ./.github/workflows/parse_inputs.yml
+    with:
+      skip-publish: ${{ inputs.skip-publish }}
+      version: ${{ inputs.version }}
+      bucket: ${{ inputs.bucket }}
+
+  check-version:
+    needs: [parse-inputs]
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          VERSION="${{ needs.parse-inputs.outputs.version }}"
+          echo "Checking version: $VERSION"
+          if [[ "$VERSION" == *"-"* ]]; then
+            echo "❌ Prerelease versions are not allowed ($VERSION)"
+            exit 1
+          fi
+          echo "✅ Version $VERSION is allowed"
+
   notification-start:
     name: Send Slack notification
+    needs: [check-version, parse-inputs]
     runs-on: ubuntu-latest
     outputs:
       update-ts: ${{ steps.slack.outputs.ts }}
     steps:
       - id: slack
-        uses: slackapi/slack-github-action@v2.0.0
+        uses: slackapi/slack-github-action@v2.1.1
         with:
           method: chat.postMessage
           token: ${{ secrets.SLACK_BOT_TOKEN }}
@@ -38,6 +59,8 @@ jobs:
                         text: "<${{ github.event.repository.html_url }}/actions/runs/${{ github.run_id }}/attempts/${{ github.run_attempt }}|${{ github.workflow }}>"
                       - type: "mrkdwn"
                         text: "*Status:*\n`In Progress`"
+                      - type: "mrkdwn"
+                        text: "*Version:*\n`${{ needs.parse-inputs.outputs.version }}`"
 
   setup:
     runs-on: ubuntu-latest
@@ -123,14 +146,14 @@ jobs:
   notification:
     runs-on: ubuntu-latest
     name: Update Slack notification
-    needs: [test-arch, test-docker, test-install-sh, test-install-ps1, test-osx-pkg, test-brew, notification-start, setup]
+    needs: [test-arch, test-docker, test-install-sh, test-install-ps1, test-osx-pkg, test-brew, notification-start, setup, parse-inputs]
     if: ${{ always() }}
     steps:
       - name: Set status
         id: status
         run: |
           echo "status_success=${{ needs.setup.result == 'success' && needs.test-arch.result == 'success' && needs.test-docker.result == 'success' && needs.test-install-sh.result == 'success' && needs.test-install-ps1.result == 'success' && needs.test-osx-pkg.result == 'success' && needs.test-brew.result == 'success' }}" >> $GITHUB_OUTPUT
-      - uses: slackapi/slack-github-action@v2.0.0
+      - uses: slackapi/slack-github-action@v2.1.1
         if : ${{ always() }}
         with:
           method: chat.update
@@ -148,3 +171,5 @@ jobs:
                         text: "<${{ github.event.repository.html_url }}/actions/runs/${{ github.run_id }}/attempts/${{ github.run_attempt }}|${{ github.workflow }}>"
                       - type: "mrkdwn"
                         text: "*Status:*\n`${{ steps.status.outputs.status_success == 'true' && 'Success' || 'Failed' }}`"
+                      - type: "mrkdwn"
+                        text: "*Version:*\n`${{ needs.parse-inputs.outputs.version }}`"
