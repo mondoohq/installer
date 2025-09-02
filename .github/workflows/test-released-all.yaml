@@ -37,7 +37,7 @@ jobs:
 
   notification-start:
     name: Send Slack notification
-    needs: [check-version]
+    needs: [check-version, parse-inputs]
     runs-on: ubuntu-latest
     outputs:
       update-ts: ${{ steps.slack.outputs.ts }}
@@ -146,7 +146,7 @@ jobs:
   notification:
     runs-on: ubuntu-latest
     name: Update Slack notification
-    needs: [test-arch, test-docker, test-install-sh, test-install-ps1, test-osx-pkg, test-brew, notification-start, setup]
+    needs: [test-arch, test-docker, test-install-sh, test-install-ps1, test-osx-pkg, test-brew, notification-start, setup, parse-inputs]
     if: ${{ always() }}
     steps:
       - name: Set status
