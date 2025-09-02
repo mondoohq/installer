@@ -36,7 +36,7 @@ jobs:
         python test/releases/validate_release.py cnspec && echo "cnspec_status=$?" >> $GITHUB_ENV || echo "cnspec_status=$?" >> $GITHUB_ENV
     - name: Send Slack notification on failure
       if: env.mondoo_status != '0' || env.cnquery_status != '0' || env.cnspec_status != '0'
-      uses: slackapi/slack-github-action@v2.0.0
+      uses: slackapi/slack-github-action@v2.1.1
       with:
         method: chat.postMessage
         token: ${{ secrets.SLACK_BOT_TOKEN }}

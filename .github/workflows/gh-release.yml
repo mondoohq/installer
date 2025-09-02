@@ -21,7 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - id: slack
-        uses: slackapi/slack-github-action@v2.0.0
+        uses: slackapi/slack-github-action@v2.1.1
         with:
           method: chat.postMessage
           token: ${{ secrets.SLACK_BOT_TOKEN }}
@@ -68,7 +68,7 @@ jobs:
           generate_release_notes: true
           make_latest: true
           token: ${{ steps.generate-token.outputs.token }}
-      - uses: slackapi/slack-github-action@v2.0.0
+      - uses: slackapi/slack-github-action@v2.1.1
         if : ${{ always() }}
         with:
           method: chat.update
