@@ -6,7 +6,7 @@ on:
       version:
         description: "Version to test"
         required: true
-        default: "9.0.0"
+        default: "12.0.0"
   release:
     types: [published]
 
@@ -15,8 +15,29 @@ env:
   SLACK_BOT_CHANNEL_ID: "C07QZDJFF89"
 
 jobs:
+  parse-inputs:
+    uses: ./.github/workflows/parse_inputs.yml
+    with:
+      skip-publish: ${{ inputs.skip-publish }}
+      version: ${{ inputs.version }}
+      bucket: ${{ inputs.bucket }}
+
+  check-version:
+    needs: [parse-inputs]
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          VERSION="${{ needs.parse-inputs.outputs.version }}"
+          echo "Checking version: $VERSION"
+          if [[ "$VERSION" == *"-"* ]]; then
+            echo "❌ Prerelease versions are not allowed ($VERSION)"
+            exit 1
+          fi
+          echo "✅ Version $VERSION is allowed"
+
   notification-start:
     name: Send Slack notification
+    needs: [check-version]
     runs-on: ubuntu-latest
     outputs:
       update-ts: ${{ steps.slack.outputs.ts }}
