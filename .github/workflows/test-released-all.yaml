@@ -43,7 +43,7 @@ jobs:
       update-ts: ${{ steps.slack.outputs.ts }}
     steps:
       - id: slack
-        uses: slackapi/slack-github-action@v2.0.0
+        uses: slackapi/slack-github-action@v2.1.1
         with:
           method: chat.postMessage
           token: ${{ secrets.SLACK_BOT_TOKEN }}
@@ -59,6 +59,8 @@ jobs:
                         text: "<${{ github.event.repository.html_url }}/actions/runs/${{ github.run_id }}/attempts/${{ github.run_attempt }}|${{ github.workflow }}>"
                       - type: "mrkdwn"
                         text: "*Status:*\n`In Progress`"
+                      - type: "mrkdwn"
+                        text: "*Version:*\n`${{ needs.parse-inputs.outputs.version }}`"
 
   setup:
     runs-on: ubuntu-latest
@@ -151,7 +153,7 @@ jobs:
         id: status
         run: |
           echo "status_success=${{ needs.setup.result == 'success' && needs.test-arch.result == 'success' && needs.test-docker.result == 'success' && needs.test-install-sh.result == 'success' && needs.test-install-ps1.result == 'success' && needs.test-osx-pkg.result == 'success' && needs.test-brew.result == 'success' }}" >> $GITHUB_OUTPUT
-      - uses: slackapi/slack-github-action@v2.0.0
+      - uses: slackapi/slack-github-action@v2.1.1
         if : ${{ always() }}
         with:
           method: chat.update
@@ -169,3 +171,5 @@ jobs:
                         text: "<${{ github.event.repository.html_url }}/actions/runs/${{ github.run_id }}/attempts/${{ github.run_attempt }}|${{ github.workflow }}>"
                       - type: "mrkdwn"
                         text: "*Status:*\n`${{ steps.status.outputs.status_success == 'true' && 'Success' || 'Failed' }}`"
+                      - type: "mrkdwn"
+                        text: "*Version:*\n`${{ needs.parse-inputs.outputs.version }}`"
