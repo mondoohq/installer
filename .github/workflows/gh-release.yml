@@ -62,7 +62,7 @@ jobs:
           private-key: ${{ secrets.MONDOO_MERGEBOT_APP_PRIVATE_KEY }}
       - name: Release
         id: release
-        uses: softprops/action-gh-release@v2.2.2
+        uses: softprops/action-gh-release@v2.3.2
         with:
           tag_name: ${{ steps.version.outputs.version }}
           generate_release_notes: true
