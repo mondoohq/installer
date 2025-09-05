@@ -53,7 +53,7 @@ jobs:
   build-msi:
     uses: ./.github/workflows/pkg_msi.yaml
     secrets: inherit
-    needs: [ check-version ]
+    needs: [ check-version,parse-inputs ]
     with:
       version: ${{ needs.parse-inputs.outputs.version }}
       skip-publish: ${{ needs.parse-inputs.outputs.skip-publish == 'true' }}
@@ -61,7 +61,7 @@ jobs:
   build-mondoo-pkgs:
     uses: ./.github/workflows/release_mondoo_pkgs.yaml
     secrets: inherit
-    needs: [ check-version ]
+    needs: [ check-version,parse-inputs ]
     with:
       version: ${{ needs.parse-inputs.outputs.version }}
       skip-publish: ${{ needs.parse-inputs.outputs.skip-publish == 'true' }}
@@ -69,7 +69,7 @@ jobs:
   build-macos:
     uses: ./.github/workflows/pkg_macos.yaml
     secrets: inherit
-    needs: [ check-version ]
+    needs: [ check-version,parse-inputs ]
     with:
       version: ${{ needs.parse-inputs.outputs.version }}
       skip-publish: ${{ needs.parse-inputs.outputs.skip-publish == 'true' }}
