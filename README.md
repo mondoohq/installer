@@ -150,7 +150,7 @@ To browse all releases, please visit [https://releases.mondoo.com](https://relea
 
 **Install Scripts Sources**
 
-- [install.sh](https://github.com/mondoohq/installer/blob/main/install.ps1) - `cnquery` & `cnspec` Bash Installer
+- [install.sh](https://github.com/mondoohq/installer/blob/main/install.sh) - `cnquery` & `cnspec` Bash Installer
 - [download.sh](https://github.com/mondoohq/installer/blob/main/download.sh) - `cnquery` & `cnspec` Bash Binary Downloader
 - [install.ps1](https://github.com/mondoohq/installer/blob/main/install.ps1) - `cnquery` & `cnspec` PowerShell Installer
 - [download.ps1](https://github.com/mondoohq/installer/blob/main/download.ps1) - `cnquery` & `cnspec` PowerShell Binary Downloader
