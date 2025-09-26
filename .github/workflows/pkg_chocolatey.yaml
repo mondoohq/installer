@@ -32,7 +32,7 @@ jobs:
     steps:
       # Checkout the branch
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       - name: Generate Packages
         shell: bash
         run: |
@@ -47,7 +47,7 @@ jobs:
           done
 
       - name: Update Chocolatey Packages
-        uses: addnab/docker-run-action@v3
+        uses: addnab/docker-run-action@4f65fabd2431ebc8d299f8e5a018d79a769ae185 # v3
         if: ${{ ! inputs.skip-publish }}
         with:
           image: chocolatey/choco:latest

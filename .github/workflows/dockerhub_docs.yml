@@ -15,12 +15,12 @@ jobs:
     name: Update Docker Hub docs
     steps:
       - name: Clone repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
         with:
           fetch-depth: 0
 
       - name: Update mondoolabs/mondoo DockerHub docs
-        uses: peter-evans/dockerhub-description@v4
+        uses: peter-evans/dockerhub-description@432a30c9e07499fd01da9f8a49f0faf9e0ca5b77 # v4.0.2
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
@@ -28,7 +28,7 @@ jobs:
           readme-filepath: ./dockerhub/mondoolabs/mondoo.md
 
       - name: Update mondoo/client DockerHub docs
-        uses: peter-evans/dockerhub-description@v4
+        uses: peter-evans/dockerhub-description@432a30c9e07499fd01da9f8a49f0faf9e0ca5b77 # v4.0.2
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
@@ -36,7 +36,7 @@ jobs:
           readme-filepath: ./dockerhub/mondoo/client.md
 
       - name: Update mondoo/cnquery DockerHub docs
-        uses: peter-evans/dockerhub-description@v4
+        uses: peter-evans/dockerhub-description@432a30c9e07499fd01da9f8a49f0faf9e0ca5b77 # v4.0.2
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
@@ -44,7 +44,7 @@ jobs:
           readme-filepath: ./dockerhub/mondoo/cnquery.md
 
       - name: Update mondoo/cnspec DockerHub docs
-        uses: peter-evans/dockerhub-description@v4
+        uses: peter-evans/dockerhub-description@432a30c9e07499fd01da9f8a49f0faf9e0ca5b77 # v4.0.2
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
