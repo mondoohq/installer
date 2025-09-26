@@ -55,7 +55,7 @@ jobs:
     runs-on: macos-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       - name: Ensure version of cnquery and cnspec are available
         run: |
           curl -sL --head --fail https://github.com/mondoohq/cnquery/releases/download/v${{ inputs.version }}/cnquery_${{ inputs.version }}_darwin_amd64.tar.gz
@@ -90,7 +90,7 @@ jobs:
           productsign --sign "${{ secrets.APPLE_KEYS_PRODUCTSIGN_ID }}" dist/${{ inputs.name }}-macos-universal-${{ inputs.version }}.pkg dist/${{ inputs.name }}_${{ inputs.version }}_darwin_universal.pkg
       ########## Sign Package. ##########
       - name: Notarize Package
-        uses: lando/notarize-action@v2
+        uses: lando/notarize-action@b5c3ef16cf2fbcf2af26dc58c90255ec242abeed # v2.0.2
         with:
           product-path: dist/${{ inputs.name }}_${{ inputs.version }}_darwin_universal.pkg
           appstore-connect-username: ${{ secrets.APPLE_ACCOUNT_USERNAME }}
@@ -98,12 +98,12 @@ jobs:
           appstore-connect-team-id: ${{ secrets.APPLE_ACCOUNT_TEAM_ID }}
           primary-bundle-id: 'com.${{ inputs.name }}.client'
       - name: "Staple Release Build"
-        uses: mondoohq/xcode-staple@v1
+        uses: mondoohq/xcode-staple@b6e11c09bc87790744f6e6d6f66f3be98f4dce48 # v1
         with:
           product-path: dist/${{ inputs.name }}_${{ inputs.version }}_darwin_universal.pkg
       ########## Save Package as Artifact. ##########
       - name: Archive Notarized Package
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: notarized-package
           path: dist/${{ inputs.name }}_${{ inputs.version }}_darwin_universal.pkg
@@ -115,9 +115,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       - name: Download Notarized Package
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
           name: notarized-package
           path: dist
@@ -132,11 +132,11 @@ jobs:
           fi
           sha256sum ${{ inputs.name }}_${{ inputs.version }}_darwin_universal.pkg | tee -a checksums.macos.txt
       - name: Authenticate with Google Cloud
-        uses: 'google-github-actions/auth@v2'
+        uses: 'google-github-actions/auth@c200f3691d83b41bf9bbd8638997a462592937ed' # v2.1.13
         with:
           credentials_json: '${{secrets.GCP_CREDENTIALS}}'
       - name: 'Set up Cloud SDK'
-        uses: 'google-github-actions/setup-gcloud@v2'
+        uses: 'google-github-actions/setup-gcloud@e427ad8a34f8676edf47cf7d7925499adf3eb74f' # v2.2.1
       - name: Verify access to release bucket
         run: |
           gsutil ls gs://${{ inputs.bucket }}/mondoo

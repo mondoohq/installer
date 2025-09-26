@@ -76,7 +76,7 @@ jobs:
     needs: setup
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       - name: Download Binaries
         env:
           VERSION: ${{ inputs.version }}
@@ -92,7 +92,7 @@ jobs:
           rm cnquery_${VERSION}_windows_${{ matrix.arch }}.zip
           ls -lh
       - name: Upload Distribution
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: dist-${{ matrix.arch }}
           path: dist/${{ matrix.arch }}
@@ -113,10 +113,10 @@ jobs:
     #  For Version: ${{ inputs.version }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
 
       - name: Download Distribution
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
           name: dist-${{ matrix.arch }}
           path: dist/${{ matrix.arch }}
@@ -137,14 +137,14 @@ jobs:
           ./package.ps1 -version $mondooVersion -arch ${{ matrix.arch }}
 
       - name: Azure login
-        uses: azure/login@v2
+        uses: azure/login@a457da9ea143d694b1b9c7c869ebb04ebe844ef5 # v2.3.0
         with:
           client-id: ${{ secrets.TSIGN_AZURE_CLIENT_ID }}
           tenant-id: ${{ vars.TSIGN_AZURE_TENANT_ID}}
           subscription-id: ${{ vars.TSIGN_AZURE_SUBSCRIPTION_ID }}
 
       - name: Sign files with Trusted Signing
-        uses: azure/trusted-signing-action@v0
+        uses: azure/trusted-signing-action@0d74250c661747df006298d0fb49944c10f16e03 # v0.5.1
         with:
           endpoint: ${{ vars.TSIGN_AZURE_ENDPOINT }}
           trusted-signing-account-name: ${{ vars.TSIGN_ACCOUNT_NAME }}
@@ -173,7 +173,7 @@ jobs:
           Remove-Item -Path .\dist\${{ matrix.arch }}\cnspec.exe -Force
 
       - name: Upload Distribution
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: msi-${{ matrix.arch }}
           path: dist/${{ matrix.arch }}
@@ -192,7 +192,7 @@ jobs:
     runs-on: windows-2025
     steps:
       - name: Download MSI Package
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
           name: msi-${{ matrix.arch }}
           path: dist
@@ -306,19 +306,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       - name: Download MSI Package
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
           name: msi-${{ matrix.arch }}
           path: dist
       - name: Authenticate with Google Cloud
         id: gauth
-        uses: google-github-actions/auth@v2
+        uses: google-github-actions/auth@c200f3691d83b41bf9bbd8638997a462592937ed # v2.1.13
         with:
           credentials_json: ${{secrets.GCP_CREDENTIALS}}
       - name: Set up Cloud SDK
-        uses: google-github-actions/setup-gcloud@v2
+        uses: google-github-actions/setup-gcloud@e427ad8a34f8676edf47cf7d7925499adf3eb74f # v2.2.1
       - name: Verify access to release bucket
         env:
           VERSION: ${{ inputs.version }}

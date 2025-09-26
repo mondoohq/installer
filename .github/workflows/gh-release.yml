@@ -21,7 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - id: slack
-        uses: slackapi/slack-github-action@v2.1.1
+        uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a # v2.1.1
         with:
           method: chat.postMessage
           token: ${{ secrets.SLACK_BOT_TOKEN }}
@@ -38,7 +38,7 @@ jobs:
                       - type: "mrkdwn"
                         text: "*Status:*\n`In Progress`"
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       # Determine which version should be released based on event type
       - name: Set Version (Workflow Dispatch)
         if: github.event_name == 'workflow_dispatch'
@@ -56,19 +56,19 @@ jobs:
       # fetch a token for the mondoo-mergebot app
       - name: Generate token
         id: generate-token
-        uses: actions/create-github-app-token@v2
+        uses: actions/create-github-app-token@67018539274d69449ef7c02e8e71183d1719ab42 # v2.1.4
         with:
           app-id: ${{ secrets.MONDOO_MERGEBOT_APP_ID }}
           private-key: ${{ secrets.MONDOO_MERGEBOT_APP_PRIVATE_KEY }}
       - name: Release
         id: release
-        uses: softprops/action-gh-release@v2.2.2
+        uses: softprops/action-gh-release@da05d552573ad5aba039eaac05058a918a7bf631 # v2.2.2
         with:
           tag_name: ${{ steps.version.outputs.version }}
           generate_release_notes: true
           make_latest: true
           token: ${{ steps.generate-token.outputs.token }}
-      - uses: slackapi/slack-github-action@v2.1.1
+      - uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a # v2.1.1
         if : ${{ always() }}
         with:
           method: chat.update

@@ -32,9 +32,9 @@ jobs:
     name: 'Generate & Locally Commit PKGBUILDs'
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       - name: Setup Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5.5.0
         with:
           go-version: '>=1.17.0'
       - name: Execute generator (make update)
@@ -50,7 +50,7 @@ jobs:
       - name: Publish cnquery AUR package
         if: ${{ !inputs.skip }}
         continue-on-error: true
-        uses: KSXGitHub/github-actions-deploy-aur@v3.0.1
+        uses: KSXGitHub/github-actions-deploy-aur@a97f56a8425a7a7f3b8c58607f769c69b089cadb # v3.0.1
         with:
           pkgname: cnquery
           pkgbuild: packages/archlinux/cnquery/PKGBUILD
@@ -63,7 +63,7 @@ jobs:
       - name: Publish cnspec AUR package
         if: ${{ !inputs.skip }}
         continue-on-error: true
-        uses: KSXGitHub/github-actions-deploy-aur@v3.0.1
+        uses: KSXGitHub/github-actions-deploy-aur@a97f56a8425a7a7f3b8c58607f769c69b089cadb # v3.0.1
         with:
           pkgname: cnspec
           pkgbuild: packages/archlinux/cnspec/PKGBUILD
@@ -76,7 +76,7 @@ jobs:
       - name: Publish mondoo AUR package
         if: ${{ !inputs.skip }}
         continue-on-error: true
-        uses: KSXGitHub/github-actions-deploy-aur@v3.0.1
+        uses: KSXGitHub/github-actions-deploy-aur@a97f56a8425a7a7f3b8c58607f769c69b089cadb # v3.0.1
         with:
           pkgname: mondoo
           pkgbuild: packages/archlinux/mondoo/PKGBUILD
