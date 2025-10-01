@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (c) 2019-2024 Mondoo, Inc.
+# Copyright (c) 2019-2025 Mondoo, Inc.
 # License: Apache License, Version 2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -609,7 +609,7 @@ configure_macos_token() {
 
   # Get the login command
   login_cmd=$(configure_login_cmd "$config_path")
-  
+
   # Execute the command
   eval "$login_cmd"
 
@@ -623,7 +623,7 @@ configure_linux_token() {
   local config_path="/etc/opt/mondoo/"
   sudo_cmd mkdir -p "$config_path"
 
-  
+
   # Get the login command
   login_cmd=$(configure_login_cmd "$config_path")
 

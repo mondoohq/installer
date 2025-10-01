@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (c) 2019-2024 Mondoo, Inc.
+# Copyright (c) 2019-2025 Mondoo, Inc.
 # License: Apache License, Version 2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -45,8 +45,8 @@ purple "
 :_;:_;:_;\`.__.':_;:_;\`.__.'\`.__.'\`.__.
 "
 
-echo -e "\nWelcome to the Mondoo Binary Download Script. It tries to auto-detect your 
-operating system and determines the appropriate binary for your platform. If you are 
+echo -e "\nWelcome to the Mondoo Binary Download Script. It tries to auto-detect your
+operating system and determines the appropriate binary for your platform. If you are
 experiencing any issues, please do not hesitate to reach out:
 
   * Mondoo Community GitHub Discussions https://github.com/orgs/mondoohq/discussions
