@@ -12,7 +12,6 @@ jobs:
       actions: read
       contents: read
       pull-requests: read
-      security-events: write
     outputs:
       followup: ${{ steps.spelling.outputs.followup }}
     runs-on: ubuntu-latest
@@ -26,7 +25,6 @@ jobs:
         id: spelling
         uses: check-spelling/check-spelling@c635c2f3f714eec2fcf27b643a1919b9a811ef2e # v0.0.25
         with:
-          use_sarif: 1
           disable_checks: noisy-file
           suppress_push_for_open_pull_request: 1
           checkout: true
