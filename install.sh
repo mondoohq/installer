@@ -159,7 +159,7 @@ fi
 # Detect operating system
 # -----------------------
 # Store detected value in $OS
-KNOWN_DISTRIBUTION="(RedHat|Red Hat|CentOS|Debian|Ubuntu|openSUSE|Amazon|SUSE|Arch Linux|AlmaLinux|Rocky Linux)"
+KNOWN_DISTRIBUTION="(RedHat|Red Hat|CentOS|Debian|Ubuntu|openSUSE|Amazon|SUSE|Arch Linux|AlmaLinux|Rocky Linux|EulerOS|openEuler)"
 DISTRIBUTION="$(
   lsb_release -d 2>/dev/null | grep -Eo "$KNOWN_DISTRIBUTION" ||
     grep -m1 -Eo "$KNOWN_DISTRIBUTION" /etc/os-release 2>/dev/null ||
@@ -173,7 +173,7 @@ elif [ -f /etc/debian_version ] || [ "$DISTRIBUTION" == "Debian" ] || [ "$DISTRI
   OS="Debian"
 elif [ "$AWS_EXECUTION_ENV" == "CloudShell" ] || [ "$POWERSHELL_DISTRIBUTION_CHANNEL" == "CloudShell" ]; then
   OS="CloudShell"
-elif [ -f /etc/redhat-release ] || [ "$DISTRIBUTION" == "RedHat" ] || [ "$DISTRIBUTION" == "CentOS" ] || [ "$DISTRIBUTION" == "Amazon" ] || [ "$DISTRIBUTION" == "AlmaLinux" ] || [ "$DISTRIBUTION" == "Rocky Linux" ]; then
+elif [ -f /etc/redhat-release ] || [ "$DISTRIBUTION" == "RedHat" ] || [ "$DISTRIBUTION" == "CentOS" ] || [ "$DISTRIBUTION" == "Amazon" ] || [ "$DISTRIBUTION" == "AlmaLinux" ] || [ "$DISTRIBUTION" == "Rocky Linux" ] || [ "$DISTRIBUTION" == "EulerOS" ] || [ "$DISTRIBUTION" == "openEuler" ]; then
   OS="RedHat"
 elif [ -f /etc/photon-release ] || [ "$DISTRIBUTION" == "Photon" ]; then
   # NOTE: it requires tdnf >= 2.1.2-3.ph3, before remote http gpg keys were not supported
@@ -609,7 +609,7 @@ configure_macos_token() {
 
   # Get the login command
   login_cmd=$(configure_login_cmd "$config_path")
-  
+
   # Execute the command
   eval "$login_cmd"
 
@@ -623,7 +623,7 @@ configure_linux_token() {
   local config_path="/etc/opt/mondoo/"
   sudo_cmd mkdir -p "$config_path"
 
-  
+
   # Get the login command
   login_cmd=$(configure_login_cmd "$config_path")
 
