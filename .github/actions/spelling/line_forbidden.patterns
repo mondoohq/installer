@@ -137,6 +137,34 @@
 # Product Names
 #
 
+# s.b. Webex
+\bWebEx\b
+
+# s.b. FortiClient
+\bForti Client\b
+\bForticlient\b
+
+# s.b. TeamViewer
+\bTeam Viewer\b
+\bTeamviewer\b
+
+# s.b. LibreOffice
+\bLibre Office\b
+\bLibreoffice\b
+
+# s.b. JetBrains
+\bJet Brains\b
+\bJetbrains\b
+
+# s.b. EulerOS
+\bEuler OS\b
+
+# s.b. openEuler
+\bOpen[Ee]uler\b
+
+# s.b. Smart Net Total Care
+\bSMARTnet\b
+
 # s.b. YubiKey
 \bYubikey\b
 \bYubi Key\b
@@ -762,6 +790,16 @@
 #
 # Azure Products
 #
+
+# s.b. VNet
+\bVnet\b
+
+# s.b. ExpressRoute
+\bExpress Route\b
+\bExpressroute\b
+
+# s.b. Databricks
+\bDataBricks\b
 
 # s.b. Azure Pipelines
 \bAzure DevOps Pipelines\b
