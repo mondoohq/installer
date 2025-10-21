@@ -435,8 +435,22 @@ configure_debian_installer() {
         fi
     }
 
+    repo_check(){
+        local MONDOO_SOURCE_FILES=$(sudo_cmd grep -r --include '*.list' '^deb ' /etc/apt/sources.list /etc/apt/sources.list.d/ 2>/dev/null | \
+          grep "https://releases.mondoo.com/debian/" | \
+          cut -d: -f1 | \
+          sort -u
+        )
+
+        #  If repo is already set comment out relevant lines, so that apt update can run successfuly
+        if [ -n "$MONDOO_SOURCE_FILES" ]; then
+          echo "$MONDOO_SOURCE_FILES" | xargs --no-run-if-empty sudo_cmd sed -i -e "s%^[[:space:]]*deb.*$MONDOO_REPO_URL.*%#&%"
+        fi
+    }
+
     mondoo_install() {
       purple_bold "\n* Installing prerequisites for Debian"
+      repo_check
       sudo_cmd apt update -y
       sudo_cmd apt install -y apt-transport-https ca-certificates gnupg curl
       apt_update
