@@ -432,21 +432,12 @@ configure_debian_installer() {
         else
           curl -A "${UserAgent}" --retry 3 --retry-delay 10 -sSL https://releases.mondoo.com/debian/pubkey.gpg | sudo_cmd gpg --dearmor --yes --output /usr/share/keyrings/mondoo-archive-keyring.gpg
           echo "deb [signed-by=/usr/share/keyrings/mondoo-archive-keyring.gpg] https://releases.mondoo.com/debian/ stable main" | sudo_cmd tee /etc/apt/sources.list.d/mondoo.list
-        fi
-    }
-
-    repo_check(){
-        local MONDOO_SOURCE_FILES
-	MONDOO_SOURCE_FILES=$(sudo_cmd grep -r -l --include '*.list' '^deb ' /etc/apt/sources.list /etc/apt/sources.list.d/ 2>/dev/null)
-        #  If repo is already set comment out relevant lines, so that apt update can run successfuly
-        if [ -n "$MONDOO_SOURCE_FILES" ]; then
-          echo $MONDOO_SOURCE_FILES | sudo_cmd xargs sed -i -e "s%^[[:space:]]*deb.*$MONDOO_REPO_URL.*%#&%"
+	  sudo_cmd chmod 644 /usr/share/keyrings/mondoo-archive-keyring.gpg
         fi
     }
 
     mondoo_install() {
       purple_bold "\n* Installing prerequisites for Debian"
-      repo_check
       sudo_cmd apt update -y
       sudo_cmd apt install -y apt-transport-https ca-certificates gnupg curl
       apt_update
