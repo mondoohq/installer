@@ -432,7 +432,7 @@ configure_debian_installer() {
         else
           curl -A "${UserAgent}" --retry 3 --retry-delay 10 -sSL https://releases.mondoo.com/debian/pubkey.gpg | sudo_cmd gpg --dearmor --yes --output /usr/share/keyrings/mondoo-archive-keyring.gpg
           echo "deb [signed-by=/usr/share/keyrings/mondoo-archive-keyring.gpg] https://releases.mondoo.com/debian/ stable main" | sudo_cmd tee /etc/apt/sources.list.d/mondoo.list
-	  sudo_cmd chmod 644 /usr/share/keyrings/mondoo-archive-keyring.gpg
+          sudo_cmd chmod 644 /usr/share/keyrings/mondoo-archive-keyring.gpg
         fi
     }
 
