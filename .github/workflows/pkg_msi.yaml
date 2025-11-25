@@ -146,7 +146,7 @@ jobs:
       - name: Sign files with Trusted Signing
         uses: azure/trusted-signing-action@0d74250c661747df006298d0fb49944c10f16e03 # v0.5.1
         with:
-          endpoint: ${{ vars.TSIGN_AZURE_ENDPOINT }}
+          endpoint: https://eus.codesigning.azure.net
           trusted-signing-account-name: ${{ vars.TSIGN_ACCOUNT_NAME }}
           # Conditional logic for switching certificate-profile-name type
           certificate-profile-name: ${{ inputs.use-test-cert == true && vars.TSIGN_TEST_CERT_PROFILE_NAME || vars.TSIGN_CERT_PROFILE_NAME }}
@@ -255,7 +255,7 @@ jobs:
           cd dist
           $msiexec = Start-Process "msiexec" "/i mondoo_${{ matrix.arch }}.msi /qn /l*! install.log" -NoNewWindow -PassThru
           $gci = Start-Process "powershell" "Get-Content -Path install.log -Wait" -NoNewWindow -PassThru
-          $msiexec.WaitForExit() 
+          $msiexec.WaitForExit()
           $gci.Kill()
           gci
       - name: Verify the correct cnquery version is installed
