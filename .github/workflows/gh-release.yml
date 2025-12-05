@@ -20,6 +20,24 @@ jobs:
       contents: write
     runs-on: ubuntu-latest
     steps:
+      - name: Check calling user
+        if: ${{ github.event_name == 'repository_dispatch' && github.event.sender.login != 'mondoo-tools' }}
+        run: |
+          echo "This user is not allowed to trigger the workflow"
+          exit 1
+      - name: Determine Version and Validate
+        id: version
+        env:
+          # Determine which version should be released based on event type
+          VERSION: ${{ (github.event_name == 'workflow_dispatch' && inputs.version) || github.event.client_payload.version }}
+        run: |
+          # Semantic Versioning regex (with optional 'v' prefix)
+          if [[ ! "$VERSION" =~ ^v?[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Error: Version is not a valid semantic version."
+            exit 1
+          fi
+          echo "Version: $VERSION"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
       - id: slack
         uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a # v2.1.1
         with:
@@ -39,20 +57,6 @@ jobs:
                         text: "*Status:*\n`In Progress`"
       - name: Checkout
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
-      # Determine which version should be released based on event type
-      - name: Set Version (Workflow Dispatch)
-        if: github.event_name == 'workflow_dispatch'
-        run: |
-          echo VERSION=${{ inputs.version }} >> $GITHUB_ENV
-      - name: Set Version (Repository Dispatch)
-        if: github.event_name == 'repository_dispatch'
-        run: |
-          echo VERSION=${{ github.event.client_payload.version }} >> $GITHUB_ENV
-      - name: Unified Version
-        id: version
-        run: |
-          echo "Version: $VERSION"
-          echo "version=${VERSION}" >> $GITHUB_OUTPUT
       # fetch a token for the mondoo-mergebot app
       - name: Generate token
         id: generate-token
@@ -69,7 +73,7 @@ jobs:
           make_latest: true
           token: ${{ steps.generate-token.outputs.token }}
       - uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a # v2.1.1
-        if : ${{ always() }}
+        if: ${{ always() }}
         with:
           method: chat.update
           token: ${{ secrets.SLACK_BOT_TOKEN }}
