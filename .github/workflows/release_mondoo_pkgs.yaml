@@ -91,7 +91,7 @@ jobs:
           $SKIP gsutil cp -r helper/packages/* gs://${{ inputs.bucket }}/mondoo/${{ inputs.version }}/
       - name: Upload files to GitHub Release Page
         if: ${{ !inputs.skip-publish }}
-        uses: softprops/action-gh-release@62c96d0c4e8a889135c1f3a25910db8dbe0e85f7 # v2.3.4
+        uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b # v2.5.0
         with:
           tag_name: v${{ inputs.version }}
           files: helper/packages/*
