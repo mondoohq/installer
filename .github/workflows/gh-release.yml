@@ -14,30 +14,23 @@ env:
   SLACK_BOT_CHANNEL_ID: "C07QZDJFF89"
 
 jobs:
+  parse-inputs:
+    uses: ./.github/workflows/parse_inputs.yml
+    with:
+      version: ${{ (github.event_name == 'workflow_dispatch' && inputs.version) || github.event.client_payload.version }}
+
   create-gh-release:
     name: GH Release
     permissions:
       contents: write
     runs-on: ubuntu-latest
+    needs: parse-inputs
     steps:
       - name: Check calling user
         if: ${{ github.event_name == 'repository_dispatch' && github.event.sender.login != 'mondoo-tools' }}
         run: |
           echo "This user is not allowed to trigger the workflow"
           exit 1
-      - name: Determine Version and Validate
-        id: version
-        env:
-          # Determine which version should be released based on event type
-          VERSION: ${{ (github.event_name == 'workflow_dispatch' && inputs.version) || github.event.client_payload.version }}
-        run: |
-          # Semantic Versioning regex (with optional 'v' prefix)
-          if [[ ! "$VERSION" =~ ^v?[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "Error: Version is not a valid semantic version."
-            exit 1
-          fi
-          echo "Version: $VERSION"
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
       - id: slack
         uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a # v2.1.1
         with:
@@ -68,7 +61,7 @@ jobs:
         id: release
         uses: softprops/action-gh-release@62c96d0c4e8a889135c1f3a25910db8dbe0e85f7 # v2.3.4
         with:
-          tag_name: ${{ steps.version.outputs.version }}
+          tag_name: v${{ needs.parse-inputs.outputs.version }}
           generate_release_notes: true
           make_latest: true
           token: ${{ steps.generate-token.outputs.token }}

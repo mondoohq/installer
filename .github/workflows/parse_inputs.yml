@@ -4,37 +4,36 @@ on:
   workflow_call:
     inputs:
       version:
-        description: 'Package Version'
+        description: "Package Version"
         required: true
-        default: '8.99.99'
-        type: 'string'
+        default: "8.99.99"
+        type: "string"
       name:
-        description: 'Package Name'
+        description: "Package Name"
         required: false
-        default: 'mondoo'
-        type: 'string'
+        default: "mondoo"
+        type: "string"
       skip-publish:
-        description: 'Skip publish?'
+        description: "Skip publish?"
         required: false
         default: "false"
         type: string
       bucket:
-        description: 'Name of google storage bucket to upload to'
+        description: "Name of google storage bucket to upload to"
         required: false
         default: "releases-com-test"
         type: string
     outputs:
-      skip-publish: 
+      skip-publish:
         value: ${{ jobs.parse-inputs.outputs.skip-publish }}
-      bucket: 
+      bucket:
         value: ${{ jobs.parse-inputs.outputs.bucket }}
-      version: 
+      version:
         value: ${{ jobs.parse-inputs.outputs.version }}
-      trimmed-version: 
+      trimmed-version:
         value: ${{ jobs.parse-inputs.outputs.trimmed-version }}
-      name: 
+      name:
         value: ${{ jobs.parse-inputs.outputs.name }}
- 
 
 jobs:
   parse-inputs:
@@ -44,6 +43,7 @@ jobs:
       SKIP_PUBLISH: ${{ inputs.skip-publish || 'false' }}
       BUCKET: ${{ inputs.bucket || 'releases-us.mondoo.io'}}
       NAME: ${{ inputs.name || 'mondoo' }}
+      VERSION: ${{ inputs.version }}
     # Sanitized values, to be used instead of `inputs.XXXX`
     outputs:
       skip-publish: ${{ steps.evaluate.outputs.skip-publish }}
@@ -52,14 +52,6 @@ jobs:
       trimmed-version: ${{ steps.evaluate.outputs.trimmed_version }}
       name: ${{ steps.evaluate.outputs.name }}
     steps:
-      - name: Set Version (Workflow Dispatch)
-        if: ${{ github.event_name != 'release' }}
-        run: |
-          echo "VERSION=${{ inputs.version }}" >> "$GITHUB_ENV"
-      - name: Set Version (Release Event)
-        if: ${{ github.event_name == 'release' }}
-        run: |
-          echo "VERSION=${{ github.event.release.tag_name }}" >> "$GITHUB_ENV"
       - name: Set input variables
         id: evaluate
         run: |
