@@ -1,4 +1,4 @@
-name: 'PKG: Package, Release, Reindex'
+name: "PKG: Package, Release, Reindex"
 
 on:
   release:
@@ -6,35 +6,65 @@ on:
   workflow_dispatch:
     inputs:
       skip-publish:
+        description: "Do not publish the packages"
         type: boolean
         default: false
       version:
-        description: 'Package Version (e.g. v8.99.99)'
+        description: "Package Version (e.g. v8.99.99)"
         required: true
-        default: 'v8.99.99'
-        type: 'string'
+        default: "v8.99.99"
+        type: "string"
       bucket:
-        description: 'GCP Release Bucket Name'
+        description: "GCP Release Bucket Name"
         required: true
-        default: 'releases-us.mondoo.io'
+        default: "releases-us.mondoo.io"
         type: choice
         options:
-          - 'releases-us.mondoo.io'
-          - 'releases-com-test'
+          - "releases-us.mondoo.io"
+          - "releases-com-test"
       reindex-path:
-        description: 'Path to Reindex (e.g. 8.99.99)'
+        description: "Path to Reindex (e.g. 8.99.99)"
         required: false
         type: string
       reindex-full:
-        description: 'Regenerate ALL indexes (Intensive!)'
+        description: "Regenerate ALL indexes (Intensive!)"
         required: false
         type: boolean
+
+env:
+  # C07QZDJFF89 == #release-coordination
+  SLACK_BOT_CHANNEL_ID: "C07QZDJFF89"
+
 jobs:
+  notify:
+    runs-on: ubuntu-latest
+    outputs:
+      update-ts: ${{ steps.slack.outputs.ts }}
+    steps:
+      - id: slack
+        uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a # v2.1.1
+        with:
+          method: chat.postMessage
+          token: ${{ secrets.SLACK_BOT_TOKEN }}
+          payload: |
+            channel: "${{ env.SLACK_BOT_CHANNEL_ID }}"
+            text: "GitHub Actions Run"
+            attachments:
+              - color: "#FFFF00"
+                blocks:
+                  - type: "section"
+                    fields:
+                      - type: "mrkdwn"
+                        text: "<${{ github.event.repository.html_url }}/actions/runs/${{ github.run_id }}/attempts/${{ github.run_attempt }}|${{ github.workflow }}>"
+                      - type: "mrkdwn"
+                        text: "*Status:*\n`In Progress`"
+
   parse-inputs:
+    needs: [notify]
     uses: ./.github/workflows/parse_inputs.yml
     with:
       skip-publish: ${{ inputs.skip-publish }}
-      version: ${{ inputs.version }}
+      version: ${{ (github.event_name == 'workflow_dispatch' && inputs.version) || github.event.release.tag_name }}
       bucket: ${{ inputs.bucket }}
 
   check-version:
@@ -53,7 +83,7 @@ jobs:
   build-msi:
     uses: ./.github/workflows/pkg_msi.yaml
     secrets: inherit
-    needs: [ check-version,parse-inputs ]
+    needs: [check-version, parse-inputs]
     with:
       version: ${{ needs.parse-inputs.outputs.version }}
       skip-publish: ${{ needs.parse-inputs.outputs.skip-publish == 'true' }}
@@ -61,7 +91,7 @@ jobs:
   build-mondoo-pkgs:
     uses: ./.github/workflows/release_mondoo_pkgs.yaml
     secrets: inherit
-    needs: [ check-version,parse-inputs ]
+    needs: [check-version, parse-inputs]
     with:
       version: ${{ needs.parse-inputs.outputs.version }}
       skip-publish: ${{ needs.parse-inputs.outputs.skip-publish == 'true' }}
@@ -69,121 +99,149 @@ jobs:
   build-macos:
     uses: ./.github/workflows/pkg_macos.yaml
     secrets: inherit
-    needs: [ check-version,parse-inputs ]
+    needs: [check-version, parse-inputs]
     with:
       version: ${{ needs.parse-inputs.outputs.version }}
       skip-publish: ${{ needs.parse-inputs.outputs.skip-publish == 'true' }}
       bucket: ${{ needs.parse-inputs.outputs.bucket }}
   reindex:
     runs-on: ubuntu-latest
-    needs: [ check-version, parse-inputs, build-mondoo-pkgs, build-macos, build-msi ]
+    needs:
+      [check-version, parse-inputs, build-mondoo-pkgs, build-macos, build-msi]
     steps:
-    # fetch a token for the mondoo-mergebot app
-    - name: Generate token
-      id: generate-token
-      uses: actions/create-github-app-token@67018539274d69449ef7c02e8e71183d1719ab42 # v2.1.4
-      with:
-        app-id: ${{ secrets.MONDOO_MERGEBOT_APP_ID }}
-        private-key: ${{ secrets.MONDOO_MERGEBOT_APP_PRIVATE_KEY }}
-        owner: mondoohq
-        repositories: |
-          installer
-          releasr
-          cnspec
-          cnquery
-    - name: Converge Inputs
-      id: inputs
-      run: |
-        echo "bucket=${{ needs.parse-inputs.outputs.bucket }}" >> $GITHUB_OUTPUT
-        echo "reindex-path=${{ inputs.reindex-path }}" >> $GITHUB_OUTPUT
-    - name: 'Authenticate to Google Cloud'
-      uses: 'google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093' # v3.0.0
-      with:
-        credentials_json: '${{secrets.GCP_CREDENTIALS}}'
-    - name: 'Set up Cloud SDK'
-      uses: 'google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db' # v3.0.1
-    - name: Get GCP TOKEN
-      id: auth
-      run:
-        echo "id_token=$(gcloud auth print-identity-token)" >> "$GITHUB_OUTPUT"
-    - name: Get latest Releasr Binary
-      uses: robinraju/release-downloader@daf26c55d821e836577a15f77d86ddc078948b05 # v1
-      with:
-        repository: mondoohq/releasr
-        latest: true
-        fileName: releasr
-        out-file-path: .
-        token: ${{ steps.generate-token.outputs.token }}
-    - name: Make releasr executable
-      run: |
-        chmod +x releasr
-    - name: Release cnspec & cnquery binaries
-      env:
-        TOKEN: ${{ steps.auth.outputs.id_token }}
-        BUCKETNAME: ${{ needs.parse-inputs.outputs.bucket }}
-        GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
-        SKIP: ${{ (needs.parse-inputs.outputs.skip-publish == 'true') && 'echo skipping...' || '' }}
-      run: |
+      # fetch a token for the mondoo-mergebot app
+      - name: Generate token
+        id: generate-token
+        uses: actions/create-github-app-token@67018539274d69449ef7c02e8e71183d1719ab42 # v2.1.4
+        with:
+          app-id: ${{ secrets.MONDOO_MERGEBOT_APP_ID }}
+          private-key: ${{ secrets.MONDOO_MERGEBOT_APP_PRIVATE_KEY }}
+          owner: mondoohq
+          repositories: |
+            installer
+            releasr
+            cnspec
+            cnquery
+      - name: Converge Inputs
+        id: inputs
+        run: |
+          echo "bucket=${{ needs.parse-inputs.outputs.bucket }}" >> $GITHUB_OUTPUT
+          echo "reindex-path=${{ inputs.reindex-path }}" >> $GITHUB_OUTPUT
+      - name: "Authenticate to Google Cloud"
+        uses: "google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093" # v3.0.0
+        with:
+          credentials_json: "${{secrets.GCP_CREDENTIALS}}"
+      - name: "Set up Cloud SDK"
+        uses: "google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db" # v3.0.1
+      - name: Get GCP TOKEN
+        id: auth
+        run: echo "id_token=$(gcloud auth print-identity-token)" >> "$GITHUB_OUTPUT"
+      - name: Get latest Releasr Binary
+        uses: robinraju/release-downloader@daf26c55d821e836577a15f77d86ddc078948b05 # v1
+        with:
+          repository: mondoohq/releasr
+          latest: true
+          fileName: releasr
+          out-file-path: .
+          token: ${{ steps.generate-token.outputs.token }}
+      - name: Make releasr executable
+        run: |
+          chmod +x releasr
+      - name: Release cnspec & cnquery binaries
+        env:
+          TOKEN: ${{ steps.auth.outputs.id_token }}
+          BUCKETNAME: ${{ needs.parse-inputs.outputs.bucket }}
+          GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
+          SKIP: ${{ (needs.parse-inputs.outputs.skip-publish == 'true') && 'echo skipping...' || '' }}
+        run: |
           $SKIP ./releasr release cp  https://github.com/mondoohq/cnquery/releases/tag/v${{ needs.parse-inputs.outputs.version }} gs://${{ needs.parse-inputs.outputs.bucket }}
           $SKIP ./releasr release cp  https://github.com/mondoohq/cnspec/releases/tag/v${{ needs.parse-inputs.outputs.version }} gs://${{ needs.parse-inputs.outputs.bucket }}
-    - name: 'Remove Artifacts.json & Index.html from path (Optional)'
-      env:
-        SKIP: ${{ (needs.parse-inputs.outputs.skip-publish == 'true') && 'echo skipping...' || '' }}
-      run: |
-        if [ -n "${{ inputs.reindex-path }}" ]; then
-          echo "Removing artifacts.json & index.html from path ${{ inputs.reindex-path }}"
-          # If the files don't exist this will fail, but that's ok
-          $SKIP gsutil rm gs://${{ needs.parse-inputs.outputs.bucket }}/${{ inputs.reindex-path }}/artifacts.json || true
-          $SKIP gsutil rm gs://${{ needs.parse-inputs.outputs.bucket }}/${{ inputs.reindex-path }}/index.html || true
-        fi
-    - name: Regenerate Release Indexes
-      env:
-        TOKEN: ${{ steps.auth.outputs.id_token }}
-        BUCKETNAME: ${{ needs.parse-inputs.outputs.bucket }}
-        GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
-        IDX_OPTS: ${{ inputs.reindex-full && '--force-recompute' || '' }}
-        SKIP: ${{ (needs.parse-inputs.outputs.skip-publish == 'true') && 'echo skipping...' || '' }}
-      run: |
+      - name: "Remove Artifacts.json & Index.html from path (Optional)"
+        env:
+          SKIP: ${{ (needs.parse-inputs.outputs.skip-publish == 'true') && 'echo skipping...' || '' }}
+        run: |
+          if [ -n "${{ inputs.reindex-path }}" ]; then
+            echo "Removing artifacts.json & index.html from path ${{ inputs.reindex-path }}"
+            # If the files don't exist this will fail, but that's ok
+            $SKIP gsutil rm gs://${{ needs.parse-inputs.outputs.bucket }}/${{ inputs.reindex-path }}/artifacts.json || true
+            $SKIP gsutil rm gs://${{ needs.parse-inputs.outputs.bucket }}/${{ inputs.reindex-path }}/index.html || true
+          fi
+      - name: Regenerate Release Indexes
+        env:
+          TOKEN: ${{ steps.auth.outputs.id_token }}
+          BUCKETNAME: ${{ needs.parse-inputs.outputs.bucket }}
+          GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
+          IDX_OPTS: ${{ inputs.reindex-full && '--force-recompute' || '' }}
+          SKIP: ${{ (needs.parse-inputs.outputs.skip-publish == 'true') && 'echo skipping...' || '' }}
+        run: |
           $SKIP ./releasr idx gs://${{ needs.parse-inputs.outputs.bucket }} $IDX_OPTS
-    - name: Restart minstaller Cloud Run Service
-      env:
-        MINSTALLER: ${{ (needs.parse-inputs.outputs.skip-publish == 'true') && 'minstaller-dev' || 'minstaller' }}
-      run: |
-        gcloud --project mondoo-base-infra \
-            run services describe "$MINSTALLER" --region us-central1 --format export > "$MINSTALLER.yaml"
-        gcloud --project mondoo-base-infra \
-            run services replace "$MINSTALLER.yaml" --region us-central1
-        rm "$MINSTALLER.yaml" 
-    - name: Invalidate Google Load Balancer caches (ETA~10 minutes)
-      run: |
-        gcloud compute url-maps invalidate-cdn-cache releases-mondoo-io --path "/${{ inputs.reindex-path || '*' }}"
+      - name: Restart minstaller Cloud Run Service
+        env:
+          MINSTALLER: ${{ (needs.parse-inputs.outputs.skip-publish == 'true') && 'minstaller-dev' || 'minstaller' }}
+        run: |
+          gcloud --project mondoo-base-infra \
+              run services describe "$MINSTALLER" --region us-central1 --format export > "$MINSTALLER.yaml"
+          gcloud --project mondoo-base-infra \
+              run services replace "$MINSTALLER.yaml" --region us-central1
+          rm "$MINSTALLER.yaml"
+      - name: Invalidate Google Load Balancer caches (ETA~10 minutes)
+        run: |
+          gcloud compute url-maps invalidate-cdn-cache releases-mondoo-io --path "/${{ inputs.reindex-path || '*' }}"
   build-arch:
     uses: ./.github/workflows/pkg_arch-aur.yaml
     secrets: inherit
-    needs: [ parse-inputs, reindex ]
+    needs: [parse-inputs, reindex]
     with:
       version: ${{ needs.parse-inputs.outputs.version }}
       skip: ${{ needs.parse-inputs.outputs.skip-publish == 'true' }}
   build-chocolatey:
     uses: ./.github/workflows/pkg_chocolatey.yaml
     secrets: inherit
-    needs: [ parse-inputs, reindex ]
+    needs: [parse-inputs, reindex]
     with:
       version: ${{ needs.parse-inputs.outputs.version }}
       skip-publish: ${{ needs.parse-inputs.outputs.skip-publish == 'true' }}
   build-container:
     if: ${{ needs.parse-inputs.outputs.skip-publish != 'true' }}
-    needs: [ parse-inputs, reindex ]
+    needs: [parse-inputs, reindex]
     secrets: inherit
     uses: ./.github/workflows/build_container.yml
     with:
       version: ${{ needs.parse-inputs.outputs.version }}
       skip-publish: ${{ needs.parse-inputs.outputs.skip-publish == 'true' }}
   build-homebrew:
-    needs: [ parse-inputs, reindex ]
+    needs: [parse-inputs, reindex]
     secrets: inherit
     uses: mondoohq/homebrew-mondoo/.github/workflows/release.yml@master
     with:
       version: ${{ needs.parse-inputs.outputs.version }}
       skip-publish: ${{ needs.parse-inputs.outputs.skip-publish == 'true' }}
-      
+
+  update-notify:
+    needs: [notify, build-homebrew, build-container, build-chocolatey, reindex]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set status
+        id: status
+        run: |
+          echo "status_success=${{ needs.reindex.result == 'success' && needs.test-arch.result == 'success' && needs.build-container.result == 'success' && needs.build-homebrew.result == 'success' }}" >> $GITHUB_OUTPUT
+      - uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a # v2.1.1
+        if: ${{ always() }}
+        with:
+          method: chat.update
+          token: ${{ secrets.SLACK_BOT_TOKEN }}
+          payload: |
+            channel: "${{ env.SLACK_BOT_CHANNEL_ID }}"
+            ts: "${{ needs.notify.outputs.update-ts }}"
+            text: "GitHub Actions Run"
+            attachments:
+              - color: "${{ steps.status.outputs.status_success == 'true' && '#00FF00' || '#FF0000' }}"
+                blocks:
+                  - type: "section"
+                    fields:
+                      - type: "mrkdwn"
+                        text: "<${{ github.event.repository.html_url }}/actions/runs/${{ github.run_id }}/attempts/${{ github.run_attempt }}|${{ github.workflow }}>"
+                      - type: "mrkdwn"
+                        text: " "
+                      - type: "mrkdwn"
+                        text: "*Status:*\n`${{ steps.status.outputs.status_success == 'true' && 'Success' || 'Failed' }}`"
