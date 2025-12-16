@@ -19,7 +19,7 @@ jobs:
     uses: ./.github/workflows/parse_inputs.yml
     with:
       skip-publish: ${{ inputs.skip-publish }}
-      version: ${{ inputs.version }}
+      version: ${{ (github.event_name == 'workflow_dispatch' && inputs.version) || github.event.release.tag_name }}
       bucket: ${{ inputs.bucket }}
 
   check-version:
@@ -65,7 +65,7 @@ jobs:
   setup:
     runs-on: ubuntu-latest
     needs: notification-start
-    name: 'Unify Inputs'
+    name: "Unify Inputs"
     outputs:
       version: ${{ steps.version.outputs.version }}
     steps:
@@ -111,7 +111,6 @@ jobs:
             SEMVER="${vSEMVER//v}"
             curl -o /dev/null -s -w "%{http_code}\n" "https://registry.hub.docker.com/v2/repositories/mondoo/client/tags/${SEMVER}-ubi-rootless" | grep 200
 
-
   test-arch:
     needs: [setup, notification-start]
     uses: ./.github/workflows/test-released-archlinux.yaml
@@ -146,7 +145,18 @@ jobs:
   notification:
     runs-on: ubuntu-latest
     name: Update Slack notification
-    needs: [test-arch, test-docker, test-install-sh, test-install-ps1, test-osx-pkg, test-brew, notification-start, setup, parse-inputs]
+    needs:
+      [
+        test-arch,
+        test-docker,
+        test-install-sh,
+        test-install-ps1,
+        test-osx-pkg,
+        test-brew,
+        notification-start,
+        setup,
+        parse-inputs,
+      ]
     if: ${{ always() }}
     steps:
       - name: Set status
@@ -154,7 +164,7 @@ jobs:
         run: |
           echo "status_success=${{ needs.setup.result == 'success' && needs.test-arch.result == 'success' && needs.test-docker.result == 'success' && needs.test-install-sh.result == 'success' && needs.test-install-ps1.result == 'success' && needs.test-osx-pkg.result == 'success' && needs.test-brew.result == 'success' }}" >> $GITHUB_OUTPUT
       - uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a # v2.1.1
-        if : ${{ always() }}
+        if: ${{ always() }}
         with:
           method: chat.update
           token: ${{ secrets.SLACK_BOT_TOKEN }}
