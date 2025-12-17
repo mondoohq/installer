@@ -224,7 +224,7 @@ jobs:
       - name: Set status
         id: status
         run: |
-          echo "status_success=${{ needs.reindex.result == 'success' && needs.test-arch.result == 'success' && needs.build-container.result == 'success' && needs.build-homebrew.result == 'success' }}" >> $GITHUB_OUTPUT
+          echo "status_success=${{ needs.reindex.result == 'success' && needs.build-chocolatey.result == 'success' && needs.build-container.result == 'success' && needs.build-homebrew.result == 'success' }}" >> $GITHUB_OUTPUT
       - uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a # v2.1.1
         if: ${{ always() }}
         with:
