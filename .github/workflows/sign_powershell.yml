@@ -73,7 +73,7 @@ jobs:
           subscription-id: ${{ vars.TSIGN_AZURE_SUBSCRIPTION_ID }}
 
       - name: Sign files with Trusted Signing
-        uses: azure/trusted-signing-action@0d74250c661747df006298d0fb49944c10f16e03 # v0.5.1
+        uses: azure/trusted-signing-action@1d365fec12862c4aa68fcac418143d73f0cea293 # v0.5.11
         with:
           endpoint: ${{ vars.TSIGN_AZURE_ENDPOINT }}
           trusted-signing-account-name: ${{ vars.TSIGN_ACCOUNT_NAME }}
