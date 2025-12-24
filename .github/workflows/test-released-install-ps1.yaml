@@ -29,7 +29,7 @@ jobs:
           retry_on: error
           # error on HTTP code different to 200
           command: |
-            vSEMVER=${{ steps.version.outputs.version }}
+            vSEMVER=${{ inputs.version }}
             SEMVER="${vSEMVER//v}"
             curl -o /dev/null -s -w "%{http_code}\n" "https://install.mondoo.com/package/mondoo/windows/amd64/msi/${SEMVER}/sha256" | grep 200
 
