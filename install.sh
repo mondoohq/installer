@@ -52,29 +52,31 @@ TIMER='60'
 SPLAY='60'
 ANNOTATION=''
 NAME=''
+PROVIDERS_URL=''
 
 print_usage() {
   echo "usage: [-i]" >&2
   echo "  Options: " >&2
-  echo "    -i <installer>:  Select a specific installer, options are:" >&2
-  echo "                     macOS: brew, pkg" >&2
-  echo "    -s <service>:    Enables the cnspec service for the system. This option requires a registration token" >&2
-  echo "                     options are: enable" >&2
-  echo "    -t <token>:      Registration Token to authenticate with" >&2
-  echo "                     Mondoo Platform" >&2
-  echo "    -u <updater>:    Enables the Mondoo auto updater for the system." >&2
-  echo "                     options are: enable" >&2
-  echo "    -r <timer>:      Change the scan interval." >&2
-  echo "                     Default 60 minutes" >&2
-  echo "    -y <splay>:      Change the splay." >&2
-  echo "                     Default 60 minutes" >&2
-  echo "    -n <name>:       Set asset name." >&2
-  echo "                     Default uses hostname" >&2
-  echo "    -a <annotation>: Set annotations as key/value pairs (e.g., foo=bar,biz=bap)." >&2
-  echo "                     Adds these annotations to the mondoo.yml. (default [])" >&2
+  echo "    -i <installer>:     Select a specific installer, options are:" >&2
+  echo "                        macOS: brew, pkg" >&2
+  echo "    -s <service>:       Enables the cnspec service for the system. This option requires a registration token" >&2
+  echo "                        options are: enable" >&2
+  echo "    -t <token>:         Registration Token to authenticate with" >&2
+  echo "                        Mondoo Platform" >&2
+  echo "    -u <updater>:       Enables the Mondoo auto updater for the system." >&2
+  echo "                        options are: enable" >&2
+  echo "    -r <timer>:         Change the scan interval." >&2
+  echo "                        Default 60 minutes" >&2
+  echo "    -y <splay>:         Change the splay." >&2
+  echo "                        Default 60 minutes" >&2
+  echo "    -n <name>:          Set asset name." >&2
+  echo "                        Default uses hostname" >&2
+  echo "    -a <annotation>:    Set annotations as key/value pairs (e.g., foo=bar,biz=bap)." >&2
+  echo "                        Adds these annotations to the mondoo.yml. (default [])" >&2
+  echo "    -p <providers_url>: Set custom URL where providers are downloaded from." >&2
 }
 
-while getopts 'i:s:u:vt:vr:y:n:a:' flag; do
+while getopts 'i:s:u:vt:vr:y:n:a:p:' flag; do
   case "${flag}" in
     i) MONDOO_INSTALLER="${OPTARG}" ;;
     s) MONDOO_SERVICE="${OPTARG}" ;;
@@ -84,6 +86,7 @@ while getopts 'i:s:u:vt:vr:y:n:a:' flag; do
     y) SPLAY="${OPTARG}" ;;
     n) NAME="${OPTARG}" ;;
     a) ANNOTATION="${OPTARG}" ;;
+    p) PROVIDERS_URL="${OPTARG}" ;;
     *) print_usage
        exit 1 ;;
   esac
@@ -394,7 +397,15 @@ configure_rhel_installer() {
     MONDOO_INSTALLER="yum"
     mondoo_install() {
       purple_bold "\n* Configuring YUM sources for Mondoo at /etc/yum.repos.d/mondoo.repo"
-      curl -A "${UserAgent}" --retry 3 --retry-delay 10 -sSL https://releases.mondoo.com/rpm/mondoo.repo | sudo_cmd tee /etc/yum.repos.d/mondoo.repo
+      sudo_cmd tee /etc/yum.repos.d/mondoo.repo <<EOL
+[mondoo]
+name=Mondoo Repository
+baseurl=https://releases.mondoo.com/rpm/\$basearch
+enabled=1
+gpgcheck=1
+gpgkey=https://releases.mondoo.com/rpm/pubkey.gpg
+metadata_expire=21600
+EOL
 
       purple_bold "\n* Installing ${MONDOO_PRODUCT_NAME}"
       sudo_cmd yum install -y ${MONDOO_PKG_NAME}
@@ -531,6 +542,18 @@ configure_cloudshell_installer() {
       _cmd="$_cmd --name \"$NAME\""
     fi
 
+    # If a custom providers URL is not set via the -p flag, and this is not a
+    # standard installation, set the default providers URL. This check is
+    # designed to be modified by a server-side replacement for on-premise installers.
+    if [ -z "$PROVIDERS_URL" ] && [[ ! "https://releases.mondoo.com" =~ releases\.mondoo\.com ]]; then
+      PROVIDERS_URL="https://releases.mondoo.com/providers/"
+    fi
+
+    # Add --providers-url option if set
+    if [ -n "$PROVIDERS_URL" ]; then
+      _cmd="$_cmd --providers-url \"$PROVIDERS_URL\""
+    fi
+
     # Execute the command
     eval "$_cmd"
   }
@@ -599,6 +622,11 @@ configure_login_cmd() {
   # Add --name option if set
   if [ -n "$NAME" ]; then
     _cmd+=(--name "$NAME")
+  fi
+
+  # Add --providers-url option if set
+  if [ -n "$PROVIDERS_URL" ]; then
+    _cmd+=(--providers-url "$PROVIDERS_URL")
   fi
 
   echo "${_cmd[@]}"
