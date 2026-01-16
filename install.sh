@@ -542,13 +542,6 @@ configure_cloudshell_installer() {
       _cmd="$_cmd --name \"$NAME\""
     fi
 
-    # If a custom providers URL is not set via the -p flag, and this is not a
-    # standard installation, set the default providers URL. This check is
-    # designed to be modified by a server-side replacement for on-premise installers.
-    if [ -z "$PROVIDERS_URL" ] && [[ ! "https://releases.mondoo.com" =~ releases\.mondoo\.com ]]; then
-      PROVIDERS_URL="https://releases.mondoo.com/providers/"
-    fi
-
     # Add --providers-url option if set
     if [ -n "$PROVIDERS_URL" ]; then
       _cmd="$_cmd --providers-url \"$PROVIDERS_URL\""
@@ -624,6 +617,14 @@ configure_login_cmd() {
     _cmd+=(--name "$NAME")
   fi
 
+  # If a custom providers URL is not set via the -p flag, and this is not a
+  # standard installation, set the default providers URL. This check is
+  # designed to be modified by a server-side replacement for on-premise installers.
+  if [ -z "$PROVIDERS_URL" ] && [[ ! "https://releases.mondoo.com" =~ releases\.mondoo\.com ]]; then
+    echo "Overriding providers URL"
+    PROVIDERS_URL="https://releases.mondoo.com/providers/"
+  fi
+
   # Add --providers-url option if set
   if [ -n "$PROVIDERS_URL" ]; then
     _cmd+=(--providers-url "$PROVIDERS_URL")
@@ -650,7 +651,7 @@ configure_macos_token() {
 
 configure_linux_token() {
   purple_bold "\n* Authenticate with Mondoo Platform"
-  local config_path="/etc/opt/mondoo/"
+  local config_path="/etc/opt/mondoo"
   sudo_cmd mkdir -p "$config_path"
 
 
