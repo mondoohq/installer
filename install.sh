@@ -525,31 +525,6 @@ configure_cloudshell_installer() {
     mondoo_install
   }
 
-  configure_linux_token() {
-    purple_bold "\n* Authenticate with Mondoo Platform"
-    config_path="$HOME/.config/mondoo"
-    mkdir -p "$config_path"
-    local _cmd
-    _cmd="${MONDOO_BINARY_PATH} login --config \"$config_path/mondoo.yml\" --token \"$MONDOO_REGISTRATION_TOKEN\" --timer \"$TIMER\" --splay \"$SPLAY\""
-
-    # Add --annotation option if set
-    if [ -n "$ANNOTATION" ]; then
-      _cmd="$_cmd --annotation \"$ANNOTATION\""
-    fi
-
-    # Add --name option if set
-    if [ -n "$NAME" ]; then
-      _cmd="$_cmd --name \"$NAME\""
-    fi
-
-    # Add --providers-url option if set
-    if [ -n "$PROVIDERS_URL" ]; then
-      _cmd="$_cmd --providers-url \"$PROVIDERS_URL\""
-    fi
-
-    # Execute the command
-    eval "$_cmd"
-  }
 }
 
 # Post-install actions
@@ -621,14 +596,13 @@ configure_login_cmd() {
   # standard installation, set the default providers URL. This check is
   # designed to be modified by a server-side replacement for on-premise installers.
   if [ -z "$PROVIDERS_URL" ] && [[ ! "https://releases.mondoo.com" =~ releases\.mondoo\.com ]]; then
-    echo "Overriding providers URL"
     PROVIDERS_URL="https://releases.mondoo.com/providers/"
   fi
 
-  # Add --providers-url option if set
   if [ -n "$PROVIDERS_URL" ]; then
-    _cmd+=(--providers-url "$PROVIDERS_URL")
+    _cmd="PROVIDERS_URL=\"$PROVIDERS_URL\" $_cmd"
   fi
+
 
   echo "${_cmd[@]}"
 }
