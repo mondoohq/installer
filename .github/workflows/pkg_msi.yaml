@@ -174,7 +174,7 @@ jobs:
         uses: azure/artifact-signing-action@db7a3a6bd3912025c705162fb7475389f5b69ec6 # v1.0.0
         with:
           endpoint: ${{ vars.TSIGN_AZURE_ENDPOINT }}
-          trusted-signing-account-name: ${{ vars.TSIGN_ACCOUNT_NAME }}
+          signing-account-name: ${{ vars.TSIGN_ACCOUNT_NAME }}
           # Conditional logic for switching certificate-profile-name type
           certificate-profile-name: ${{ inputs.use-test-cert == true && vars.TSIGN_TEST_CERT_PROFILE_NAME || vars.TSIGN_CERT_PROFILE_NAME }}
           files: |
