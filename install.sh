@@ -595,7 +595,8 @@ configure_login_cmd() {
   # If a custom providers URL is not set via the -p flag, and this is not a
   # standard installation, set the default providers URL. This check is
   # designed to be modified by a server-side replacement for on-premise installers.
-  if [ -z "$PROVIDERS_URL" ] && [[ ! "https://releases.mondoo.com" =~ releases\.mondoo\.com ]]; then
+  RELEASES_URL="https://releases.mondoo.com"
+  if [ -z "$PROVIDERS_URL" ] && [[ ! "$RELEASES_URL" =~ releases\.mondoo\.com ]]; then
     echo "Overriding providers URL"
     PROVIDERS_URL="https://releases.mondoo.com/providers/"
   fi
