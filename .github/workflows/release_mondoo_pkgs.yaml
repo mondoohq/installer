@@ -53,22 +53,18 @@ jobs:
       - name: Install RPM tools
         run: |
           sudo apt update && sudo apt install -y rpm gpg
-      - name: Authenticate with GCloud
-        uses: 'google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093' # v3.0.0
-        with:
-          credentials_json: '${{ secrets.GCP_CREDENTIALS }}'
-
-      - name: Setup GCloud SDK
-        uses: 'google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db' # v3.0.1
-
-      - name: Download Signing Keys
-        env:
-          KEY_PATH: ${{ runner.temp }}
+      - name: "Import RPM Private/Public Certs"
         run: |
-          gcloud --project=mondoo-base-infra secrets versions access latest --secret=gpg-package-signing-cert-public-2023 --out-file=${KEY_PATH}/public.gpg
-          gpg --import ${KEY_PATH}/public.gpg
-          gcloud --project=mondoo-base-infra secrets versions access latest --secret=gpg-package-signing-cert-private-2023 --out-file=${KEY_PATH}/private.gpg
-          gpg --import --allow-secret-key-import ${KEY_PATH}/private.gpg
+          gpgkey="$(mktemp -t gpgkey.XXX)"
+          gpgpubkey="$(mktemp -t gpgpubkey.XXX)"
+          base64 -d <<<"$GPG_KEY" > "$gpgkey"
+          base64 -d <<<"$GPG_PUBKEY" > "$gpgpubkey"
+          gpg --batch --import --passphrase "$GPG_PASSPHRASE" --pinentry-mode loopback "$gpgkey" "$gpgpubkey"
+          rm "$gpgkey" "$gpgpubkey"
+        env:
+          GPG_KEY: "${{ secrets.GPG_KEY}}"
+          GPG_PUBKEY: "${{ secrets.GPG_PUBKEY}}"
+          GPG_PASSPHRASE: "${{ secrets.GPG_PASSPHRASE}}"
       - name: Check GPG Keys
         run: |
           gpg --list-keys
@@ -79,7 +75,10 @@ jobs:
       - name: Sign RPMs
         run: |
           cd helper/
-          rpmsign --define='%_gpg_name Mondoo Inc' --addsign ./packages/*rpm
+          rpmsign \
+              --define='%_gpg_name Mondoo Inc' \
+              --define='%__gpg_sign_cmd %{__gpg} gpg --batch --no-armor --pinentry-mode loopback --passphrase "${{ secrets.GPG_PASSPHRASE }}" %{?_gpg_digest_algo:--digest-algo %{_gpg_digest_algo}} --no-secmem-warning -u "%{_gpg_name}" -sbo %{__signature_filename} %{__plaintext_filename}' \
+              --addsign ./packages/*rpm
       - name: Generate Checksums
         run: |
           cd helper/packages
