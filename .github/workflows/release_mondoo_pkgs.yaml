@@ -50,10 +50,20 @@ jobs:
         run: |
           cd  helper
           mkdir packages
+
       - name: Install RPM tools
         run: |
           sudo apt update && sudo apt install -y rpm gpg
-      - name: "Import RPM Private/Public Certs"
+
+      - name: Authenticate with GCloud
+        uses: 'google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093' # v3.0.0
+        with:
+          credentials_json: '${{ secrets.GCP_CREDENTIALS }}'
+
+      - name: Setup GCloud SDK
+        uses: 'google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db' # v3.0.1
+
+      - name: "Import Signing Keys"
         run: |
           gpgkey="$(mktemp -t gpgkey.XXX)"
           gpgpubkey="$(mktemp -t gpgpubkey.XXX)"
@@ -65,13 +75,16 @@ jobs:
           GPG_KEY: "${{ secrets.GPG_KEY}}"
           GPG_PUBKEY: "${{ secrets.GPG_PUBKEY}}"
           GPG_PASSPHRASE: "${{ secrets.GPG_PASSPHRASE}}"
+
       - name: Check GPG Keys
         run: |
           gpg --list-keys
           gpg --list-secret-keys
+
       - name: Build Packages
         run: |
           cd helper && make
+
       - name: Sign RPMs
         run: |
           cd helper/
@@ -79,21 +92,25 @@ jobs:
               --define='%_gpg_name Mondoo Inc' \
               --define='%__gpg_sign_cmd %{__gpg} gpg --batch --no-armor --pinentry-mode loopback --passphrase "${{ secrets.GPG_PASSPHRASE }}" %{?_gpg_digest_algo:--digest-algo %{_gpg_digest_algo}} --no-secmem-warning -u "%{_gpg_name}" -sbo %{__signature_filename} %{__plaintext_filename}' \
               --addsign ./packages/*rpm
+
       - name: Generate Checksums
         run: |
           cd helper/packages
           sha256sum *linux* > checksums.linux.txt
+
       - name: Upload files to releases.mondoo.com
         env:
           SKIP: ${{ inputs.skip-publish && 'echo skipping...' || '' }}
         run: |
           $SKIP gsutil cp -r helper/packages/* gs://${{ inputs.bucket }}/mondoo/${{ inputs.version }}/
+
       - name: Upload files to GitHub Release Page
         if: ${{ !inputs.skip-publish }}
         uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b # v2.5.0
         with:
           tag_name: v${{ inputs.version }}
           files: helper/packages/*
+
       - name: Create Artifacts
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
