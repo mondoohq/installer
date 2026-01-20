@@ -171,22 +171,27 @@ jobs:
           subscription-id: ${{ vars.TSIGN_AZURE_SUBSCRIPTION_ID }}
 
       - name: Sign files with Trusted Signing
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # v3
+        uses: azure/trusted-signing-action@db7a3a6bd3912025c705162fb7475389f5b69ec6 # v1.0.0
         with:
-          timeout_minutes: 10
-          max_attempts: 3
-          retry_wait_seconds: 30
-          shell: pwsh
-          command: |
-            $certProfile = if ("${{ inputs.use-test-cert }}" -eq "true") { "${{ vars.TSIGN_TEST_CERT_PROFILE_NAME }}" } else { "${{ vars.TSIGN_CERT_PROFILE_NAME }}" }
-            az trustedsigning sign `
-              --endpoint "${{ vars.TSIGN_AZURE_ENDPOINT }}" `
-              --account-name "${{ vars.TSIGN_ACCOUNT_NAME }}" `
-              --certificate-profile-name "$certProfile" `
-              --files "${{ github.workspace }}/packages/msi/mondoo_${{ matrix.arch }}.msi" `
-              --file-digest "SHA256" `
-              --timestamp-rfc3161 "http://timestamp.acs.microsoft.com" `
-              --timestamp-digest "SHA384"
+          endpoint: ${{ vars.TSIGN_AZURE_ENDPOINT }}
+          trusted-signing-account-name: ${{ vars.TSIGN_ACCOUNT_NAME }}
+          # Conditional logic for switching certificate-profile-name type
+          certificate-profile-name: ${{ inputs.use-test-cert == true && vars.TSIGN_TEST_CERT_PROFILE_NAME || vars.TSIGN_CERT_PROFILE_NAME }}
+          files: |
+            ${{ github.workspace }}\packages\msi\mondoo_${{ matrix.arch }}.msi
+          file-digest: SHA256
+          timestamp-rfc3161: http://timestamp.acs.microsoft.com
+          timestamp-digest: SHA384
+          exclude-environment-credential: true
+          exclude-workload-identity-credential: true
+          exclude-managed-identity-credential: true
+          exclude-shared-token-cache-credential: true
+          exclude-visual-studio-credential: true
+          exclude-visual-studio-code-credential: true
+          exclude-azure-cli-credential: false
+          exclude-azure-powershell-credential: true
+          exclude-azure-developer-cli-credential: true
+          exclude-interactive-browser-credential: true
 
       - name: Cleanup dist before upload
         run: |
