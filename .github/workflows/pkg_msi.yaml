@@ -90,6 +90,8 @@ jobs:
             "https://github.com/mondoohq/cnspec/releases/download/v${{ inputs.version }}/cnspec_${{ inputs.version }}_windows_amd64.zip"
             "https://github.com/mondoohq/cnquery/releases/download/v${{ inputs.version }}/cnquery_${{ inputs.version }}_windows_arm64.zip"
             "https://github.com/mondoohq/cnspec/releases/download/v${{ inputs.version }}/cnspec_${{ inputs.version }}_windows_arm64.zip"
+            "https://github.com/mondoohq/cnquery/releases/download/v${{ inputs.version }}/cnquery_v${{ inputs.version }}_SHA256SUMS"
+            "https://github.com/mondoohq/cnspec/releases/download/v${{ inputs.version }}/cnspec_v${{ inputs.version }}_SHA256SUMS"
           )
 
           failed=0
@@ -118,7 +120,7 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
-      - name: Download Binaries
+      - name: Download, Verify and Extract the Binaries
         env:
           VERSION: ${{ inputs.version }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -154,29 +156,67 @@ jobs:
             return 1
           }
 
+          # Download checksums for validation
+          if ! download_with_retry "https://github.com/mondoohq/cnspec/releases/download/v${VERSION}/cnspec_v${VERSION}_SHA256SUMS" "cnspec_v${VERSION}_SHA256SUMS"; then
+            exit 1
+          fi
+          if ! download_with_retry "https://github.com/mondoohq/cnquery/releases/download/v${VERSION}/cnquery_v${VERSION}_SHA256SUMS" "cnquery_v${VERSION}_SHA256SUMS"; then
+            exit 1
+          fi
+
           # Download cnspec
           if ! download_with_retry "https://github.com/mondoohq/cnspec/releases/download/v${VERSION}/cnspec_${VERSION}_windows_${{ matrix.arch }}.zip" "cnspec_${VERSION}_windows_${{ matrix.arch }}.zip"; then
             exit 1
           fi
+
+          # Validate cnspec checksum
+          expected_checksum=$(grep "cnspec_${VERSION}_windows_${{ matrix.arch }}.zip" cnspec_v${VERSION}_SHA256SUMS | awk '{print $1}')
+          if [ -z "$expected_checksum" ]; then
+            echo "ERROR: Could not find expected checksum for cnspec_${VERSION}_windows_${{ matrix.arch }}.zip"
+            exit 1
+          fi
+          actual_checksum=$(sha256sum "cnspec_${VERSION}_windows_${{ matrix.arch }}.zip" | awk '{print $1}')
+          if [ "$actual_checksum" != "$expected_checksum" ]; then
+            echo "ERROR: Checksum mismatch for cnspec binary"
+            echo "Expected: $expected_checksum"
+            echo "Actual: $actual_checksum"
+            exit 1
+          fi
+          echo "✓ cnspec checksum validated successfully"
 
           # Extract and cleanup cnspec
           if ! unzip cnspec_${VERSION}_windows_${{ matrix.arch }}.zip; then
             echo "ERROR: Failed to extract cnspec binary"
             exit 1
           fi
-          rm cnspec_${VERSION}_windows_${{ matrix.arch }}.zip
+          rm cnspec_${VERSION}_windows_${{ matrix.arch }}.zip cnspec_v${VERSION}_SHA256SUMS
 
           # Download cnquery
           if ! download_with_retry "https://github.com/mondoohq/cnquery/releases/download/v${VERSION}/cnquery_${VERSION}_windows_${{ matrix.arch }}.zip" "cnquery_${VERSION}_windows_${{ matrix.arch }}.zip"; then
             exit 1
           fi
 
+          # Validate cnquery checksum
+          expected_checksum=$(grep "cnquery_${VERSION}_windows_${{ matrix.arch }}.zip" cnquery_v${VERSION}_SHA256SUMS | awk '{print $1}')
+          if [ -z "$expected_checksum" ]; then
+            echo "ERROR: Could not find expected checksum for cnquery_${VERSION}_windows_${{ matrix.arch }}.zip"
+            exit 1
+          fi
+          actual_checksum=$(sha256sum "cnquery_${VERSION}_windows_${{ matrix.arch }}.zip" | awk '{print $1}')
+          if [ "$actual_checksum" != "$expected_checksum" ]; then
+            echo "ERROR: Checksum mismatch for cnquery binary"
+            echo "Expected: $expected_checksum"
+            echo "Actual: $actual_checksum"
+            exit 1
+          fi
+          echo "✓ cnquery checksum validated successfully"
+
           # Extract and cleanup cnquery
           if ! unzip cnquery_${VERSION}_windows_${{ matrix.arch }}.zip; then
             echo "ERROR: Failed to extract cnquery binary"
             exit 1
           fi
-          rm cnquery_${VERSION}_windows_${{ matrix.arch }}.zip
+          rm cnquery_${VERSION}_windows_${{ matrix.arch }}.zip cnquery_v${VERSION}_SHA256SUMS
 
           echo "Successfully downloaded and extracted binaries:"
           ls -lh
