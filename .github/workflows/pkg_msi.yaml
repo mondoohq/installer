@@ -77,18 +77,45 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
-      - name: Download Binaries
+      - name: Create distribution directory
+        run: mkdir -p dist/${{ matrix.arch }}
+
+      - name: Download cnspec binary
+        uses: robinraju/release-downloader@daf26c55d821e836577a15f77d86ddc078948b05 # v1.12
+        with:
+          repository: mondoohq/cnspec
+          tag: v${{ inputs.version }}
+          fileName: cnspec_${{ inputs.version }}_windows_${{ matrix.arch }}.zip
+          out-file-path: dist/${{ matrix.arch }}
+
+      - name: Extract and cleanup cnspec
         env:
           VERSION: ${{ inputs.version }}
         run: |
-          # TODO: We should check the sums here
-          mkdir -p dist/${{ matrix.arch }} && cd dist/${{ matrix.arch }}
-          curl -sSL -O https://github.com/mondoohq/cnspec/releases/download/v${VERSION}/cnspec_${VERSION}_windows_${{ matrix.arch }}.zip
-          unzip cnspec_${VERSION}_windows_${{ matrix.arch }}.zip
+          cd dist/${{ matrix.arch }}
+          if ! unzip cnspec_${VERSION}_windows_${{ matrix.arch }}.zip; then
+            echo "ERROR: Failed to extract cnspec binary"
+            exit 1
+          fi
           rm cnspec_${VERSION}_windows_${{ matrix.arch }}.zip
 
-          curl -sSL -O https://github.com/mondoohq/cnquery/releases/download/v${VERSION}/cnquery_${VERSION}_windows_${{ matrix.arch }}.zip
-          unzip cnquery_${VERSION}_windows_${{ matrix.arch }}.zip
+      - name: Download cnquery binary
+        uses: robinraju/release-downloader@daf26c55d821e836577a15f77d86ddc078948b05 # v1.12
+        with:
+          repository: mondoohq/cnquery
+          tag: v${{ inputs.version }}
+          fileName: cnquery_${{ inputs.version }}_windows_${{ matrix.arch }}.zip
+          out-file-path: dist/${{ matrix.arch }}
+
+      - name: Extract and cleanup cnquery
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          cd dist/${{ matrix.arch }}
+          if ! unzip cnquery_${VERSION}_windows_${{ matrix.arch }}.zip; then
+            echo "ERROR: Failed to extract cnquery binary"
+            exit 1
+          fi
           rm cnquery_${VERSION}_windows_${{ matrix.arch }}.zip
           ls -lh
       - name: Upload Distribution
@@ -144,7 +171,7 @@ jobs:
           subscription-id: ${{ vars.TSIGN_AZURE_SUBSCRIPTION_ID }}
 
       - name: Sign files with Trusted Signing
-        uses: nick-fields/retry@14672906e672a08bd6eeb15720e9ed3ce869cdd4 # v3
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # v3
         with:
           timeout_minutes: 10
           max_attempts: 3
