@@ -597,7 +597,7 @@ configure_login_cmd() {
   # designed to be modified by a server-side replacement for on-premise installers.
   RELEASES_URL="https://releases.mondoo.com"
   if [ -z "$PROVIDERS_URL" ] && [[ ! "$RELEASES_URL" =~ releases\.mondoo\.com ]]; then
-    echo "Overriding providers URL"
+    echo "lightblue_bold '\n* Overriding providers URL'"
     PROVIDERS_URL="https://releases.mondoo.com/providers/"
   fi
 
