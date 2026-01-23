@@ -137,7 +137,7 @@ jobs:
 
             for attempt in $(seq 1 $max_attempts); do
               echo "Attempt $attempt of $max_attempts: Downloading $filename"
-              if curl -sSL --connect-timeout 30 --max-time 300 --retry 3 --retry-delay 5 \
+              if curl -sSL --fail-with-body --connect-timeout 30 --max-time 300 --retry 3 --retry-delay 5 \
                 -H "Authorization: token $GITHUB_TOKEN" \
                 -H "Accept: application/octet-stream" \
                 -o "$filename" \
