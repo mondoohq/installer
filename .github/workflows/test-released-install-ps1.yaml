@@ -31,6 +31,20 @@ jobs:
           command: |
             vSEMVER=${{ inputs.version }}
             SEMVER="${vSEMVER//v}"
+
+            # Clear cache before checking (ignore failures)
+            echo "Clearing minstaller's cache..."
+            cache_response=$(curl -s -w "HTTP_CODE:%{http_code}" \
+              -X POST https://install.mondoo.com/_/cache/clear-all \
+              -H "X-API-Key: ${{ secrets.MINSTALLER_API_KEY }}" 2>/dev/null || true)
+
+            if echo "$cache_response" | grep -q "HTTP_CODE:200"; then
+              echo "✅ Cache cleared successfully"
+            else
+              echo "⚠️ Cache clear failed, continuing anyway..."
+            fi
+
+            # Check if package is available
             curl -o /dev/null -s -w "%{http_code}\n" "https://install.mondoo.com/package/mondoo/windows/amd64/msi/${SEMVER}/sha256" | grep 200
 
   install-ps1-windows:
