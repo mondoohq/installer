@@ -60,10 +60,53 @@ jobs:
 
       - name: Ensure version of cnquery and cnspec are available
         run: |
-          curl -sL --head --fail https://github.com/mondoohq/cnquery/releases/download/v${{ inputs.version }}/cnquery_${{ inputs.version }}_windows_amd64.zip \
-            https://github.com/mondoohq/cnspec/releases/download/v${{ inputs.version }}/cnspec_${{ inputs.version }}_windows_amd64.zip \
-            https://github.com/mondoohq/cnquery/releases/download/v${{ inputs.version }}/cnquery_${{ inputs.version }}_windows_arm64.zip \
-            https://github.com/mondoohq/cnspec/releases/download/v${{ inputs.version }}/cnspec_${{ inputs.version }}_windows_arm64.zip
+          # Function to check URL with retry logic
+          check_url_with_retry() {
+            local url="$1"
+            local max_attempts=3
+            local wait_time=5
+
+            for attempt in $(seq 1 $max_attempts); do
+              echo "Attempt $attempt of $max_attempts: Checking $url"
+              if curl -sL --head --location --fail --connect-timeout 30 --max-time 60 --retry 2 --retry-delay 3 \
+                "$url" > /dev/null; then
+                echo "✓ Available: $(basename "$url")"
+                return 0
+              else
+                echo "✗ Failed to access: $(basename "$url") (attempt $attempt)"
+                if [ $attempt -lt $max_attempts ]; then
+                  echo "Waiting $wait_time seconds before retry..."
+                  sleep $wait_time
+                fi
+              fi
+            done
+            echo "ERROR: Failed to access $url after $max_attempts attempts"
+            return 1
+          }
+
+          # Check all required URLs
+          urls=(
+            "https://github.com/mondoohq/cnquery/releases/download/v${{ inputs.version }}/cnquery_${{ inputs.version }}_windows_amd64.zip"
+            "https://github.com/mondoohq/cnspec/releases/download/v${{ inputs.version }}/cnspec_${{ inputs.version }}_windows_amd64.zip"
+            "https://github.com/mondoohq/cnquery/releases/download/v${{ inputs.version }}/cnquery_${{ inputs.version }}_windows_arm64.zip"
+            "https://github.com/mondoohq/cnspec/releases/download/v${{ inputs.version }}/cnspec_${{ inputs.version }}_windows_arm64.zip"
+            "https://github.com/mondoohq/cnquery/releases/download/v${{ inputs.version }}/cnquery_v${{ inputs.version }}_SHA256SUMS"
+            "https://github.com/mondoohq/cnspec/releases/download/v${{ inputs.version }}/cnspec_v${{ inputs.version }}_SHA256SUMS"
+          )
+
+          failed=0
+          for url in "${urls[@]}"; do
+            if ! check_url_with_retry "$url"; then
+              failed=1
+            fi
+          done
+
+          if [ $failed -eq 1 ]; then
+            echo "ERROR: One or more required binaries are not available"
+            exit 1
+          fi
+
+          echo "✓ All required binaries are available for version ${{ inputs.version }}"
 
   dist-prepare:
     name: Prepare Distribution for Packaging
@@ -77,19 +120,105 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
-      - name: Download Binaries
+      - name: Download, Verify and Extract the Binaries
         env:
           VERSION: ${{ inputs.version }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # TODO: We should check the sums here
+          # Create directory and enter it
           mkdir -p dist/${{ matrix.arch }} && cd dist/${{ matrix.arch }}
-          curl -sSL -O https://github.com/mondoohq/cnspec/releases/download/v${VERSION}/cnspec_${VERSION}_windows_${{ matrix.arch }}.zip
-          unzip cnspec_${VERSION}_windows_${{ matrix.arch }}.zip
-          rm cnspec_${VERSION}_windows_${{ matrix.arch }}.zip
 
-          curl -sSL -O https://github.com/mondoohq/cnquery/releases/download/v${VERSION}/cnquery_${VERSION}_windows_${{ matrix.arch }}.zip
-          unzip cnquery_${VERSION}_windows_${{ matrix.arch }}.zip
-          rm cnquery_${VERSION}_windows_${{ matrix.arch }}.zip
+          # Function to download with retry logic
+          download_with_retry() {
+            local url="$1"
+            local filename="$2"
+            local max_attempts=3
+            local wait_time=10
+
+            for attempt in $(seq 1 $max_attempts); do
+              echo "Attempt $attempt of $max_attempts: Downloading $filename"
+              if curl -sSL --fail-with-body --connect-timeout 30 --max-time 300 --retry 3 --retry-delay 5 \
+                -H "Authorization: token $GITHUB_TOKEN" \
+                -H "Accept: application/octet-stream" \
+                -o "$filename" \
+                "$url"; then
+                echo "Successfully downloaded $filename"
+                return 0
+              else
+                echo "Download failed for $filename (attempt $attempt)"
+                if [ $attempt -lt $max_attempts ]; then
+                  echo "Waiting $wait_time seconds before retry..."
+                  sleep $wait_time
+                fi
+              fi
+            done
+            echo "ERROR: Failed to download $filename after $max_attempts attempts"
+            return 1
+          }
+
+          # Download checksums for validation
+          if ! download_with_retry "https://github.com/mondoohq/cnspec/releases/download/v${VERSION}/cnspec_v${VERSION}_SHA256SUMS" "cnspec_v${VERSION}_SHA256SUMS"; then
+            exit 1
+          fi
+          if ! download_with_retry "https://github.com/mondoohq/cnquery/releases/download/v${VERSION}/cnquery_v${VERSION}_SHA256SUMS" "cnquery_v${VERSION}_SHA256SUMS"; then
+            exit 1
+          fi
+
+          # Download cnspec
+          if ! download_with_retry "https://github.com/mondoohq/cnspec/releases/download/v${VERSION}/cnspec_${VERSION}_windows_${{ matrix.arch }}.zip" "cnspec_${VERSION}_windows_${{ matrix.arch }}.zip"; then
+            exit 1
+          fi
+
+          # Validate cnspec checksum
+          expected_checksum=$(grep "cnspec_${VERSION}_windows_${{ matrix.arch }}.zip" cnspec_v${VERSION}_SHA256SUMS | awk '{print $1}')
+          if [ -z "$expected_checksum" ]; then
+            echo "ERROR: Could not find expected checksum for cnspec_${VERSION}_windows_${{ matrix.arch }}.zip"
+            exit 1
+          fi
+          actual_checksum=$(sha256sum "cnspec_${VERSION}_windows_${{ matrix.arch }}.zip" | awk '{print $1}')
+          if [ "$actual_checksum" != "$expected_checksum" ]; then
+            echo "ERROR: Checksum mismatch for cnspec binary"
+            echo "Expected: $expected_checksum"
+            echo "Actual: $actual_checksum"
+            exit 1
+          fi
+          echo "✓ cnspec checksum validated successfully"
+
+          # Extract and cleanup cnspec
+          if ! unzip cnspec_${VERSION}_windows_${{ matrix.arch }}.zip; then
+            echo "ERROR: Failed to extract cnspec binary"
+            exit 1
+          fi
+          rm cnspec_${VERSION}_windows_${{ matrix.arch }}.zip cnspec_v${VERSION}_SHA256SUMS
+
+          # Download cnquery
+          if ! download_with_retry "https://github.com/mondoohq/cnquery/releases/download/v${VERSION}/cnquery_${VERSION}_windows_${{ matrix.arch }}.zip" "cnquery_${VERSION}_windows_${{ matrix.arch }}.zip"; then
+            exit 1
+          fi
+
+          # Validate cnquery checksum
+          expected_checksum=$(grep "cnquery_${VERSION}_windows_${{ matrix.arch }}.zip" cnquery_v${VERSION}_SHA256SUMS | awk '{print $1}')
+          if [ -z "$expected_checksum" ]; then
+            echo "ERROR: Could not find expected checksum for cnquery_${VERSION}_windows_${{ matrix.arch }}.zip"
+            exit 1
+          fi
+          actual_checksum=$(sha256sum "cnquery_${VERSION}_windows_${{ matrix.arch }}.zip" | awk '{print $1}')
+          if [ "$actual_checksum" != "$expected_checksum" ]; then
+            echo "ERROR: Checksum mismatch for cnquery binary"
+            echo "Expected: $expected_checksum"
+            echo "Actual: $actual_checksum"
+            exit 1
+          fi
+          echo "✓ cnquery checksum validated successfully"
+
+          # Extract and cleanup cnquery
+          if ! unzip cnquery_${VERSION}_windows_${{ matrix.arch }}.zip; then
+            echo "ERROR: Failed to extract cnquery binary"
+            exit 1
+          fi
+          rm cnquery_${VERSION}_windows_${{ matrix.arch }}.zip cnquery_v${VERSION}_SHA256SUMS
+
+          echo "Successfully downloaded and extracted binaries:"
           ls -lh
       - name: Upload Distribution
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
@@ -144,10 +273,10 @@ jobs:
           subscription-id: ${{ vars.TSIGN_AZURE_SUBSCRIPTION_ID }}
 
       - name: Sign files with Trusted Signing
-        uses: azure/trusted-signing-action@db7a3a6bd3912025c705162fb7475389f5b69ec6 # v1.0.0
+        uses: azure/artifact-signing-action@db7a3a6bd3912025c705162fb7475389f5b69ec6 # v1.0.0
         with:
           endpoint: ${{ vars.TSIGN_AZURE_ENDPOINT }}
-          trusted-signing-account-name: ${{ vars.TSIGN_ACCOUNT_NAME }}
+          signing-account-name: ${{ vars.TSIGN_ACCOUNT_NAME }}
           # Conditional logic for switching certificate-profile-name type
           certificate-profile-name: ${{ inputs.use-test-cert == true && vars.TSIGN_TEST_CERT_PROFILE_NAME || vars.TSIGN_CERT_PROFILE_NAME }}
           files: |
@@ -165,6 +294,7 @@ jobs:
           exclude-azure-powershell-credential: true
           exclude-azure-developer-cli-credential: true
           exclude-interactive-browser-credential: true
+          cache-dependencies: true
 
       - name: Cleanup dist before upload
         run: |
