@@ -32,24 +32,49 @@ jobs:
             vSEMVER=${{ inputs.version }}
             SEMVER="${vSEMVER//v}"
 
-            # Clear cache before checking (ignore failures)
+            # Clear cache before checking with retry logic
             echo "Clearing minstaller's cache..."
-            cache_response=$(curl -s -w "HTTP_CODE:%{http_code}" \
-              -X POST https://install.mondoo.com/_/cache/clear-all \
-              -H "X-API-Key: ${{ secrets.MINSTALLER_API_KEY }}" 2>/dev/null || true)
+            cache_cleared=false
+            cache_max_attempts=3
+            cache_attempt=1
 
-            if echo "$cache_response" | grep -q "HTTP_CODE:200"; then
-              echo "✅ Cache cleared successfully"
-            else
-              echo "⚠️ Cache clear failed, continuing anyway..."
+            while [ $cache_attempt -le $cache_max_attempts ] && [ "$cache_cleared" = false ]; do
+              echo "Cache clear attempt $cache_attempt/$cache_max_attempts..."
+
+              cache_response=$(curl -s -w "HTTP_CODE:%{http_code}" \
+                -X POST https://install.mondoo.com/_/cache/clear-all \
+                -H "X-API-Key: ${{ secrets.MINSTALLER_API_KEY }}" 2>/dev/null || true)
+
+              if echo "$cache_response" | grep -q "HTTP_CODE:200"; then
+                echo "✅ Cache cleared successfully on attempt $cache_attempt"
+                cache_cleared=true
+              else
+                echo "⚠️ Cache clear attempt $cache_attempt failed..."
+                if [ $cache_attempt -lt $cache_max_attempts ]; then
+                  echo "Waiting 5 seconds before retry..."
+                  sleep 5
+                fi
+              fi
+
+              cache_attempt=$((cache_attempt + 1))
+            done
+
+            if [ "$cache_cleared" = false ]; then
+              echo "⚠️ Cache clear failed after $cache_max_attempts attempts, continuing anyway..."
             fi
 
             # Check if package is available
             curl -o /dev/null -s -w "%{http_code}\n" "https://install.mondoo.com/package/mondoo/windows/amd64/msi/${SEMVER}/sha256" | grep 200
 
+  clear-cache-windows:
+    uses: ./.github/workflows/clear-minstaller-cache.yaml
+    needs: wait-for-pkg
+    secrets:
+      MINSTALLER_API_KEY: ${{ secrets.MINSTALLER_API_KEY }}
+
   install-ps1-windows:
     runs-on: windows-latest
-    needs: wait-for-pkg
+    needs: clear-cache-windows
     strategy:
       matrix:
         os: ["windows-latest"]
@@ -74,9 +99,15 @@ jobs:
           # Logic to validate version has been moved to separate file
           ./test/powershell/verify-cnspec-version.ps1 -ExpectedVersion "${{ steps.version.outputs.version }}"  -BinaryBaseName "${{ matrix.package }}"
 
+  clear-cache-mondoo:
+    uses: ./.github/workflows/clear-minstaller-cache.yaml
+    needs: wait-for-pkg
+    secrets:
+      MINSTALLER_API_KEY: ${{ secrets.MINSTALLER_API_KEY }}
+
   install-ps1-windows-mondoo:
     runs-on: windows-latest
-    needs: wait-for-pkg
+    needs: clear-cache-mondoo
     strategy:
       matrix:
         os: ["windows-latest"]
