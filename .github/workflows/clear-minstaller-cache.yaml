@@ -1,0 +1,66 @@
+name: "Clear Minstaller Cache"
+
+on:
+  workflow_call:
+    inputs:
+      max_attempts:
+        description: "Maximum number of retry attempts"
+        required: false
+        default: 3
+        type: number
+      retry_delay:
+        description: "Delay between retries in seconds"
+        required: false
+        default: 5
+        type: number
+    secrets:
+      MINSTALLER_API_KEY:
+        required: true
+  workflow_dispatch:
+    inputs:
+      max_attempts:
+        description: "Maximum number of retry attempts"
+        required: false
+        default: 3
+        type: number
+      retry_delay:
+        description: "Delay between retries in seconds"
+        required: false
+        default: 5
+        type: number
+
+jobs:
+  clear-cache:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clear minstaller cache with retry
+        run: |
+          echo "Clearing minstaller's cache..."
+          cache_cleared=false
+          cache_max_attempts=${{ inputs.max_attempts }}
+          cache_attempt=1
+          
+          while [ $cache_attempt -le $cache_max_attempts ] && [ "$cache_cleared" = false ]; do
+            echo "Cache clear attempt $cache_attempt/$cache_max_attempts..."
+            
+            cache_response=$(curl -s -w "HTTP_CODE:%{http_code}" \
+              -X POST https://install.mondoo.com/_/cache/clear-all \
+              -H "X-API-Key: ${{ secrets.MINSTALLER_API_KEY }}" 2>/dev/null || true)
+
+            if echo "$cache_response" | grep -q "HTTP_CODE:200"; then
+              echo "✅ Cache cleared successfully on attempt $cache_attempt"
+              cache_cleared=true
+            else
+              echo "⚠️ Cache clear attempt $cache_attempt failed..."
+              if [ $cache_attempt -lt $cache_max_attempts ]; then
+                echo "Waiting ${{ inputs.retry_delay }} seconds before retry..."
+                sleep ${{ inputs.retry_delay }}
+              fi
+            fi
+
+            cache_attempt=$((cache_attempt + 1))
+          done
+
+          if [ "$cache_cleared" = false ]; then
+            echo "⚠️ Cache clear failed after $cache_max_attempts attempts, continuing anyway..."
+          fi

@@ -6,14 +6,14 @@ on:
       version:
         description: "Version to test"
         required: true
-        default: "11.63.1"
+        default: "12.20.1"
         type: string
   workflow_dispatch:
     inputs:
       version:
         description: "Version to test"
         required: true
-        default: "11.63.1"
+        default: "12.20.1"
 
 jobs:
   wait-for-pkg:
@@ -32,24 +32,76 @@ jobs:
             vSEMVER=${{ inputs.version }}
             SEMVER="${vSEMVER//v}"
 
-            # Clear cache before checking (ignore failures)
+            # Clear cache before checking with retry logic
             echo "Clearing minstaller's cache..."
-            cache_response=$(curl -s -w "HTTP_CODE:%{http_code}" \
-              -X POST https://install.mondoo.com/_/cache/clear-all \
-              -H "X-API-Key: ${{ secrets.MINSTALLER_API_KEY }}" 2>/dev/null || true)
+            cache_cleared=false
+            cache_max_attempts=3
+            cache_attempt=1
 
-            if echo "$cache_response" | grep -q "HTTP_CODE:200"; then
-              echo "✅ Cache cleared successfully"
-            else
-              echo "⚠️ Cache clear failed, continuing anyway..."
+            while [ $cache_attempt -le $cache_max_attempts ] && [ "$cache_cleared" = false ]; do
+              echo "Cache clear attempt $cache_attempt/$cache_max_attempts..."
+
+              cache_response=$(curl -s -w "HTTP_CODE:%{http_code}" \
+                -X POST https://install.mondoo.com/_/cache/clear-all \
+                -H "X-API-Key: ${{ secrets.MINSTALLER_API_KEY }}" 2>/dev/null || true)
+
+              if echo "$cache_response" | grep -q "HTTP_CODE:200"; then
+                echo "✅ Cache cleared successfully on attempt $cache_attempt"
+                cache_cleared=true
+              else
+                echo "⚠️ Cache clear attempt $cache_attempt failed..."
+                if [ $cache_attempt -lt $cache_max_attempts ]; then
+                  echo "Waiting 5 seconds before retry..."
+                  sleep 5
+                fi
+              fi
+
+              cache_attempt=$((cache_attempt + 1))
+            done
+
+            if [ "$cache_cleared" = false ]; then
+              echo "⚠️ Cache clear failed after $cache_max_attempts attempts, continuing anyway..."
             fi
 
-            # Check if package is available
-            curl -o /dev/null -s -w "%{http_code}\n" "https://install.mondoo.com/package/mondoo/windows/amd64/msi/${SEMVER}/sha256" | grep 200
+            # Check if all packages are available
+            echo "Checking packages for version: ${SEMVER}"
+            packages_to_check="mondoo:msi cnquery:zip cnspec:zip"
+            failed_packages=""
+
+            for package_info in $packages_to_check; do
+              package_name=$(echo $package_info | cut -d: -f1)
+              package_format=$(echo $package_info | cut -d: -f2)
+              
+              echo "Checking $package_name ($package_format)..."
+              http_code=$(curl -o /dev/null -s -w "%{http_code}\n" \
+                "https://install.mondoo.com/package/${package_name}/windows/amd64/${package_format}/${SEMVER}/sha256")
+
+              if [ "$http_code" = "200" ]; then
+                echo "✅ $package_name is available"
+              else
+                echo "❌ $package_name failed (HTTP $http_code)"
+                failed_packages="$failed_packages $package_name"
+              fi
+            done
+
+            if [ -n "$failed_packages" ]; then
+              echo "Failed packages:$failed_packages"
+              exit 1
+            fi
+
+            echo "🎉 All packages are available!"
+
+  # I've added a separate job to clear the cache to make sure it's cleared if you ever need to rerun any failed jobs below
+  clear-cache:
+    if: always()
+    uses: ./.github/workflows/clear-minstaller-cache.yaml
+    needs: wait-for-pkg
+    secrets:
+      MINSTALLER_API_KEY: ${{ secrets.MINSTALLER_API_KEY }}
 
   install-ps1-windows:
     runs-on: windows-latest
-    needs: wait-for-pkg
+    needs: clear-cache
     strategy:
       matrix:
         os: ["windows-latest"]
@@ -76,7 +128,7 @@ jobs:
 
   install-ps1-windows-mondoo:
     runs-on: windows-latest
-    needs: wait-for-pkg
+    needs: clear-cache
     strategy:
       matrix:
         os: ["windows-latest"]
