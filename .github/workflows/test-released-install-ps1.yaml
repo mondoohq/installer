@@ -63,10 +63,35 @@ jobs:
               echo "⚠️ Cache clear failed after $cache_max_attempts attempts, continuing anyway..."
             fi
 
-            # Check if package is available
-            curl -o /dev/null -s -w "%{http_code}\n" "https://install.mondoo.com/package/mondoo/windows/amd64/msi/${SEMVER}/sha256" | grep 200
+            # Check if all packages are available
+            packages_to_check="mondoo:msi cnquery:zip cnspec:zip"
+            failed_packages=""
 
-  clear-cache-windows:
+            for package_info in $packages_to_check; do
+              package_name=$(echo $package_info | cut -d: -f1)
+              package_format=$(echo $package_info | cut -d: -f2)
+              
+              echo "Checking $package_name ($package_format)..."
+              http_code=$(curl -o /dev/null -s -w "%{http_code}\n" \
+                "https://install.mondoo.com/package/${package_name}/windows/amd64/${package_format}/${SEMVER}/sha256")
+
+              if [ "$http_code" = "200" ]; then
+                echo "✅ $package_name is available"
+              else
+                echo "❌ $package_name failed (HTTP $http_code)"
+                failed_packages="$failed_packages $package_name"
+              fi
+            done
+
+            if [ -n "$failed_packages" ]; then
+              echo "Failed packages:$failed_packages"
+              exit 1
+            fi
+
+            echo "🎉 All packages are available!"
+
+  clear-cache:
+    if: always()
     uses: ./.github/workflows/clear-minstaller-cache.yaml
     needs: wait-for-pkg
     secrets:
@@ -74,7 +99,7 @@ jobs:
 
   install-ps1-windows:
     runs-on: windows-latest
-    needs: clear-cache-windows
+    needs: clear-cache
     strategy:
       matrix:
         os: ["windows-latest"]
@@ -99,15 +124,9 @@ jobs:
           # Logic to validate version has been moved to separate file
           ./test/powershell/verify-cnspec-version.ps1 -ExpectedVersion "${{ steps.version.outputs.version }}"  -BinaryBaseName "${{ matrix.package }}"
 
-  clear-cache-mondoo:
-    uses: ./.github/workflows/clear-minstaller-cache.yaml
-    needs: wait-for-pkg
-    secrets:
-      MINSTALLER_API_KEY: ${{ secrets.MINSTALLER_API_KEY }}
-
   install-ps1-windows-mondoo:
     runs-on: windows-latest
-    needs: clear-cache-mondoo
+    needs: clear-cache
     strategy:
       matrix:
         os: ["windows-latest"]
