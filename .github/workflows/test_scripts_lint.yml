@@ -4,6 +4,7 @@ name: Script Linting
 on:
   pull_request:
     types: [opened, reopened, synchronize]
+  workflow_dispatch: # Allow manual triggers
 
 permissions: {}
 
