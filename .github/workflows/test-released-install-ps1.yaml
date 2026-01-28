@@ -6,14 +6,14 @@ on:
       version:
         description: "Version to test"
         required: true
-        default: "11.63.1"
+        default: "12.20.1"
         type: string
   workflow_dispatch:
     inputs:
       version:
         description: "Version to test"
         required: true
-        default: "11.63.1"
+        default: "12.20.1"
 
 jobs:
   wait-for-pkg:
@@ -64,6 +64,7 @@ jobs:
             fi
 
             # Check if all packages are available
+            echo "Checking packages for version: ${SEMVER}"
             packages_to_check="mondoo:msi cnquery:zip cnspec:zip"
             failed_packages=""
 
@@ -90,6 +91,7 @@ jobs:
 
             echo "🎉 All packages are available!"
 
+  # I've added a separate job to clear the cache to make sure it's cleared if you ever need to rerun any failed jobs below
   clear-cache:
     if: always()
     uses: ./.github/workflows/clear-minstaller-cache.yaml
