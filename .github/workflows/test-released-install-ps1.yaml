@@ -114,11 +114,29 @@ jobs:
           $v='${{ inputs.version }}'
           $version=$v.trim("v","V")
           echo "version=$version" >> $env:GITHUB_OUTPUT
+      - name: Check if install.ps1 changed
+        id: check_install_ps1
+        shell: bash
+        run: |
+          git fetch origin main --depth=1
+          if git diff --name-only origin/main -- install.ps1 | grep -q install.ps1; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+            echo "install.ps1 has changed compared to main"
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+            echo "install.ps1 has not changed compared to main"
+          fi
       - name: Install.ps1/${{ matrix.package }} on ${{ matrix.os }}
         run: |
           Set-ExecutionPolicy Unrestricted -Scope Process -Force;
           [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072;
-          iex ((New-Object System.Net.WebClient).DownloadString('https://install.mondoo.com/ps1/${{ matrix.package }}'));
+          if ('${{ steps.check_install_ps1.outputs.changed }}' -eq 'true') {
+            Write-Host "Using local install.ps1 from repository"
+            . .\install.ps1
+          } else {
+            Write-Host "Using install.ps1 from install.mondoo.com"
+            iex ((New-Object System.Net.WebClient).DownloadString('https://install.mondoo.com/ps1/${{ matrix.package }}'));
+          }
           Install-Mondoo -Product ${{ matrix.package }};
       - name: Verify the correct version is installed
         shell: pwsh
@@ -141,11 +159,29 @@ jobs:
           $v='${{ inputs.version }}'
           $version=$v.trim("v","V")
           echo "version=$version" >> $env:GITHUB_OUTPUT
+      - name: Check if install.ps1 changed
+        id: check_install_ps1
+        shell: bash
+        run: |
+          git fetch origin main --depth=1
+          if git diff --name-only origin/main -- install.ps1 | grep -q install.ps1; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+            echo "install.ps1 has changed compared to main"
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+            echo "install.ps1 has not changed compared to main"
+          fi
       - name: Install.ps1/${{ matrix.package }} on ${{ matrix.os }}
         run: |
           Set-ExecutionPolicy Unrestricted -Scope Process -Force;
           [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072;
-          iex ((New-Object System.Net.WebClient).DownloadString('https://install.mondoo.com/ps1/${{ matrix.package }}'));
+          if ('${{ steps.check_install_ps1.outputs.changed }}' -eq 'true') {
+            Write-Host "Using local install.ps1 from repository"
+            . .\install.ps1
+          } else {
+            Write-Host "Using install.ps1 from install.mondoo.com"
+            iex ((New-Object System.Net.WebClient).DownloadString('https://install.mondoo.com/ps1/${{ matrix.package }}'));
+          }
           Install-Mondoo -Product ${{ matrix.package }};
       - name: Verify the correct version is installed
         shell: pwsh
