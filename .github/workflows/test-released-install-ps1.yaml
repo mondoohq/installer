@@ -24,7 +24,7 @@ jobs:
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # v3.0.2
         with:
           retry_wait_seconds: 20
-          timeout_seconds: 5
+          timeout_seconds: 20
           max_attempts: 100
           retry_on: error
           # error on HTTP code different to 200
@@ -48,6 +48,7 @@ jobs:
               if echo "$cache_response" | grep -q "HTTP_CODE:200"; then
                 echo "✅ Cache cleared successfully on attempt $cache_attempt"
                 cache_cleared=true
+                break
               else
                 echo "⚠️ Cache clear attempt $cache_attempt failed..."
                 if [ $cache_attempt -lt $cache_max_attempts ]; then
@@ -71,7 +72,7 @@ jobs:
             for package_info in $packages_to_check; do
               package_name=$(echo $package_info | cut -d: -f1)
               package_format=$(echo $package_info | cut -d: -f2)
-              
+
               echo "Checking $package_name ($package_format)..."
               http_code=$(curl -o /dev/null -s -w "%{http_code}\n" \
                 "https://install.mondoo.com/package/${package_name}/windows/amd64/${package_format}/${SEMVER}/sha256")
