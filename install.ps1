@@ -88,22 +88,17 @@ function Install-Mondoo {
       Param
       (
         [Parameter(Mandatory)]
-        [string[]]$product,
-        [Parameter(Mandatory)]
-        [string[]]$filetype,
-        [Parameter(Mandatory)]
-        [string[]]$arch
+        [string[]]$product
       )
-      If ([string]::IsNullOrEmpty($filetype)) {
-        $filetype = [regex]::escape('msi')
-      }
-      $url_version = "https://install.mondoo.com/package/${product}/windows/${arch}/${filetype}/latest/version"
+      $url_version = "https://releases.mondoo.com/${product}/latest.json"
       $wc = New-Object Net.Webclient
       If (![string]::IsNullOrEmpty($Proxy)) {
         $wc.proxy = New-Object System.Net.WebProxy($Proxy)
       }
       $wc.Headers.Add('User-Agent', (Get-UserAgent))
-      $wc.DownloadString($url_version)
+      $json = $wc.DownloadString($url_version)
+      $release = ConvertFrom-Json $json
+      $release.version
     }
 
     function getenv($name, $global) {
@@ -284,13 +279,10 @@ function Install-Mondoo {
 
     If ([string]::IsNullOrEmpty($Version)) {
       # latest release
-      $version = determine_latest -product $Product -filetype $filetype -arch $arch
-      $releaseurl = "https://install.mondoo.com/package/${Product}/windows/${arch}/${filetype}/latest/download"
+      $version = determine_latest -product $Product
     }
-    Else {
-      # specific version
-      $releaseurl = "https://install.mondoo.com/package/${Product}/windows/${arch}/${filetype}/${version}/download"
-    }
+    # construct release URL from releases.mondoo.com
+    $releaseurl = "https://releases.mondoo.com/${Product}/${version}/${Product}_${version}_windows_${arch}.${filetype}"
 
     # Check if Path exists
     $Path = $Path.trim('\')
