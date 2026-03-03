@@ -26,7 +26,7 @@
     
     # Description of the functionality provided by this module
     Description = 'The Mondoo.Installer module makes it easier to install and update Mondoo packages. Scripts for Mondoo.
-You can use a single command ''Install-Mondoo'' to install cnquery and cnspec packages.'
+You can use a single command ''Install-Mondoo'' to install mql and cnspec packages.'
     
     # Minimum version of the Windows PowerShell engine required by this module
     PowerShellVersion = '5.1'

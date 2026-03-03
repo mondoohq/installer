@@ -39,3 +39,9 @@ jobs:
       - name: Verify the correct version is installed
         run: |
           /Library/Mondoo/bin/cnspec version | grep ${{ steps.version.outputs.version }}
+      - name: Verify mql is installed
+        run: |
+          /Library/Mondoo/bin/mql version | grep ${{ steps.version.outputs.version }}
+      - name: Verify cnquery symlink points to cnspec
+        run: |
+          /Library/Mondoo/bin/cnquery version | grep ${{ steps.version.outputs.version }}

@@ -1,8 +1,8 @@
-update: update-cnquery update-cnspec update-mondoo
+update: update-mql update-cnspec update-mondoo
 
-update-cnquery:
-	mkdir cnquery
-	go run ./generator/main.go cnquery ./cnquery
+update-mql:
+	mkdir mql
+	go run ./generator/main.go mql ./mql
 
 update-cnspec:
 	mkdir cnspec
@@ -12,4 +12,4 @@ update-mondoo:
 	go run ./generator/main.go mondoo ./mondoo
 
 clean:
-	rm -rf cnquery/ cnspec/ mondoo/PKGBUILD mondoo/.SRCINFO
+	rm -rf mql/ cnspec/ mondoo/PKGBUILD mondoo/.SRCINFO

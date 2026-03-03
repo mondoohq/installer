@@ -15,12 +15,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# The Mondoo installation script installs cnspec and cnquery on supported
+# The Mondoo installation script installs cnspec and mql on supported
 # Linux distros and macOS using its native package manager.
 #
-# Use this command to install cnspec and cnquery on your system with this script:
+# Use this command to install cnspec and mql on your system with this script:
 #
-# bash -c "$(curl -sSL https://install.mondoo.com/sh/cnquery)"
+# bash -c "$(curl -sSL https://install.mondoo.com/sh/mql)"
 #
 # The script detects the operating system and uses the appropriate package.
 # To override the automatic detection, you can set the -i flag to specify
@@ -39,7 +39,7 @@
 # If you find anything that violates these constraints, please reach out.
 # See: https://unix.stackexchange.com/questions/73750/difference-between-function-foo-and-foo
 
-MONDOO_PRODUCT_NAME="mondoo package for cnquery and cnspec" # product name
+MONDOO_PRODUCT_NAME="mondoo package for mql and cnspec" # product name
 MONDOO_PKG_NAME="mondoo" # pkg name in the package repository
 MONDOO_BINARY="cnspec" # binary that we search for
 
@@ -786,7 +786,7 @@ finalize_setup() {
   purple_bold "\n${MONDOO_PRODUCT_NAME} is ready to go!"
 
   # Deprecated: Only relevant for installing the mondoo package, warn the user to login. Do not warn open source users.
-  if [ "$MONDOO_PRODUCT_NAME" = "mondoo package for cnquery and cnspec" ]; then
+  if [ "$MONDOO_PRODUCT_NAME" = "mondoo package for mql and cnspec" ]; then
     detect_mondoo_registered
     if [ "$MONDOO_IS_REGISTERED" = false ]; then
       echo

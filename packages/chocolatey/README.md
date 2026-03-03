@@ -11,7 +11,7 @@ Chocolatey is a popular package manager for Windows, similar to Homebrew. This r
 It's very important to be aware of how packages are published for Chocolatey:
 
 1. You create a NuGet and submit it to the Chocolatey API
-2. A series of automated checks are carried out on the packages. If you look at the package page, you see the new version in the [Version History](https://community.chocolatey.org/packages/cnquery#versionhistory), but it isn't be "Listed" and its Status isn't "Approved."
+2. A series of automated checks are carried out on the packages. If you look at the package page, you see the new version in the [Version History](https://community.chocolatey.org/packages/mql#versionhistory), but it isn't be "Listed" and its Status isn't "Approved."
 3. If all the checks pass, it waits until a Moderator (yes, a human) approves the package (***this can take hours to days***)
 4. Once approved, the package is now listed and accessible
 
@@ -31,27 +31,27 @@ To avoid using Windows, instead use a Docker container which runs Choco thanks t
 
 ```shell
 $ docker run -v `pwd`:/packages -ti  chocolatey/choco bash
-root@0ac102431698:~# cd /packages/cnquery
+root@0ac102431698:~# cd /packages/mql
 
 ### Configure the APIKEY and Source
-root@0ac102431698:/packages/cnquery# CHOCO_API_KEY=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-root@0ac102431698:/packages/cnquery# choco apikey --key ${CHOCO_API_KEY} --source https://push.chocolatey.org/
+root@0ac102431698:/packages/mql# CHOCO_API_KEY=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+root@0ac102431698:/packages/mql# choco apikey --key ${CHOCO_API_KEY} --source https://push.chocolatey.org/
 Chocolatey v1.3.0
 Added ApiKey for https://push.chocolatey.org/
 
 
 ### Now Pack
-root@0ac102431698:/packages/cnquery# choco pack
+root@0ac102431698:/packages/mql# choco pack
 Chocolatey v1.3.0
-Attempting to build package from 'cnquery.nuspec'.
-Successfully created package '/packages/cnquery/cnquery.8.0.0.nupkg'
+Attempting to build package from 'mql.nuspec'.
+Successfully created package '/packages/mql/mql.8.0.0.nupkg'
 
 
 ### Finally, Push
-root@0ac102431698:/packages/cnquery# choco push
+root@0ac102431698:/packages/mql# choco push
 Chocolatey v1.3.0
-Attempting to push cnquery.8.0.0.nupkg to https://push.chocolatey.org/
-cnquery 8.0.0 was pushed successfully to https://push.chocolatey.org/
+Attempting to push mql.8.0.0.nupkg to https://push.chocolatey.org/
+mql 8.0.0 was pushed successfully to https://push.chocolatey.org/
 ```
 
 ## About the API-Key

@@ -29,6 +29,7 @@ URL: https://mondoo.com
 Vendor: Mondoo, Inc
 BuildArch: noarch
 Requires: cnspec >= ${MONDOO_VERSION}
+Requires: mql >= ${MONDOO_VERSION}
 
 %description
 Mondoo checks systems for vulnerabilities, security issues and misconfigurations
@@ -48,7 +49,7 @@ Mondoo checks systems for vulnerabilities, security issues and misconfigurations
 
 %changelog
 * Mon Mar 20 2023 Mondoo, Inc <hello@mondoo.com> 1-1
-- Mondoo metapackage for cnspec and cnquery
+- Mondoo metapackage for cnspec and mql
 EOF
 
 # Build

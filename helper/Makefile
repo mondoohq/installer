@@ -1,6 +1,6 @@
-# To run locally: 
+# To run locally:
 #   VERSION=9.0.0 make
-#   
+#
 all:
 	./build_debs.sh
 	./build_rpms.sh

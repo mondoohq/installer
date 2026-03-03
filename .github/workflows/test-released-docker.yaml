@@ -16,7 +16,7 @@ on:
         default: "9.0.0"
 
 jobs:
-  cnquery-containers:
+  mql-containers:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -30,9 +30,9 @@ jobs:
           V=${{ inputs.version }}
           VERSION=$(echo $V | sed 's/^v//')
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
-      - name: Testing mondoo/cnquery:${{ matrix.tag }}....
+      - name: Testing mondoo/mql:${{ matrix.tag }}....
         run: |
-          version=$(docker run --rm -v $(pwd):/work -w /work mondoo/cnquery:${{ matrix.tag }} version)
+          version=$(docker run --rm -v $(pwd):/work -w /work mondoo/mql:${{ matrix.tag }} version)
           echo $version
           echo $version | grep -q ${{ steps.version.outputs.version }}
   cnspec-containers:

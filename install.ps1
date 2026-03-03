@@ -257,7 +257,7 @@ function Install-Mondoo {
 
     # determine download url
     $filetype = $DownloadType
-    # cnquery and cnspec only ship as zip
+    # mql and cnspec only ship as zip
     If ($product -ne 'mondoo') {
       $filetype = 'zip'
     }

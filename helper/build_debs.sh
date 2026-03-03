@@ -28,8 +28,8 @@ Section: utils
 Priority: optional
 Architecture: all
 Maintainer: Mondoo <hello@mondoo.com>
-Description: Mondoo Metapackage for cnspec
-Depends: cnspec (>= ${VERSION})
+Description: Mondoo Metapackage for cnspec and mql
+Depends: cnspec (>= ${VERSION}), mql (>= ${VERSION})
 Installed-Size: 261 B
 EOF
 
