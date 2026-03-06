@@ -9,7 +9,12 @@ if [[ ${VERSION} == "" ]]; then
   export VERSION=0.0.1
 fi
 
-echo "--------- Creating Debian Package ${PKG_NAME} ${VERSION} ---------"
+# Debian requires pre-release versions to use '~' as the separator instead of
+# '-' (e.g. 13.0.0~rc4 instead of 13.0.0-rc4) so that the pre-release version
+# sorts below the final release in Debian version ordering.
+DEB_VERSION=$(echo "$VERSION" | sed 's/-/~/')
+
+echo "--------- Creating Debian Package ${PKG_NAME} ${DEB_VERSION} ---------"
 
 # Create the package directory:
 mkdir ${PKG_NAME}
@@ -23,13 +28,13 @@ mkdir ${PKG_NAME}
 mkdir ${PKG_NAME}/DEBIAN
 cat > ${PKG_NAME}/DEBIAN/control <<EOF
 Package: ${PKG_NAME}
-Version: ${VERSION}
+Version: ${DEB_VERSION}
 Section: utils
 Priority: optional
 Architecture: all
 Maintainer: Mondoo <hello@mondoo.com>
 Description: Mondoo Metapackage for cnspec and mql
-Depends: cnspec (>= ${VERSION}), mql (>= ${VERSION})
+Depends: cnspec (>= ${DEB_VERSION}), mql (>= ${DEB_VERSION})
 Installed-Size: 261 B
 EOF
 

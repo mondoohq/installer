@@ -14,6 +14,13 @@ echo "--------- Creating RPM Meta-Package mondoo ${MONDOO_VERSION} ---------"
 RPM_VERSION=$(echo "$MONDOO_VERSION" | cut -d'-' -f1)
 RPM_RELEASE=$(echo "$MONDOO_VERSION" | cut -s -d'-' -f2-)
 RPM_RELEASE=${RPM_RELEASE:-1}
+# For pre-release versions, the full RPM version uses '~' as the separator
+# (e.g. 13.0.0~rc4) so that it sorts below the final release.
+if [[ "${RPM_RELEASE}" != "1" ]]; then
+  RPM_REQUIRES_VERSION="${RPM_VERSION}~${RPM_RELEASE}"
+else
+  RPM_REQUIRES_VERSION="${RPM_VERSION}"
+fi
 
 SCRIPT_LOCATION=$(readlink -f "$0")
 REPO_DIR=$(dirname "${SCRIPT_LOCATION}")
@@ -34,8 +41,8 @@ License: BUSL-1.1
 URL: https://mondoo.com
 Vendor: Mondoo, Inc
 BuildArch: noarch
-Requires: cnspec >= ${RPM_VERSION}
-Requires: mql >= ${RPM_VERSION}
+Requires: cnspec >= ${RPM_REQUIRES_VERSION}
+Requires: mql >= ${RPM_REQUIRES_VERSION}
 
 %description
 Mondoo checks systems for vulnerabilities, security issues and misconfigurations
