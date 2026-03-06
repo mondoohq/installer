@@ -9,6 +9,12 @@ mkdir -p ${OUTDIR}
 
 echo "--------- Creating RPM Meta-Package mondoo ${MONDOO_VERSION} ---------"
 
+# RPM does not allow hyphens in the Version field (e.g. 13.0.0-rc4).
+# Split at the first hyphen: Version gets the numeric part, Release gets the rest.
+RPM_VERSION=$(echo "$MONDOO_VERSION" | cut -d'-' -f1)
+RPM_RELEASE=$(echo "$MONDOO_VERSION" | cut -s -d'-' -f2-)
+RPM_RELEASE=${RPM_RELEASE:-1}
+
 SCRIPT_LOCATION=$(readlink -f "$0")
 REPO_DIR=$(dirname "${SCRIPT_LOCATION}")
 
@@ -21,15 +27,15 @@ mkdir BUILD BUILDROOT RPMS SOURCES SPECS SRPMS
 # The spec file pointing to the location we placed the "release" tarball
 cat << EOF > ./SPECS/mondoo.spec
 Name:   mondoo
-Version: ${MONDOO_VERSION}
-Release: 1
+Version: ${RPM_VERSION}
+Release: ${RPM_RELEASE}
 Summary: Mondoo checks systems for vulnerabilities, security issues and misconfigurations
 License: BUSL-1.1
 URL: https://mondoo.com
 Vendor: Mondoo, Inc
 BuildArch: noarch
-Requires: cnspec >= ${MONDOO_VERSION}
-Requires: mql >= ${MONDOO_VERSION}
+Requires: cnspec >= ${RPM_VERSION}
+Requires: mql >= ${RPM_VERSION}
 
 %description
 Mondoo checks systems for vulnerabilities, security issues and misconfigurations
@@ -58,7 +64,7 @@ rpmbuild --define "_topdir $(pwd)" -v -bb ./SPECS/mondoo.spec
 
 # Save
 echo "Creating NOARCH RPM"
-cp "RPMS/noarch/mondoo-${MONDOO_VERSION}-1.noarch.rpm" "${REPO_DIR}/${OUTDIR}/mondoo_${MONDOO_VERSION}_linux_noarch.rpm"
+cp "RPMS/noarch/mondoo-${RPM_VERSION}-${RPM_RELEASE}.noarch.rpm" "${REPO_DIR}/${OUTDIR}/mondoo_${MONDOO_VERSION}_linux_noarch.rpm"
 
 cd "${REPO_DIR}"
 for arch in 386 amd64 arm64 armv6 armv7 ppc64le s390x; do
