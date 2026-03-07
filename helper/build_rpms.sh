@@ -42,7 +42,6 @@ URL: https://mondoo.com
 Vendor: Mondoo, Inc
 BuildArch: noarch
 Requires: cnspec >= ${RPM_REQUIRES_VERSION}
-Requires: mql >= ${RPM_REQUIRES_VERSION}
 
 %description
 Mondoo checks systems for vulnerabilities, security issues and misconfigurations

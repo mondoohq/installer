@@ -230,6 +230,12 @@ def build_mondoo_pkg_script(
     """)
 
 
+def _mql_product(version: str) -> str:
+    """Return 'cnquery' for v11/v12 (before the cnquery→mql rename), 'mql' for v13+."""
+    major = int(version.split(".")[0])
+    return "cnquery" if major < 13 else "mql"
+
+
 def build_upgrade_script(
     base_version: str,
     target_version: str,
@@ -238,6 +244,8 @@ def build_upgrade_script(
     pkg_mgr: str,
 ) -> str:
     """Return a bash script that installs base_version then upgrades to target_version."""
+
+    base_product = _mql_product(base_version)
 
     if pkg_mgr == "apt":
         return textwrap.dedent(f"""\
@@ -249,16 +257,16 @@ def build_upgrade_script(
             apt-get install -y -q --no-install-recommends --allow-unauthenticated ca-certificates curl
             apt-get clean && rm -rf /var/lib/apt/lists/*
 
-            # ---- install base version {base_version} ----
+            # ---- install base version {base_version} ({base_product}) ----
             echo "Installing base version {base_version}..."
             PKGDIR=$(mktemp -d)
-            curl -fsSL '{stable_url}/mql/{base_version}/mql_{base_version}_linux_amd64.deb' -o "$PKGDIR/mql.deb"
+            curl -fsSL '{stable_url}/{base_product}/{base_version}/{base_product}_{base_version}_linux_amd64.deb' -o "$PKGDIR/base-mql.deb"
             curl -fsSL '{stable_url}/cnspec/{base_version}/cnspec_{base_version}_linux_amd64.deb' -o "$PKGDIR/cnspec.deb"
             curl -fsSL '{stable_url}/mondoo/{base_version}/mondoo_{base_version}_linux_amd64.deb' -o "$PKGDIR/mondoo.deb"
-            apt install -y "$PKGDIR/mql.deb" "$PKGDIR/cnspec.deb" "$PKGDIR/mondoo.deb"
+            apt install -y "$PKGDIR/base-mql.deb" "$PKGDIR/cnspec.deb" "$PKGDIR/mondoo.deb"
             rm -rf "$PKGDIR"
-            echo "base mql:    $(mql version)"
-            echo "base cnspec: $(cnspec version)"
+            echo "base {base_product}: $({base_product} version)"
+            echo "base cnspec:         $(cnspec version)"
 
             # ---- upgrade to {target_version} ----
             echo ""
@@ -267,7 +275,7 @@ def build_upgrade_script(
             curl -fsSL '{releases_url}/mql/{target_version}/mql_{target_version}_linux_amd64.deb' -o "$PKGDIR/mql.deb"
             curl -fsSL '{releases_url}/cnspec/{target_version}/cnspec_{target_version}_linux_amd64.deb' -o "$PKGDIR/cnspec.deb"
             curl -fsSL '{releases_url}/mondoo/{target_version}/mondoo_{target_version}_linux_amd64.deb' -o "$PKGDIR/mondoo.deb"
-            apt install -y "$PKGDIR/mql.deb" "$PKGDIR/cnspec.deb" "$PKGDIR/mondoo.deb"
+            apt-get -y install "$PKGDIR/mql.deb" "$PKGDIR/cnspec.deb" "$PKGDIR/mondoo.deb"
             rm -rf "$PKGDIR"
             echo "--- dpkg -l mondoo ---"
             dpkg -l mondoo
@@ -299,16 +307,16 @@ def build_upgrade_script(
         return textwrap.dedent(f"""\
             set -e
 
-            # ---- install base version {base_version} ----
+            # ---- install base version {base_version} ({base_product}) ----
             echo "Installing base version {base_version}..."
             PKGDIR=$(mktemp -d)
-            curl -fsSL '{stable_url}/mql/{base_version}/mql_{base_version}_linux_amd64.rpm' -o "$PKGDIR/mql.rpm"
+            curl -fsSL '{stable_url}/{base_product}/{base_version}/{base_product}_{base_version}_linux_amd64.rpm' -o "$PKGDIR/base-mql.rpm"
             curl -fsSL '{stable_url}/cnspec/{base_version}/cnspec_{base_version}_linux_amd64.rpm' -o "$PKGDIR/cnspec.rpm"
             curl -fsSL '{stable_url}/mondoo/{base_version}/mondoo_{base_version}_linux_amd64.rpm' -o "$PKGDIR/mondoo.rpm"
-            dnf install -y --nogpgcheck "$PKGDIR/mql.rpm" "$PKGDIR/cnspec.rpm" "$PKGDIR/mondoo.rpm"
+            dnf install -y --nogpgcheck "$PKGDIR/base-mql.rpm" "$PKGDIR/cnspec.rpm" "$PKGDIR/mondoo.rpm"
             rm -rf "$PKGDIR"
-            echo "base mql:    $(mql version)"
-            echo "base cnspec: $(cnspec version)"
+            echo "base {base_product}: $({base_product} version)"
+            echo "base cnspec:         $(cnspec version)"
 
             # ---- upgrade to {target_version} ----
             echo ""
@@ -372,6 +380,10 @@ def run_upgrade_test(
             "--tmpfs", "/var/cache/apt:rw,size=256m",
             "--tmpfs", "/var/lib/apt/lists:rw,size=256m",
         ]
+    else:
+        docker_cmd += [
+            "--tmpfs", "/var/cache/dnf:rw,size=512m",
+        ]
     docker_cmd += [image, "bash", "-c", script]
 
     result = subprocess.run(docker_cmd)
@@ -406,6 +418,10 @@ def run_mondoo_pkg_test(
         docker_cmd += [
             "--tmpfs", "/var/cache/apt:rw,size=256m",
             "--tmpfs", "/var/lib/apt/lists:rw,size=256m",
+        ]
+    else:
+        docker_cmd += [
+            "--tmpfs", "/var/cache/dnf:rw,size=512m",
         ]
     docker_cmd += [image, "bash", "-c", script]
 
@@ -504,6 +520,11 @@ def main() -> None:
         default=DEFAULT_STABLE_RELEASES_URL,
         help=f"Stable releases URL used to download base packages for upgrade tests (default: {DEFAULT_STABLE_RELEASES_URL})",
     )
+    parser.add_argument(
+        "--fail-fast",
+        action="store_true",
+        help="Stop after the first failure",
+    )
     args = parser.parse_args()
 
     install_version = args.install_version.lstrip("v")
@@ -531,6 +552,13 @@ def main() -> None:
             )
             if not ok:
                 failures.append(f"{name} (auto-update)")
+                if args.fail_fast:
+                    break
+
+    if failures and args.fail_fast:
+        print(f"\n{'='*60}")
+        print(f"FAILED on: {', '.join(failures)}")
+        sys.exit(1)
 
     if not args.skip_mondoo_pkg:
         print(f"\n{'='*60}")
@@ -543,6 +571,8 @@ def main() -> None:
             )
             if not ok:
                 failures.append(f"{name} (mondoo pkg)")
+                if args.fail_fast:
+                    break
 
     if not args.skip_upgrade:
         print(f"\n{'='*60}")
@@ -551,6 +581,7 @@ def main() -> None:
         print(f"  base versions   : {', '.join(base_versions)}")
         print(f"  stable url      : {args.stable_releases_url}")
         print(f"  target version  : {install_version}")
+        done = False
         for base_version in base_versions:
             for name, image, pkg_mgr in DISTROS:
                 ok = run_upgrade_test(
@@ -560,6 +591,11 @@ def main() -> None:
                 )
                 if not ok:
                     failures.append(f"{name} (upgrade from {base_version})")
+                    if args.fail_fast:
+                        done = True
+                        break
+            if done:
+                break
 
     print(f"\n{'='*60}")
     if failures:

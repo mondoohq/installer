@@ -34,7 +34,7 @@ Priority: optional
 Architecture: all
 Maintainer: Mondoo <hello@mondoo.com>
 Description: Mondoo Metapackage for cnspec and mql
-Depends: cnspec (>= ${DEB_VERSION}), mql (>= ${DEB_VERSION})
+Depends: cnspec (>= ${DEB_VERSION})
 Installed-Size: 261 B
 EOF
 
