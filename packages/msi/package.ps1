@@ -1,4 +1,4 @@
-﻿# Copyright (c) Mondoo, Inc.
+﻿# Copyright Mondoo, Inc. 2026, 2025, 0
 # SPDX-License-Identifier: BUSL-1.1
 
 # use: ./package.ps1 -version 0.32.0

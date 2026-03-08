@@ -1,4 +1,4 @@
-# Copyright (c) Mondoo, Inc.
+# Copyright Mondoo, Inc. 2026, 2025, 0
 # SPDX-License-Identifier: BUSL-1.1
 
 FROM debian:9 as debian9
