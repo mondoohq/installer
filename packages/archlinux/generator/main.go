@@ -75,6 +75,8 @@ var products = map[string]Product{
 			"cnspec",
 			"mql",
 		},
+		Conflicts: []string{"cnquery"},
+		Replaces:  []string{"cnquery"},
 	},
 	"mql": {
 		LatestUrl:   "https://releases.mondoo.com/mql/latest.json?ignoreCache=1",
