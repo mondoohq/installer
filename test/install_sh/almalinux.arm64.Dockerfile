@@ -1,4 +1,4 @@
-# Copyright (c) Mondoo, Inc.
+# Copyright Mondoo, Inc. 2025, 2026
 # SPDX-License-Identifier: BUSL-1.1
 
 FROM arm64v8/almalinux:8 as almalinux8_arm64
