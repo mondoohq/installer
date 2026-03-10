@@ -10,8 +10,8 @@ Auto-update tests:
   cnspec and mql from releases.mondoo.love, seeds ~/.config/mondoo/mondoo.yml
   with auto-update configuration, then runs:
 
-      mql run local -c 'mondoo'
-      cnspec run local -c 'mondoo'
+      mql run local -c "mondoo.version"
+      cnspec run local -c "mondoo.version"
 
   and verifies the output contains the latest version as reported by
   https://releases.mondoo.love/{product}/latest.json.
@@ -58,8 +58,8 @@ import urllib.request
 # Defaults
 # ---------------------------------------------------------------------------
 
-DEFAULT_RELEASES_URL = "https://releases.mondoo.love/releases"
-DEFAULT_STABLE_RELEASES_URL = "https://releases.mondoo.com/releases"
+DEFAULT_RELEASES_URL = "https://releases.mondoo.love"
+DEFAULT_STABLE_RELEASES_URL = "https://releases.mondoo.com"
 DEFAULT_BASE_VERSIONS = "11.0.0,12.0.0"
 
 # Containers to test: (human name, Docker image, package manager)
@@ -110,14 +110,13 @@ def build_container_script(
         log-level: debug
         auto_update: true
         updates_url: {releases_url}
-        providers_url: {DEFAULT_STABLE_RELEASES_URL}
+        providers_url: {DEFAULT_STABLE_RELEASES_URL}/providers
         features:
           - AutoUpdateEngine
     """)
 
     return textwrap.dedent(f"""\
         set -e
-
         # ---- ensure curl is available ----
         {setup_curl}
 
@@ -146,8 +145,8 @@ def build_container_script(
 
         # ---- run mql and verify version ----
         echo ""
-        echo "=== mql run local -c 'mondoo' ==="
-        MQL_OUT=$(mql run local -c 'mondoo' 2>&1) || true
+        echo "=== mql run local -c "mondoo.version" ==="
+        MQL_OUT=$(mql run local -c "mondoo.version" 2>&1) || true
         echo "$MQL_OUT"
         if echo "$MQL_OUT" | grep -qF '{mql_latest}'; then
             echo "PASS: mql output contains version {mql_latest}"
@@ -158,8 +157,8 @@ def build_container_script(
 
         # ---- run cnspec and verify version ----
         echo ""
-        echo "=== cnspec run local -c 'mondoo' ==="
-        CNSPEC_OUT=$(cnspec run local -c 'mondoo' 2>&1) || true
+        echo "=== cnspec run local -c "mondoo.version" ==="
+        CNSPEC_OUT=$(cnspec run local -c "mondoo.version" 2>&1) || true
         echo "$CNSPEC_OUT"
         if echo "$CNSPEC_OUT" | grep -qF '{cnspec_latest}'; then
             echo "PASS: cnspec output contains version {cnspec_latest}"
@@ -362,6 +361,11 @@ def build_upgrade_script(
         """)
 
 
+def _shell_on_failure_script(script: str) -> str:
+    """Inject a bash ERR trap that drops to an interactive shell on failure."""
+    return script.replace("set -e\n", "set -e\ntrap 'echo \"--- dropping to shell ---\"; exec bash' ERR\n", 1)
+
+
 def run_upgrade_test(
     name: str,
     image: str,
@@ -370,18 +374,23 @@ def run_upgrade_test(
     target_version: str,
     stable_url: str,
     releases_url: str,
+    shell_on_failure: bool = False,
 ) -> bool:
     print(f"\n{'='*60}")
     print(f"  {name}  ({image})  [upgrade from {base_version}]")
     print(f"{'='*60}")
 
     script = build_upgrade_script(base_version, target_version, stable_url, releases_url, pkg_mgr)
+    if shell_on_failure:
+        script = _shell_on_failure_script(script)
 
     docker_cmd = [
         "docker", "run", "--rm",
         "--pull", "always",
         "--platform", "linux/amd64",
     ]
+    if shell_on_failure:
+        docker_cmd += ["-it"]
     if pkg_mgr == "apt":
         docker_cmd += [
             "--tmpfs", "/var/cache/apt:rw,size=256m",
@@ -409,18 +418,23 @@ def run_mondoo_pkg_test(
     pkg_mgr: str,
     version: str,
     releases_url: str,
+    shell_on_failure: bool = False,
 ) -> bool:
     print(f"\n{'='*60}")
     print(f"  {name}  ({image})  [mondoo pkg]")
     print(f"{'='*60}")
 
     script = build_mondoo_pkg_script(version, releases_url, pkg_mgr)
+    if shell_on_failure:
+        script = _shell_on_failure_script(script)
 
     docker_cmd = [
         "docker", "run", "--rm",
         "--pull", "always",
         "--platform", "linux/amd64",
     ]
+    if shell_on_failure:
+        docker_cmd += ["-it"]
     if pkg_mgr == "apt":
         docker_cmd += [
             "--tmpfs", "/var/cache/apt:rw,size=256m",
@@ -450,6 +464,7 @@ def run_distro_test(
     releases_url: str,
     mql_latest: str,
     cnspec_latest: str,
+    shell_on_failure: bool = False,
 ) -> bool:
     print(f"\n{'='*60}")
     print(f"  {name}  ({image})")
@@ -459,12 +474,16 @@ def run_distro_test(
         install_version, releases_url,
         mql_latest, cnspec_latest, pkg_mgr,
     )
+    if shell_on_failure:
+        script = _shell_on_failure_script(script)
 
     docker_cmd = [
         "docker", "run", "--rm",
         "--pull", "always",   # always use a fresh image to avoid stale GPG keys
         "--platform", "linux/amd64",
     ]
+    if shell_on_failure:
+        docker_cmd += ["-it"]
     if pkg_mgr == "apt":
         # Mount tmpfs over apt's cache dirs so package downloads don't exhaust
         # the container's overlay filesystem (which has limited space in Docker Desktop).
@@ -507,7 +526,7 @@ def build_self_upgrade_script(
         log-level: debug
         auto_update: true
         updates_url: {releases_url}
-        providers_url: {DEFAULT_STABLE_RELEASES_URL}
+        providers_url: {DEFAULT_STABLE_RELEASES_URL}/providers
         features:
           - AutoUpdateEngine
     """)
@@ -541,36 +560,26 @@ def build_self_upgrade_script(
         cat > ~/.config/mondoo/mondoo.yml << 'MONDOOEOF'
 {mondoo_yml}MONDOOEOF
 
-        # ---- trigger self-upgrade ----
+        # ---- trigger self-upgrade and verify version in output ----
         echo ""
-        echo "=== mql run local -c "mondoo.version" (triggers self-upgrade) ==="
-        mql run local -c "mondoo.version" 2>&1 || true
-
-        echo ""
-        echo "=== cnspec run local -c "mondoo.version" (triggers self-upgrade) ==="
-        cnspec run local -c "mondoo.version" 2>&1 || true
-
-        # ---- verify mql binary was replaced ----
-        echo ""
-        echo "=== mql version after self-upgrade ==="
-        MQL_OUT=$(mql version 2>&1)
-        echo "$MQL_OUT"
-        if echo "$MQL_OUT" | grep -qF '{target_version}'; then
-            echo "PASS: mql binary updated to {target_version}"
+        echo "=== mql run local -c mondoo.version (triggers self-upgrade) ==="
+        MQL_RUN_OUT=$(mql run local -c 'mondoo.version' 2>&1) || true
+        echo "$MQL_RUN_OUT"
+        if echo "$MQL_RUN_OUT" | grep -qF '{target_version}'; then
+            echo "PASS: mql self-upgraded to {target_version}"
         else
-            echo "FAIL: mql binary not updated (got: $MQL_OUT)"
+            echo "FAIL: mql output does not contain {target_version}"
             exit 1
         fi
 
-        # ---- verify cnspec binary was replaced ----
         echo ""
-        echo "=== cnspec version after self-upgrade ==="
-        CNSPEC_OUT=$(cnspec version 2>&1)
-        echo "$CNSPEC_OUT"
-        if echo "$CNSPEC_OUT" | grep -qF '{target_version}'; then
-            echo "PASS: cnspec binary updated to {target_version}"
+        echo "=== cnspec run local -c mondoo.version (triggers self-upgrade) ==="
+        CNSPEC_RUN_OUT=$(cnspec run local -c 'mondoo.version' 2>&1) || true
+        echo "$CNSPEC_RUN_OUT"
+        if echo "$CNSPEC_RUN_OUT" | grep -qF '{target_version}'; then
+            echo "PASS: cnspec self-upgraded to {target_version}"
         else
-            echo "FAIL: cnspec binary not updated (got: $CNSPEC_OUT)"
+            echo "FAIL: cnspec output does not contain {target_version}"
             exit 1
         fi
     """)
@@ -583,18 +592,23 @@ def run_self_upgrade_test(
     from_version: str,
     target_version: str,
     releases_url: str,
+    shell_on_failure: bool = False,
 ) -> bool:
     print(f"\n{'='*60}")
     print(f"  {name}  ({image})  [self-upgrade from {from_version}]")
     print(f"{'='*60}")
 
     script = build_self_upgrade_script(from_version, target_version, releases_url, pkg_mgr)
+    if shell_on_failure:
+        script = _shell_on_failure_script(script)
 
     docker_cmd = [
         "docker", "run", "--rm",
         "--pull", "always",
         "--platform", "linux/amd64",
     ]
+    if shell_on_failure:
+        docker_cmd += ["-it"]
     if pkg_mgr == "apt":
         docker_cmd += [
             "--tmpfs", "/var/cache/apt:rw,size=256m",
@@ -679,6 +693,11 @@ def main() -> None:
         help="Only run tests for distros whose name or image contains FILTER "
              "(case-insensitive). Can be repeated, e.g. --distro rocky --distro ubuntu.",
     )
+    parser.add_argument(
+        "--shell-on-failure",
+        action="store_true",
+        help="Drop into an interactive bash shell inside the container on failure (implies -it).",
+    )
     args = parser.parse_args()
 
     install_version = args.install_version.lstrip("v")
@@ -716,6 +735,7 @@ def main() -> None:
                 name, image, pkg_mgr,
                 install_version, args.releases_url,
                 mql_latest, cnspec_latest,
+                shell_on_failure=args.shell_on_failure,
             )
             if not ok:
                 failures.append(f"{name} (auto-update)")
@@ -735,6 +755,7 @@ def main() -> None:
             ok = run_mondoo_pkg_test(
                 name, image, pkg_mgr,
                 install_version, args.releases_url,
+                shell_on_failure=args.shell_on_failure,
             )
             if not ok:
                 failures.append(f"{name} (mondoo pkg)")
@@ -755,6 +776,7 @@ def main() -> None:
                     name, image, pkg_mgr,
                     base_version, install_version,
                     args.stable_releases_url, args.releases_url,
+                    shell_on_failure=args.shell_on_failure,
                 )
                 if not ok:
                     failures.append(f"{name} (upgrade from {base_version})")
@@ -788,6 +810,7 @@ def main() -> None:
                     name, image, pkg_mgr,
                     self_upgrade_from, install_version,
                     args.releases_url,
+                    shell_on_failure=args.shell_on_failure,
                 )
                 if not ok:
                     failures.append(f"{name} (self-upgrade from {self_upgrade_from})")
