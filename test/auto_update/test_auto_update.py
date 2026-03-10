@@ -28,13 +28,23 @@ Upgrade tests:
   mondoo packages from the stable releases URL, then upgrades to the target
   version from --releases-url and verifies the new version is active.
 
+Self-upgrade tests:
+  Installs an older version of mql/cnspec from tarballs, seeds
+  ~/.config/mondoo/mondoo.yml with auto_update: true, runs
+  `mql run local -c "mondoo.version"` to trigger the in-process self-upgrade,
+  then checks `mql version` to confirm the binary replaced itself with the
+  target version. Requires --self-upgrade-from.
+
 Usage:
-    python3 test_auto_update.py --install-version 13.0.0-rc2
-    python3 test_auto_update.py --install-version 13.0.0-rc2 --releases-url https://releases.mondoo.love
-    python3 test_auto_update.py --install-version 13.0.0-rc2 --skip-auto-update
-    python3 test_auto_update.py --install-version 13.0.0-rc2 --skip-mondoo-pkg
-    python3 test_auto_update.py --install-version 13.0.0-rc2 --skip-upgrade
-    python3 test_auto_update.py --install-version 13.0.0-rc2 --base-versions 11.0.0,12.23.1
+    python3 test_auto_update.py --install-version 13.0.0-rc7
+    python3 test_auto_update.py --install-version 13.0.0-rc7 --releases-url https://releases.mondoo.love
+    python3 test_auto_update.py --install-version 13.0.0-rc7 --skip-auto-update
+    python3 test_auto_update.py --install-version 13.0.0-rc7 --skip-mondoo-pkg
+    python3 test_auto_update.py --install-version 13.0.0-rc7 --skip-upgrade
+    python3 test_auto_update.py --install-version 13.0.0-rc7 --base-versions 11.0.0,12.23.1
+    python3 test_auto_update.py --install-version 13.0.0-rc7 --self-upgrade-from 13.0.0-rc5
+    python3 test_auto_update.py --install-version 13.0.0-rc7 --distro rocky
+    python3 test_auto_update.py --install-version 13.0.0-rc7 --distro ubuntu --distro debian
 """
 
 import argparse
@@ -48,8 +58,8 @@ import urllib.request
 # Defaults
 # ---------------------------------------------------------------------------
 
-DEFAULT_RELEASES_URL = "https://releases.mondoo.love"
-DEFAULT_STABLE_RELEASES_URL = "https://releases.mondoo.com"
+DEFAULT_RELEASES_URL = "https://releases.mondoo.love/releases"
+DEFAULT_STABLE_RELEASES_URL = "https://releases.mondoo.com/releases"
 DEFAULT_BASE_VERSIONS = "11.0.0,12.0.0"
 
 # Containers to test: (human name, Docker image, package manager)
@@ -96,14 +106,11 @@ def build_container_script(
         # curl-minimal is pre-installed on RHEL9 variants and provides the curl binary.
         setup_curl = "curl --version"
 
-    # providers_url is deprecated in cnspec v13; updates_url covers both binary
-    # and provider updates.  Since releases.mondoo.love does not host providers,
-    # omit providers_url entirely so that a 404 is handled gracefully rather than
-    # producing a fatal JSON-parse error on a format-mismatched response.
     mondoo_yml = textwrap.dedent(f"""\
         log-level: debug
         auto_update: true
         updates_url: {releases_url}
+        providers_url: {DEFAULT_STABLE_RELEASES_URL}
         features:
           - AutoUpdateEngine
     """)
@@ -477,6 +484,134 @@ def run_distro_test(
     return result.returncode == 0
 
 
+def build_self_upgrade_script(
+    from_version: str,
+    target_version: str,
+    releases_url: str,
+    pkg_mgr: str,
+) -> str:
+    """Return a bash script that installs from_version, triggers the in-process
+    self-upgrade, then verifies the binary was replaced with target_version."""
+
+    if pkg_mgr == "apt":
+        setup_curl = textwrap.dedent("""\
+            apt-get update -qq \\
+                -o Acquire::Check-Valid-Until=false \\
+                -o Acquire::AllowInsecureRepositories=true
+            apt-get install -y -q --no-install-recommends --allow-unauthenticated ca-certificates curl
+            apt-get clean && rm -rf /var/lib/apt/lists/*""")
+    else:
+        setup_curl = "curl --version"
+
+    mondoo_yml = textwrap.dedent(f"""\
+        log-level: debug
+        auto_update: true
+        updates_url: {releases_url}
+        providers_url: {DEFAULT_STABLE_RELEASES_URL}
+        features:
+          - AutoUpdateEngine
+    """)
+
+    return textwrap.dedent(f"""\
+        set -e
+
+        # ---- ensure curl is available ----
+        {setup_curl}
+
+        # ---- install mql {from_version} ----
+        TMPDIR=$(mktemp -d)
+        curl -fsSL '{releases_url}/mql/{from_version}/mql_{from_version}_linux_amd64.tar.gz' \\
+            | tar xz -C "$TMPDIR"
+        find "$TMPDIR" -name mql -type f -exec mv {{}} /usr/local/bin/mql \\;
+        rm -rf "$TMPDIR"
+        chmod +x /usr/local/bin/mql
+        echo "installed mql: $(mql version)"
+
+        # ---- install cnspec {from_version} ----
+        TMPDIR=$(mktemp -d)
+        curl -fsSL '{releases_url}/cnspec/{from_version}/cnspec_{from_version}_linux_amd64.tar.gz' \\
+            | tar xz -C "$TMPDIR"
+        find "$TMPDIR" -name cnspec -type f -exec mv {{}} /usr/local/bin/cnspec \\;
+        rm -rf "$TMPDIR"
+        chmod +x /usr/local/bin/cnspec
+        echo "installed cnspec: $(cnspec version)"
+
+        # ---- seed mondoo config ----
+        mkdir -p ~/.config/mondoo
+        cat > ~/.config/mondoo/mondoo.yml << 'MONDOOEOF'
+{mondoo_yml}MONDOOEOF
+
+        # ---- trigger self-upgrade ----
+        echo ""
+        echo "=== mql run local -c "mondoo.version" (triggers self-upgrade) ==="
+        mql run local -c "mondoo.version" 2>&1 || true
+
+        echo ""
+        echo "=== cnspec run local -c "mondoo.version" (triggers self-upgrade) ==="
+        cnspec run local -c "mondoo.version" 2>&1 || true
+
+        # ---- verify mql binary was replaced ----
+        echo ""
+        echo "=== mql version after self-upgrade ==="
+        MQL_OUT=$(mql version 2>&1)
+        echo "$MQL_OUT"
+        if echo "$MQL_OUT" | grep -qF '{target_version}'; then
+            echo "PASS: mql binary updated to {target_version}"
+        else
+            echo "FAIL: mql binary not updated (got: $MQL_OUT)"
+            exit 1
+        fi
+
+        # ---- verify cnspec binary was replaced ----
+        echo ""
+        echo "=== cnspec version after self-upgrade ==="
+        CNSPEC_OUT=$(cnspec version 2>&1)
+        echo "$CNSPEC_OUT"
+        if echo "$CNSPEC_OUT" | grep -qF '{target_version}'; then
+            echo "PASS: cnspec binary updated to {target_version}"
+        else
+            echo "FAIL: cnspec binary not updated (got: $CNSPEC_OUT)"
+            exit 1
+        fi
+    """)
+
+
+def run_self_upgrade_test(
+    name: str,
+    image: str,
+    pkg_mgr: str,
+    from_version: str,
+    target_version: str,
+    releases_url: str,
+) -> bool:
+    print(f"\n{'='*60}")
+    print(f"  {name}  ({image})  [self-upgrade from {from_version}]")
+    print(f"{'='*60}")
+
+    script = build_self_upgrade_script(from_version, target_version, releases_url, pkg_mgr)
+
+    docker_cmd = [
+        "docker", "run", "--rm",
+        "--pull", "always",
+        "--platform", "linux/amd64",
+    ]
+    if pkg_mgr == "apt":
+        docker_cmd += [
+            "--tmpfs", "/var/cache/apt:rw,size=256m",
+            "--tmpfs", "/var/lib/apt/lists:rw,size=256m",
+        ]
+    docker_cmd += [image, "bash", "-c", script]
+
+    result = subprocess.run(docker_cmd)
+
+    if result.returncode == 0:
+        print(f"\nPASS: {name} (self-upgrade from {from_version})")
+    else:
+        print(f"\nFAIL: {name} (self-upgrade from {from_version})")
+
+    return result.returncode == 0
+
+
 # ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
@@ -525,10 +660,42 @@ def main() -> None:
         action="store_true",
         help="Stop after the first failure",
     )
+    parser.add_argument(
+        "--skip-self-upgrade",
+        action="store_true",
+        help="Skip the self-upgrade tests",
+    )
+    parser.add_argument(
+        "--self-upgrade-from",
+        default="",
+        help="Version to install before triggering self-upgrade (e.g. 13.0.0-rc5); "
+             "required to run self-upgrade tests",
+    )
+    parser.add_argument(
+        "--distro",
+        action="append",
+        default=[],
+        metavar="FILTER",
+        help="Only run tests for distros whose name or image contains FILTER "
+             "(case-insensitive). Can be repeated, e.g. --distro rocky --distro ubuntu.",
+    )
     args = parser.parse_args()
 
     install_version = args.install_version.lstrip("v")
     base_versions = [v.strip().lstrip("v") for v in args.base_versions.split(",") if v.strip()]
+
+    distros = DISTROS
+    if args.distro:
+        filters = [f.lower() for f in args.distro]
+        distros = [
+            (name, image, pkg_mgr)
+            for name, image, pkg_mgr in DISTROS
+            if any(f in name.lower() or f in image.lower() for f in filters)
+        ]
+        if not distros:
+            print(f"ERROR: no distros matched filters: {args.distro}")
+            sys.exit(1)
+        print(f"Filtered to distros: {[name for name, _, _ in distros]}")
 
     failures = []
 
@@ -544,7 +711,7 @@ def main() -> None:
         print(f"\n{'='*60}")
         print("  AUTO-UPDATE TESTS")
         print(f"{'='*60}")
-        for name, image, pkg_mgr in DISTROS:
+        for name, image, pkg_mgr in distros:
             ok = run_distro_test(
                 name, image, pkg_mgr,
                 install_version, args.releases_url,
@@ -564,7 +731,7 @@ def main() -> None:
         print(f"\n{'='*60}")
         print("  MONDOO METAPACKAGE TESTS")
         print(f"{'='*60}")
-        for name, image, pkg_mgr in DISTROS:
+        for name, image, pkg_mgr in distros:
             ok = run_mondoo_pkg_test(
                 name, image, pkg_mgr,
                 install_version, args.releases_url,
@@ -583,7 +750,7 @@ def main() -> None:
         print(f"  target version  : {install_version}")
         done = False
         for base_version in base_versions:
-            for name, image, pkg_mgr in DISTROS:
+            for name, image, pkg_mgr in distros:
                 ok = run_upgrade_test(
                     name, image, pkg_mgr,
                     base_version, install_version,
@@ -596,6 +763,36 @@ def main() -> None:
                         break
             if done:
                 break
+
+    if failures and args.fail_fast:
+        print(f"\n{'='*60}")
+        print(f"FAILED on: {', '.join(failures)}")
+        sys.exit(1)
+
+    if not args.skip_self_upgrade:
+        self_upgrade_from = args.self_upgrade_from.lstrip("v")
+        if not self_upgrade_from:
+            print(f"\n{'='*60}")
+            print("  SELF-UPGRADE TESTS")
+            print(f"{'='*60}")
+            print("  Skipped: --self-upgrade-from not specified")
+        else:
+            print(f"\n{'='*60}")
+            print("  SELF-UPGRADE TESTS")
+            print(f"{'='*60}")
+            print(f"  from version    : {self_upgrade_from}")
+            print(f"  target version  : {install_version}")
+            print(f"  releases url    : {args.releases_url}")
+            for name, image, pkg_mgr in distros:
+                ok = run_self_upgrade_test(
+                    name, image, pkg_mgr,
+                    self_upgrade_from, install_version,
+                    args.releases_url,
+                )
+                if not ok:
+                    failures.append(f"{name} (self-upgrade from {self_upgrade_from})")
+                    if args.fail_fast:
+                        break
 
     print(f"\n{'='*60}")
     if failures:
