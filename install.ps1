@@ -265,9 +265,9 @@ function Install-Mondoo {
     $Apps = @()
     $Apps += Get-ItemProperty "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*" # 32 Bit
     $Apps += Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*" # 64 Bit
-    $installed_version = $Apps | where-object Publisher -eq "Mondoo, Inc."
+    $installed_version = $Apps | where-object Publisher -eq "Mondoo, Inc." | Select-Object -Last 1
     if ($installed_version) {
-      $installed_version.version = $installed_version.DisplayVersion
+      $installed_version | Add-Member -NotePropertyName version -NotePropertyValue $installed_version.DisplayVersion -Force
     }
 
     $arch = 'amd64'
