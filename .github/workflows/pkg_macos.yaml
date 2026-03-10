@@ -56,9 +56,9 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
-      - name: Ensure version of cnquery and cnspec are available
+      - name: Ensure version of mql and cnspec are available
         run: |
-          curl -sL --head --fail https://github.com/mondoohq/cnquery/releases/download/v${{ inputs.version }}/cnquery_${{ inputs.version }}_darwin_amd64.tar.gz
+          curl -sL --head --fail https://github.com/mondoohq/mql/releases/download/v${{ inputs.version }}/mql_${{ inputs.version }}_darwin_amd64.tar.gz
           curl -sL --head --fail https://github.com/mondoohq/cnspec/releases/download/v${{ inputs.version }}/cnspec_${{ inputs.version }}_darwin_amd64.tar.gz
       - name: Setup local keychain for signing certificates
         run: |

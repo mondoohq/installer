@@ -58,7 +58,7 @@ jobs:
       - name: Dump all inputs
         run: echo "${{ toJSON(inputs) }}"
 
-      - name: Ensure version of cnquery and cnspec are available
+      - name: Ensure version of mql and cnspec are available
         run: |
           # Function to check URL with retry logic
           check_url_with_retry() {
@@ -86,11 +86,11 @@ jobs:
 
           # Check all required URLs
           urls=(
-            "https://github.com/mondoohq/cnquery/releases/download/v${{ inputs.version }}/cnquery_${{ inputs.version }}_windows_amd64.zip"
+            "https://github.com/mondoohq/mql/releases/download/v${{ inputs.version }}/mql_${{ inputs.version }}_windows_amd64.zip"
             "https://github.com/mondoohq/cnspec/releases/download/v${{ inputs.version }}/cnspec_${{ inputs.version }}_windows_amd64.zip"
-            "https://github.com/mondoohq/cnquery/releases/download/v${{ inputs.version }}/cnquery_${{ inputs.version }}_windows_arm64.zip"
+            "https://github.com/mondoohq/mql/releases/download/v${{ inputs.version }}/mql_${{ inputs.version }}_windows_arm64.zip"
             "https://github.com/mondoohq/cnspec/releases/download/v${{ inputs.version }}/cnspec_${{ inputs.version }}_windows_arm64.zip"
-            "https://github.com/mondoohq/cnquery/releases/download/v${{ inputs.version }}/cnquery_v${{ inputs.version }}_SHA256SUMS"
+            "https://github.com/mondoohq/mql/releases/download/v${{ inputs.version }}/mql_v${{ inputs.version }}_SHA256SUMS"
             "https://github.com/mondoohq/cnspec/releases/download/v${{ inputs.version }}/cnspec_v${{ inputs.version }}_SHA256SUMS"
           )
 
@@ -160,7 +160,7 @@ jobs:
           if ! download_with_retry "https://github.com/mondoohq/cnspec/releases/download/v${VERSION}/cnspec_v${VERSION}_SHA256SUMS" "cnspec_v${VERSION}_SHA256SUMS"; then
             exit 1
           fi
-          if ! download_with_retry "https://github.com/mondoohq/cnquery/releases/download/v${VERSION}/cnquery_v${VERSION}_SHA256SUMS" "cnquery_v${VERSION}_SHA256SUMS"; then
+          if ! download_with_retry "https://github.com/mondoohq/mql/releases/download/v${VERSION}/mql_v${VERSION}_SHA256SUMS" "mql_v${VERSION}_SHA256SUMS"; then
             exit 1
           fi
 
@@ -191,32 +191,32 @@ jobs:
           fi
           rm cnspec_${VERSION}_windows_${{ matrix.arch }}.zip cnspec_v${VERSION}_SHA256SUMS
 
-          # Download cnquery
-          if ! download_with_retry "https://github.com/mondoohq/cnquery/releases/download/v${VERSION}/cnquery_${VERSION}_windows_${{ matrix.arch }}.zip" "cnquery_${VERSION}_windows_${{ matrix.arch }}.zip"; then
+          # Download mql
+          if ! download_with_retry "https://github.com/mondoohq/mql/releases/download/v${VERSION}/mql_${VERSION}_windows_${{ matrix.arch }}.zip" "mql_${VERSION}_windows_${{ matrix.arch }}.zip"; then
             exit 1
           fi
 
-          # Validate cnquery checksum
-          expected_checksum=$(grep "cnquery_${VERSION}_windows_${{ matrix.arch }}.zip" cnquery_v${VERSION}_SHA256SUMS | awk '{print $1}')
+          # Validate mql checksum
+          expected_checksum=$(grep "mql_${VERSION}_windows_${{ matrix.arch }}.zip" mql_v${VERSION}_SHA256SUMS | awk '{print $1}')
           if [ -z "$expected_checksum" ]; then
-            echo "ERROR: Could not find expected checksum for cnquery_${VERSION}_windows_${{ matrix.arch }}.zip"
+            echo "ERROR: Could not find expected checksum for mql_${VERSION}_windows_${{ matrix.arch }}.zip"
             exit 1
           fi
-          actual_checksum=$(sha256sum "cnquery_${VERSION}_windows_${{ matrix.arch }}.zip" | awk '{print $1}')
+          actual_checksum=$(sha256sum "mql_${VERSION}_windows_${{ matrix.arch }}.zip" | awk '{print $1}')
           if [ "$actual_checksum" != "$expected_checksum" ]; then
-            echo "ERROR: Checksum mismatch for cnquery binary"
+            echo "ERROR: Checksum mismatch for mql binary"
             echo "Expected: $expected_checksum"
             echo "Actual: $actual_checksum"
             exit 1
           fi
-          echo "✓ cnquery checksum validated successfully"
+          echo "✓ mql checksum validated successfully"
 
-          # Extract and cleanup cnquery
-          if ! unzip cnquery_${VERSION}_windows_${{ matrix.arch }}.zip; then
-            echo "ERROR: Failed to extract cnquery binary"
+          # Extract and cleanup mql
+          if ! unzip mql_${VERSION}_windows_${{ matrix.arch }}.zip; then
+            echo "ERROR: Failed to extract mql binary"
             exit 1
           fi
-          rm cnquery_${VERSION}_windows_${{ matrix.arch }}.zip cnquery_v${VERSION}_SHA256SUMS
+          rm mql_${VERSION}_windows_${{ matrix.arch }}.zip mql_v${VERSION}_SHA256SUMS
 
           echo "Successfully downloaded and extracted binaries:"
           ls -lh
@@ -256,9 +256,10 @@ jobs:
         run: |
           $mondooVersion = ${env:VERSION}
           echo "Running build job for version ${mondooVersion}"
-          Copy-Item .\dist\${{ matrix.arch }}\cnquery.exe .\packages\msi\msi\
+          Copy-Item .\dist\${{ matrix.arch }}\mql.exe .\packages\msi\msi\
           Copy-Item .\dist\${{ matrix.arch }}\cnspec.exe .\packages\msi\msi\
-          Copy-Item .\dist\${{ matrix.arch }}\cnquery.exe .\packages\msi\appx\
+          Copy-Item .\dist\${{ matrix.arch }}\cnspec.exe .\packages\msi\msi\cnquery.exe
+          Copy-Item .\dist\${{ matrix.arch }}\mql.exe .\packages\msi\appx\
           Copy-Item .\dist\${{ matrix.arch }}\cnspec.exe .\packages\msi\appx\
           # build msi package
           echo " - Packaging MSI..."
@@ -299,7 +300,7 @@ jobs:
       - name: Cleanup dist before upload
         run: |
           Copy-Item '.\packages\msi\mondoo_${{ matrix.arch }}.msi' '.\dist\${{ matrix.arch }}'
-          Remove-Item -Path .\dist\${{ matrix.arch }}\cnquery.exe -Force
+          Remove-Item -Path .\dist\${{ matrix.arch }}\mql.exe -Force
           Remove-Item -Path .\dist\${{ matrix.arch }}\cnspec.exe -Force
 
       - name: Upload Distribution
@@ -388,17 +389,17 @@ jobs:
           $msiexec.WaitForExit() 
           $gci.Kill()
           gci
-      - name: Verify the correct cnquery version is installed
+      - name: Verify the correct mql version is installed
         run: |
-          $version=& 'C:\Program Files\Mondoo\cnquery.exe' version
+          $version=& 'C:\Program Files\Mondoo\mql.exe' version
           Write-Output "comparing $version -like '*${{ inputs.version }}*'"
           $match=$version -like "*${{ inputs.version }}*"
           if (-not $match) {
             exit 1
           }
-      - name: Run a basic cnquery sanity check
+      - name: Run a basic mql sanity check
         run: |
-          & 'C:\Program Files\Mondoo\cnquery.exe' run -c "os.base.packages.where(name == 'Mondoo') { name }"
+          & 'C:\Program Files\Mondoo\mql.exe' run -c "os.base.packages.where(name == 'Mondoo') { name }"
       - name: Verify the correct cnspec version is installed
         run: |
           $version=& 'C:\Program Files\Mondoo\cnspec.exe' version
@@ -420,6 +421,14 @@ jobs:
       - name: Logout from edge with cnspec
         run: |
           & 'C:\Program Files\Mondoo\cnspec.exe' logout --config C:\ProgramData\Mondoo\mondoo.yml --force
+      - name: Verify cnquery.exe points to cnspec (backward compat)
+        run: |
+          $version=& 'C:\Program Files\Mondoo\cnquery.exe' version
+          Write-Output "comparing $version -like '*${{ inputs.version }}*'"
+          $match=$version -like "*${{ inputs.version }}*"
+          if (-not $match) {
+            exit 1
+          }
 
   publish:
     name: "Publish: Releases"

@@ -8,14 +8,14 @@
 
 # Quick reference
 
-* Basic use: ```docker run mondoo/cnquery <args>```
-* Source Code: https://github.com/mondoohq/cnquery
+* Basic use: ```docker run mondoo/mql <args>```
+* Source Code: https://github.com/mondoohq/mql
 * Release Notes: https://mondoo.com/docs/releases/
-* Documentation: [mondoo.com/docs/cnquery/](https://mondoo.com/docs/cnquery/)
+* Documentation: [mondoo.com/docs/mql/](https://mondoo.com/docs/mql/)
 * Where to get help: [Mondoo Community GitHub Discussions](https://github.com/orgs/mondoohq/discussions)
-* Dockerfile Source: https://github.com/mondoohq/cnquery/blob/main/Dockerfile
-* Where to file issues: https://github.com/mondoohq/cnquery/issues
-* Binary Downloads (Non-Container):  https://releases.mondoo.com/cnquery/
+* Dockerfile Source: https://github.com/mondoohq/mql/blob/main/Dockerfile
+* Where to file issues: https://github.com/mondoohq/mql/issues
+* Binary Downloads (Non-Container):  https://releases.mondoo.com/mql/
 * Supported Architectures: `amd64`, `i386`, `arm32v6`, `arm32v7`, and `arm64`
 
 # Supported tags

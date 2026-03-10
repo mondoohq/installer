@@ -29,7 +29,7 @@ echo "Packaging Release ${VERSION}: ${TIME}"
 
 ###############################################################################################################
 # Pull Latest Binaries & Create Universal Binaries
-for DIST in cnquery cnspec; do
+for DIST in mql cnspec; do
   cd $BLDDIR || return
 
   mkdir -p dist/${DIST}
@@ -57,6 +57,9 @@ for DIST in cnquery cnspec; do
   mkdir -p ${BLDDIR}/packages/macos/packager/application/bin/
   cp ${DIST} ${BLDDIR}/packages/macos/packager/application/bin/
 done
+
+echo "Creating cnquery symlink pointing to cnspec..."
+ln -sf cnspec ${BLDDIR}/packages/macos/packager/application/bin/cnquery
 
 ###############################################################################################################
 echo "Building Package...."

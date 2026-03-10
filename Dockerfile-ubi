@@ -10,19 +10,19 @@ ARG TARGETOS
 ARG TARGETARCH
 ARG TARGETVARIANT
 
-ARG CNQUERY_BASEURL="https://releases.mondoo.com/cnquery/${VERSION}"
-ARG CNQUERY_PACKAGE="cnquery_${VERSION}_${TARGETOS}_${TARGETARCH}${TARGETVARIANT}.tar.gz"
+ARG MQL_BASEURL="https://releases.mondoo.com/mql/${VERSION}"
+ARG MQL_PACKAGE="mql_${VERSION}_${TARGETOS}_${TARGETARCH}${TARGETVARIANT}.tar.gz"
 ARG CNSPEC_BASEURL="https://releases.mondoo.com/cnspec/${VERSION}"
 ARG CNSPEC_PACKAGE="cnspec_${VERSION}_${TARGETOS}_${TARGETARCH}${TARGETVARIANT}.tar.gz"
 
 RUN microdnf upgrade -y &&\
     microdnf install wget tar gzip -y &&\
-    wget --quiet --output-document=SHA256SUMS ${CNQUERY_BASEURL}/cnquery_v${VERSION}_SHA256SUMS &&\
-    wget --quiet --output-document=${CNQUERY_PACKAGE} ${CNQUERY_BASEURL}/${CNQUERY_PACKAGE} &&\
-    cat SHA256SUMS | grep "${CNQUERY_PACKAGE}" | sha256sum -c - &&\
-    tar -xzC /usr/local/bin -f ${CNQUERY_PACKAGE} &&\
-    /usr/local/bin/cnquery version &&\
-    rm -f ${CNQUERY_PACKAGE} SHA256SUMS &&\
+    wget --quiet --output-document=SHA256SUMS ${MQL_BASEURL}/mql_v${VERSION}_SHA256SUMS &&\
+    wget --quiet --output-document=${MQL_PACKAGE} ${MQL_BASEURL}/${MQL_PACKAGE} &&\
+    cat SHA256SUMS | grep "${MQL_PACKAGE}" | sha256sum -c - &&\
+    tar -xzC /usr/local/bin -f ${MQL_PACKAGE} &&\
+    /usr/local/bin/mql version &&\
+    rm -f ${MQL_PACKAGE} SHA256SUMS &&\
     wget --quiet --output-document=SHA256SUMS ${CNSPEC_BASEURL}/cnspec_v${VERSION}_SHA256SUMS &&\
     wget --quiet --output-document=${CNSPEC_PACKAGE} ${CNSPEC_BASEURL}/${CNSPEC_PACKAGE} &&\
     cat SHA256SUMS | grep "${CNSPEC_PACKAGE}" | sha256sum -c - &&\

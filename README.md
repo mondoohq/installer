@@ -1,7 +1,7 @@
 # Overview
 
 - [Installation](#installation)
-  - [cnquery](#cnquery)
+  - [mql](#mql)
   - [cnspec](#cnspec)
 - [Scan your target platform](#scan-your-target-platform)
 - [Package Information](#package-information)
@@ -18,7 +18,7 @@
 
 ## Installation
 
-The easiest way to install `cnquery` & `cnspec` is to use the install scripts.
+The easiest way to install `mql` & `cnspec` is to use the install scripts.
 
 ### via Shell Script (Linux and macOS)
 
@@ -45,7 +45,7 @@ Scan your [target platform](https://github.com/mondoohq/cnspec/#supported-target
 
 ```bash
 # query system information with incident and inventory query pack
-cnquery scan aws
+mql scan aws
 # scan the platform for security vulnerabilities
 cnspec scan aws
 ```
@@ -56,7 +56,7 @@ Sign up for a Mondoo account to access more policies and store reports. To learn
 cnspec login -t 'eyJh...llZ4BW'
 ```
 
-cnquery & cnspec support local and remote targets, including servers (Linux, Windows, macOS), Cloud (AWS, Azure, Google, VMware), Kubernetes (EKS, GKE, AKS, self-managed), containers, container registries, SaaS products (Google Workspace, M365, GitHub, GitLab), and more.
+mql & cnspec support local and remote targets, including servers (Linux, Windows, macOS), Cloud (AWS, Azure, Google, VMware), Kubernetes (EKS, GKE, AKS, self-managed), containers, container registries, SaaS products (Google Workspace, M365, GitHub, GitLab), and more.
 
 Run a scan:
 
@@ -150,19 +150,19 @@ To browse all releases, please visit [https://releases.mondoo.com](https://relea
 
 **Install Scripts Sources**
 
-- [install.sh](https://github.com/mondoohq/installer/blob/main/install.sh) - `cnquery` & `cnspec` Bash Installer
-- [download.sh](https://github.com/mondoohq/installer/blob/main/download.sh) - `cnquery` & `cnspec` Bash Binary Downloader
-- [install.ps1](https://github.com/mondoohq/installer/blob/main/install.ps1) - `cnquery` & `cnspec` PowerShell Installer
-- [download.ps1](https://github.com/mondoohq/installer/blob/main/download.ps1) - `cnquery` & `cnspec` PowerShell Binary Downloader
+- [install.sh](https://github.com/mondoohq/installer/blob/main/install.sh) - `mql` & `cnspec` Bash Installer
+- [download.sh](https://github.com/mondoohq/installer/blob/main/download.sh) - `mql` & `cnspec` Bash Binary Downloader
+- [install.ps1](https://github.com/mondoohq/installer/blob/main/install.ps1) - `mql` & `cnspec` PowerShell Installer
+- [download.ps1](https://github.com/mondoohq/installer/blob/main/download.ps1) - `mql` & `cnspec` PowerShell Binary Downloader
 
 **Config Management**
 
-- [cnquery & cnspec Ansible Role](https://github.com/mondoohq/ansible-mondoo)
-- [cnquery & cnspec Chef Cookbook](https://github.com/mondoohq/chef-mondoo)
+- [mql & cnspec Ansible Role](https://github.com/mondoohq/ansible-mondoo)
+- [mql & cnspec Chef Cookbook](https://github.com/mondoohq/chef-mondoo)
 
 **Docker Containers**
 
-- [https://hub.docker.com/r/mondoo/cnquery](https://hub.docker.com/r/mondoo/cnquery)
+- [https://hub.docker.com/r/mondoo/mql](https://hub.docker.com/r/mondoo/mql)
 - [https://hub.docker.com/r/mondoo/cnspec](https://hub.docker.com/r/mondoo/cnspec)
 
 **Releases**
@@ -183,7 +183,7 @@ Mondoo signs Microsoft Windows executables, PowerShell scripts, Linux packages a
 
 Since the `11.66.1` release, we have adopted [Azure Trusted Signing](https://learn.microsoft.com/en-us/azure/trusted-signing/overview), which provides short-lived code signing certificates that rotate approximately every 72 hours. This means the certificate thumbprint will differ between releases and cannot be used as a reliable method of validation.
 
-To verify the integrity of the `cnquery` or `cnspec` executable, please use Microsoft's `Get-AuthenticodeSignature` PowerShell command and verify the **signature status** is `Valid`.  Additionally the **Signer (Subject)** is: `CN=Mondoo, Inc.` and the **Issuer** is: `CN=Microsoft ID Verified CS EOC CA 01, O=Microsoft Corporation, C=US`
+To verify the integrity of the `mql` or `cnspec` executable, please use Microsoft's `Get-AuthenticodeSignature` PowerShell command and verify the **signature status** is `Valid`.  Additionally the **Signer (Subject)** is: `CN=Mondoo, Inc.` and the **Issuer** is: `CN=Microsoft ID Verified CS EOC CA 01, O=Microsoft Corporation, C=US`
 
 ```powershell
 $file = ".\mondoo_11.66.1_windows_amd64.msi"
@@ -214,7 +214,7 @@ Prior to version `11.66.1`, we used DigiCert to sign our Microsoft releases. The
 
 ### Apple macOS
 
-To verify the integrity of the `cnquery` or `cnspec` executable, please use Apple's codesign utility and compare the TeamIdentifier field, which should match the one below.
+To verify the integrity of the `mql` or `cnspec` executable, please use Apple's codesign utility and compare the TeamIdentifier field, which should match the one below.
 
 ```bash
 codesign --verify -d --verbose=2 /usr/local/bin/cnspec

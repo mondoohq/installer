@@ -9,7 +9,7 @@
     # [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex (new-object net.webclient).downloadstring('https://mondoo.com/download.ps1')
 
     .PARAMETER Product
-    Set 'cnspec' (default) to download and extract the 'zip', possible values: 'cnquery', 'cnspec', 'mondoo'
+    Set 'cnspec' (default) to download and extract the 'zip', possible values: 'mql', 'cnspec', 'mondoo'
     .PARAMETER Version
     If provided, tries to download the specific version instead of the latest
     .EXAMPLE

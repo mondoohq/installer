@@ -39,6 +39,10 @@
 
       </Component>
 
+      <Component Id="mql" Win64="yes" Directory="INSTALLLOCATION">
+        <File Id="mqlEXE" Source="mql.exe" />
+      </Component>
+
       <Component Id="cnquery" Win64="yes" Directory="INSTALLLOCATION">
         <File Id="cnqueryEXE" Source="cnquery.exe" />
       </Component>

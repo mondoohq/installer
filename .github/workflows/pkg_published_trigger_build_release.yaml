@@ -121,7 +121,7 @@ jobs:
             installer
             releasr
             cnspec
-            cnquery
+            mql
       - name: Converge Inputs
         id: inputs
         run: |
@@ -147,14 +147,14 @@ jobs:
       - name: Make releasr executable
         run: |
           chmod +x releasr
-      - name: Release cnspec & cnquery binaries
+      - name: Release cnspec & mql binaries
         env:
           TOKEN: ${{ steps.auth.outputs.id_token }}
           BUCKETNAME: ${{ needs.parse-inputs.outputs.bucket }}
           GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
           SKIP: ${{ (needs.parse-inputs.outputs.skip-publish == 'true') && 'echo skipping...' || '' }}
         run: |
-          $SKIP ./releasr release cp  https://github.com/mondoohq/cnquery/releases/tag/v${{ needs.parse-inputs.outputs.version }} gs://${{ needs.parse-inputs.outputs.bucket }}
+          $SKIP ./releasr release cp  https://github.com/mondoohq/mql/releases/tag/v${{ needs.parse-inputs.outputs.version }} gs://${{ needs.parse-inputs.outputs.bucket }}
           $SKIP ./releasr release cp  https://github.com/mondoohq/cnspec/releases/tag/v${{ needs.parse-inputs.outputs.version }} gs://${{ needs.parse-inputs.outputs.bucket }}
       - name: "Remove Artifacts.json & Index.html from path (Optional)"
         env:

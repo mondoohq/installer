@@ -24,18 +24,18 @@ jobs:
       continue-on-error: true
       run: |
         python test/releases/validate_release.py mondoo && echo "mondoo_status=$?" >> $GITHUB_ENV || echo "mondoo_status=$?" >> $GITHUB_ENV
-    - name: Validate cnquery releases
-      id: cnquery
+    - name: Validate mql releases
+      id: mql
       continue-on-error: true
       run: |
-        python test/releases/validate_release.py cnquery && echo "cnquery_status=$?" >> $GITHUB_ENV || echo "cnquery_status=$?" >> $GITHUB_ENV
+        python test/releases/validate_release.py mql && echo "mql_status=$?" >> $GITHUB_ENV || echo "mql_status=$?" >> $GITHUB_ENV
     - name: Validate cnspec releases
       id: cnspec
       continue-on-error: true
       run: |
         python test/releases/validate_release.py cnspec && echo "cnspec_status=$?" >> $GITHUB_ENV || echo "cnspec_status=$?" >> $GITHUB_ENV
     - name: Send Slack notification on failure
-      if: env.mondoo_status != '0' || env.cnquery_status != '0' || env.cnspec_status != '0'
+      if: env.mondoo_status != '0' || env.mql_status != '0' || env.cnspec_status != '0'
       uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a # v2.1.1
       with:
         method: chat.postMessage
@@ -63,7 +63,7 @@ jobs:
                 "type": "section",
                 "text": {
                   "type": "mrkdwn",
-                  "text": "${{ env.mondoo_status != '0' && '*Mondoo:* ❌ Failed\n' || '*Mondoo:* ✅ Passed\n' }}${{ env.cnquery_status != '0' && '*cnquery:* ❌ Failed\n' || '*cnquery:* ✅ Passed\n' }}${{ env.cnspec_status != '0' && '*cnspec:* ❌ Failed' || '*cnspec:* ✅ Passed' }}"
+                  "text": "${{ env.mondoo_status != '0' && '*Mondoo:* ❌ Failed\n' || '*Mondoo:* ✅ Passed\n' }}${{ env.mql_status != '0' && '*mql:* ❌ Failed\n' || '*mql:* ✅ Passed\n' }}${{ env.cnspec_status != '0' && '*cnspec:* ❌ Failed' || '*cnspec:* ✅ Passed' }}"
                 }
               },
               {
@@ -79,5 +79,5 @@ jobs:
             ]
           }
     - name: Final status check
-      if: env.mondoo_status != '0' || env.cnquery_status != '0' || env.cnspec_status != '0'
+      if: env.mondoo_status != '0' || env.mql_status != '0' || env.cnspec_status != '0'
       run: exit 1

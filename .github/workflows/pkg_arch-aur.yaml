@@ -44,16 +44,16 @@ jobs:
       - name: 'DEBUG: Show generated package versions'
         run: |
           cd packages/archlinux
-          echo "cnquery: $(grep orignalVersion= cnquery/PKGBUILD)"
+          echo "mql: $(grep orignalVersion= mql/PKGBUILD)"
           echo "cnspec: $(grep orignalVersion= cnspec/PKGBUILD)"
           echo "mondoo: $(grep orignalVersion= mondoo/PKGBUILD)"
-      - name: Publish cnquery AUR package
+      - name: Publish mql AUR package
         if: ${{ !inputs.skip }}
         continue-on-error: true
         uses: KSXGitHub/github-actions-deploy-aur@2ac5a4c1d7035885d46b10e3193393be8460b6f1 # v4.1.1
         with:
-          pkgname: cnquery
-          pkgbuild: packages/archlinux/cnquery/PKGBUILD
+          pkgname: mql
+          pkgbuild: packages/archlinux/mql/PKGBUILD
           commit_username: ${{ secrets.AUR_USERNAME }}
           commit_email: ${{ secrets.AUR_EMAIL }}
           ssh_private_key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
