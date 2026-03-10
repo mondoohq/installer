@@ -35,6 +35,8 @@ Architecture: all
 Maintainer: Mondoo <hello@mondoo.com>
 Description: Mondoo Metapackage for cnspec and mql
 Depends: cnspec (>= ${DEB_VERSION})
+Conflicts: cnquery
+Replaces: cnquery
 Installed-Size: 261 B
 EOF
 

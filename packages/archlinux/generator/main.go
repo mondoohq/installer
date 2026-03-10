@@ -96,6 +96,11 @@ var products = map[string]Product{
 		License:        "BUSL-1.1",
 		BinFile:        true,
 		CnquerySymlink: true,
+		Conflicts:      []string{"cnquery"},
+		Replaces:       []string{"cnquery"},
+		Depends: []string{
+			"mql",
+		},
 	},
 }
 

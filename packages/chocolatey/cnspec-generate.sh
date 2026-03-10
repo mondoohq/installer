@@ -23,6 +23,9 @@ cat >cnspec.nuspec <<NUSPEC
     <owners>Mondoo</owners>
 
     <title>Mondoo cnspec</title>
+    <dependencies>
+      <dependency id="mql" />
+    </dependencies>
     <authors>Mondoo</authors>
     <projectUrl>https://github.com/mondoohq/cnspec</projectUrl>
     <iconUrl>https://mondoo.com/mondoo_choco_logo.jpg</iconUrl>
@@ -64,6 +67,15 @@ cat >tools/chocolateyInstall.ps1 <<CHOCOSTALL
 \$version  = '${VERSION}'
 \$url      = "https://releases.mondoo.com/cnspec/${VERSION}/cnspec_${VERSION}_windows_amd64.zip"
 \$checksum = '${CHECKSUM}'
+
+# Remove conflicting cnquery package if installed (cnspec v13+ provides cnquery)
+if (Get-Command choco -ErrorAction SilentlyContinue) {
+  \$installed = choco list --local-only --exact cnquery 2>\$null
+  if (\$installed -match 'cnquery') {
+    Write-Host "Removing conflicting package 'cnquery'..."
+    choco uninstall cnquery -y --force
+  }
+}
 
 \$packageArgs = @{
   packageName   = \$env:ChocolateyPackageName
