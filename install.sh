@@ -74,9 +74,11 @@ print_usage() {
   echo "    -a <annotation>:    Set annotations as key/value pairs (e.g., foo=bar,biz=bap)." >&2
   echo "                        Adds these annotations to the mondoo.yml. (default [])" >&2
   echo "    -p <providers_url>: Set custom URL where providers are downloaded from." >&2
+  echo "    -v <version>:       Install a specific version (e.g., 12.0.0)." >&2
+  echo "                        Default installs the latest version" >&2
 }
 
-while getopts 'i:s:u:vt:vr:y:n:a:p:' flag; do
+while getopts 'i:s:u:t:r:y:n:a:p:v:' flag; do
   case "${flag}" in
     i) MONDOO_INSTALLER="${OPTARG}" ;;
     s) MONDOO_SERVICE="${OPTARG}" ;;
@@ -87,6 +89,7 @@ while getopts 'i:s:u:vt:vr:y:n:a:p:' flag; do
     n) NAME="${OPTARG}" ;;
     a) ANNOTATION="${OPTARG}" ;;
     p) PROVIDERS_URL="${OPTARG}" ;;
+    v) MONDOO_VERSION="${OPTARG}" ;;
     *) print_usage
        exit 1 ;;
   esac
@@ -243,8 +246,13 @@ detect_portable() {
   fi
 }
 
-detect_latest_version() {
-  MONDOO_LATEST_VERSION="$(curl https://releases.mondoo.com/${MONDOO_PKG_NAME}/ 2>/dev/null | grep -Eo 'href="[[:alnum:]]+\.[[:alnum:]]+\.[[:alnum:]]+' | head -n1 | sed 's/href="//')"
+detect_target_version() {
+  # Use MONDOO_VERSION if set via -v flag, otherwise detect the latest
+  if [ -n "${MONDOO_VERSION}" ]; then
+    MONDOO_TARGET_VERSION="${MONDOO_VERSION}"
+  else
+    MONDOO_TARGET_VERSION="$(curl https://releases.mondoo.com/${MONDOO_PKG_NAME}/ 2>/dev/null | grep -Eo 'href="[[:alnum:]]+\.[[:alnum:]]+\.[[:alnum:]]+' | head -n1 | sed 's/href="//')"
+  fi
 }
 
 install_portable() {
@@ -278,10 +286,10 @@ install_portable() {
     ;;
   esac
 
-  detect_latest_version
+  detect_target_version
 
-  FILE="${MONDOO_BINARY}_${MONDOO_LATEST_VERSION}_${SYSTEM}_${ARCH}.tar.gz"
-  URL="https://releases.mondoo.com/${MONDOO_BINARY}/${MONDOO_LATEST_VERSION}/${FILE}"
+  FILE="${MONDOO_BINARY}_${MONDOO_TARGET_VERSION}_${SYSTEM}_${ARCH}.tar.gz"
+  URL="https://releases.mondoo.com/${MONDOO_BINARY}/${MONDOO_TARGET_VERSION}/${FILE}"
 
   echo "Downloading the latest version of ${MONDOO_PRODUCT_NAME} from: $URL"
   curl -A "${UserAgent}" "${URL}" | tar xz
@@ -338,11 +346,11 @@ configure_macos_installer() {
 
   elif [ "${MONDOO_INSTALLER}" == "pkg" ]; then
     mondoo_install() {
-      detect_latest_version
-      if [[ "${CURRENT_VERSION}" != "${MONDOO_LATEST_VERSION}" ]]
+      detect_target_version
+      if [[ "${CURRENT_VERSION}" != "${MONDOO_TARGET_VERSION}" ]]
       then
-        FILE="${MONDOO_PKG_NAME}_${MONDOO_LATEST_VERSION}_darwin_universal.pkg"
-        URL="https://releases.mondoo.com/${MONDOO_PKG_NAME}/${MONDOO_LATEST_VERSION}/${FILE}"
+        FILE="${MONDOO_PKG_NAME}_${MONDOO_TARGET_VERSION}_darwin_universal.pkg"
+        URL="https://releases.mondoo.com/${MONDOO_PKG_NAME}/${MONDOO_TARGET_VERSION}/${FILE}"
 
         purple_bold "\n* Downloading ${MONDOO_PRODUCT_NAME} Universal Package for Mac"
         curl -A "${UserAgent}" -s "${URL}" -o "/tmp/${FILE}"
@@ -459,6 +467,8 @@ configure_debian_installer() {
     }
 
     mondoo_update() {
+      # Ensure gnupg is installed (needed for apt_update to import GPG key)
+      sudo_cmd apt update -y && sudo_cmd apt install -y gnupg
       # Always update GPG Key & Apt Source for Freshness
       apt_update
       sudo_cmd apt update -y && TERM=dumb sudo_cmd apt --only-upgrade install -y ${MONDOO_PKG_NAME}

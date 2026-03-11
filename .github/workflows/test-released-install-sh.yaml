@@ -1,6 +1,18 @@
 name: "Test Release: install.sh"
 
 on:
+  pull_request:
+    paths:
+      - 'install.sh'
+      - 'test/auto_update/**'
+      - '.github/workflows/test-released-install-sh.yaml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'install.sh'
+      - 'test/auto_update/**'
+      - '.github/workflows/test-released-install-sh.yaml'
   workflow_call:
     inputs:
       version:
@@ -16,8 +28,34 @@ on:
         default: "11.0.0"
 
 jobs:
+  # Get version - for PR/push triggers, fetch latest; for workflow_call/dispatch, use input
+  get-version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      use_local: ${{ steps.version.outputs.use_local }}
+    steps:
+      - name: Determine version and mode
+        id: version
+        run: |
+          if [ -n "${{ inputs.version }}" ]; then
+            # workflow_call or workflow_dispatch - use provided version, don't use local install.sh
+            VERSION="${{ inputs.version }}"
+            VERSION="${VERSION#v}"
+            echo "version=${VERSION}" >> $GITHUB_OUTPUT
+            echo "use_local=false" >> $GITHUB_OUTPUT
+          else
+            # PR or push trigger - fetch latest stable version, use local install.sh
+            VERSION=$(curl -sSL https://releases.mondoo.com/mql/latest.json | jq -r '.version')
+            echo "version=${VERSION}" >> $GITHUB_OUTPUT
+            echo "use_local=true" >> $GITHUB_OUTPUT
+          fi
+
   wait-for-pkg:
     runs-on: ubuntu-latest
+    needs: get-version
+    # Only wait for packages on release tests (workflow_call/dispatch), not PR/push
+    if: ${{ needs.get-version.outputs.use_local != 'true' }}
     steps:
       - name: Wait for packages to be published (Release Event)
         id: check_release_file
@@ -29,8 +67,7 @@ jobs:
           retry_on: error
           # error on HTTP code different to 200
           command: |
-            vSEMVER=${{ inputs.version }}
-            SEMVER="${vSEMVER//v}"
+            SEMVER="${{ needs.get-version.outputs.version }}"
 
             # Clear cache before checking (ignore failures)
             echo "Clearing minstaller's cache..."
@@ -49,7 +86,9 @@ jobs:
 
   install-sh-apt:
     runs-on: ubuntu-latest
-    needs: wait-for-pkg
+    needs: [get-version, wait-for-pkg]
+    # Run if wait-for-pkg succeeded OR was skipped (PR/push triggers)
+    if: ${{ always() && (needs.wait-for-pkg.result == 'success' || needs.wait-for-pkg.result == 'skipped') }}
     strategy:
       fail-fast: false
       matrix:
@@ -65,23 +104,18 @@ jobs:
           ]
     steps:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
-      - name: Version
-        id: version
-        run: |
-          V=${{ inputs.version }}
-          VERSION=$(echo $V | sed 's/^v//')
-          echo "version=${VERSION}" >> $GITHUB_OUTPUT
       - name: Install.sh/${{ matrix.package }} on ${{ matrix.distro }}
         run: |
           docker run --rm -v $(pwd):/work -w /work ${{ matrix.distro }} \
           bash -c "apt-get update && apt-get install -y curl && \
             curl -sSL https://install.mondoo.com/sh/${{ matrix.package }} | bash -x - && \
-            ${{ matrix.package }} version | grep -q ${{ steps.version.outputs.version }} && \
-            if [ '${{ matrix.package }}' = 'cnspec' ]; then cnquery version | grep -q ${{ steps.version.outputs.version }}; fi"
+            ${{ matrix.package }} version | grep -q ${{ needs.get-version.outputs.version }} && \
+            if [ '${{ matrix.package }}' = 'cnspec' ]; then cnquery version | grep -q ${{ needs.get-version.outputs.version }}; fi"
 
   install-sh-yum:
     runs-on: ubuntu-latest
-    needs: wait-for-pkg
+    needs: [get-version, wait-for-pkg]
+    if: ${{ always() && (needs.wait-for-pkg.result == 'success' || needs.wait-for-pkg.result == 'skipped') }}
     strategy:
       fail-fast: false
       matrix:
@@ -102,22 +136,17 @@ jobs:
         ## Note: centos:8 is obsoleted by Centos Stream 9 and EOL, do not use, refer to https://www.centos.org/centos-linux-eol/
     steps:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
-      - name: Version
-        id: version
-        run: |
-          V=${{ inputs.version }}
-          VERSION=$(echo $V | sed 's/^v//')
-          echo "version=${VERSION}" >> $GITHUB_OUTPUT
       - name: Install.sh/${{ matrix.package }} on ${{ matrix.distro }}
         run: |
           docker run --rm -v $(pwd):/work -w /work ${{ matrix.distro }} \
           bash -c "curl -sSL https://install.mondoo.com/sh/${{ matrix.package }} | bash - && \
-            ${{ matrix.package }} version | grep -q ${{ steps.version.outputs.version }} && \
-            if [ '${{ matrix.package }}' = 'cnspec' ]; then cnquery version | grep -q ${{ steps.version.outputs.version }}; fi"
+            ${{ matrix.package }} version | grep -q ${{ needs.get-version.outputs.version }} && \
+            if [ '${{ matrix.package }}' = 'cnspec' ]; then cnquery version | grep -q ${{ needs.get-version.outputs.version }}; fi"
 
   install-sh-zypper:
     runs-on: ubuntu-latest
-    needs: wait-for-pkg
+    needs: [get-version, wait-for-pkg]
+    if: ${{ always() && (needs.wait-for-pkg.result == 'success' || needs.wait-for-pkg.result == 'skipped') }}
     strategy:
       fail-fast: false
       matrix:
@@ -128,157 +157,89 @@ jobs:
           ]
     steps:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
-      - name: Version
-        id: version
-        run: |
-          V=${{ inputs.version }}
-          VERSION=$(echo $V | sed 's/^v//')
-          echo "version=${VERSION}" >> $GITHUB_OUTPUT
       - name: Install.sh/${{ matrix.package }} on ${{ matrix.distro }}
         run: |
           docker run --rm -v $(pwd):/work -w /work ${{ matrix.distro }} \
           bash -c "zypper -n install curl && \
             curl -sSL https://install.mondoo.com/sh/${{ matrix.package }} | bash - && \
-            ${{ matrix.package }} version | grep -q ${{ steps.version.outputs.version }} && \
-            if [ '${{ matrix.package }}' = 'cnspec' ]; then cnquery version | grep -q ${{ steps.version.outputs.version }}; fi"
+            ${{ matrix.package }} version | grep -q ${{ needs.get-version.outputs.version }} && \
+            if [ '${{ matrix.package }}' = 'cnspec' ]; then cnquery version | grep -q ${{ needs.get-version.outputs.version }}; fi"
 
   install-sh-macos:
     runs-on: macos-latest
-    needs: wait-for-pkg
+    needs: [get-version, wait-for-pkg]
+    if: ${{ always() && (needs.wait-for-pkg.result == 'success' || needs.wait-for-pkg.result == 'skipped') }}
     strategy:
       matrix:
         os: ["macos-latest"]
         package: ["cnspec", "mql"]
     steps:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
-      - name: Version
-        id: version
-        run: |
-          V=${{ inputs.version }}
-          VERSION=$(echo $V | sed 's/^v//')
-          echo "version=${VERSION}" >> $GITHUB_OUTPUT
       - name: Install.sh/${{ matrix.package }} on ${{ matrix.os }}
         run: |
           bash -c "$(curl -sSL https://install.mondoo.com/sh/${{ matrix.package }})"
           ${{ matrix.package }} version
       - name: Verify the correct version is installed
         run: |
-          ${{ matrix.package }} version | grep -q ${{ steps.version.outputs.version }}
+          ${{ matrix.package }} version | grep -q ${{ needs.get-version.outputs.version }}
       - name: Verify cnquery symlink points to cnspec (cnspec only)
         if: matrix.package == 'cnspec'
         run: |
-          cnquery version | grep -q ${{ steps.version.outputs.version }}
+          cnquery version | grep -q ${{ needs.get-version.outputs.version }}
 
   upgrade-from-cnquery-apt:
+    name: Upgrade cnquery -> mql (apt)
     runs-on: ubuntu-latest
-    needs: wait-for-pkg
+    needs: [get-version, wait-for-pkg]
+    if: ${{ always() && (needs.wait-for-pkg.result == 'success' || needs.wait-for-pkg.result == 'skipped') }}
     strategy:
       fail-fast: false
       matrix:
-        distro:
-          [
-            "debian:11",
-            "debian:12",
-            "ubuntu:20.04",
-            "ubuntu:22.04",
-            "ubuntu:24.04",
-          ]
+        distro: ["debian:11", "debian:12", "debian:13", "ubuntu:20.04", "ubuntu:22.04", "ubuntu:24.04"]
     steps:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
-      - name: Version
-        id: version
-        run: |
-          V=${{ inputs.version }}
-          VERSION=$(echo $V | sed 's/^v//')
-          echo "version=${VERSION}" >> $GITHUB_OUTPUT
       - name: Upgrade cnquery -> mql on ${{ matrix.distro }}
         run: |
-          docker run --rm -v $(pwd):/work -w /work ${{ matrix.distro }} \
-          bash -c "set -e && \
-            echo '==> Installing curl...' && \
-            apt-get update && apt-get install -y curl && \
-            echo '==> Installing cnquery...' && \
-            curl -sSL https://install.mondoo.com/sh/cnquery | bash -x - && \
-            echo '==> Verifying cnquery is installed...' && \
-            dpkg -l cnquery && \
-            echo '==> Installing mql (should replace cnquery)...' && \
-            curl -sSL https://install.mondoo.com/sh/mql | bash -x - && \
-            echo '==> Verifying mql version...' && \
-            mql version | grep -q ${{ steps.version.outputs.version }} && \
-            echo '==> Verifying cnquery was removed...' && \
-            if dpkg -l 2>/dev/null | awk '/^ii/{print \$2}' | grep -qx cnquery; then echo 'ERROR: cnquery should have been removed but is still installed'; exit 1; fi && \
-            echo '==> SUCCESS: cnquery was properly replaced by mql'"
+          PYTHONPATH=test python3 -m auto_update \
+            --install-version "${{ needs.get-version.outputs.version }}" \
+            --distro "${{ matrix.distro }}" \
+            --install-sh-upgrade-from "12.0.0" \
+            ${{ needs.get-version.outputs.use_local == 'true' && '--use-local-install-sh' || '' }}
 
   upgrade-from-cnquery-yum:
+    name: Upgrade cnquery -> mql (yum)
     runs-on: ubuntu-latest
-    needs: wait-for-pkg
+    needs: [get-version, wait-for-pkg]
+    if: ${{ always() && (needs.wait-for-pkg.result == 'success' || needs.wait-for-pkg.result == 'skipped') }}
     strategy:
       fail-fast: false
       matrix:
-        distro:
-          [
-            "quay.io/centos/centos:stream9",
-            "rockylinux:8",
-            "rockylinux:9",
-            "oraclelinux:8",
-            "oraclelinux:9",
-          ]
+        distro: ["quay.io/centos/centos:stream9", "rockylinux:8", "rockylinux:9", "oraclelinux:8", "oraclelinux:9"]
     steps:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
-      - name: Version
-        id: version
-        run: |
-          V=${{ inputs.version }}
-          VERSION=$(echo $V | sed 's/^v//')
-          echo "version=${VERSION}" >> $GITHUB_OUTPUT
       - name: Upgrade cnquery -> mql on ${{ matrix.distro }}
         run: |
-          docker run --rm -v $(pwd):/work -w /work ${{ matrix.distro }} \
-          bash -c "set -e && \
-            echo '==> Installing cnquery...' && \
-            curl -sSL https://install.mondoo.com/sh/cnquery | bash - && \
-            echo '==> Verifying cnquery is installed...' && \
-            rpm -q cnquery && \
-            echo '==> Installing mql (should replace cnquery)...' && \
-            curl -sSL https://install.mondoo.com/sh/mql | bash - && \
-            echo '==> Verifying mql version...' && \
-            mql version | grep -q ${{ steps.version.outputs.version }} && \
-            echo '==> Verifying cnquery was removed...' && \
-            if rpm -q cnquery >/dev/null 2>&1; then echo 'ERROR: cnquery should have been removed but is still installed'; exit 1; fi && \
-            echo '==> SUCCESS: cnquery was properly replaced by mql'"
+          PYTHONPATH=test python3 -m auto_update \
+            --install-version "${{ needs.get-version.outputs.version }}" \
+            --distro "${{ matrix.distro }}" \
+            --install-sh-upgrade-from "12.0.0" \
+            ${{ needs.get-version.outputs.use_local == 'true' && '--use-local-install-sh' || '' }}
 
   upgrade-from-cnquery-zypper:
+    name: Upgrade cnquery -> mql (zypper)
     runs-on: ubuntu-latest
-    needs: wait-for-pkg
+    needs: [get-version, wait-for-pkg]
+    if: ${{ always() && (needs.wait-for-pkg.result == 'success' || needs.wait-for-pkg.result == 'skipped') }}
     strategy:
       fail-fast: false
       matrix:
-        distro:
-          [
-            "registry.suse.com/suse/sle15:15.6",
-          ]
+        distro: ["registry.suse.com/suse/sle15:15.6"]
     steps:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
-      - name: Version
-        id: version
-        run: |
-          V=${{ inputs.version }}
-          VERSION=$(echo $V | sed 's/^v//')
-          echo "version=${VERSION}" >> $GITHUB_OUTPUT
       - name: Upgrade cnquery -> mql on ${{ matrix.distro }}
         run: |
-          docker run --rm -v $(pwd):/work -w /work ${{ matrix.distro }} \
-          bash -c "set -e && \
-            echo '==> Installing curl...' && \
-            zypper -n install curl && \
-            echo '==> Installing cnquery...' && \
-            curl -sSL https://install.mondoo.com/sh/cnquery | bash - && \
-            echo '==> Verifying cnquery is installed...' && \
-            rpm -q cnquery && \
-            echo '==> Installing mql (should replace cnquery)...' && \
-            curl -sSL https://install.mondoo.com/sh/mql | bash - && \
-            echo '==> Verifying mql version...' && \
-            mql version | grep -q ${{ steps.version.outputs.version }} && \
-            echo '==> Verifying cnquery was removed...' && \
-            if rpm -q cnquery >/dev/null 2>&1; then echo 'ERROR: cnquery should have been removed but is still installed'; exit 1; fi && \
-            echo '==> SUCCESS: cnquery was properly replaced by mql'"
+          PYTHONPATH=test python3 -m auto_update \
+            --install-version "${{ needs.get-version.outputs.version }}" \
+            --distro "${{ matrix.distro }}" \
+            --install-sh-upgrade-from "12.0.0" \
+            ${{ needs.get-version.outputs.use_local == 'true' && '--use-local-install-sh' || '' }}
