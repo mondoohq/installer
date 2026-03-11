@@ -194,12 +194,20 @@ jobs:
       - name: Upgrade cnquery -> mql on ${{ matrix.distro }}
         run: |
           docker run --rm -v $(pwd):/work -w /work ${{ matrix.distro }} \
-          bash -c "apt-get update && apt-get install -y curl && \
+          bash -c "set -e && \
+            echo '==> Installing curl...' && \
+            apt-get update && apt-get install -y curl && \
+            echo '==> Installing cnquery...' && \
             curl -sSL https://install.mondoo.com/sh/cnquery | bash -x - && \
+            echo '==> Verifying cnquery is installed...' && \
             dpkg -l cnquery && \
+            echo '==> Installing mql (should replace cnquery)...' && \
             curl -sSL https://install.mondoo.com/sh/mql | bash -x - && \
+            echo '==> Verifying mql version...' && \
             mql version | grep -q ${{ steps.version.outputs.version }} && \
-            ! dpkg -l 2>/dev/null | awk '/^ii/{print \$2}' | grep -qx cnquery"
+            echo '==> Verifying cnquery was removed...' && \
+            if dpkg -l 2>/dev/null | awk '/^ii/{print \$2}' | grep -qx cnquery; then echo 'ERROR: cnquery should have been removed but is still installed'; exit 1; fi && \
+            echo '==> SUCCESS: cnquery was properly replaced by mql'"
 
   upgrade-from-cnquery-yum:
     runs-on: ubuntu-latest
@@ -226,11 +234,18 @@ jobs:
       - name: Upgrade cnquery -> mql on ${{ matrix.distro }}
         run: |
           docker run --rm -v $(pwd):/work -w /work ${{ matrix.distro }} \
-          bash -c "curl -sSL https://install.mondoo.com/sh/cnquery | bash - && \
+          bash -c "set -e && \
+            echo '==> Installing cnquery...' && \
+            curl -sSL https://install.mondoo.com/sh/cnquery | bash - && \
+            echo '==> Verifying cnquery is installed...' && \
             rpm -q cnquery && \
+            echo '==> Installing mql (should replace cnquery)...' && \
             curl -sSL https://install.mondoo.com/sh/mql | bash - && \
+            echo '==> Verifying mql version...' && \
             mql version | grep -q ${{ steps.version.outputs.version }} && \
-            ! rpm -q cnquery"
+            echo '==> Verifying cnquery was removed...' && \
+            if rpm -q cnquery >/dev/null 2>&1; then echo 'ERROR: cnquery should have been removed but is still installed'; exit 1; fi && \
+            echo '==> SUCCESS: cnquery was properly replaced by mql'"
 
   upgrade-from-cnquery-zypper:
     runs-on: ubuntu-latest
@@ -253,9 +268,17 @@ jobs:
       - name: Upgrade cnquery -> mql on ${{ matrix.distro }}
         run: |
           docker run --rm -v $(pwd):/work -w /work ${{ matrix.distro }} \
-          bash -c "zypper -n install curl && \
+          bash -c "set -e && \
+            echo '==> Installing curl...' && \
+            zypper -n install curl && \
+            echo '==> Installing cnquery...' && \
             curl -sSL https://install.mondoo.com/sh/cnquery | bash - && \
+            echo '==> Verifying cnquery is installed...' && \
             rpm -q cnquery && \
+            echo '==> Installing mql (should replace cnquery)...' && \
             curl -sSL https://install.mondoo.com/sh/mql | bash - && \
+            echo '==> Verifying mql version...' && \
             mql version | grep -q ${{ steps.version.outputs.version }} && \
-            ! rpm -q cnquery"
+            echo '==> Verifying cnquery was removed...' && \
+            if rpm -q cnquery >/dev/null 2>&1; then echo 'ERROR: cnquery should have been removed but is still installed'; exit 1; fi && \
+            echo '==> SUCCESS: cnquery was properly replaced by mql'"
