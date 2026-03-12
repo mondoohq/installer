@@ -44,6 +44,7 @@ DISTROS = [
     # DEB-based
     Distro("Debian 11", "debian:11", "apt"),
     Distro("Debian 12", "debian:12", "apt"),
+    Distro("Debian 13", "debian:13", "apt"),
     Distro("Ubuntu 20.04", "ubuntu:20.04", "apt"),
     Distro("Ubuntu 22.04", "ubuntu:22.04", "apt"),
     Distro("Ubuntu 24.04", "ubuntu:24.04", "apt"),
