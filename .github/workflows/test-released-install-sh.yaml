@@ -103,7 +103,7 @@ jobs:
             "ubuntu:24.04",
           ]
     steps:
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - name: Install.sh/${{ matrix.package }} on ${{ matrix.distro }}
         run: |
           docker run --rm -v $(pwd):/work -w /work ${{ matrix.distro }} \
@@ -135,7 +135,7 @@ jobs:
           ]
         ## Note: centos:8 is obsoleted by Centos Stream 9 and EOL, do not use, refer to https://www.centos.org/centos-linux-eol/
     steps:
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - name: Install.sh/${{ matrix.package }} on ${{ matrix.distro }}
         run: |
           docker run --rm -v $(pwd):/work -w /work ${{ matrix.distro }} \
@@ -156,7 +156,7 @@ jobs:
             "registry.suse.com/suse/sle15:15.6",
           ]
     steps:
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - name: Install.sh/${{ matrix.package }} on ${{ matrix.distro }}
         run: |
           docker run --rm -v $(pwd):/work -w /work ${{ matrix.distro }} \
@@ -174,7 +174,7 @@ jobs:
         os: ["macos-latest"]
         package: ["cnspec", "mql"]
     steps:
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - name: Install.sh/${{ matrix.package }} on ${{ matrix.os }}
         run: |
           bash -c "$(curl -sSL https://install.mondoo.com/sh/${{ matrix.package }})"
@@ -197,7 +197,7 @@ jobs:
       matrix:
         distro: ["debian:11", "debian:12", "debian:13", "ubuntu:20.04", "ubuntu:22.04", "ubuntu:24.04"]
     steps:
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - name: Install pytest
         run: pip install pytest
       - name: Upgrade cnquery -> mql on ${{ matrix.distro }}
@@ -218,7 +218,7 @@ jobs:
       matrix:
         distro: ["quay.io/centos/centos:stream9", "rockylinux:8", "rockylinux:9", "oraclelinux:8", "oraclelinux:9"]
     steps:
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - name: Install pytest
         run: pip install pytest
       - name: Upgrade cnquery -> mql on ${{ matrix.distro }}
@@ -239,7 +239,7 @@ jobs:
       matrix:
         distro: ["registry.suse.com/suse/sle15:15.6"]
     steps:
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - name: Install pytest
         run: pip install pytest
       - name: Upgrade cnquery -> mql on ${{ matrix.distro }}
