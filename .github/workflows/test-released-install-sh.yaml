@@ -198,9 +198,11 @@ jobs:
         distro: ["debian:11", "debian:12", "debian:13", "ubuntu:20.04", "ubuntu:22.04", "ubuntu:24.04"]
     steps:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+      - name: Install pytest
+        run: pip install pytest
       - name: Upgrade cnquery -> mql on ${{ matrix.distro }}
         run: |
-          PYTHONPATH=test python3 -m auto_update \
+          pytest test/auto_update/test_install_sh.py -v \
             --install-version "${{ needs.get-version.outputs.version }}" \
             --distro "${{ matrix.distro }}" \
             --install-sh-upgrade-from "12.0.0" \
@@ -217,9 +219,11 @@ jobs:
         distro: ["quay.io/centos/centos:stream9", "rockylinux:8", "rockylinux:9", "oraclelinux:8", "oraclelinux:9"]
     steps:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+      - name: Install pytest
+        run: pip install pytest
       - name: Upgrade cnquery -> mql on ${{ matrix.distro }}
         run: |
-          PYTHONPATH=test python3 -m auto_update \
+          pytest test/auto_update/test_install_sh.py -v \
             --install-version "${{ needs.get-version.outputs.version }}" \
             --distro "${{ matrix.distro }}" \
             --install-sh-upgrade-from "12.0.0" \
@@ -236,9 +240,11 @@ jobs:
         distro: ["registry.suse.com/suse/sle15:15.6"]
     steps:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+      - name: Install pytest
+        run: pip install pytest
       - name: Upgrade cnquery -> mql on ${{ matrix.distro }}
         run: |
-          PYTHONPATH=test python3 -m auto_update \
+          pytest test/auto_update/test_install_sh.py -v \
             --install-version "${{ needs.get-version.outputs.version }}" \
             --distro "${{ matrix.distro }}" \
             --install-sh-upgrade-from "12.0.0" \
