@@ -255,6 +255,17 @@ function Install-Mondoo {
     info ("  Splay:             {0}" -f $Splay)
     info ""
 
+    function Clear-LegacyCnquery {
+      # Remove cnquery if it is installed - it has been superseded by cnspec + mql.
+      # cnquery was only distributed as a zip (never MSI), so we just remove the exe from the install path.
+      $cnqueryExe = Join-Path $Path "cnquery.exe"
+      if (Test-Path $cnqueryExe) {
+        info " * Removing $cnqueryExe - superseded by cnspec and mql"
+        Remove-Item $cnqueryExe -Force -ErrorAction SilentlyContinue
+        success " * cnquery.exe removed"
+      }
+    }
+
     # determine download url
     $filetype = $DownloadType
     # mql and cnspec only ship as zip
@@ -299,6 +310,10 @@ function Install-Mondoo {
     }
 
     If ($filetype -eq 'zip') {
+      # cnspec and mql supersede cnquery - remove it if present
+      If ($Product -in @('cnspec', 'mql')) {
+        Clear-LegacyCnquery
+      }
       If ($version -ne $installed_version.version) {
         info ' * Extracting zip...'
         # remove older version if it is still there
