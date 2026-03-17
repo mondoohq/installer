@@ -37,56 +37,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
-      - name: Generate Package
-        shell: bash
-        run: |
-          cd packages/chocolatey || exit
-          echo "------- GENERATING ${{ matrix.package }} ----------------------"
-          VERSION=${{ inputs.version }} bash ${{ matrix.package }}-generate.sh
-          echo ""
-          if [ -f "${{ matrix.package }}/tools/chocolateyInstall.ps1" ]; then
-            echo "Install script:"
-            cat ${{ matrix.package }}/tools/chocolateyInstall.ps1
-          else
-            echo "Meta-package (no install script)"
-          fi
-          echo "--------"
+      - name: Generate and Validate Package
+        run: make -C packages/chocolatey generate validate VERSION=${{ inputs.version }} PACKAGES=${{ matrix.package }}
 
-      - name: Validate Package
-        shell: bash
-        run: |
-          cd packages/chocolatey/${{ matrix.package }} || exit
-          echo "--- Checking for forbidden choco commands in automation scripts ---"
-          if grep -riE '(cinst|choco install|choco upgrade|choco uninstall|choco list)' tools/*.ps1 tools/*.psm1 2>/dev/null; then
-            echo "FAIL: Found forbidden chocolatey commands in automation scripts"
-            exit 1
-          fi
-          echo "PASS: No forbidden chocolatey commands found"
+      - name: Pack Package
+        run: make -C packages/chocolatey pack VERSION=${{ inputs.version }} PACKAGES=${{ matrix.package }}
 
-      - name: Pack and Validate with Chocolatey
-        run: |
-          docker run --rm \
-            -v ${{ github.workspace }}/packages/chocolatey:/packages \
-            chocolatey/choco:latest \
-            bash -c "
-              cd /packages/${{ matrix.package }} &&
-              choco pack &&
-              echo 'PASS: choco pack succeeded'
-            "
-
-      - name: Update Chocolatey Package
+      - name: Publish Package
         if: ${{ ! inputs.skip-publish }}
-        run: |
-          docker run --rm \
-            -v ${{ github.workspace }}/packages/chocolatey:/packages \
-            -e CHOCO_API_KEY=${{ secrets.CHOCOLATEY_API_KEY }} \
-            -e VERSION=${{ inputs.version }} \
-            chocolatey/choco:latest \
-            bash -c "
-              cd /packages/${{ matrix.package }} &&
-              choco apikey --key \${CHOCO_API_KEY} --source https://push.chocolatey.org/ &&
-              choco pack &&
-              choco push --source=https://push.chocolatey.org/
-            "
-          echo 'Go check for the moderation status:'
-          echo 'Mondoo Moderation Queue: https://community.chocolatey.org/packages?q=tag%3Amondoo&moderatorQueue=true&moderationStatus=all-statuses&prerelease=false&sortOrder=relevance'
+        env:
+          CHOCO_API_KEY: ${{ secrets.CHOCOLATEY_API_KEY }}
+        run: make -C packages/chocolatey publish VERSION=${{ inputs.version }} PACKAGES=${{ matrix.package }} CHOCO_API_KEY=$CHOCO_API_KEY
