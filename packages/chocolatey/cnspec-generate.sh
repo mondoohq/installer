@@ -68,15 +68,6 @@ cat >tools/chocolateyInstall.ps1 <<CHOCOSTALL
 \$url      = "https://releases.mondoo.com/cnspec/${VERSION}/cnspec_${VERSION}_windows_amd64.zip"
 \$checksum = '${CHECKSUM}'
 
-# Remove conflicting cnquery package if installed (cnspec v13+ provides cnquery)
-if (Get-Command choco -ErrorAction SilentlyContinue) {
-  \$installed = choco list --local-only --exact cnquery 2>\$null
-  if (\$installed -match 'cnquery') {
-    Write-Host "Removing conflicting package 'cnquery'..."
-    choco uninstall cnquery -y --force
-  }
-}
-
 \$packageArgs = @{
   packageName   = \$env:ChocolateyPackageName
   unzipLocation = \$toolsDir
