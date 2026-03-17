@@ -1,3 +1,6 @@
+SHELL := /bin/bash
+.SHELLFLAGS := -euo pipefail -c
+
 PACKAGES := mql cnspec cnquery
 CHOCO_IMAGE := chocolatey/choco:latest
 CHOCO_SOURCE := https://push.chocolatey.org/
