@@ -32,7 +32,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        package: [mql, cnspec]
+        package: [mql, cnspec, cnquery]
     steps:
       - name: Checkout
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
@@ -44,9 +44,35 @@ jobs:
           echo "------- GENERATING ${{ matrix.package }} ----------------------"
           VERSION=${{ inputs.version }} bash ${{ matrix.package }}-generate.sh
           echo ""
-          echo "Install script:"
-          cat ${{ matrix.package }}/tools/chocolateyInstall.ps1
+          if [ -f "${{ matrix.package }}/tools/chocolateyInstall.ps1" ]; then
+            echo "Install script:"
+            cat ${{ matrix.package }}/tools/chocolateyInstall.ps1
+          else
+            echo "Meta-package (no install script)"
+          fi
           echo "--------"
+
+      - name: Validate Package
+        shell: bash
+        run: |
+          cd packages/chocolatey/${{ matrix.package }} || exit
+          echo "--- Checking for forbidden choco commands in automation scripts ---"
+          if grep -riE '(cinst|choco install|choco upgrade|choco uninstall|choco list)' tools/*.ps1 tools/*.psm1 2>/dev/null; then
+            echo "FAIL: Found forbidden chocolatey commands in automation scripts"
+            exit 1
+          fi
+          echo "PASS: No forbidden chocolatey commands found"
+
+      - name: Pack and Validate with Chocolatey
+        run: |
+          docker run --rm \
+            -v ${{ github.workspace }}/packages/chocolatey:/packages \
+            chocolatey/choco:latest \
+            bash -c "
+              cd /packages/${{ matrix.package }} &&
+              choco pack &&
+              echo 'PASS: choco pack succeeded'
+            "
 
       - name: Update Chocolatey Package
         if: ${{ ! inputs.skip-publish }}
