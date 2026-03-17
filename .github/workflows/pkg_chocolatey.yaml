@@ -47,4 +47,4 @@ jobs:
         if: ${{ ! inputs.skip-publish }}
         env:
           CHOCO_API_KEY: ${{ secrets.CHOCOLATEY_API_KEY }}
-        run: make -C packages/chocolatey publish VERSION=${{ inputs.version }} PACKAGES=${{ matrix.package }} CHOCO_API_KEY=$CHOCO_API_KEY
+        run: make -C packages/chocolatey publish VERSION=${{ inputs.version }} PACKAGES=${{ matrix.package }}

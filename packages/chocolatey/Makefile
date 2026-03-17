@@ -35,7 +35,7 @@ generate:
 validate:
 	@for pkg in $(PACKAGES); do \
 		echo "--- Validating $$pkg ---"; \
-		if ls $$pkg/tools/*.ps1 $$pkg/tools/*.psm1 2>/dev/null | head -1 > /dev/null 2>&1; then \
+		if find "$$pkg/tools" -maxdepth 1 \( -name '*.ps1' -o -name '*.psm1' \) 2>/dev/null | grep -q .; then \
 			if grep -riE '($(FORBIDDEN_PATTERN))' $$pkg/tools/*.ps1 $$pkg/tools/*.psm1 2>/dev/null; then \
 				echo "FAIL: Found forbidden chocolatey commands in $$pkg automation scripts"; \
 				exit 1; \
@@ -54,15 +54,15 @@ pack:
 		echo "PASS: $$pkg packed"; \
 	done
 
-## Publish all packages to Chocolatey (requires CHOCO_API_KEY)
+## Publish all packages to Chocolatey (requires CHOCO_API_KEY env var)
 publish:
 ifndef CHOCO_API_KEY
-	$(error CHOCO_API_KEY is required for publishing)
+	$(error CHOCO_API_KEY env var is required for publishing)
 endif
 	@for pkg in $(PACKAGES); do \
 		docker run --rm \
 			-v "$$(pwd)":/packages \
-			-e CHOCO_API_KEY=$(CHOCO_API_KEY) \
+			-e CHOCO_API_KEY \
 			$(CHOCO_IMAGE) \
 			bash -c " \
 				cd /packages/$$pkg && \

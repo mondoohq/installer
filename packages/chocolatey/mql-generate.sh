@@ -24,7 +24,7 @@ cat >mql.nuspec <<NUSPEC
     <authors>Mondoo</authors>
     <projectUrl>https://github.com/mondoohq/mql</projectUrl>
     <iconUrl>https://mondoo.com/mondoo_choco_logo.jpg</iconUrl>
-    <copyright>2025 Mondoo, Inc.</copyright>
+    <copyright>2026 Mondoo, Inc.</copyright>
     <licenseUrl>https://github.com/mondoohq/mql/blob/main/LICENSE</licenseUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <docsUrl>https://mondoo.com/docs/mql/</docsUrl>
