@@ -61,7 +61,7 @@ ifndef CHOCO_API_KEY
 	$(error CHOCO_API_KEY env var is required for publishing)
 endif
 	@for pkg in $(PACKAGES); do \
-		docker run --rm \
+		output=$$(docker run --rm \
 			-v "$$(pwd)":/packages \
 			-e CHOCO_API_KEY \
 			$(CHOCO_IMAGE) \
@@ -69,8 +69,13 @@ endif
 				cd /packages/$$pkg && \
 				choco apikey --key \$$CHOCO_API_KEY --source $(CHOCO_SOURCE) && \
 				choco pack && \
-				choco push --source=$(CHOCO_SOURCE) \
-			"; \
+				choco push --source=$(CHOCO_SOURCE) 2>&1 \
+			" 2>&1); \
+		echo "$$output"; \
+		if echo "$$output" | grep -qiE '(does not indicate success|error|fail|403|409)'; then \
+			echo "FAIL: $$pkg publish failed"; \
+			exit 1; \
+		fi; \
 		echo "PASS: $$pkg published"; \
 	done
 
