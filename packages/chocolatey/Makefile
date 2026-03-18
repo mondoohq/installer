@@ -10,8 +10,11 @@ FORBIDDEN_PATTERN := cinst|choco install|choco upgrade|choco uninstall|choco lis
 
 .PHONY: all generate validate pack publish clean
 
-ifndef VERSION
-  $(error VERSION is required. Usage: make <target> VERSION=13.0.1)
+TARGETS_REQUIRING_VERSION := all generate validate pack publish
+ifneq ($(filter $(TARGETS_REQUIRING_VERSION),$(MAKECMDGOALS)),)
+  ifndef VERSION
+    $(error VERSION is required. Usage: make <target> VERSION=13.0.1)
+  endif
 endif
 
 ## Generate, validate, and pack all packages
@@ -35,11 +38,9 @@ generate:
 validate:
 	@for pkg in $(PACKAGES); do \
 		echo "--- Validating $$pkg ---"; \
-		if find "$$pkg/tools" -maxdepth 1 \( -name '*.ps1' -o -name '*.psm1' \) 2>/dev/null | grep -q .; then \
-			if grep -riE '($(FORBIDDEN_PATTERN))' $$pkg/tools/*.ps1 $$pkg/tools/*.psm1 2>/dev/null; then \
-				echo "FAIL: Found forbidden chocolatey commands in $$pkg automation scripts"; \
-				exit 1; \
-			fi; \
+		if find "$$pkg/tools" -maxdepth 1 \( -name '*.ps1' -o -name '*.psm1' \) -exec grep -riEl '($(FORBIDDEN_PATTERN))' {} + 2>/dev/null; then \
+			echo "FAIL: Found forbidden chocolatey commands in $$pkg automation scripts"; \
+			exit 1; \
 		fi; \
 		echo "PASS: $$pkg validated"; \
 	done
