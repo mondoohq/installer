@@ -48,3 +48,4 @@ jobs:
         env:
           CHOCO_API_KEY: ${{ secrets.CHOCOLATEY_API_KEY }}
         run: make -C packages/chocolatey publish VERSION=${{ inputs.version }} PACKAGES=${{ matrix.package }}
+
