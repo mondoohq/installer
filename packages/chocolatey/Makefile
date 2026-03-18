@@ -70,9 +70,9 @@ endif
 				choco apikey --key \$$CHOCO_API_KEY --source $(CHOCO_SOURCE) && \
 				choco pack && \
 				choco push --source=$(CHOCO_SOURCE) 2>&1 \
-			" 2>&1); \
+			" 2>&1) && rc=0 || rc=$$?; \
 		echo "$$output"; \
-		if echo "$$output" | grep -qiE '(does not indicate success|error|fail|403|409)'; then \
+		if [ $$rc -ne 0 ] || echo "$$output" | grep -qiE '(does not indicate success|error|fail|403|409)'; then \
 			echo "FAIL: $$pkg publish failed"; \
 			exit 1; \
 		fi; \
