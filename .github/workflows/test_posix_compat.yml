@@ -1,0 +1,39 @@
+---
+name: POSIX Shell Compatibility
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+    paths:
+      - 'install.sh'
+      - 'download.sh'
+
+permissions: {}
+
+jobs:
+  posix-sh-check:
+    name: POSIX sh compatibility
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+
+      - name: Install checkbashisms
+        run: sudo apt-get update && sudo apt-get install -y devscripts
+
+      - name: Run checkbashisms on install.sh
+        run: checkbashisms install.sh
+
+      - name: Run ShellCheck in POSIX mode
+        run: shellcheck -s sh -S warning install.sh
+
+      - name: Verify shebang is #!/bin/sh
+        run: |
+          for f in install.sh; do
+            head -1 "$f" | grep -q '^#!/bin/sh' || {
+              echo "ERROR: $f shebang is not #!/bin/sh"
+              exit 1
+            }
+          done
+
+      - name: Parse with dash (syntax check)
+        run: dash -n install.sh
