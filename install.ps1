@@ -350,7 +350,7 @@ function Install-Mondoo {
       }
 
       If (![string]::IsNullOrEmpty($RegistrationToken)) {
-        $configPath = "C:\ProgramData\Mondoo\mondoo.yml"
+        $configPath = 'C:\ProgramData\Mondoo\mondoo.yml'
 
         # Prepare cnspec logout command
         $logout_params = @("logout", "--config", $configPath, "--force")
@@ -390,7 +390,13 @@ function Install-Mondoo {
           }
           # Back up the config before removing it so we can restore on login failure
           Copy-Item $configPath "$configPath.bak" -Force
+          if (!(Test-Path -Path "$configPath.bak")) {
+            fail "Failed to create backup of $configPath — aborting re-registration to protect existing config"
+          }
           Remove-Item $configPath -Force
+          if (Test-Path -Path $configPath) {
+            fail "Failed to remove $configPath — aborting re-registration to avoid ambiguous state"
+          }
         }
 
         info " * Register $Product Client"
