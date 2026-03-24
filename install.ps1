@@ -195,7 +195,12 @@ function Install-Mondoo {
       $action = New-ScheduledTaskAction -Execute 'Powershell.exe' -Argument $taskArgument
       $trigger = New-ScheduledTaskTrigger -Daily -DaysInterval $Interval -At $Time
       if (![string]::IsNullOrEmpty($Splay)) {
-        $trigger.RandomDelay = "PT${Splay}M"
+        $splayInt = 0
+        if ([int]::TryParse($Splay, [ref]$splayInt) -and $splayInt -gt 0) {
+          $trigger.RandomDelay = "PT${splayInt}M"
+        } else {
+          info " * Warning: Invalid Splay value '$Splay' — expected a positive integer (minutes). Skipping random delay."
+        }
       }
       $principal = New-ScheduledTaskPrincipal -GroupId "NT AUTHORITY\SYSTEM" -RunLevel Highest
       $settings = New-ScheduledTaskSettingsSet -Compatibility Win8
