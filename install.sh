@@ -88,7 +88,7 @@ while getopts 'i:s:u:vt:vr:y:n:a:p:' flag; do
     a) ANNOTATION="${OPTARG}" ;;
     p) PROVIDERS_URL="${OPTARG}" ;;
     *) print_usage
-       exit 1 ;;
+       fail ;;
   esac
 done
 
@@ -119,14 +119,21 @@ on_error() {
   echo
   echo "* GitHub: https://github.com/mondoohq/installer"
   echo
-  exit 1
 }
 
-# register a trap for error signals
-# Note: EXIT trap is used as a POSIX-compatible alternative to ERR.
-# We set _exit_ok=true before normal exits and check in the trap.
+# POSIX-compatible error trap: EXIT fires on every exit, so we use a
+# wrapper that calls on_error only for truly unexpected failures.
+# Any code path that prints its own message calls fail() instead of
+# bare "exit 1", which sets the guard to suppress the generic message.
 _exit_ok=false
 trap '[ "$_exit_ok" = true ] || on_error' EXIT
+
+# Use fail() for intentional error exits that already print a message.
+# Use "_exit_ok=true; exit 0" for successful exits.
+fail() {
+  _exit_ok=true
+  exit 1
+}
 
 purple_bold "${MONDOO_PRODUCT_NAME} Installer"
 purple "
@@ -219,7 +226,7 @@ else
     else
       red "This command needs to run with elevated privileges, but we could not find the 'sudo' command in your path (\$PATH)."
       echo "The command we tried to run is: $*"
-      exit 1
+      fail
     fi
   }
 fi
@@ -249,7 +256,7 @@ install_portable() {
     FAIL=true
     red "This script needs the 'curl' command, but we could not find 'curl' in your path (\$PATH)."
   fi
-  if [ $FAIL = true ]; then exit 1; fi
+  if [ $FAIL = true ]; then fail; fi
 
   case "$OS" in
   "macOS") SYSTEM="darwin" ;;
@@ -266,7 +273,7 @@ install_portable() {
   "armv8l") ARCH="arm64" ;;
   *)
     red "${MONDOO_PRODUCT_NAME} does not support the (${ARCH_DETECT}) architecture."
-    exit 1
+    fail
     ;;
   esac
 
@@ -281,7 +288,7 @@ install_portable() {
   detect_portable
   if [ -z "$MONDOO_EXECUTABLE" ]; then
     red "We could not find the '${MONDOO_BINARY}' executable in the present working directory."
-    exit 1
+    fail
   fi
 
   purple_bold "We installed a portable version of ${MONDOO_BINARY} to $PWD"
@@ -378,7 +385,7 @@ configure_archlinux_installer() {
     mondoo_install() {
       red "Mondoo uses yay or paru to install on AUR, but we could not find either command in your path (\$PATH)."
       echo "You can install the ${MONDOO_PRODUCT_NAME} package manually from AUR, or use one of the above installers directly."
-      exit 1
+      fail
     }
     mondoo_update() { mondoo_install "$@"; }
   fi
@@ -414,7 +421,7 @@ EOL
     MONDOO_INSTALLER=""
     mondoo_install() {
       red "Mondoo uses YUM to install on Red Hat Linux, but we could not find the 'yum' command in your path (\$PATH)."
-      exit 1
+      fail
     }
     mondoo_update() { mondoo_install "$@"; }
 
@@ -463,7 +470,7 @@ configure_debian_installer() {
     MONDOO_INSTALLER=""
     mondoo_install() {
       red "Mondoo uses APT to install on Debian Linux, but we could not find the 'apt' command in your path (\$PATH)."
-      exit 1
+      fail
     }
     mondoo_update() { mondoo_install "$@"; }
 
@@ -496,7 +503,7 @@ configure_suse_installer() {
     MONDOO_INSTALLER=""
     mondoo_install() {
       red "Mondoo uses ZYPPER to install on SUSE Linux, but we could not find the 'zypper' command in your path (\$PATH)."
-      exit 1
+      fail
     }
     mondoo_update() { mondoo_install "$@"; }
 
@@ -566,24 +573,28 @@ configure_token() {
     purple_bold "\n* ${MONDOO_PRODUCT_NAME} was successfully registered."
   else
     red "\n* Failed to register ${MONDOO_PRODUCT_NAME}. Please reach out in the Mondoo Community GitHub Discussions - https://github.com/orgs/mondoohq/discussions."
-    exit 1
+    fail
   fi
 }
 
-configure_login_cmd() {
-  # Build login command string (POSIX-compatible, no arrays)
+run_login_cmd() {
+  # Build and execute the login command using positional parameters
+  # (POSIX-compatible, no arrays or eval needed)
   config_dir_path="$1"
   config_file_path="${config_dir_path}/mondoo.yml"
-  _cmd="sudo_cmd \"${MONDOO_BINARY_PATH}\" login --config \"$config_file_path\" --token \"$MONDOO_REGISTRATION_TOKEN\" --timer \"$TIMER\" --splay \"$SPLAY\""
+  set -- sudo_cmd "${MONDOO_BINARY_PATH}" login \
+    --config "$config_file_path" \
+    --token "$MONDOO_REGISTRATION_TOKEN" \
+    --timer "$TIMER" --splay "$SPLAY"
 
   # Add --annotation option if set
   if [ -n "$ANNOTATION" ]; then
-    _cmd="$_cmd --annotation \"$ANNOTATION\""
+    set -- "$@" --annotation "$ANNOTATION"
   fi
 
   # Add --name option if set
   if [ -n "$NAME" ]; then
-    _cmd="$_cmd --name \"$NAME\""
+    set -- "$@" --name "$NAME"
   fi
 
   # If a custom providers URL is not set via the -p flag, and this is not a
@@ -602,10 +613,10 @@ configure_login_cmd() {
 
   # Add --providers-url option if set
   if [ -n "$PROVIDERS_URL" ]; then
-    _cmd="$_cmd --providers-url \"$PROVIDERS_URL\""
+    set -- "$@" --providers-url "$PROVIDERS_URL"
   fi
 
-  echo "$_cmd"
+  "$@"
 }
 
 configure_macos_token() {
@@ -613,11 +624,7 @@ configure_macos_token() {
   config_path="$HOME/.config/mondoo"
   mkdir -p "$config_path"
 
-  # Get the login command
-  login_cmd=$(configure_login_cmd "$config_path")
-
-  # Execute the command
-  eval "$login_cmd"
+  run_login_cmd "$config_path"
 
   if [ "$MONDOO_SERVICE" = "enable" ]; then
     sudo_cmd cp "$config_path/mondoo.yml" /Library/Mondoo/etc/mondoo.yml
@@ -629,13 +636,7 @@ configure_linux_token() {
   config_path="/etc/opt/mondoo"
   sudo_cmd mkdir -p "$config_path"
 
-
-  # Get the login command
-  login_cmd=$(configure_login_cmd "$config_path")
-
-
-  # Execute the command
-  eval "$login_cmd"
+  run_login_cmd "$config_path"
 
   if [ "$(cat /proc/1/comm)" = "init" ]; then
     purple_bold "\n* Restart upstart service"
@@ -653,7 +654,7 @@ postinstall_check() {
   detect_mondoo
   if [ "$MONDOO_INSTALLED" = false ]; then
     red "${MONDOO_PRODUCT_NAME} installation failed (can't find the ${MONDOO_BINARY} binary)."
-    exit 1
+    fail
   fi
 
   echo "${MONDOO_PRODUCT_NAME} installation completed."
