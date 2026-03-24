@@ -832,8 +832,7 @@ elif [ "$OS" = "CloudShell" ]; then
 
 else
   purple "Your operating system is not yet supported by this installer."
-  _exit_ok=true
-  exit 1
+  fail
 fi
 
 # Mondoo installation / update
@@ -849,8 +848,7 @@ fi
 
 if [ -z "${MONDOO_INSTALLER}" ]; then
   red "Cannot determine which installer to use. Exiting."
-  _exit_ok=true
-  exit 1
+  fail
 fi
 purple_bold "\n* Installing ${MONDOO_PRODUCT_NAME} via $MONDOO_INSTALLER"
 mondoo_install
