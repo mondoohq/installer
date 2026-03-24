@@ -350,11 +350,13 @@ function Install-Mondoo {
       }
 
       If (![string]::IsNullOrEmpty($RegistrationToken)) {
+        $configPath = "C:\ProgramData\Mondoo\mondoo.yml"
+
         # Prepare cnspec logout command
-        $logout_params = @("logout", "--config", "C:\ProgramData\Mondoo\mondoo.yml", "--force")
+        $logout_params = @("logout", "--config", $configPath, "--force")
 
         # Prepare cnspec login command
-        $login_params = @("login", "-t", "$RegistrationToken", "--config", "C:\ProgramData\Mondoo\mondoo.yml")
+        $login_params = @("login", "-t", "$RegistrationToken", "--config", $configPath)
         If (![string]::IsNullOrEmpty($Proxy)) {
           $login_params = $login_params + @("--api-proxy", "$Proxy")
         }
@@ -377,26 +379,55 @@ function Install-Mondoo {
         $backupErrorActionPreference = $ErrorActionPreference
         $ErrorActionPreference = "Continue"
 
-        # Logout if already cnspec client registred in
-        If ((Test-Path -Path "C:\ProgramData\Mondoo\mondoo.yml")) {
+        # Logout if already cnspec client registered
+        If ((Test-Path -Path $configPath)) {
           info " * $Product Client is already registered. Logging out and back in again to update the registration"
           $output = (& $program $logout_params 2>&1)
+          $logoutExitCode = $LASTEXITCODE
           info "$output"
-          Remove-Item "C:\ProgramData\Mondoo\mondoo.yml" -Force
+          if ($logoutExitCode -ne 0) {
+            info " * Warning: cnspec logout exited with code $logoutExitCode"
+          }
+          # Back up the config before removing it so we can restore on login failure
+          Copy-Item $configPath "$configPath.bak" -Force
+          Remove-Item $configPath -Force
         }
 
         info " * Register $Product Client"
 
         # Login to register cnspec client
         $output = (& $program $login_params 2>&1)
+        $loginExitCode = $LASTEXITCODE
 
         # Restore the error action preference
         $ErrorActionPreference = $backupErrorActionPreference
 
-        if ($output -match "ERROR") {
-          throw $output
+        $loginFailed = $false
+        if ($loginExitCode -ne 0) {
+          $loginFailed = $true
         }
-        elseif ($output) {
+        elseif ($output -match "ERROR") {
+          $loginFailed = $true
+        }
+        elseif (!(Test-Path -Path $configPath)) {
+          $loginFailed = $true
+        }
+
+        if ($loginFailed) {
+          # Restore the backup config so the system is not left without a config
+          if (Test-Path -Path "$configPath.bak") {
+            info " * Login failed. Restoring previous mondoo.yml from backup."
+            Copy-Item "$configPath.bak" $configPath -Force
+            Remove-Item "$configPath.bak" -Force
+          }
+          throw "cnspec login failed: $output"
+        }
+
+        # Login succeeded — clean up backup and report
+        if (Test-Path -Path "$configPath.bak") {
+          Remove-Item "$configPath.bak" -Force
+        }
+        if ($output) {
           info "$output"
         }
         else {
