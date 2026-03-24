@@ -194,6 +194,9 @@ function Install-Mondoo {
       # Build scheduled task components
       $action = New-ScheduledTaskAction -Execute 'Powershell.exe' -Argument $taskArgument
       $trigger = New-ScheduledTaskTrigger -Daily -DaysInterval $Interval -At $Time
+      if (![string]::IsNullOrEmpty($Splay)) {
+        $trigger.RandomDelay = "PT${Splay}M"
+      }
       $principal = New-ScheduledTaskPrincipal -GroupId "NT AUTHORITY\SYSTEM" -RunLevel Highest
       $settings = New-ScheduledTaskSettingsSet -Compatibility Win8
 
