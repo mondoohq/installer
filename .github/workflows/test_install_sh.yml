@@ -10,11 +10,15 @@ on:
     types: [opened, reopened, synchronize]
     paths:
       - "install.sh"
+      - "test/install_sh/**"
+      - ".github/workflows/test_install_sh.yml"
   push:
     branches:
       - main
     paths:
       - "install.sh"
+      - "test/install_sh/**"
+      - ".github/workflows/test_install_sh.yml"
 
 jobs:
   build_container:
