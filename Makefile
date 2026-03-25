@@ -44,36 +44,35 @@ test/posix:
 ## Docker-based install.sh tests (existing Dockerfiles)
 ## Each Dockerfile is a multi-stage build; we must build every stage explicitly
 ## with --target, otherwise only the last stage runs.
+INSTALL_SH_DOCKER_TARGETS := \
+	almalinux.Dockerfile:almalinux8 \
+	almalinux.Dockerfile:almalinux9 \
+	almalinux.arm64.Dockerfile:almalinux8_arm64 \
+	almalinux.arm64.Dockerfile:almalinux9_arm64 \
+	amazonlinux2.Dockerfile:amazonlinux2018 \
+	amazonlinux2.Dockerfile:amazonlinux2 \
+	amazonlinux2.Dockerfile:amazonlinux2022 \
+	debian.Dockerfile:debian9 \
+	debian.Dockerfile:debian10 \
+	debian.Dockerfile:debian11 \
+	opensuse_leap.Dockerfile:opensuse_leap154 \
+	opensuse_leap.Dockerfile:opensuse_tumbleweed \
+	redhat.Dockerfile:rhel8 \
+	redhat.Dockerfile:rhel9 \
+	ubuntu.Dockerfile:ubuntu1404 \
+	ubuntu.Dockerfile:ubuntu1604 \
+	ubuntu.Dockerfile:ubuntu1804 \
+	ubuntu.Dockerfile:ubuntu2004 \
+	ubuntu.Dockerfile:ubuntu2204
+
 .PHONY: test/install_sh
 test/install_sh:
 	cp install.sh test/install_sh && chmod +x test/install_sh/install.sh
-	@for target in almalinux8 almalinux9; do \
-		echo "==> Building almalinux.Dockerfile --target $$target"; \
-		cd test/install_sh && docker build --no-cache --target $$target -f almalinux.Dockerfile . && cd ../..; \
-	done
-	@for target in almalinux8_arm64 almalinux9_arm64; do \
-		echo "==> Building almalinux.arm64.Dockerfile --target $$target"; \
-		cd test/install_sh && docker build --no-cache --target $$target -f almalinux.arm64.Dockerfile . && cd ../..; \
-	done
-	@for target in amazonlinux2018 amazonlinux2 amazonlinux2022; do \
-		echo "==> Building amazonlinux2.Dockerfile --target $$target"; \
-		cd test/install_sh && docker build --no-cache --target $$target -f amazonlinux2.Dockerfile . && cd ../..; \
-	done
-	@for target in debian9 debian10 debian11; do \
-		echo "==> Building debian.Dockerfile --target $$target"; \
-		cd test/install_sh && docker build --no-cache --target $$target -f debian.Dockerfile . && cd ../..; \
-	done
-	@for target in opensuse_leap154 opensuse_tumbleweed; do \
-		echo "==> Building opensuse_leap.Dockerfile --target $$target"; \
-		cd test/install_sh && docker build --no-cache --target $$target -f opensuse_leap.Dockerfile . && cd ../..; \
-	done
-	@for target in rhel8 rhel9; do \
-		echo "==> Building redhat.Dockerfile --target $$target"; \
-		cd test/install_sh && docker build --no-cache --target $$target -f redhat.Dockerfile . && cd ../..; \
-	done
-	@for target in ubuntu1404 ubuntu1604 ubuntu1804 ubuntu2004 ubuntu2204; do \
-		echo "==> Building ubuntu.Dockerfile --target $$target"; \
-		cd test/install_sh && docker build --no-cache --target $$target -f ubuntu.Dockerfile . && cd ../..; \
+	@for entry in $(INSTALL_SH_DOCKER_TARGETS); do \
+		dockerfile=$${entry%%:*}; target=$${entry##*:}; \
+		echo "==> Building $$dockerfile --target $$target"; \
+		docker build --no-cache --target $$target -f test/install_sh/$$dockerfile test/install_sh/ \
+		|| exit 1; \
 	done
 
 ## Per-distro install.sh tests using sh (POSIX) — matches test-released-install-sh.yaml matrix
