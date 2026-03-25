@@ -38,8 +38,6 @@ jobs:
             target: almalinux9
           # amazonlinux2.Dockerfile
           - dockerfile: amazonlinux2.Dockerfile
-            target: amazonlinux2018
-          - dockerfile: amazonlinux2.Dockerfile
             target: amazonlinux2
           - dockerfile: amazonlinux2.Dockerfile
             target: amazonlinux2022

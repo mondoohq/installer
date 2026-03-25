@@ -49,7 +49,6 @@ INSTALL_SH_DOCKER_TARGETS := \
 	almalinux.Dockerfile:almalinux9 \
 	almalinux.arm64.Dockerfile:almalinux8_arm64 \
 	almalinux.arm64.Dockerfile:almalinux9_arm64 \
-	amazonlinux2.Dockerfile:amazonlinux2018 \
 	amazonlinux2.Dockerfile:amazonlinux2 \
 	amazonlinux2.Dockerfile:amazonlinux2022 \
 	debian.Dockerfile:debian9 \
