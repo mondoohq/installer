@@ -113,6 +113,7 @@ purple() { printf '%b\n' "${purple}${1}${end}"; }
 purple_bold() { printf '%b\n' "${purpleb}${1}${end}"; }
 
 on_error() {
+  _exit_ok=true  # prevent re-entry from the EXIT trap
   red "The ${MONDOO_PRODUCT_NAME} install script encountered a problem. For assistance, please join our community on GitHub Discussions."
   echo
   echo "* Mondoo Community GitHub Discussions https://github.com/orgs/mondoohq/discussions"
