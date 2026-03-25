@@ -141,5 +141,8 @@ MONDOO_REGISTRATION_TOKEN='\S*'
 # mql shell commands
 mql shell.*
 
+# make targets containing posix (lowercase is correct for make targets)
+\btest/posix\b
+
 # Ip.Foo is an acceptable value
 Ip\..*
