@@ -170,6 +170,62 @@ To browse all releases, please visit [https://releases.mondoo.com](https://relea
 - [Release Notes](https://mondoo.com/releases)
 - [Package Downloads](https://releases.mondoo.com)
 
+## Testing
+
+### install.sh
+
+The `install.sh` script is POSIX `sh` compatible. All tests are driven via `make` from the repo root.
+
+**Quick lint (no Docker needed):**
+
+```bash
+# POSIX compliance: shellcheck -s sh, dash -n, shebang check
+make test/posix
+
+# General shellcheck (all shell scripts)
+make test/shellcheck
+```
+
+**Docker-based integration tests:**
+
+These mount your local `install.sh` into containers and run it under the distro's `/bin/sh`:
+
+```bash
+# Test on Debian/Ubuntu distros (apt)
+make test/install_sh/apt
+
+# Test on RHEL/CentOS/Fedora distros (yum)
+make test/install_sh/yum
+
+# Test on SUSE (zypper)
+make test/install_sh/zypper
+
+# Test via existing multi-stage Dockerfiles (all distros)
+make test/install_sh
+
+# Run everything: lint + all Docker tests
+make test/install_sh/all
+```
+
+**Upgrade tests** (cnquery -> mql migration):
+
+```bash
+make test/install_sh/upgrade-apt
+make test/install_sh/upgrade-yum
+```
+
+### download.sh
+
+```bash
+make test/download_sh
+```
+
+### PowerShell
+
+```bash
+make test/powershell
+```
+
 ## Code Signature Verification
 
 Mondoo signs Microsoft Windows executables, PowerShell scripts, Linux packages and code signs Apple macOS executables. The public code signing certificate and public GPG key ist store in the [Installer Repo](https://github.com/mondoohq/installer).

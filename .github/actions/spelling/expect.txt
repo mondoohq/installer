@@ -62,6 +62,7 @@ Cgk
 CGw
 CHNY
 CHV
+checkbashisms
 cinst
 CJk
 Cjzw
@@ -498,6 +499,7 @@ SCm
 Sdfg
 SDVAt
 Sfqt
+shellcheck
 Shfo
 SHx
 Sih

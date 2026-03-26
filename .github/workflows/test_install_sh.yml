@@ -1,4 +1,4 @@
-name: Test Mondoo Releases with Container Builds
+name: "Test install.sh"
 
 on:
   workflow_run:
@@ -6,11 +6,19 @@ on:
     types:
       - completed
   workflow_dispatch:
+  pull_request:
+    types: [opened, reopened, synchronize]
+    paths:
+      - "install.sh"
+      - "test/install_sh/**"
+      - ".github/workflows/test_install_sh.yml"
   push:
     branches:
       - main
     paths:
       - "install.sh"
+      - "test/install_sh/**"
+      - ".github/workflows/test_install_sh.yml"
 
 jobs:
   build_container:
@@ -20,15 +28,48 @@ jobs:
       SLACK_BOT_CHANNEL_ID: "C07R9GSGKEU"
     timeout-minutes: 10
     strategy:
+      fail-fast: false
       matrix:
-        dockerfile:
-          - "almalinux.Dockerfile"
-          - "amazonlinux2.Dockerfile"
-          - "debian.Dockerfile"
-          - "opensuse_leap.Dockerfile"
-          - "redhat.Dockerfile"
-          - "ubuntu.Dockerfile"
-    name: Install Mondoo
+        include:
+          # almalinux.Dockerfile
+          - dockerfile: almalinux.Dockerfile
+            target: almalinux8
+          - dockerfile: almalinux.Dockerfile
+            target: almalinux9
+          # amazonlinux2.Dockerfile
+          - dockerfile: amazonlinux2.Dockerfile
+            target: amazonlinux2
+          - dockerfile: amazonlinux2.Dockerfile
+            target: amazonlinux2022
+          # debian.Dockerfile
+          - dockerfile: debian.Dockerfile
+            target: debian9
+          - dockerfile: debian.Dockerfile
+            target: debian10
+          - dockerfile: debian.Dockerfile
+            target: debian11
+          # opensuse_leap.Dockerfile
+          - dockerfile: opensuse_leap.Dockerfile
+            target: opensuse_leap154
+          - dockerfile: opensuse_leap.Dockerfile
+            target: opensuse_tumbleweed
+          # redhat.Dockerfile
+          - dockerfile: redhat.Dockerfile
+            target: rhel8
+          - dockerfile: redhat.Dockerfile
+            target: rhel9
+          # ubuntu.Dockerfile
+          - dockerfile: ubuntu.Dockerfile
+            target: ubuntu1404
+          - dockerfile: ubuntu.Dockerfile
+            target: ubuntu1604
+          - dockerfile: ubuntu.Dockerfile
+            target: ubuntu1804
+          - dockerfile: ubuntu.Dockerfile
+            target: ubuntu2004
+          - dockerfile: ubuntu.Dockerfile
+            target: ubuntu2204
+    name: "install.sh (${{ matrix.target }})"
     steps:
       - name: Clone repository
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
@@ -36,6 +77,7 @@ jobs:
           fetch-depth: 0
 
       - id: slack
+        if: github.event_name != 'pull_request'
         uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a # v2.1.1
         with:
           method: chat.postMessage
@@ -49,7 +91,7 @@ jobs:
                   - type: "section"
                     fields:
                       - type: "mrkdwn"
-                        text: "<${{ github.event.repository.html_url }}/actions/runs/${{ github.run_id }}/attempts/${{ github.run_attempt }}|${{ github.workflow }} (${{ matrix.dockerfile}})>"
+                        text: "<${{ github.event.repository.html_url }}/actions/runs/${{ github.run_id }}/attempts/${{ github.run_attempt }}|${{ github.workflow }} (${{ matrix.target }})>"
                       - type: "mrkdwn"
                         text: "*Status:*\n`In Progress`"
 
@@ -62,17 +104,21 @@ jobs:
       - name: Set up Docker BuildX
         uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3.12.0
 
-      - name: Build image
+      - name: Copy install.sh into build context
+        run: cp install.sh test/install_sh/
+
+      - name: Build and test (${{ matrix.target }})
         uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
         with:
           context: .
           file: test/install_sh/${{ matrix.dockerfile }}
+          target: ${{ matrix.target }}
           push: false
           tags: |
-            mondoohq/mondoo-install-test:${{ matrix.dockerfile }}
+            mondoohq/mondoo-install-test:${{ matrix.target }}
 
       - uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a # v2.1.1
-        if: always()
+        if: always() && github.event_name != 'pull_request'
         with:
           method: chat.update
           token: ${{ secrets.SLACK_BOT_TOKEN }}
@@ -86,6 +132,6 @@ jobs:
                   - type: "section"
                     fields:
                       - type: "mrkdwn"
-                        text: "<${{ github.event.repository.html_url }}/actions/runs/${{ github.run_id }}/attempts/${{ github.run_attempt }}|${{ github.workflow }} (${{ matrix.dockerfile }})>"
+                        text: "<${{ github.event.repository.html_url }}/actions/runs/${{ github.run_id }}/attempts/${{ github.run_attempt }}|${{ github.workflow }} (${{ matrix.target }})>"
                       - type: "mrkdwn"
                         text: "*Status:*\n`${{ job.status }}`"
