@@ -599,15 +599,19 @@ run_login_cmd() {
   fi
 
   # If a custom providers URL is not set via the -p flag, and this is not a
-  # standard installation, set the default providers URL. This check is
-  # designed to be modified by a server-side replacement for on-premise installers.
+  # standard installation, set the default providers URL.
+  # NOTE: On-premise builds replace "releases.mondoo.com" throughout this file.
+  # The RELEASES_URL below gets replaced, but the _standard_host check is
+  # deliberately split so the replacement does NOT match it. This lets the
+  # case fall through to set PROVIDERS_URL for on-premise installs.
   RELEASES_URL="https://releases.mondoo.com"
+  _standard_host="releases.mondoo"".com"
   case "$RELEASES_URL" in
-    *releases.mondoo.com*) ;;
+    *"$_standard_host"*) ;;
     *)
       if [ -z "$PROVIDERS_URL" ]; then
         lightblue_bold "\n* Overriding providers URL"
-        PROVIDERS_URL="https://releases.mondoo.com/providers/"
+        PROVIDERS_URL="${RELEASES_URL}/providers/"
       fi
       ;;
   esac
