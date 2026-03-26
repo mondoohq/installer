@@ -52,7 +52,9 @@ TIMER='60'
 SPLAY='60'
 ANNOTATION=''
 NAME=''
-PROVIDERS_URL=''
+UPDATES_URL=''
+PROVIDERS_URL=''  # deprecated, use -U (UPDATES_URL)
+API_PROXY=''
 
 print_usage() {
   echo "usage: [-i]" >&2
@@ -73,10 +75,14 @@ print_usage() {
   echo "                        Default uses hostname" >&2
   echo "    -a <annotation>:    Set annotations as key/value pairs (e.g., foo=bar,biz=bap)." >&2
   echo "                        Adds these annotations to the mondoo.yml. (default [])" >&2
-  echo "    -p <providers_url>: Set custom URL where providers are downloaded from." >&2
+  echo "    -p <providers_url>: (Deprecated) Set custom URL where providers are downloaded from." >&2
+  echo "                        Use -U instead." >&2
+  echo "    -U <updates_url>:  Set the updates URL for mql and provider updates." >&2
+  echo "    -x <api_proxy>:    Set API proxy for cnspec login (e.g., http://proxy:3128)." >&2
+  echo "                        Auto-detected from https_proxy env var if not set." >&2
 }
 
-while getopts 'i:s:u:vt:vr:y:n:a:p:' flag; do
+while getopts 'i:s:u:vt:vr:y:n:a:p:U:x:' flag; do
   case "${flag}" in
     i) MONDOO_INSTALLER="${OPTARG}" ;;
     s) MONDOO_SERVICE="${OPTARG}" ;;
@@ -87,6 +93,8 @@ while getopts 'i:s:u:vt:vr:y:n:a:p:' flag; do
     n) NAME="${OPTARG}" ;;
     a) ANNOTATION="${OPTARG}" ;;
     p) PROVIDERS_URL="${OPTARG}" ;;
+    U) UPDATES_URL="${OPTARG}" ;;
+    x) API_PROXY="${OPTARG}" ;;
     *) print_usage
        fail ;;
   esac
@@ -598,27 +606,36 @@ run_login_cmd() {
     set -- "$@" --name "$NAME"
   fi
 
-  # If a custom providers URL is not set via the -p flag, and this is not a
-  # standard installation, set the default providers URL.
+  # Resolve updates URL: -U takes priority, then deprecated -p, then auto-detect.
   # NOTE: On-premise builds replace "releases.mondoo.com" throughout this file.
-  # The RELEASES_URL below gets replaced, but the _standard_host check is
-  # deliberately split so the replacement does NOT match it. This lets the
-  # case fall through to set PROVIDERS_URL for on-premise installs.
+  # The _standard_host check is deliberately split so the replacement does NOT
+  # match it. This lets the case fall through to set the URL for on-premise.
+  if [ -z "$UPDATES_URL" ] && [ -n "$PROVIDERS_URL" ]; then
+    UPDATES_URL="$PROVIDERS_URL"
+  fi
   RELEASES_URL="https://releases.mondoo.com"
   _standard_host="releases.mondoo"".com"
-  case "$RELEASES_URL" in
-    *"$_standard_host"*) ;;
-    *)
-      if [ -z "$PROVIDERS_URL" ]; then
-        lightblue_bold "\n* Overriding providers URL"
-        PROVIDERS_URL="${RELEASES_URL}/providers/"
-      fi
-      ;;
-  esac
+  if [ -z "$UPDATES_URL" ]; then
+    case "$RELEASES_URL" in
+      *"$_standard_host"*) ;;
+      *)
+        lightblue_bold "\n* Overriding updates URL"
+        UPDATES_URL="${RELEASES_URL}/providers/"
+        ;;
+    esac
+  fi
 
-  # Add --providers-url option if set
-  if [ -n "$PROVIDERS_URL" ]; then
-    set -- "$@" --providers-url "$PROVIDERS_URL"
+  # Add --updates-url option if set
+  if [ -n "$UPDATES_URL" ]; then
+    set -- "$@" --updates-url "$UPDATES_URL"
+  fi
+
+  # Add --api-proxy if set via flag or auto-detected from environment
+  if [ -z "$API_PROXY" ]; then
+    API_PROXY="${https_proxy:-${HTTPS_PROXY:-}}"
+  fi
+  if [ -n "$API_PROXY" ]; then
+    set -- "$@" --api-proxy "$API_PROXY"
   fi
 
   "$@"
