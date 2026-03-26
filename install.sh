@@ -57,7 +57,7 @@ PROVIDERS_URL=''  # deprecated, use -U (UPDATES_URL)
 API_PROXY=''
 
 print_usage() {
-  echo "usage: [-i]" >&2
+  echo "usage: [-i] [-s] [-t token] [-u] [-U url] [-x proxy]" >&2
   echo "  Options: " >&2
   echo "    -i <installer>:     Select a specific installer, options are:" >&2
   echo "                        macOS: brew, pkg" >&2
@@ -92,7 +92,7 @@ while getopts 'i:s:u:vt:vr:y:n:a:p:U:x:' flag; do
     y) SPLAY="${OPTARG}" ;;
     n) NAME="${OPTARG}" ;;
     a) ANNOTATION="${OPTARG}" ;;
-    p) PROVIDERS_URL="${OPTARG}" ;;
+    p) PROVIDERS_URL="${OPTARG}"; echo "WARNING: -p is deprecated, use -U instead" >&2 ;;
     U) UPDATES_URL="${OPTARG}" ;;
     x) API_PROXY="${OPTARG}" ;;
     *) print_usage
