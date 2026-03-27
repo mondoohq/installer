@@ -1,4 +1,7 @@
 #!/bin/sh
+# Copyright Mondoo, Inc. 2025, 2026
+# SPDX-License-Identifier: BUSL-1.1
+
 # Test that install.sh flag parsing correctly maps to cnspec login parameters.
 # This sources the relevant functions from install.sh and stubs out everything
 # except the login command builder, then asserts the output.
