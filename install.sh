@@ -620,7 +620,7 @@ run_login_cmd() {
       *"$_standard_host"*) ;;
       *)
         lightblue_bold "\n* Overriding updates URL"
-        UPDATES_URL="${RELEASES_URL}/providers/"
+        UPDATES_URL="${RELEASES_URL}"
         ;;
     esac
   fi

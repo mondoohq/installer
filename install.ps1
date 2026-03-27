@@ -47,7 +47,8 @@ function Install-Mondoo {
     [string]   $Timer = '60',
     [string]   $Splay = '60',
     [string]   $Annotation = '',
-    [string]   $Name = ''
+    [string]   $Name = '',
+    [string]   $UpdatesUrl = ''
   )
   Process {
 
@@ -376,6 +377,9 @@ function Install-Mondoo {
         }
         if (![string]::IsNullOrEmpty($Name)) {
           $login_params = $login_params + @('--name', $Name)
+        }
+        If (![string]::IsNullOrEmpty($UpdatesUrl)) {
+          $login_params = $login_params + @("--updates-url", "$UpdatesUrl")
         }
 
         $program = "$Path\cnspec.exe"
