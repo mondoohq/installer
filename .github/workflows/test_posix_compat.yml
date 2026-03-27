@@ -7,6 +7,7 @@ on:
     paths:
       - 'install.sh'
       - 'download.sh'
+      - 'test/install_sh/test_params.sh'
       - '.github/workflows/test_posix_compat.yml'
 
 permissions: {}
@@ -38,3 +39,6 @@ jobs:
 
       - name: Parse with dash (syntax check)
         run: dash -n install.sh
+
+      - name: Test parameter passing
+        run: sh test/install_sh/test_params.sh

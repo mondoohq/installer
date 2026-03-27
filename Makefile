@@ -30,6 +30,11 @@ test/shellcheck:
 	shellcheck download.sh
 	shellcheck mdm-scripts/mac/evergreen.sh
 
+## install.sh parameter passing tests
+.PHONY: test/install_sh/params
+test/install_sh/params:
+	sh test/install_sh/test_params.sh
+
 ## POSIX sh compatibility checks for install.sh
 .PHONY: test/posix
 test/posix:
@@ -146,7 +151,7 @@ test/install_sh/upgrade-yum:
 
 ## Run all install.sh tests
 .PHONY: test/install_sh/all
-test/install_sh/all: test/posix test/install_sh test/install_sh/apt test/install_sh/yum test/install_sh/zypper
+test/install_sh/all: test/install_sh/params test/posix test/install_sh test/install_sh/apt test/install_sh/yum test/install_sh/zypper
 
 .PHONY: test/download_sh
 # MONDOO_REGISTRATION_TOKEN="changeme"
