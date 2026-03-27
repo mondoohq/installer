@@ -2,7 +2,7 @@ SHELL := /bin/bash
 .SHELLFLAGS := -euo pipefail -c
 
 PACKAGES := mql cnspec cnquery
-CHOCO_IMAGE := chocolatey/choco:latest
+CHOCO_IMAGE := chocolatey/choco:v2.5.1-linux
 CHOCO_SOURCE := https://push.chocolatey.org/
 
 # Forbidden commands that Chocolatey validation rejects in automation scripts
