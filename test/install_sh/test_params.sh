@@ -54,14 +54,23 @@ capture_login_cmd() {
     sudo_cmd() { echo "$@"; }
 
     # Set globals that run_login_cmd expects
+    # shellcheck disable=SC2034 # these are consumed by the eval'd run_login_cmd
     MONDOO_BINARY_PATH="cnspec"
+    # shellcheck disable=SC2034
     MONDOO_REGISTRATION_TOKEN="test-token"
+    # shellcheck disable=SC2034
     TIMER="60"
+    # shellcheck disable=SC2034
     SPLAY="60"
+    # shellcheck disable=SC2034
     UPDATES_URL="$_updates_url"
+    # shellcheck disable=SC2034
     PROVIDERS_URL="$_providers_url"
+    # shellcheck disable=SC2034
     API_PROXY="$_api_proxy"
+    # shellcheck disable=SC2034
     ANNOTATION="$_annotation"
+    # shellcheck disable=SC2034
     NAME="$_name"
 
     # Stub color functions
