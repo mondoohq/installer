@@ -20,6 +20,8 @@ on:
       - "test/install_sh/**"
       - ".github/workflows/test_install_sh.yml"
 
+permissions: {}
+
 jobs:
   build_container:
     runs-on: ubuntu-latest

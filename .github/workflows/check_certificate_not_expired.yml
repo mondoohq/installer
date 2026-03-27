@@ -4,6 +4,8 @@ on:
   schedule:
     - cron: "0 0 * * *"
 
+permissions: {}
+
 jobs:
   check_certificate:
     name: Check Mondoo's code signing certificate has expired

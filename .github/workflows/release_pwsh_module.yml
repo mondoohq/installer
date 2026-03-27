@@ -15,6 +15,8 @@ on:
       - "powershell/Mondoo.Installer/Mondoo.Installer.psm1"
       - "powershell/Mondoo.Installer/Mondoo.Installer.psd1"
 
+permissions: {}
+
 jobs:
   publish:
     runs-on: windows-2025

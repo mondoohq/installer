@@ -18,6 +18,17 @@ on:
         required: true
         default: 'releases-us.mondoo.io'
         type: string
+    secrets:
+      GCP_CREDENTIALS:
+        required: true
+      GPG_KEY:
+        required: true
+      GPG_PUBKEY:
+        required: true
+      GPG_PASSPHRASE:
+        required: true
+      REPO_API_TOKEN:
+        required: true
   workflow_dispatch:
     inputs:
       version:
@@ -38,6 +49,8 @@ on:
         options:
           - 'releases-us.mondoo.io'
           - 'releases-com-test'
+
+permissions: {}
 
 jobs:
   build-mondoo-payloads:
@@ -86,11 +99,13 @@ jobs:
           cd helper && make
 
       - name: Sign RPMs
+        env:
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
         run: |
           cd helper/
-          rpmsign \
+          printf '%s' "${GPG_PASSPHRASE}" | rpmsign \
               --define='%_gpg_name Mondoo Inc' \
-              --define='%__gpg_sign_cmd %{__gpg} gpg --batch --no-armor --pinentry-mode loopback --passphrase "${{ secrets.GPG_PASSPHRASE }}" %{?_gpg_digest_algo:--digest-algo %{_gpg_digest_algo}} --no-secmem-warning -u "%{_gpg_name}" -sbo %{__signature_filename} %{__plaintext_filename}' \
+              --define='%__gpg_sign_cmd %{__gpg} gpg --batch --no-armor --pinentry-mode loopback --passphrase-fd 0 %{?_gpg_digest_algo:--digest-algo %{_gpg_digest_algo}} --no-secmem-warning -u "%{_gpg_name}" -sbo %{__signature_filename} %{__plaintext_filename}' \
               --addsign ./packages/*rpm
 
       - name: Generate Checksums

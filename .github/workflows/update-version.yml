@@ -10,6 +10,8 @@ on:
         required: true
         default: '1.2.3'
 
+permissions: {}
+
 jobs:
   update-version:
     runs-on: ubuntu-latest
@@ -21,13 +23,17 @@ jobs:
           fetch-depth: 0
       - name: Version from Workflow Dispatch
         if: github.event_name == 'workflow_dispatch'
+        env:
+          INPUT_VERSION: ${{ github.event.inputs.version }}
         run: |
-          V=$(echo ${{ github.event.inputs.version }} | sed 's/v//g')
+          V=$(echo "${INPUT_VERSION}" | sed 's/v//g')
           echo "VERSION=${V}" >> $GITHUB_ENV
       - name: Version from Release Tag
         if: github.event_name == 'release'
+        env:
+          TAG_NAME: ${{ github.event.release.tag_name }}
         run: |
-          V=$(echo ${{ github.event.release.tag_name }} | sed 's/v//g')
+          V=$(echo "${TAG_NAME}" | sed 's/v//g')
           echo "VERSION=${V}" >> $GITHUB_ENV
       - name: Verify valid version
         id: vars
@@ -45,4 +51,4 @@ jobs:
           git config --global user.email "tools@mondoo.com"
           git config --global user.name "Mondoo Tools"
           git commit -m "Update VERSION to $VERSION"
-          git push -f
+          git push

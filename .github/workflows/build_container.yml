@@ -25,6 +25,13 @@ on:
         required: false
         default: false
         type: boolean
+    secrets:
+      DOCKER_USERNAME:
+        required: true
+      DOCKER_PASSWORD:
+        required: true
+
+permissions: {}
 
 jobs:
   parse-inputs:

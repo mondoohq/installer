@@ -8,6 +8,8 @@ on:
       - "**.psm1"
       - "**.psd1"
 
+permissions: {}
+
 jobs:
   verify_powershell:
     runs-on: ubuntu-latest
