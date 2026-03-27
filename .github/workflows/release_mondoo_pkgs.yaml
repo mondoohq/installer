@@ -103,9 +103,9 @@ jobs:
           GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
         run: |
           cd helper/
-          rpmsign \
+          echo "${GPG_PASSPHRASE}" | rpmsign \
               --define='%_gpg_name Mondoo Inc' \
-              --define="%__gpg_sign_cmd %{__gpg} gpg --batch --no-armor --pinentry-mode loopback --passphrase \"${GPG_PASSPHRASE}\" %{?_gpg_digest_algo:--digest-algo %{_gpg_digest_algo}} --no-secmem-warning -u \"%{_gpg_name}\" -sbo %{__signature_filename} %{__plaintext_filename}" \
+              --define='%__gpg_sign_cmd %{__gpg} gpg --batch --no-armor --pinentry-mode loopback --passphrase-fd 0 %{?_gpg_digest_algo:--digest-algo %{_gpg_digest_algo}} --no-secmem-warning -u "%{_gpg_name}" -sbo %{__signature_filename} %{__plaintext_filename}' \
               --addsign ./packages/*rpm
 
       - name: Generate Checksums
