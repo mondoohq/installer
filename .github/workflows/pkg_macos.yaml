@@ -74,6 +74,8 @@ permissions: {}
 
 jobs:
   pkg:
+    permissions:
+      contents: read
     name: 'Packaging: Mac'
     runs-on: macos-latest
     steps:
@@ -133,6 +135,8 @@ jobs:
           retention-days: 30
 
   publish:
+    permissions:
+      contents: read
     name: 'Publish: Releases'
     needs: pkg
     runs-on: ubuntu-latest

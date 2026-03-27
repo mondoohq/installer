@@ -37,6 +37,8 @@ permissions: {}
 
 jobs:
   update-pkgs:
+    permissions:
+      contents: read
     runs-on: ubuntu-latest
     name: 'Generate & Locally Commit PKGBUILDs'
     steps:

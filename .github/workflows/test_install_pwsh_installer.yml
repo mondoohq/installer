@@ -6,7 +6,8 @@ on:
     paths:
       - '**.ps1'
 
-permissions: {}
+permissions:
+  contents: read
 
 jobs:
   pwsh_install_script:

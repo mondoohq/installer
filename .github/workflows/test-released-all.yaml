@@ -10,7 +10,8 @@ on:
   release:
     types: [published]
 
-permissions: {}
+permissions:
+  contents: read
 
 env:
   # C07QZDJFF89 == #release-coordination

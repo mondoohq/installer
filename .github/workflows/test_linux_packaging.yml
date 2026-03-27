@@ -34,7 +34,8 @@ on:
         default: ''
         type: string
 
-permissions: {}
+permissions:
+  contents: read
 
 jobs:
   test-mondoo-pkg-and-upgrade:

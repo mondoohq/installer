@@ -15,7 +15,8 @@ on:
         required: true
         default: "9.0.0"
 
-permissions: {}
+permissions:
+  contents: read
 
 jobs:
   arch-mql-makepkg:

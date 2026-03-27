@@ -6,6 +6,8 @@ permissions: {}
 
 jobs:
   check_encoding:
+    permissions:
+      contents: read
     name: Check UTF-16 LE encoding for PowerShell scripts
     runs-on: ubuntu-latest
     steps:

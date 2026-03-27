@@ -10,7 +10,8 @@ on:
         required: true
         default: '1.2.3'
 
-permissions: {}
+permissions:
+  contents: write
 
 jobs:
   update-version:

@@ -40,9 +40,11 @@ jobs:
       skip-publish: ${{ inputs.skip-publish }}
       version: ${{ inputs.version }}
   build_container:
+    permissions:
+      contents: read
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    needs: [ parse-inputs ] 
+    needs: [ parse-inputs ]
     name: Build Docker
     steps:
       - name: Clone repository

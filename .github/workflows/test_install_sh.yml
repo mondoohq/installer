@@ -20,7 +20,8 @@ on:
       - "test/install_sh/**"
       - ".github/workflows/test_install_sh.yml"
 
-permissions: {}
+permissions:
+  contents: read
 
 jobs:
   build_container:

@@ -15,7 +15,8 @@ on:
         required: true
         default: "11.0.0"
 
-permissions: {}
+permissions:
+  contents: read
 
 jobs:
   wait-for-pkg:

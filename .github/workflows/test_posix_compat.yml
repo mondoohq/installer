@@ -9,7 +9,8 @@ on:
       - 'download.sh'
       - '.github/workflows/test_posix_compat.yml'
 
-permissions: {}
+permissions:
+  contents: read
 
 jobs:
   posix-sh-check:

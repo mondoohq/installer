@@ -19,6 +19,8 @@ permissions: {}
 
 jobs:
   publish:
+    permissions:
+      contents: read
     runs-on: windows-2025
     steps:
       - name: Check out repository

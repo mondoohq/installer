@@ -12,6 +12,8 @@ permissions: {}
 
 jobs:
   dockerhub_docs:
+    permissions:
+      contents: read
     runs-on: ubuntu-latest
     timeout-minutes: 1
     name: Update Docker Hub docs

@@ -31,7 +31,9 @@ on:
         required: false
         type: boolean
 
-permissions: {}
+permissions:
+  contents: read
+  id-token: write
 
 env:
   # C07QZDJFF89 == #release-coordination
