@@ -91,8 +91,7 @@ jobs:
         env:
           INPUT_NAME: ${{ inputs.name }}
         run: |
-          INPUT_NAME="${INPUT_NAME}"
-          if [[ ${INPUT_NAME} == '' ]]; then
+          if [[ "${INPUT_NAME}" == '' ]]; then
             echo "Name is empty, using default"
             echo "name=mondoo" >> $GITHUB_OUTPUT
           else
