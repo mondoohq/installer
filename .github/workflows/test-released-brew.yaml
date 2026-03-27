@@ -15,6 +15,9 @@ on:
         required: true
         default: "9.0.0"
 
+permissions:
+  contents: read
+
 jobs:
   formulae:
     runs-on: macos-latest
@@ -35,9 +38,10 @@ jobs:
 
       - name: Version
         id: version
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
         run: |
-          V=${{ inputs.version }}
-          VERSION=$(echo $V | sed 's/^v//')
+          VERSION=$(echo "${INPUT_VERSION}" | sed 's/^v//')
           echo "package_version=${VERSION}" >> $GITHUB_OUTPUT
 
       - name: Executing ${{ matrix.package }}....
@@ -61,9 +65,10 @@ jobs:
 
       - name: Version
         id: version
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
         run: |
-          V=${{ inputs.version }}
-          VERSION=$(echo $V | sed 's/^v//')
+          VERSION=$(echo "${INPUT_VERSION}" | sed 's/^v//')
           echo "package_version=${VERSION}" >> $GITHUB_OUTPUT
       - name: Executing cnspec from Mondoo package....
         run: |

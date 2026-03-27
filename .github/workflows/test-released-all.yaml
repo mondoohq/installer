@@ -10,6 +10,9 @@ on:
   release:
     types: [published]
 
+permissions:
+  contents: read
+
 env:
   # C07QZDJFF89 == #release-coordination
   SLACK_BOT_CHANNEL_ID: "C07QZDJFF89"
@@ -26,8 +29,9 @@ jobs:
     needs: [parse-inputs]
     runs-on: ubuntu-latest
     steps:
-      - run: |
-          VERSION="${{ needs.parse-inputs.outputs.version }}"
+      - env:
+          VERSION: ${{ needs.parse-inputs.outputs.version }}
+        run: |
           echo "Checking version: $VERSION"
           if [[ "$VERSION" == *"-"* ]]; then
             echo "❌ Prerelease versions are not allowed ($VERSION)"
@@ -73,17 +77,22 @@ jobs:
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
       - name: Set Version (Workflow Dispatch)
         if: github.event_name == 'workflow_dispatch'
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
         run: |
-          echo VERSION=${{ inputs.version }} >> $GITHUB_ENV
+          echo "VERSION=${INPUT_VERSION}" >> $GITHUB_ENV
       - name: Set Version (Release Event)
         if: github.event_name == 'release'
+        env:
+          TAG_NAME: ${{ github.event.release.tag_name }}
         run: |
-          echo VERSION=${{ github.event.release.tag_name }} >> $GITHUB_ENV
+          echo "VERSION=${TAG_NAME}" >> $GITHUB_ENV
       - name: Unified Version
         id: version
+        env:
+          INPUT_NAME: ${{ inputs.name }}
         run: |
-          INPUT_NAME=${{ inputs.name }}
-          if [[ ${INPUT_NAME} == '' ]]; then
+          if [[ "${INPUT_NAME}" == '' ]]; then
             echo "Name is empty, using default"
             echo "name=mondoo" >> $GITHUB_OUTPUT
           else

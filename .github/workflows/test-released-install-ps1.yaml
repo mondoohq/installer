@@ -15,6 +15,9 @@ on:
         required: true
         default: "12.20.1"
 
+permissions:
+  contents: read
+
 jobs:
   wait-for-pkg:
     runs-on: ubuntu-latest

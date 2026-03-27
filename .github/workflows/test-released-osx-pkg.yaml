@@ -15,6 +15,9 @@ on:
         required: true
         default: "9.0.0"
 
+permissions:
+  contents: read
+
 jobs:
   pkg:
     runs-on: macos-latest
@@ -22,9 +25,10 @@ jobs:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
       - name: Version
         id: version
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
         run: |
-          V=${{ inputs.version }}
-          VERSION=$(echo $V | sed 's/^v//')
+          VERSION=$(echo "${INPUT_VERSION}" | sed 's/^v//')
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
       - name: Download Package
         run: |

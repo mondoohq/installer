@@ -7,18 +7,23 @@ on:
         description: 'Mondoo client version'
         required: true
 
+permissions: {}
+
 jobs:
   build_container:
+    permissions:
+      contents: read
     runs-on: ubuntu-latest
     timeout-minutes: 10
     name: Build Docker
     steps:
       - name: Clean Version
         id: version
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
         run: |
-          VERSION="${{ inputs.version}}"
-          echo "VERSION=${VERSION}" >> $GITHUB_ENV
-          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "VERSION=${INPUT_VERSION}" >> $GITHUB_ENV
+          echo "version=${INPUT_VERSION}" >> $GITHUB_OUTPUT
 
       - name: Clone repository
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1

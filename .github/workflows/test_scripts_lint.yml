@@ -5,7 +5,8 @@ on:
   pull_request:
     types: [opened, reopened, synchronize]
 
-permissions: {}
+permissions:
+  contents: read
 
 jobs:
   shellcheck:
@@ -21,6 +22,9 @@ jobs:
           scandir: '.'
 
   powershell:
+    permissions:
+      contents: read
+      security-events: write
     name: PowerShell Analyzer
     runs-on: ubuntu-latest
     steps:

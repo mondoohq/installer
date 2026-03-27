@@ -13,6 +13,13 @@ on:
         required: false
         default: false
         type: boolean
+    secrets:
+      AUR_USERNAME:
+        required: true
+      AUR_EMAIL:
+        required: true
+      AUR_SSH_PRIVATE_KEY:
+        required: true
   workflow_dispatch:
     inputs:
       version:
@@ -26,8 +33,12 @@ on:
         default: false
         type: boolean
 
+permissions: {}
+
 jobs:
   update-pkgs:
+    permissions:
+      contents: read
     runs-on: ubuntu-latest
     name: 'Generate & Locally Commit PKGBUILDs'
     steps:

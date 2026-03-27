@@ -23,6 +23,13 @@ on:
         required: false
         default: false
         type: boolean
+    secrets:
+      TSIGN_AZURE_CLIENT_ID:
+        required: true
+      GCP_CREDENTIALS:
+        required: true
+      INSTALL_TEST_MONDOO_REGISTRATION_TOKEN:
+        required: true
   workflow_dispatch:
     inputs:
       version:
@@ -56,7 +63,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Dump all inputs
-        run: echo "${{ toJSON(inputs) }}"
+        env:
+          INPUTS_JSON: ${{ toJSON(inputs) }}
+        run: echo "$INPUTS_JSON"
 
       - name: Ensure version of mql and cnspec are available
         run: |

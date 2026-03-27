@@ -34,6 +34,9 @@ on:
         default: ''
         type: string
 
+permissions:
+  contents: read
+
 jobs:
   test-mondoo-pkg-and-upgrade:
     name: Mondoo pkg + Upgrade

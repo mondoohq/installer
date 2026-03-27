@@ -13,6 +13,9 @@ on:
         required: false
         default: false
         type: boolean
+    secrets:
+      CHOCOLATEY_API_KEY:
+        required: true
   workflow_dispatch:
     inputs:
       version:
@@ -26,8 +29,12 @@ on:
         default: false
         type: boolean
 
+permissions: {}
+
 jobs:
   chocotize:
+    permissions:
+      contents: read
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false

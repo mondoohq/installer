@@ -4,43 +4,58 @@ on:
   workflow_call:
     inputs:
       version:
-        description: 'Version that should be released'
+        description: "Version that should be released"
         required: true
-        default: '8.99.99'
-        type: 'string'
+        default: "8.99.99"
+        type: "string"
       skip-publish:
-        description: 'Skip publish?'
+        description: "Skip publish?"
         required: false
         default: false
         type: boolean
       bucket:
-        description: 'GCP Release Bucket Name'
+        description: "GCP Release Bucket Name"
         required: true
-        default: 'releases-us.mondoo.io'
+        default: "releases-us.mondoo.io"
         type: string
+    secrets:
+      GCP_CREDENTIALS:
+        required: true
+      GPG_KEY:
+        required: true
+      GPG_PUBKEY:
+        required: true
+      GPG_PASSPHRASE:
+        required: true
+      REPO_API_TOKEN:
+        required: true
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version that should be released'
+        description: "Version that should be released"
         required: true
-        default: '1.2.3'
-        type: 'string'
+        default: "1.2.3"
+        type: "string"
       skip-publish:
-        description: 'Skip publish?'
+        description: "Skip publish?"
         required: false
         default: false
         type: boolean
       bucket:
-        description: 'GCP Release Bucket Name'
+        description: "GCP Release Bucket Name"
         required: true
-        default: 'releases-us.mondoo.io'
+        default: "releases-us.mondoo.io"
         type: choice
         options:
-          - 'releases-us.mondoo.io'
-          - 'releases-com-test'
+          - "releases-us.mondoo.io"
+          - "releases-com-test"
+
+permissions: {}
 
 jobs:
   build-mondoo-payloads:
+    permissions:
+      contents: read
     runs-on: ubuntu-latest
     env:
       VERSION: ${{ inputs.version }}
@@ -56,12 +71,12 @@ jobs:
           sudo apt update && sudo apt install -y rpm gpg
 
       - name: Authenticate with GCloud
-        uses: 'google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093' # v3.0.0
+        uses: "google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093" # v3.0.0
         with:
-          credentials_json: '${{ secrets.GCP_CREDENTIALS }}'
+          credentials_json: "${{ secrets.GCP_CREDENTIALS }}"
 
       - name: Setup GCloud SDK
-        uses: 'google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db' # v3.0.1
+        uses: "google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db" # v3.0.1
 
       - name: "Import Signing Keys"
         run: |

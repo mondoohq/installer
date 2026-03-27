@@ -3,6 +3,9 @@ name: Test PowerShell Module
 on:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   pwsh_module_installation:
     name: Run PowerShell install module
