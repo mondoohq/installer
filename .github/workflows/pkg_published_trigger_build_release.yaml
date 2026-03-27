@@ -242,9 +242,9 @@ jobs:
   build-homebrew:
     needs: [parse-inputs, reindex]
     uses: mondoohq/homebrew-mondoo/.github/workflows/release.yml@master
-    # TODO: Replace secrets: inherit with explicit secrets after adding
-    # secrets declarations to the homebrew-mondoo workflow_call trigger.
-    # Required secrets: MONDOO_MERGEBOT_APP_ID, MONDOO_MERGEBOT_APP_PRIVATE_KEY
+    # TODO(mondoohq/homebrew-mondoo#59): Replace secrets: inherit with explicit
+    # secrets after adding secrets declarations to the homebrew-mondoo workflow_call
+    # trigger. Required secrets: MONDOO_MERGEBOT_APP_ID, MONDOO_MERGEBOT_APP_PRIVATE_KEY
     secrets: inherit
     with:
       version: ${{ needs.parse-inputs.outputs.version }}
