@@ -2,6 +2,8 @@ name: "Test UTF-16 LE encoding for PowerShell Scripts"
 on:
   workflow_dispatch:
 
+permissions: {}
+
 jobs:
   check_encoding:
     name: Check UTF-16 LE encoding for PowerShell scripts

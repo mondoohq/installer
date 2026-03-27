@@ -20,7 +20,7 @@ jobs:
       pull-requests: write
     steps:
     - name: Checkout code
-      uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
     - name: Setup Copywrite
       uses: hashicorp/setup-copywrite@32638da2d4e81d56a0764aa1547882fc4d209636 # v1.1.3

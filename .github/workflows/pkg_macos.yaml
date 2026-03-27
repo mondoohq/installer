@@ -23,6 +23,27 @@ on:
         required: true
         default: 'releases-us.mondoo.io'
         type: string
+    secrets:
+      APPLE_KEYCHAIN_PASSWORD:
+        required: true
+      APPLE_KEYS_PRODUCTSIGN_P12:
+        required: true
+      APPLE_KEYS_CODESIGN_P12:
+        required: true
+      APPLE_KEYS_PASSWORD:
+        required: true
+      APPLE_KEYS_CODESIGN_ID:
+        required: true
+      APPLE_KEYS_PRODUCTSIGN_ID:
+        required: true
+      APPLE_ACCOUNT_USERNAME:
+        required: true
+      APPLE_ACCOUNT_PASSWORD:
+        required: true
+      APPLE_ACCOUNT_TEAM_ID:
+        required: true
+      GCP_CREDENTIALS:
+        required: true
   workflow_dispatch:
     inputs:
       version:
@@ -48,6 +69,8 @@ on:
         options:
           - 'releases-us.mondoo.io'
           - 'releases-com-test'
+
+permissions: {}
 
 jobs:
   pkg:

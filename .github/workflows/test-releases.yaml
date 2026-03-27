@@ -5,6 +5,8 @@ on:
     - cron: '*/15 * * * *'  # Run every 15 minutes
   workflow_dispatch:  # Allow manual triggers
 
+permissions: {}
+
 jobs:
   validate:
     runs-on: ubuntu-latest
