@@ -55,7 +55,7 @@ permissions: {}
 jobs:
   build-mondoo-payloads:
     permissions:
-      contents: read
+      contents: write
     runs-on: ubuntu-latest
     env:
       VERSION: ${{ inputs.version }}
