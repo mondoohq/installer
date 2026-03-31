@@ -208,6 +208,22 @@ class ScriptBuilder:
             {self.pkg_mgr.check_package_removed_script(base_product)}
         """)
 
+    def _verify_binary_runs(self, binary: str) -> str:
+        """Generate script to verify a binary runs successfully (no version check)."""
+        var_name = binary.upper().replace("-", "_") + "_OUT"
+        return textwrap.dedent(f"""\
+            echo ""
+            echo "=== {binary} version ==="
+            if {var_name}=$({binary} version 2>&1); then
+                echo "${var_name}"
+                echo "PASS: {binary} runs successfully"
+            else
+                echo "${var_name}"
+                echo "FAIL: {binary} did not run successfully"
+                exit 1
+            fi
+        """)
+
     def build_install_sh_fresh_install_script(
         self,
         package: str,
@@ -219,20 +235,23 @@ class ScriptBuilder:
         Args:
             package: Package to install (cnspec or mql).
             target_version: Expected version after install.
-            use_local: If True, use /work/install.sh (mounted from local repo).
-                       If False, download from install.mondoo.com.
+            use_local: If True, use /work/install.sh (mounted from local repo)
+                       and pass ``-v <version>`` so the exact version is pinned.
+                       If False, download from install.mondoo.com (always installs
+                       latest) and only verify the binary runs — no version assertion.
         """
         if use_local:
-            install_cmd = f"bash /work/install.sh -p {package}"
-            install_msg = f"Installing {package} via local install.sh..."
+            install_cmd = f"bash /work/install.sh -p {package} -v {target_version}"
+            install_msg = f"Installing {package} {target_version} via local install.sh..."
+            verify = self._verify_version(package, target_version)
+            if package == "cnspec":
+                verify += self._verify_version("cnquery", target_version)
         else:
             install_cmd = f"curl -sSL https://install.mondoo.com/sh/{package} | bash -x -"
             install_msg = f"Installing {package} via install.mondoo.com..."
-
-        verify = self._verify_version(package, target_version)
-        # If installing cnspec, also verify cnquery symlink
-        if package == "cnspec":
-            verify += self._verify_version("cnquery", target_version)
+            verify = self._verify_binary_runs(package)
+            if package == "cnspec":
+                verify += self._verify_binary_runs("cnquery")
 
         return textwrap.dedent(f"""\
             set -e

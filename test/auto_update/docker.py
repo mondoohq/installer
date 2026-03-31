@@ -5,7 +5,9 @@
 
 from __future__ import annotations
 
+import os
 import subprocess
+import sys
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
@@ -20,28 +22,51 @@ class DockerRunner:
     distro: Distro
     shell_on_failure: bool = False
 
+    @staticmethod
+    def _has_tty() -> bool:
+        """Check if stdin is connected to a real TTY."""
+        return sys.stdin.isatty()
+
     def run(self, script: str, mount_workdir: bool = False) -> bool:
         """Run a bash script in a Docker container. Returns True on success."""
-        if self.shell_on_failure:
+        has_tty = self._has_tty()
+        interactive = self.shell_on_failure and has_tty
+        if interactive:
             script = self._inject_shell_trap(script)
 
-        cmd = self._build_docker_command(script, mount_workdir=mount_workdir)
-        result = subprocess.run(cmd)
+        cmd = self._build_docker_command(
+            script, mount_workdir=mount_workdir, interactive=interactive,
+        )
+
+        if interactive:
+            # Interactive mode: let Docker inherit the terminal directly
+            result = subprocess.run(cmd)
+        else:
+            # Non-interactive: stream output line-by-line so pytest captures it
+            result = subprocess.run(
+                cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True,
+            )
+            if result.stdout:
+                print(result.stdout, end="")
+
         return result.returncode == 0
 
-    def _build_docker_command(self, script: str, mount_workdir: bool = False) -> list[str]:
+    def _build_docker_command(
+        self, script: str, mount_workdir: bool = False, interactive: bool = False,
+    ) -> list[str]:
         cmd = [
             "docker", "run", "--rm",
             "--pull", "always",
-            "--platform", "linux/amd64",
         ]
 
-        if self.shell_on_failure:
+        if self.distro.platform:
+            cmd += ["--platform", self.distro.platform]
+
+        if interactive:
             cmd += ["-it"]
 
         # Mount current directory as /work if requested
         if mount_workdir:
-            import os
             cmd += ["-v", f"{os.getcwd()}:/work:ro"]
 
         # Arch Linux needs seccomp disabled for pacman's alpm sandbox

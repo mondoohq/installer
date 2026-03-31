@@ -136,15 +136,9 @@ jobs:
           ]
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - name: Set up Python
-        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
-        with:
-          python-version: '3.12'
-      - name: Install pytest
-        run: pip install pytest
       - name: Install.sh/${{ matrix.package }} on ${{ matrix.distro }}
         run: |
-          pytest test/auto_update/test_install_sh.py::test_install_sh_fresh_install -v \
+          ./test/run_tests.sh test/auto_update/test_install_sh.py::test_install_sh_fresh_install -v \
             --install-version "${{ needs.get-version.outputs.version }}" \
             --distro "${{ matrix.distro }}" \
             --package "${{ matrix.package }}" \
@@ -183,15 +177,9 @@ jobs:
         distro: ["debian:11", "debian:12", "debian:13", "ubuntu:20.04", "ubuntu:22.04", "ubuntu:24.04"]
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - name: Set up Python
-        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
-        with:
-          python-version: '3.12'
-      - name: Install pytest
-        run: pip install pytest
       - name: Upgrade cnquery -> mql on ${{ matrix.distro }}
         run: |
-          pytest test/auto_update/test_install_sh.py -v \
+          ./test/run_tests.sh test/auto_update/test_install_sh.py -v \
             --install-version "${{ needs.get-version.outputs.version }}" \
             --distro "${{ matrix.distro }}" \
             --install-sh-upgrade-from "12.0.0" \
@@ -208,15 +196,9 @@ jobs:
         distro: ["quay.io/centos/centos:stream9", "rockylinux:8", "rockylinux:9", "oraclelinux:8", "oraclelinux:9"]
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - name: Set up Python
-        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
-        with:
-          python-version: '3.12'
-      - name: Install pytest
-        run: pip install pytest
       - name: Upgrade cnquery -> mql on ${{ matrix.distro }}
         run: |
-          pytest test/auto_update/test_install_sh.py -v \
+          ./test/run_tests.sh test/auto_update/test_install_sh.py -v \
             --install-version "${{ needs.get-version.outputs.version }}" \
             --distro "${{ matrix.distro }}" \
             --install-sh-upgrade-from "12.0.0" \
@@ -233,15 +215,9 @@ jobs:
         distro: ["registry.suse.com/suse/sle15:15.6"]
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - name: Set up Python
-        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
-        with:
-          python-version: '3.12'
-      - name: Install pytest
-        run: pip install pytest
       - name: Upgrade cnquery -> mql on ${{ matrix.distro }}
         run: |
-          pytest test/auto_update/test_install_sh.py -v \
+          ./test/run_tests.sh test/auto_update/test_install_sh.py -v \
             --install-version "${{ needs.get-version.outputs.version }}" \
             --distro "${{ matrix.distro }}" \
             --install-sh-upgrade-from "12.0.0" \

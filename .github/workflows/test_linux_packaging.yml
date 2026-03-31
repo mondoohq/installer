@@ -46,17 +46,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - name: Set up Python
-        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
-        with:
-          python-version: '3.12'
-
-      - name: Install pytest
-        run: pip install pytest
-
       - name: Run mondoo-pkg and upgrade tests
         run: |
-          pytest test/auto_update -m "mondoo_pkg or upgrade" -v \
+          ./test/run_tests.sh test/auto_update -m "mondoo_pkg or upgrade" -v \
             --install-version "${{ inputs.version }}" \
             --releases-url "${{ inputs.releases-url || 'https://releases.mondoo.love' }}"
 
@@ -68,17 +60,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - name: Set up Python
-        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
-        with:
-          python-version: '3.12'
-
-      - name: Install pytest
-        run: pip install pytest
-
       - name: Run auto-update tests
         run: |
-          pytest test/auto_update -m auto_update -v \
+          ./test/run_tests.sh test/auto_update -m auto_update -v \
             --install-version "${{ inputs.version }}" \
             --releases-url "${{ inputs.releases-url || 'https://releases.mondoo.love' }}"
 
@@ -91,17 +75,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - name: Set up Python
-        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
-        with:
-          python-version: '3.12'
-
-      - name: Install pytest
-        run: pip install pytest
-
       - name: Run self-upgrade tests
         run: |
-          pytest test/auto_update -m self_upgrade -v \
+          ./test/run_tests.sh test/auto_update -m self_upgrade -v \
             --install-version "${{ inputs.version }}" \
             --releases-url "${{ inputs.releases-url || 'https://releases.mondoo.love' }}" \
             --self-upgrade-from "${{ inputs.self-upgrade-from }}"

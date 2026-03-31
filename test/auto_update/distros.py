@@ -21,6 +21,7 @@ class Distro:
     name: str
     image: str
     pkg_mgr_name: str
+    platform: str = "linux/amd64"
 
     @property
     def pkg_mgr(self) -> PackageManager:
@@ -58,7 +59,7 @@ DISTROS = [
     Distro("Fedora 41", "fedora:41", "dnf"),
     Distro("Red Hat UBI 8", "redhat/ubi8", "dnf"),
     Distro("Red Hat UBI 9", "redhat/ubi9", "dnf"),
-    Distro("Red Hat UBI 10", "redhat/ubi10", "dnf"),
+    Distro("Red Hat UBI 10", "redhat/ubi10", "dnf", platform=""),
     Distro("Oracle Linux 8", "oraclelinux:8", "dnf"),
     Distro("Oracle Linux 9", "oraclelinux:9", "dnf"),
     # RPM-based (zypper)
