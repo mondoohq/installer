@@ -97,6 +97,8 @@ jobs:
       skip-publish: ${{ needs.parse-inputs.outputs.skip-publish == 'true' }}
       bucket: ${{ needs.parse-inputs.outputs.bucket }}
   build-mondoo-pkgs:
+    permissions:
+      contents: write
     uses: ./.github/workflows/release_mondoo_pkgs.yaml
     needs: [check-version, parse-inputs]
     secrets:
