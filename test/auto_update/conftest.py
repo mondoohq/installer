@@ -49,6 +49,14 @@ def pytest_addoption(parser: pytest.Parser) -> None:
         help="Version to install before upgrading via install.sh (e.g. 12.0.0)",
     )
     parser.addoption(
+        "--package",
+        action="append",
+        default=[],
+        dest="packages",
+        metavar="PACKAGE",
+        help="Package to test (cnspec or mql). Can be repeated. Default: both.",
+    )
+    parser.addoption(
         "--distro",
         action="append",
         default=[],
@@ -188,6 +196,10 @@ def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:
             filtered_distros,
             ids=[d.name for d in filtered_distros],
         )
+
+    if "package" in metafunc.fixturenames:
+        packages = metafunc.config.getoption("--package") or ["cnspec", "mql"]
+        metafunc.parametrize("package", packages)
 
     if "base_version" in metafunc.fixturenames:
         base_versions_str = metafunc.config.getoption("--base-versions")

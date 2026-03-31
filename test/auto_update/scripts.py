@@ -208,6 +208,46 @@ class ScriptBuilder:
             {self.pkg_mgr.check_package_removed_script(base_product)}
         """)
 
+    def build_install_sh_fresh_install_script(
+        self,
+        package: str,
+        target_version: str,
+        use_local: bool = False,
+    ) -> str:
+        """Build script for fresh install via install.sh.
+
+        Args:
+            package: Package to install (cnspec or mql).
+            target_version: Expected version after install.
+            use_local: If True, use /work/install.sh (mounted from local repo).
+                       If False, download from install.mondoo.com.
+        """
+        if use_local:
+            install_cmd = f"bash /work/install.sh -p {package}"
+            install_msg = f"Installing {package} via local install.sh..."
+        else:
+            install_cmd = f"curl -sSL https://install.mondoo.com/sh/{package} | bash -x -"
+            install_msg = f"Installing {package} via install.mondoo.com..."
+
+        verify = self._verify_version(package, target_version)
+        # If installing cnspec, also verify cnquery symlink
+        if package == "cnspec":
+            verify += self._verify_version("cnquery", target_version)
+
+        return textwrap.dedent(f"""\
+            set -e
+
+            # ---- setup ----
+            {self.pkg_mgr.install_curl_script()}
+
+            # ---- install {package} via install.sh ----
+            echo ""
+            echo "{install_msg}"
+            {install_cmd}
+
+            {verify}
+        """)
+
     def build_install_sh_upgrade_script(
         self,
         base_version: str,

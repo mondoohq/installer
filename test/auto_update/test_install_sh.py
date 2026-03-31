@@ -1,7 +1,7 @@
 # Copyright Mondoo, Inc. 2025, 2026
 # SPDX-License-Identifier: BUSL-1.1
 
-"""install.sh upgrade tests."""
+"""install.sh tests (fresh install and upgrade)."""
 
 from __future__ import annotations
 
@@ -10,6 +10,31 @@ import pytest
 from .distros import Distro
 from .docker import DockerRunner
 from .scripts import ScriptBuilder
+
+
+@pytest.mark.install_sh
+def test_install_sh_fresh_install(
+    distro: Distro,
+    package: str,
+    install_version: str,
+    shell_on_failure: bool,
+    use_local_install_sh: bool,
+) -> None:
+    """Test fresh install via install.sh (curl | bash).
+
+    Installs a package (cnspec or mql) via install.sh and verifies the
+    expected version is installed.
+    """
+    builder = ScriptBuilder(distro.pkg_mgr, "")
+    script = builder.build_install_sh_fresh_install_script(
+        package,
+        install_version,
+        use_local=use_local_install_sh,
+    )
+
+    runner = DockerRunner(distro, shell_on_failure)
+    assert runner.run(script, mount_workdir=use_local_install_sh), \
+        f"install.sh fresh install of {package} failed on {distro.name}"
 
 
 @pytest.mark.install_sh
