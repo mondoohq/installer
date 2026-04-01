@@ -67,6 +67,7 @@ cinst
 CJk
 Cjzw
 Cnb
+conftest
 Cnm
 CNU
 COSb
@@ -83,6 +84,7 @@ DAUJA
 DBp
 DBQs
 DBRUKCQg
+dataclass
 devkit
 DEYWPOPDJc
 Dfmno
@@ -384,6 +386,7 @@ OOn
 OPENSSH
 OQM
 Oqs
+oraclelinux
 Orgi
 Osb
 OUTQ
@@ -394,6 +397,7 @@ oyxo
 OZFS
 PBm
 PBv
+pacman
 PCW
 PFN
 PGTLJa
@@ -419,6 +423,8 @@ Psz
 Punn
 Pusj
 pvaqay
+pytest
+PYTHONPATH
 PWAWn
 Pwkqgw
 PZa
@@ -504,6 +510,7 @@ Shfo
 SHx
 Sih
 SJI
+sle
 Smu
 SNq
 SOq

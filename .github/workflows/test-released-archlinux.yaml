@@ -22,7 +22,7 @@ jobs:
   arch-mql-makepkg:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - name: Version
         id: version
         env:
@@ -32,20 +32,14 @@ jobs:
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
       - name: Install mql with MakePKG on Arch Linux
         run: |
-          docker run --rm -v $(pwd):/work -w /work archlinux:latest \
-          bash -c "pacman -Syu --noconfirm && \
-                    pacman -S --noconfirm base-devel git &&  \
-                    cd /tmp && \
-                    useradd test && \
-                    su test -c \"git clone https://aur.archlinux.org/mql && cd mql && makepkg\" && \
-                    cd  mql && \
-                    pacman -U --noconfirm  mql-*.zst && \
-                    mql version | grep -q ${{ steps.version.outputs.version }}"
-      
+          ./test/run_tests.sh test/auto_update/test_aur.py::test_aur_mql_makepkg -v \
+            --install-version ${{ steps.version.outputs.version }} \
+            --distro arch
+
   arch-cnspec-yay:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - name: Version
         id: version
         env:
@@ -55,23 +49,14 @@ jobs:
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
       - name: Install cnspec with Yay on Arch Linux
         run: |
-          docker run --rm -v $(pwd):/work -w /work archlinux:latest \
-          bash -c " pacman -Syu --noconfirm && \
-                    pacman -S --noconfirm base-devel git go &&  \
-                    cd /tmp && \
-                    useradd -m test && \
-                    echo \"test ALL=(ALL) NOPASSWD: ALL\" >> /etc/sudoers && \
-                    su test -c \"git clone https://aur.archlinux.org/yay && cd yay && makepkg\" && \
-                    cd  yay && \
-                    pacman -U --noconfirm  yay-*.zst && \
-                    su test -c \"yay -S --noconfirm cnspec\" && \
-                    cnspec version | grep -q ${{ steps.version.outputs.version }} && \
-                    cnquery version | grep -q ${{ steps.version.outputs.version }}"
+          ./test/run_tests.sh test/auto_update/test_aur.py::test_aur_cnspec_yay -v \
+            --install-version ${{ steps.version.outputs.version }} \
+            --distro arch
 
   arch-upgrade-cnquery-to-mql:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - name: Version
         id: version
         env:
@@ -79,18 +64,8 @@ jobs:
         run: |
           VERSION=$(echo "${INPUT_VERSION}" | sed 's/^v//')
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
-      - name: Upgrade cnquery -> mql with MakePKG on Arch Linux
+      - name: Upgrade cnquery -> mql on Arch Linux
         run: |
-          docker run --rm -v $(pwd):/work -w /work archlinux:latest \
-          bash -c "pacman -Syu --noconfirm && \
-                    pacman -S --noconfirm base-devel git && \
-                    cd /tmp && \
-                    useradd -m test && \
-                    echo \"test ALL=(ALL) NOPASSWD: ALL\" >> /etc/sudoers && \
-                    su test -c \"git clone https://aur.archlinux.org/cnquery && cd cnquery && makepkg\" && \
-                    cd cnquery && pacman -U --noconfirm cnquery-*.zst && cd /tmp && \
-                    cnquery version && \
-                    su test -c \"git clone https://aur.archlinux.org/mql && cd mql && makepkg\" && \
-                    cd mql && pacman -U --noconfirm mql-*.zst && \
-                    mql version | grep -q ${{ steps.version.outputs.version }} && \
-                    ! pacman -Q cnquery"
+          ./test/run_tests.sh test/auto_update/test_upgrade.py::test_aur_upgrade -v \
+            --install-version ${{ steps.version.outputs.version }} \
+            --distro arch

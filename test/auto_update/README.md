@@ -1,122 +1,201 @@
 # Linux Packaging Tests
 
-`test_auto_update.py` tests mondoo metapackage installation, package upgrades, auto-update, and binary self-upgrade across DEB- and RPM-based Linux distributions using Docker.
+This package tests mondoo metapackage installation, package upgrades, auto-update, and binary self-upgrade across Linux distributions using Docker.
 
 ## Requirements
 
 - Docker (with `linux/amd64` support)
-- Python 3
+- Python 3.10+
+- pytest (`pip install pytest`)
 - Network access to `releases.mondoo.love` / `releases.mondoo.com`
 
 ## Test Suites
 
-| Suite | What it tests |
-|---|---|
-| **mondoo-pkg** | Downloads and installs mql + cnspec + mondoo `.deb`/`.rpm`, verifies versions |
-| **upgrade** | Installs a stable base version (default: 11.0.0, 12.0.0), upgrades to `--install-version`, verifies versions |
-| **auto-update** | Installs binaries from tarballs with `auto_update: true` config, triggers `mql run local`, checks version output |
-| **self-upgrade** | Installs `--self-upgrade-from` binaries, triggers in-process self-upgrade, verifies binary was replaced |
+| Suite | Marker | What it tests |
+|---|---|---|
+| **auto-update** | `auto_update` | Installs binaries with `auto_update: true` config, triggers `mql run local`, checks version output |
+| **mondoo-pkg** | `mondoo_pkg` | Downloads and installs mql + cnspec + mondoo packages, verifies versions |
+| **upgrade** | `upgrade` | Installs a stable base version, upgrades to target version, verifies cnquery was removed |
+| **self-upgrade** | `self_upgrade` | Installs older binaries, triggers in-process self-upgrade, verifies binary was replaced |
+| **install.sh** | `install_sh` | Installs cnquery, upgrades to mql via install.sh, verifies old package removed |
+| **AUR** | `aur` | Tests Arch Linux AUR package installation via makepkg and yay |
 
 ## Distros
 
 | Name | Image | Package manager |
 |---|---|---|
-| Ubuntu 22.04 | `ubuntu:22.04` | apt |
+| Debian 11 | `debian:11` | apt |
 | Debian 12 | `debian:12` | apt |
+| Ubuntu 20.04 | `ubuntu:20.04` | apt |
+| Ubuntu 22.04 | `ubuntu:22.04` | apt |
+| Ubuntu 24.04 | `ubuntu:24.04` | apt |
 | AlmaLinux 9 | `almalinux:9` | dnf |
+| Rocky Linux 8 | `rockylinux:8` | dnf |
 | Rocky Linux 9 | `rockylinux:9` | dnf |
+| CentOS Stream 9 | `quay.io/centos/centos:stream9` | dnf |
+| Oracle Linux 8 | `oraclelinux:8` | dnf |
+| Oracle Linux 9 | `oraclelinux:9` | dnf |
+| SUSE SLE 15.6 | `registry.suse.com/suse/sle15:15.6` | zypper |
+| Arch Linux | `archlinux:latest` | pacman |
 
-## Usage
+## Package Structure
+
+```
+test/auto_update/
+├── __init__.py           # Package exports
+├── __main__.py           # Entry point
+├── cli.py                # Legacy CLI (backwards compatibility)
+├── conftest.py           # pytest fixtures and configuration
+├── constants.py          # Default URLs and versions
+├── distros.py            # Distro dataclass and DISTROS list
+├── docker.py             # DockerRunner class
+├── runners.py            # Legacy runner functions
+├── scripts.py            # ScriptBuilder class
+├── utils.py              # Helper functions
+├── test_auto_update.py   # Auto-update tests
+├── test_mondoo_pkg.py    # Mondoo metapackage tests
+├── test_upgrade.py       # Upgrade tests
+├── test_install_sh.py    # install.sh upgrade tests
+├── test_aur.py           # AUR tests (Arch Linux)
+├── package_managers/
+│   ├── __init__.py       # Exports PackageManager + registry
+│   ├── base.py           # PackageManager ABC
+│   ├── apt.py            # Debian/Ubuntu
+│   ├── dnf.py            # RHEL/Rocky/Alma/CentOS
+│   ├── zypper.py         # SUSE
+│   └── pacman.py         # Arch Linux
+└── README.md
+```
+
+## Usage (pytest)
 
 ### Run all tests
 
 ```bash
-python3 test/auto_update/test_auto_update.py \
-  --install-version 13.0.0-rc9 \
-  --releases-url https://releases.mondoo.love
+pytest test/auto_update -v --install-version 13.0.0
 ```
 
-### Run all tests including self-upgrade
+### Run specific test suites
 
 ```bash
-python3 test/auto_update/test_auto_update.py \
-  --install-version 13.0.0-rc9 \
-  --releases-url https://releases.mondoo.love \
-  --self-upgrade-from 13.0.0-rc8
+# Auto-update tests only
+pytest test/auto_update -m auto_update -v --install-version 13.0.0
+
+# Mondoo metapackage tests only
+pytest test/auto_update -m mondoo_pkg -v --install-version 13.0.0
+
+# Upgrade tests only
+pytest test/auto_update -m upgrade -v --install-version 13.0.0
+
+# Multiple suites
+pytest test/auto_update -m "mondoo_pkg or upgrade" -v --install-version 13.0.0
 ```
 
 ### Filter to specific distros
 
 ```bash
-# Rocky Linux 9 only
-python3 test/auto_update/test_auto_update.py \
-  --install-version 13.0.0-rc9 \
-  --distro rocky
+# Arch Linux only
+pytest test/auto_update -v --install-version 13.0.0 --distro arch
+
+# Rocky Linux only
+pytest test/auto_update -v --install-version 13.0.0 --distro rocky
 
 # Multiple distros
-python3 test/auto_update/test_auto_update.py \
-  --install-version 13.0.0-rc9 \
-  --distro ubuntu --distro debian
+pytest test/auto_update -v --install-version 13.0.0 --distro ubuntu --distro debian
 ```
 
-### Skip suites
+### Run specific tests
 
 ```bash
-# Only mondoo-pkg and upgrade tests (skip auto-update and self-upgrade)
-python3 test/auto_update/test_auto_update.py \
-  --install-version 13.0.0-rc9 \
-  --skip-auto-update \
-  --skip-self-upgrade
+# AUR mql makepkg test
+pytest test/auto_update/test_aur.py::test_aur_mql_makepkg -v --install-version 13.0.0
 
-# Only self-upgrade test
-python3 test/auto_update/test_auto_update.py \
-  --install-version 13.0.0-rc9 \
-  --self-upgrade-from 13.0.0-rc8 \
-  --skip-auto-update \
-  --skip-mondoo-pkg \
-  --skip-upgrade
+# install.sh upgrade test
+pytest test/auto_update/test_install_sh.py -v \
+  --install-version 13.0.0 \
+  --install-sh-upgrade-from 12.0.0
+
+# Self-upgrade test
+pytest test/auto_update -m self_upgrade -v \
+  --install-version 13.0.0 \
+  --self-upgrade-from 13.0.0-rc5
 ```
 
-### Custom base versions for upgrade tests
+### Test local install.sh changes
 
 ```bash
-python3 test/auto_update/test_auto_update.py \
-  --install-version 13.0.0-rc9 \
-  --base-versions 11.0.0,12.23.1
+pytest test/auto_update/test_install_sh.py -v \
+  --install-version 13.0.0 \
+  --install-sh-upgrade-from 12.0.0 \
+  --use-local-install-sh
 ```
 
-### Stop on first failure
+### Use custom releases URL
 
 ```bash
-python3 test/auto_update/test_auto_update.py \
+pytest test/auto_update -v \
   --install-version 13.0.0-rc9 \
-  --fail-fast
+  --releases-url https://releases.mondoo.love
+```
+
+### Debug failures interactively
+
+```bash
+pytest test/auto_update -v \
+  --install-version 13.0.0 \
+  --distro debian:11 \
+  --shell-on-failure
 ```
 
 ## Options
 
 | Flag | Default | Description |
 |---|---|---|
-| `--install-version` | *(required)* | Version to install/test, e.g. `13.0.0-rc9` |
+| `--install-version` | *(required)* | Version to install/test, e.g. `13.0.0` |
 | `--releases-url` | `https://releases.mondoo.love` | Base URL for packages under test |
-| `--stable-releases-url` | `https://releases.mondoo.com` | Base URL for stable base packages used in upgrade tests |
-| `--distro FILTER` | all | Only run distros matching FILTER in name or image (case-insensitive, repeatable) |
-| `--skip-auto-update` | false | Skip auto-update suite |
-| `--skip-mondoo-pkg` | false | Skip mondoo metapackage suite |
-| `--skip-upgrade` | false | Skip upgrade suite |
-| `--skip-self-upgrade` | false | Skip self-upgrade suite |
-| `--self-upgrade-from VERSION` | *(empty)* | Version to upgrade from in self-upgrade tests |
+| `--stable-releases-url` | `https://releases.mondoo.com` | Base URL for stable base packages |
+| `--distro FILTER` | all | Only run distros matching FILTER (repeatable) |
 | `--base-versions LIST` | `11.0.0,12.0.0` | Comma-separated base versions for upgrade tests |
-| `--fail-fast` | false | Stop after first failure |
+| `--self-upgrade-from` | *(empty)* | Version for self-upgrade tests |
+| `--install-sh-upgrade-from` | *(empty)* | Version for install.sh upgrade tests |
+| `--use-local-install-sh` | false | Use local install.sh instead of install.mondoo.com |
+| `--shell-on-failure` | false | Drop into interactive shell on failure |
 
-## CI Workflow
+## Legacy CLI (backwards compatible)
 
-The `.github/workflows/test_linux_packaging.yml` workflow runs these tests in three parallel jobs:
+The old CLI syntax is still supported:
 
-| Job | Suites run |
+```bash
+PYTHONPATH=test python -m auto_update \
+  --install-version 13.0.0 \
+  --tests mondoo-pkg,upgrade
+
+PYTHONPATH=test python -m auto_update \
+  --install-version 13.0.0 \
+  --tests all --skip-tests aur
+```
+
+## CI Workflows
+
+### test_linux_packaging.yml
+
+Runs packaging tests in parallel jobs:
+
+| Job | Tests run |
 |---|---|
 | `test-mondoo-pkg-and-upgrade` | mondoo-pkg + upgrade |
 | `test-auto-update` | auto-update |
-| `test-self-upgrade` | self-upgrade (only if `self-upgrade-from` input is set) |
+| `test-self-upgrade` | self-upgrade (if `self-upgrade-from` set) |
 
-Trigger manually via **Actions → Test Linux Packaging → Run workflow**.
+### test-released-install-sh.yaml
+
+Tests install.sh upgrades. Triggers on:
+- PR/push to `install.sh` or `test/auto_update/**` (uses local install.sh)
+- workflow_dispatch/workflow_call (uses remote install.sh)
+
+### test-released-archlinux.yaml
+
+Tests AUR packages on Arch Linux:
+- mql installation via makepkg
+- cnspec installation via yay
+- cnquery → mql upgrade
