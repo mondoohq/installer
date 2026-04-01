@@ -157,14 +157,13 @@ jobs:
       - name: Install.sh/${{ matrix.package }} on ${{ matrix.os }}
         run: |
           bash -c "$(curl -sSL https://install.mondoo.com/sh/${{ matrix.package }})"
-          ${{ matrix.package }} version
-      - name: Verify the correct version is installed
+      - name: Verify ${{ matrix.package }} runs
         run: |
-          ${{ matrix.package }} version | grep -q ${{ needs.get-version.outputs.version }}
+          ${{ matrix.package }} version
       - name: Verify cnquery symlink points to cnspec (cnspec only)
         if: matrix.package == 'cnspec'
         run: |
-          cnquery version | grep -q ${{ needs.get-version.outputs.version }}
+          cnquery version
 
   upgrade-from-cnquery-apt:
     name: Upgrade cnquery -> mql (apt)

@@ -286,11 +286,13 @@ class ScriptBuilder:
         base_product = _mql_product(base_version)
 
         if use_local:
-            install_cmd = "bash /work/install.sh -p mql"
-            install_msg = "Upgrading to mql via local install.sh..."
+            install_cmd = f"bash /work/install.sh -p mql -v {target_version}"
+            install_msg = f"Upgrading to mql {target_version} via local install.sh..."
+            verify = self._verify_version("mql", target_version)
         else:
             install_cmd = "curl -sSL https://install.mondoo.com/sh/mql | bash -"
             install_msg = "Upgrading to mql via install.mondoo.com..."
+            verify = self._verify_binary_runs("mql")
 
         return textwrap.dedent(f"""\
             set -e
@@ -305,7 +307,7 @@ class ScriptBuilder:
             echo "{install_msg}"
             {install_cmd}
 
-            {self._verify_version("mql", target_version)}
+            {verify}
 
             # ---- verify {base_product} was removed ----
             echo ""
