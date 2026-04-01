@@ -45,7 +45,7 @@ jobs:
       - name: Determine version
         id: version
         run: |
-          if [ -n "${{ inputs.version }}" ]; then
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] || [ "${{ github.event_name }}" = "workflow_call" ]; then
             # workflow_call or workflow_dispatch - use provided version
             VERSION="${{ inputs.version }}"
             VERSION="${VERSION#v}"
