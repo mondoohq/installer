@@ -139,6 +139,8 @@ jobs:
         id: generate-token
         uses: actions/create-github-app-token@1b10c78c7865c340bc4f6099eb2f838309f1e8c3 # v3.1.1
         with:
+          # client-id accepts the same value as the old app-id input, see
+          # https://github.com/actions/create-github-app-token/blob/v3.1.1/main.js#L21
           client-id: ${{ secrets.MONDOO_MERGEBOT_APP_ID }}
           private-key: ${{ secrets.MONDOO_MERGEBOT_APP_PRIVATE_KEY }}
           owner: mondoohq
