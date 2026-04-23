@@ -28,6 +28,7 @@
     Import-Module ./install.ps1; Install-Mondoo -UpdateTask enable -Time 12:00 -Interval 3
     Import-Module ./install.ps1; Install-Mondoo -Product cnspec
     Import-Module ./install.ps1; Install-Mondoo -Path 'C:\Program Files\Mondoo\'
+    Import-Module ./install.ps1; Install-Mondoo -CleanupStaleSystem32 disable
 #>
 function Install-Mondoo {
   [CmdletBinding()]
@@ -47,7 +48,8 @@ function Install-Mondoo {
     [string]   $Timer = '60',
     [string]   $Splay = '60',
     [string]   $Annotation = '',
-    [string]   $Name = ''
+    [string]   $Name = '',
+    [string]   $CleanupStaleSystem32 = 'enable'
   )
   Process {
 
@@ -146,6 +148,57 @@ function Install-Mondoo {
       Try { $null = $scheduleObject.GetFolder($taskpath) }
       Catch { $null = $rootFolder.CreateFolder($taskpath) }
       Finally { $ErrorActionPreference = "continue" }
+    }
+
+    function Remove-StaleSystem32MondooBinaries {
+      # Some customers have ended up with cnspec.exe / cnquery.exe inside
+      # C:\Windows\System32. That copy shadows the supported install at
+      # C:\Program Files\Mondoo\ because System32 sits earlier in PATH, and it
+      # persists across MSI upgrades (MSI never placed files there, so it will
+      # never remove them either). We only touch files we can positively
+      # identify as Mondoo-signed via Authenticode — never a blind delete.
+      #
+      # Note for EDR operators: this function deletes files from System32,
+      # which EDRs will rightfully flag. The operation is performed from the
+      # signed Mondoo install script running elevated, only against binaries
+      # whose Authenticode signer is Mondoo. Pass -CleanupStaleSystem32
+      # 'disable' to skip this step if your change-management policy requires
+      # removal via a separate approved procedure.
+      $system32 = [Environment]::GetFolderPath('System')
+      $candidates = @('cnspec.exe', 'cnquery.exe') | ForEach-Object { Join-Path $system32 $_ }
+
+      foreach ($path in $candidates) {
+        if (-not (Test-Path -LiteralPath $path)) { continue }
+
+        info " * Detected legacy binary at $path — verifying Authenticode signature before removal"
+
+        $sig = $null
+        try {
+          $sig = Get-AuthenticodeSignature -FilePath $path -ErrorAction Stop
+        } catch {
+          info "   Skipping $path — unable to read signature: $_. Leaving file in place for manual review."
+          continue
+        }
+
+        if ($sig.Status -ne 'Valid') {
+          info "   Skipping $path — Authenticode status is '$($sig.Status)'. Leaving file in place for manual review."
+          continue
+        }
+
+        $subject = $sig.SignerCertificate.Subject
+        if ($subject -notmatch 'Mondoo') {
+          info "   Skipping $path — signed by '$subject', not Mondoo. Leaving file in place for manual review."
+          continue
+        }
+
+        info "   Verified Mondoo-signed ($subject). Removing stale copy from System32."
+        try {
+          Remove-Item -LiteralPath $path -Force -ErrorAction Stop
+          success "   Removed $path"
+        } catch {
+          info "   Warning: failed to remove $path ($_). If a process has the file open, reboot and re-run this script, or delete manually."
+        }
+      }
     }
 
     function CreateAndRegisterMondooUpdaterTask($taskname, $taskpath) {
@@ -258,6 +311,7 @@ function Install-Mondoo {
     info ("  Interval:          {0}" -f $Interval)
     info ("  Scan Interval:     {0}" -f $Timer)
     info ("  Splay:             {0}" -f $Splay)
+    info ("  CleanupStaleSystem32: {0}" -f $CleanupStaleSystem32)
     info ""
 
     # determine download url
@@ -440,6 +494,14 @@ function Install-Mondoo {
     }
     Else {
       fail "${filetype} is not supported for download"
+    }
+
+    # Clean up stale cnspec.exe / cnquery.exe in C:\Windows\System32 left
+    # behind by historical misinstalls. Runs after the supported install at
+    # C:\Program Files\Mondoo\ is in place, so the new binary is always the
+    # fallback. Opt out with -CleanupStaleSystem32 'disable'.
+    If ($CleanupStaleSystem32.ToLower() -ne 'disable') {
+      Remove-StaleSystem32MondooBinaries
     }
 
     # Display final message
