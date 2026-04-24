@@ -542,10 +542,21 @@ configure_cloudshell_installer() {
 # --------------------
 
 detect_mondoo_registered() {
-  if [ "$(
-    ${MONDOO_BINARY_PATH} status >/dev/null 2>&1
-    echo $?
-  )" -eq "0" ]; then
+  ${MONDOO_BINARY_PATH} status >/dev/null 2>&1 &
+  _status_pid=$!
+  _elapsed=0
+  while kill -0 "$_status_pid" 2>/dev/null; do
+    if [ "$_elapsed" -ge 10 ]; then
+      kill "$_status_pid" 2>/dev/null
+      wait "$_status_pid" 2>/dev/null
+      MONDOO_IS_REGISTERED=false
+      return
+    fi
+    sleep 1
+    _elapsed=$((_elapsed + 1))
+  done
+  wait "$_status_pid"
+  if [ $? -eq 0 ]; then
     MONDOO_IS_REGISTERED=true
   else
     MONDOO_IS_REGISTERED=false
