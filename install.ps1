@@ -179,7 +179,10 @@ function Install-Mondoo {
           $ts = Get-Date -Format o
           Add-Content -LiteralPath $logPath -Value "$ts $line"
         } catch {
-          # A failed log write must never break the cleanup itself.
+          # A failed log write must never break the cleanup itself, but
+          # surface a warning so operators can fix the log-path permissions
+          # or disk issue without the failure being completely silent.
+          Write-Warning "Unable to write cleanup log at ${logPath}: $_"
         }
       }
 
@@ -226,7 +229,7 @@ function Install-Mondoo {
           Write-CleanupLog "removed path=`"$path`" signer=`"$subject`""
         } catch {
           $reason = "failed to remove: $_"
-          info "   Warning: $reason. If a process has the file open, reboot and re-run this script, or delete manually."
+          info "   Warning: failed to remove $path ($_). If a process has the file open, reboot and re-run this script, or delete manually."
           Write-CleanupLog "error path=`"$path`" reason=`"$reason`""
         }
       }
