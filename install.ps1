@@ -147,7 +147,9 @@ function Install-Mondoo {
       Finally { $ErrorActionPreference = "continue" }
     }
 
-    function Remove-StaleSystem32MondooBinaries {
+    function Remove-StaleSystem32MondooBinary {
+      [CmdletBinding(SupportsShouldProcess)]
+      param()
       # Some customers have ended up with cnspec.exe / cnquery.exe inside
       # C:\Windows\System32. That copy shadows the supported install at
       # C:\Program Files\Mondoo\ because System32 sits earlier in PATH, and it
@@ -219,14 +221,16 @@ function Install-Mondoo {
         }
 
         info "   Verified Mondoo-signed ($subject). Removing stale copy from System32."
-        try {
-          Remove-Item -LiteralPath $path -Force -ErrorAction Stop
-          success "   Removed $path"
-          Write-CleanupLog "removed path=`"$path`" signer=`"$subject`""
-        } catch {
-          $reason = "failed to remove: $_"
-          info "   Warning: failed to remove $path ($_). If a process has the file open, reboot and re-run this script, or delete manually."
-          Write-CleanupLog "error path=`"$path`" reason=`"$reason`""
+        if ($PSCmdlet.ShouldProcess($path, 'Remove stale Mondoo-signed binary from System32')) {
+          try {
+            Remove-Item -LiteralPath $path -Force -ErrorAction Stop
+            success "   Removed $path"
+            Write-CleanupLog "removed path=`"$path`" signer=`"$subject`""
+          } catch {
+            $reason = "failed to remove: $_"
+            info "   Warning: failed to remove $path ($_). If a process has the file open, reboot and re-run this script, or delete manually."
+            Write-CleanupLog "error path=`"$path`" reason=`"$reason`""
+          }
         }
       }
     }
@@ -546,7 +550,7 @@ function Install-Mondoo {
     # C:\Program Files\Mondoo\ is in place, so the new binary is always the
     # fallback. Opt out with -CleanupStaleSystem32 'disable'.
     If ($CleanupStaleSystem32 -ine 'disable') {
-      Remove-StaleSystem32MondooBinaries
+      Remove-StaleSystem32MondooBinary
     }
 
     # Display final message
