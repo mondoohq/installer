@@ -49,6 +49,7 @@ function Install-Mondoo {
     [string]   $Splay = '60',
     [string]   $Annotation = '',
     [string]   $Name = '',
+    [ValidateSet('enable', 'disable')]
     [string]   $CleanupStaleSystem32 = 'enable'
   )
   Process {
@@ -185,9 +186,13 @@ function Install-Mondoo {
           continue
         }
 
+        # Require the certificate Organization (O=) field to be Mondoo — a
+        # substring match anywhere in the DN would accept certs where 'Mondoo'
+        # merely appears in CN/OU/L. Both the DigiCert and Azure Trusted
+        # Signing certificates used by Mondoo builds set O="Mondoo, Inc.".
         $subject = $sig.SignerCertificate.Subject
-        if ($subject -notmatch 'Mondoo') {
-          info "   Skipping $path — signed by '$subject', not Mondoo. Leaving file in place for manual review."
+        if ($subject -notmatch 'O="?Mondoo, Inc\.') {
+          info "   Skipping $path — signed by '$subject', not a Mondoo, Inc. certificate. Leaving file in place for manual review."
           continue
         }
 
@@ -500,7 +505,7 @@ function Install-Mondoo {
     # behind by historical misinstalls. Runs after the supported install at
     # C:\Program Files\Mondoo\ is in place, so the new binary is always the
     # fallback. Opt out with -CleanupStaleSystem32 'disable'.
-    If ($CleanupStaleSystem32.ToLower() -ne 'disable') {
+    If ($CleanupStaleSystem32 -ine 'disable') {
       Remove-StaleSystem32MondooBinaries
     }
 
