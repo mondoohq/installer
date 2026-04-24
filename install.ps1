@@ -162,9 +162,27 @@ function Install-Mondoo {
       # Note for EDR operators: this function deletes files from System32,
       # which EDRs will rightfully flag. The operation is performed from the
       # signed Mondoo install script running elevated, only against binaries
-      # whose Authenticode signer is Mondoo. Pass -CleanupStaleSystem32
-      # 'disable' to skip this step if your change-management policy requires
-      # removal via a separate approved procedure.
+      # whose Authenticode signer is Mondoo, Inc. Every decision (remove,
+      # skip, error) is written to C:\ProgramData\Mondoo\system32-cleanup.log
+      # so SOC teams can correlate the EDR event with a forensic artifact.
+      # Pass -CleanupStaleSystem32 'disable' to skip this step if your
+      # change-management policy requires removal via a separate approved
+      # procedure.
+      $logDir  = 'C:\ProgramData\Mondoo'
+      $logPath = Join-Path $logDir 'system32-cleanup.log'
+
+      function Write-CleanupLog([string]$line) {
+        try {
+          if (-not (Test-Path -LiteralPath $logDir)) {
+            New-Item -ItemType Directory -Path $logDir -Force | Out-Null
+          }
+          $ts = Get-Date -Format o
+          Add-Content -LiteralPath $logPath -Value "$ts $line"
+        } catch {
+          # A failed log write must never break the cleanup itself.
+        }
+      }
+
       $system32 = [Environment]::GetFolderPath('System')
       $candidates = @('cnspec.exe', 'cnquery.exe') | ForEach-Object { Join-Path $system32 $_ }
 
@@ -177,12 +195,16 @@ function Install-Mondoo {
         try {
           $sig = Get-AuthenticodeSignature -FilePath $path -ErrorAction Stop
         } catch {
-          info "   Skipping $path — unable to read signature: $_. Leaving file in place for manual review."
+          $reason = "unable to read signature: $_"
+          info "   Skipping $path — $reason. Leaving file in place for manual review."
+          Write-CleanupLog "skipped path=`"$path`" reason=`"$reason`""
           continue
         }
 
         if ($sig.Status -ne 'Valid') {
-          info "   Skipping $path — Authenticode status is '$($sig.Status)'. Leaving file in place for manual review."
+          $reason = "Authenticode status is '$($sig.Status)'"
+          info "   Skipping $path — $reason. Leaving file in place for manual review."
+          Write-CleanupLog "skipped path=`"$path`" reason=`"$reason`""
           continue
         }
 
@@ -193,6 +215,7 @@ function Install-Mondoo {
         $subject = $sig.SignerCertificate.Subject
         if ($subject -notmatch 'O="?Mondoo, Inc\.') {
           info "   Skipping $path — signed by '$subject', not a Mondoo, Inc. certificate. Leaving file in place for manual review."
+          Write-CleanupLog "skipped path=`"$path`" reason=`"signer is not Mondoo, Inc.`" signer=`"$subject`""
           continue
         }
 
@@ -200,8 +223,11 @@ function Install-Mondoo {
         try {
           Remove-Item -LiteralPath $path -Force -ErrorAction Stop
           success "   Removed $path"
+          Write-CleanupLog "removed path=`"$path`" signer=`"$subject`""
         } catch {
-          info "   Warning: failed to remove $path ($_). If a process has the file open, reboot and re-run this script, or delete manually."
+          $reason = "failed to remove: $_"
+          info "   Warning: $reason. If a process has the file open, reboot and re-run this script, or delete manually."
+          Write-CleanupLog "error path=`"$path`" reason=`"$reason`""
         }
       }
     }
