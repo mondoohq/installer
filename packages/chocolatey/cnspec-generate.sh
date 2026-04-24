@@ -21,15 +21,15 @@ cat >cnspec.nuspec <<NUSPEC
     <version>${VERSION}</version>
     <packageSourceUrl>https://github.com/mondoohq/cnspec</packageSourceUrl>
     <owners>Mondoo</owners>
-    <dependencies>
-      <dependency id="cnquery" />
-    </dependencies>
 
     <title>Mondoo cnspec</title>
+    <dependencies>
+      <dependency id="mql" />
+    </dependencies>
     <authors>Mondoo</authors>
     <projectUrl>https://github.com/mondoohq/cnspec</projectUrl>
-    <iconUrl>https://mondoo.com/mondoo_choco_logo.jpg</iconUrl>
-    <copyright>2025 Mondoo, Inc.</copyright>
+    <iconUrl>https://assets.mondoo.com/mondoo_choco_logo.jpg</iconUrl>
+    <copyright>2026 Mondoo, Inc.</copyright>
     <licenseUrl>https://github.com/mondoohq/cnspec/blob/main/LICENSE</licenseUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <docsUrl>https://mondoo.com/docs/cnspec/</docsUrl>
@@ -78,4 +78,7 @@ cat >tools/chocolateyInstall.ps1 <<CHOCOSTALL
 }
 
 Install-ChocolateyZipPackage @packageArgs
+
+# Create cnquery as a hardlink to cnspec for backward compatibility
+New-Item -ItemType HardLink -Path "\$toolsDir\cnquery.exe" -Target "\$toolsDir\cnspec.exe"
 CHOCOSTALL

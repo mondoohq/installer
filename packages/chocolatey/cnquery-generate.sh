@@ -20,57 +20,24 @@ cat >cnquery.nuspec <<NUSPEC
     <packageSourceUrl>https://github.com/mondoohq/cnquery</packageSourceUrl>
     <owners>Mondoo</owners>
 
-    <title>Mondoo cnquery</title>
+    <title>Mondoo cnquery (transitional package)</title>
+    <dependencies>
+      <dependency id="mql" version="[$VERSION]" />
+    </dependencies>
     <authors>Mondoo</authors>
     <projectUrl>https://github.com/mondoohq/cnquery</projectUrl>
-    <iconUrl>https://mondoo.com/mondoo_choco_logo.jpg</iconUrl>
-    <copyright>2025 Mondoo, Inc.</copyright>
+    <iconUrl>https://assets.mondoo.com/mondoo_choco_logo.jpg</iconUrl>
+    <copyright>2026 Mondoo, Inc.</copyright>
     <licenseUrl>https://github.com/mondoohq/cnquery/blob/main/LICENSE</licenseUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <docsUrl>https://mondoo.com/docs/cnquery/</docsUrl>
     <bugTrackerUrl>https://github.com/mondoohq/cnquery/issues</bugTrackerUrl>
-    <releaseNotes>[Release Notes](https://mondoo.com/docs/releases/)</releaseNotes>
-    <tags>cnquery mondoo inventory cloud kubernetes server</tags>
-    <summary>cnquery is an open source, cloud-native tool that answers every question about your infrastructure. It provides quick insights into every major technology platform used by developers, security engineers, and DevOps teams today.</summary>
-    <description>cnquery is an open source, cloud-native tool that answers every question about your infrastructure. It provides quick insights into every major technology platform used by developers, security engineers, and DevOps teams today.</description>
+    <releaseNotes>cnquery has been renamed to mql. This package now installs mql as a dependency. [Release Notes](https://mondoo.com/docs/releases/)</releaseNotes>
+    <tags>cnquery mql mondoo inventory cloud kubernetes server</tags>
+    <summary>Transitional package: cnquery has been renamed to mql. Installing this package will install mql.</summary>
+    <description>cnquery has been renamed to mql. This is a transitional package that depends on mql. Existing cnquery users will receive mql automatically when upgrading this package.</description>
   </metadata>
-  <files>
-    <file src="tools\**" target="tools" />
-  </files>
 </package>
 NUSPEC
 
-
-CHECKSUM=`curl -s https://install.mondoo.com/package/cnquery/windows/amd64/zip/${VERSION}/sha256`
-if [ $CHECKSUM = "internal server error" ]; then
-  echo "--- WARNING: Install service has not yet been updated with the SHAs.  WAITING 3 MINUTES ---"
-  sleep 300
-fi
-
-CHECKSUM=`curl -s https://install.mondoo.com/package/cnquery/windows/amd64/zip/${VERSION}/sha256`
-if [ $CHECKSUM = "internal server error" ]; then
-  echo "--- FATAL ERROR: SHAs not available from https://install.mondoo.com/package/cnquery/windows/amd64/zip/${VERSION}/sha256"
-  exit 1
-fi
-
-echo "Generating Install Script"
-mkdir tools
-cat >tools/chocolateyInstall.ps1 <<CHOCOSTALL
-\$ErrorActionPreference = 'Stop'; # stop on all errors
-\$toolsDir   = "\$(Split-Path -parent \$MyInvocation.MyCommand.Definition)"
-
-\$version  = '${VERSION}'
-\$url      = "https://releases.mondoo.com/cnquery/${VERSION}/cnquery_${VERSION}_windows_amd64.zip"
-\$checksum = '${CHECKSUM}'
-
-\$packageArgs = @{
-  packageName   = \$env:ChocolateyPackageName
-  unzipLocation = \$toolsDir
-  url64bit      = \$url
-
-  checksum64    = \$checksum
-  checksumType64= 'sha256' #default is checksumType
-}
-
-Install-ChocolateyZipPackage @packageArgs
-CHOCOSTALL
+echo "cnquery is now a transitional package that depends on mql — no install script needed"

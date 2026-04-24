@@ -4,8 +4,12 @@ on:
   schedule:
     - cron: "0 0 * * *"
 
+permissions: {}
+
 jobs:
   check_certificate:
+    permissions:
+      contents: read
     name: Check Mondoo's code signing certificate has expired
     runs-on: ubuntu-latest
     steps:

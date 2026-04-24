@@ -17,7 +17,9 @@ source=(
     'mondoo.sh'
     )
 arch=('x86_64')
-depends=('cnspec')
+depends=('cnspec' 'mql')
+conflicts=('cnquery')
+replaces=('cnquery')
 
 sha256sums=(''
             'f1a7d679603a68a01583d98252ca0079986962d3ceca9a47ce01e0640a42500f'

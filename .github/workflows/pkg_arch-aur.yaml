@@ -13,6 +13,13 @@ on:
         required: false
         default: false
         type: boolean
+    secrets:
+      AUR_USERNAME:
+        required: true
+      AUR_EMAIL:
+        required: true
+      AUR_SSH_PRIVATE_KEY:
+        required: true
   workflow_dispatch:
     inputs:
       version:
@@ -26,8 +33,12 @@ on:
         default: false
         type: boolean
 
+permissions: {}
+
 jobs:
   update-pkgs:
+    permissions:
+      contents: read
     runs-on: ubuntu-latest
     name: 'Generate & Locally Commit PKGBUILDs'
     steps:
@@ -44,16 +55,16 @@ jobs:
       - name: 'DEBUG: Show generated package versions'
         run: |
           cd packages/archlinux
-          echo "cnquery: $(grep orignalVersion= cnquery/PKGBUILD)"
+          echo "mql: $(grep orignalVersion= mql/PKGBUILD)"
           echo "cnspec: $(grep orignalVersion= cnspec/PKGBUILD)"
           echo "mondoo: $(grep orignalVersion= mondoo/PKGBUILD)"
-      - name: Publish cnquery AUR package
+      - name: Publish mql AUR package
         if: ${{ !inputs.skip }}
         continue-on-error: true
-        uses: KSXGitHub/github-actions-deploy-aur@2ac5a4c1d7035885d46b10e3193393be8460b6f1 # v4.1.1
+        uses: KSXGitHub/github-actions-deploy-aur@abe8ac26b51011c88be58c8809fd2ac674068ea5 # v4.1.2
         with:
-          pkgname: cnquery
-          pkgbuild: packages/archlinux/cnquery/PKGBUILD
+          pkgname: mql
+          pkgbuild: packages/archlinux/mql/PKGBUILD
           commit_username: ${{ secrets.AUR_USERNAME }}
           commit_email: ${{ secrets.AUR_EMAIL }}
           ssh_private_key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
@@ -63,7 +74,7 @@ jobs:
       - name: Publish cnspec AUR package
         if: ${{ !inputs.skip }}
         continue-on-error: true
-        uses: KSXGitHub/github-actions-deploy-aur@2ac5a4c1d7035885d46b10e3193393be8460b6f1 # v4.1.1
+        uses: KSXGitHub/github-actions-deploy-aur@abe8ac26b51011c88be58c8809fd2ac674068ea5 # v4.1.2
         with:
           pkgname: cnspec
           pkgbuild: packages/archlinux/cnspec/PKGBUILD
@@ -76,7 +87,7 @@ jobs:
       - name: Publish mondoo AUR package
         if: ${{ !inputs.skip }}
         continue-on-error: true
-        uses: KSXGitHub/github-actions-deploy-aur@2ac5a4c1d7035885d46b10e3193393be8460b6f1 # v4.1.1
+        uses: KSXGitHub/github-actions-deploy-aur@abe8ac26b51011c88be58c8809fd2ac674068ea5 # v4.1.2
         with:
           pkgname: mondoo
           pkgbuild: packages/archlinux/mondoo/PKGBUILD

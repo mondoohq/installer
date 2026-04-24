@@ -15,8 +15,12 @@ on:
       - "powershell/Mondoo.Installer/Mondoo.Installer.psm1"
       - "powershell/Mondoo.Installer/Mondoo.Installer.psd1"
 
+permissions: {}
+
 jobs:
   publish:
+    permissions:
+      contents: read
     runs-on: windows-2025
     steps:
       - name: Check out repository

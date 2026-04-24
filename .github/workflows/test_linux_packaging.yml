@@ -1,0 +1,91 @@
+name: Test Linux Packaging
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to test (e.g. 13.0.0-rc7)'
+        required: true
+        type: string
+      releases-url:
+        description: 'Releases base URL'
+        required: false
+        default: 'https://releases.mondoo.love'
+        type: string
+      self-upgrade-from:
+        description: 'Version to self-upgrade from (e.g. 13.0.0-rc5); leave empty to skip'
+        required: false
+        default: ''
+        type: string
+  workflow_call:
+    inputs:
+      version:
+        description: 'Version to test'
+        required: true
+        type: string
+      releases-url:
+        description: 'Releases base URL'
+        required: false
+        default: 'https://releases.mondoo.love'
+        type: string
+      self-upgrade-from:
+        description: 'Version to self-upgrade from; leave empty to skip'
+        required: false
+        default: ''
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  test-mondoo-pkg-and-upgrade:
+    name: Mondoo pkg + Upgrade
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+
+      - name: Run mondoo-pkg and upgrade tests
+        run: |
+          python3 test/auto_update/test_auto_update.py \
+            --install-version "${{ inputs.version }}" \
+            --releases-url "${{ inputs.releases-url || 'https://releases.mondoo.love' }}" \
+            --skip-auto-update \
+            --skip-self-upgrade
+
+  test-auto-update:
+    name: Auto-update
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+
+      - name: Run auto-update tests
+        run: |
+          python3 test/auto_update/test_auto_update.py \
+            --install-version "${{ inputs.version }}" \
+            --releases-url "${{ inputs.releases-url || 'https://releases.mondoo.love' }}" \
+            --skip-mondoo-pkg \
+            --skip-upgrade \
+            --skip-self-upgrade
+
+  test-self-upgrade:
+    name: Self-upgrade
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    if: ${{ inputs.self-upgrade-from != '' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+
+      - name: Run self-upgrade tests
+        run: |
+          python3 test/auto_update/test_auto_update.py \
+            --install-version "${{ inputs.version }}" \
+            --releases-url "${{ inputs.releases-url || 'https://releases.mondoo.love' }}" \
+            --skip-auto-update \
+            --skip-mondoo-pkg \
+            --skip-upgrade \
+            --self-upgrade-from "${{ inputs.self-upgrade-from }}"

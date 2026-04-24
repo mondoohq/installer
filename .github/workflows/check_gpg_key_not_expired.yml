@@ -5,8 +5,12 @@ on:
   schedule:
     - cron:  '0 0 * * *'
 
+permissions: {}
+
 jobs:
   check_gpg:
+    permissions:
+      contents: read
     name: Check Mondoo's GPG key has not expired
     env:
       # C07R9GSGKEU == #mondoo-ops

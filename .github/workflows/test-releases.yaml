@@ -5,6 +5,9 @@ on:
     - cron: '*/15 * * * *'  # Run every 15 minutes
   workflow_dispatch:  # Allow manual triggers
 
+permissions:
+  contents: read
+
 jobs:
   validate:
     runs-on: ubuntu-latest
@@ -12,7 +15,7 @@ jobs:
     steps:
     - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
     - name: Set up Python
-      uses: actions/setup-python@83679a892e2d95755f2dac6acb0bfd1e9ac5d548 # v6.1.0
+      uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
       with:
         python-version: '3.x'
     - name: Install dependencies
@@ -24,18 +27,18 @@ jobs:
       continue-on-error: true
       run: |
         python test/releases/validate_release.py mondoo && echo "mondoo_status=$?" >> $GITHUB_ENV || echo "mondoo_status=$?" >> $GITHUB_ENV
-    - name: Validate cnquery releases
-      id: cnquery
+    - name: Validate mql releases
+      id: mql
       continue-on-error: true
       run: |
-        python test/releases/validate_release.py cnquery && echo "cnquery_status=$?" >> $GITHUB_ENV || echo "cnquery_status=$?" >> $GITHUB_ENV
+        python test/releases/validate_release.py mql && echo "mql_status=$?" >> $GITHUB_ENV || echo "mql_status=$?" >> $GITHUB_ENV
     - name: Validate cnspec releases
       id: cnspec
       continue-on-error: true
       run: |
         python test/releases/validate_release.py cnspec && echo "cnspec_status=$?" >> $GITHUB_ENV || echo "cnspec_status=$?" >> $GITHUB_ENV
     - name: Send Slack notification on failure
-      if: env.mondoo_status != '0' || env.cnquery_status != '0' || env.cnspec_status != '0'
+      if: env.mondoo_status != '0' || env.mql_status != '0' || env.cnspec_status != '0'
       uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a # v2.1.1
       with:
         method: chat.postMessage
@@ -63,7 +66,7 @@ jobs:
                 "type": "section",
                 "text": {
                   "type": "mrkdwn",
-                  "text": "${{ env.mondoo_status != '0' && '*Mondoo:* ❌ Failed\n' || '*Mondoo:* ✅ Passed\n' }}${{ env.cnquery_status != '0' && '*cnquery:* ❌ Failed\n' || '*cnquery:* ✅ Passed\n' }}${{ env.cnspec_status != '0' && '*cnspec:* ❌ Failed' || '*cnspec:* ✅ Passed' }}"
+                  "text": "${{ env.mondoo_status != '0' && '*Mondoo:* ❌ Failed\n' || '*Mondoo:* ✅ Passed\n' }}${{ env.mql_status != '0' && '*mql:* ❌ Failed\n' || '*mql:* ✅ Passed\n' }}${{ env.cnspec_status != '0' && '*cnspec:* ❌ Failed' || '*cnspec:* ✅ Passed' }}"
                 }
               },
               {
@@ -79,5 +82,5 @@ jobs:
             ]
           }
     - name: Final status check
-      if: env.mondoo_status != '0' || env.cnquery_status != '0' || env.cnspec_status != '0'
+      if: env.mondoo_status != '0' || env.mql_status != '0' || env.cnspec_status != '0'
       run: exit 1

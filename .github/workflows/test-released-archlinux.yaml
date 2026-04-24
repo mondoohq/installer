@@ -15,28 +15,32 @@ on:
         required: true
         default: "9.0.0"
 
+permissions:
+  contents: read
+
 jobs:
-  arch-cnquery-makepkg:
+  arch-mql-makepkg:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
       - name: Version
         id: version
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
         run: |
-          V=${{ inputs.version }}
-          VERSION=$(echo $V | sed 's/^v//')
+          VERSION=$(echo "${INPUT_VERSION}" | sed 's/^v//')
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
-      - name: Install cnquery with MakePKG on Arch Linux
+      - name: Install mql with MakePKG on Arch Linux
         run: |
           docker run --rm -v $(pwd):/work -w /work archlinux:latest \
           bash -c "pacman -Syu --noconfirm && \
                     pacman -S --noconfirm base-devel git &&  \
                     cd /tmp && \
                     useradd test && \
-                    su test -c \"git clone https://aur.archlinux.org/cnquery && cd cnquery && makepkg\" && \
-                    cd  cnquery && \
-                    pacman -U --noconfirm  cnquery-*.zst && \
-                    cnquery version | grep -q ${{ steps.version.outputs.version }}"
+                    su test -c \"git clone https://aur.archlinux.org/mql && cd mql && makepkg\" && \
+                    cd  mql && \
+                    pacman -U --noconfirm  mql-*.zst && \
+                    mql version | grep -q ${{ steps.version.outputs.version }}"
       
   arch-cnspec-yay:
     runs-on: ubuntu-latest
@@ -44,9 +48,10 @@ jobs:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
       - name: Version
         id: version
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
         run: |
-          V=${{ inputs.version }}
-          VERSION=$(echo $V | sed 's/^v//')
+          VERSION=$(echo "${INPUT_VERSION}" | sed 's/^v//')
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
       - name: Install cnspec with Yay on Arch Linux
         run: |
@@ -60,4 +65,32 @@ jobs:
                     cd  yay && \
                     pacman -U --noconfirm  yay-*.zst && \
                     su test -c \"yay -S --noconfirm cnspec\" && \
-                    cnspec version | grep -q ${{ steps.version.outputs.version }}"
+                    cnspec version | grep -q ${{ steps.version.outputs.version }} && \
+                    cnquery version | grep -q ${{ steps.version.outputs.version }}"
+
+  arch-upgrade-cnquery-to-mql:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+      - name: Version
+        id: version
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+        run: |
+          VERSION=$(echo "${INPUT_VERSION}" | sed 's/^v//')
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+      - name: Upgrade cnquery -> mql with MakePKG on Arch Linux
+        run: |
+          docker run --rm -v $(pwd):/work -w /work archlinux:latest \
+          bash -c "pacman -Syu --noconfirm && \
+                    pacman -S --noconfirm base-devel git && \
+                    cd /tmp && \
+                    useradd -m test && \
+                    echo \"test ALL=(ALL) NOPASSWD: ALL\" >> /etc/sudoers && \
+                    su test -c \"git clone https://aur.archlinux.org/cnquery && cd cnquery && makepkg\" && \
+                    cd cnquery && pacman -U --noconfirm cnquery-*.zst && cd /tmp && \
+                    cnquery version && \
+                    su test -c \"git clone https://aur.archlinux.org/mql && cd mql && makepkg\" && \
+                    cd mql && pacman -U --noconfirm mql-*.zst && \
+                    mql version | grep -q ${{ steps.version.outputs.version }} && \
+                    ! pacman -Q cnquery"

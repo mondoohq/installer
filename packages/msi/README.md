@@ -1,6 +1,6 @@
 # Mondoo MSI Builder
 
-This is home to the Mondoo MSI builder, which takes the cnquery and cnspec binaries
+This is home to the Mondoo MSI builder, which takes the mql and cnspec binaries
 and merges them into a single MSI package, signed, sealed and delivered.
 
 ## Required Secrets

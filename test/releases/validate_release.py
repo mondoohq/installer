@@ -1,4 +1,4 @@
-# Copyright (c) Mondoo, Inc.
+# Copyright Mondoo, Inc. 2025, 2026
 # SPDX-License-Identifier: BUSL-1.1
 
 import requests
@@ -20,7 +20,7 @@ EXPECTED_FILES = {
         ],
         "windows": ["windows_amd64.msi", "windows_arm64.msi"]
     },
-    "cnquery": {
+    "mql": {
         "darwin": ["darwin_amd64.tar.gz", "darwin_arm64.tar.gz"],
         "linux": [
             "linux_386.deb", "linux_386.rpm", "linux_386.tar.gz",
@@ -122,12 +122,12 @@ def validate_release_files(url: str, expected_files: Dict[str, List[str]], min_s
 
 def main():
     parser = argparse.ArgumentParser(description='Validate release files for Mondoo products')
-    parser.add_argument('product', choices=['mondoo', 'cnquery', 'cnspec'], help='Product to validate')
+    parser.add_argument('product', choices=['mondoo', 'mql', 'cnspec'], help='Product to validate')
     args = parser.parse_args()
 
     endpoints = {
         "mondoo": "https://releases.mondoo.com/mondoo/latest.json",
-        "cnquery": "https://releases.mondoo.com/cnquery/latest.json",
+        "mql": "https://releases.mondoo.com/mql/latest.json",
         "cnspec": "https://releases.mondoo.com/cnspec/latest.json"
     }
 

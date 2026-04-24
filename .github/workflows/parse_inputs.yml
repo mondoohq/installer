@@ -1,5 +1,7 @@
 name: Parse and return version
 
+permissions: {}
+
 on:
   workflow_call:
     inputs:

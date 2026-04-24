@@ -5,7 +5,8 @@ on:
   pull_request:
     types: [opened, reopened, synchronize]
 
-permissions: {}
+permissions:
+  contents: read
 
 jobs:
   shellcheck:
@@ -14,13 +15,16 @@ jobs:
     steps:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
       - name: Run ShellCheck
-        uses: ludeeus/action-shellcheck@master
+        uses: ludeeus/action-shellcheck@00cae500b08a931fb5698e11e79bfbd38e612a38 # v2.0.0
         with:
           ignore_paths: examples
           severity: warning
           scandir: '.'
 
   powershell:
+    permissions:
+      contents: read
+      security-events: write
     name: PowerShell Analyzer
     runs-on: ubuntu-latest
     steps:

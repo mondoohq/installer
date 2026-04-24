@@ -15,6 +15,9 @@ on:
         required: true
         default: "12.20.1"
 
+permissions:
+  contents: read
+
 jobs:
   wait-for-pkg:
     runs-on: ubuntu-latest
@@ -24,7 +27,7 @@ jobs:
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # v3.0.2
         with:
           retry_wait_seconds: 20
-          timeout_seconds: 5
+          timeout_seconds: 20
           max_attempts: 100
           retry_on: error
           # error on HTTP code different to 200
@@ -48,6 +51,7 @@ jobs:
               if echo "$cache_response" | grep -q "HTTP_CODE:200"; then
                 echo "✅ Cache cleared successfully on attempt $cache_attempt"
                 cache_cleared=true
+                break
               else
                 echo "⚠️ Cache clear attempt $cache_attempt failed..."
                 if [ $cache_attempt -lt $cache_max_attempts ]; then
@@ -65,13 +69,13 @@ jobs:
 
             # Check if all packages are available
             echo "Checking packages for version: ${SEMVER}"
-            packages_to_check="mondoo:msi cnquery:zip cnspec:zip"
+            packages_to_check="mondoo:msi mql:zip cnspec:zip"
             failed_packages=""
 
             for package_info in $packages_to_check; do
               package_name=$(echo $package_info | cut -d: -f1)
               package_format=$(echo $package_info | cut -d: -f2)
-              
+
               echo "Checking $package_name ($package_format)..."
               http_code=$(curl -o /dev/null -s -w "%{http_code}\n" \
                 "https://install.mondoo.com/package/${package_name}/windows/amd64/${package_format}/${SEMVER}/sha256")
@@ -105,20 +109,39 @@ jobs:
     strategy:
       matrix:
         os: ["windows-latest"]
-        package: ["cnquery", "cnspec"]
+        package: ["mql", "cnspec"]
     steps:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        with:
+          fetch-depth: 0
       - name: Version
         id: version
         run: |
           $v='${{ inputs.version }}'
           $version=$v.trim("v","V")
           echo "version=$version" >> $env:GITHUB_OUTPUT
+      - name: Check if install.ps1 changed
+        id: check_install_ps1
+        shell: bash
+        run: |
+          if git diff --name-only origin/main -- install.ps1 | grep -q install.ps1; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+            echo "install.ps1 has changed compared to main"
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+            echo "install.ps1 has not changed compared to main"
+          fi
       - name: Install.ps1/${{ matrix.package }} on ${{ matrix.os }}
         run: |
           Set-ExecutionPolicy Unrestricted -Scope Process -Force;
           [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072;
-          iex ((New-Object System.Net.WebClient).DownloadString('https://install.mondoo.com/ps1/${{ matrix.package }}'));
+          if ('${{ steps.check_install_ps1.outputs.changed }}' -eq 'true') {
+            Write-Host "Using local install.ps1 from repository"
+            . .\install.ps1
+          } else {
+            Write-Host "Using install.ps1 from install.mondoo.com"
+            iex ((New-Object System.Net.WebClient).DownloadString('https://install.mondoo.com/ps1/${{ matrix.package }}'));
+          }
           Install-Mondoo -Product ${{ matrix.package }};
       - name: Verify the correct version is installed
         shell: pwsh
@@ -135,20 +158,96 @@ jobs:
         package: ["mondoo"]
     steps:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        with:
+          fetch-depth: 0
       - name: Version
         id: version
         run: |
           $v='${{ inputs.version }}'
           $version=$v.trim("v","V")
           echo "version=$version" >> $env:GITHUB_OUTPUT
+      - name: Check if install.ps1 changed
+        id: check_install_ps1
+        shell: bash
+        run: |
+          if git diff --name-only origin/main -- install.ps1 | grep -q install.ps1; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+            echo "install.ps1 has changed compared to main"
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+            echo "install.ps1 has not changed compared to main"
+          fi
       - name: Install.ps1/${{ matrix.package }} on ${{ matrix.os }}
         run: |
           Set-ExecutionPolicy Unrestricted -Scope Process -Force;
           [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072;
-          iex ((New-Object System.Net.WebClient).DownloadString('https://install.mondoo.com/ps1/${{ matrix.package }}'));
+          if ('${{ steps.check_install_ps1.outputs.changed }}' -eq 'true') {
+            Write-Host "Using local install.ps1 from repository"
+            . .\install.ps1
+          } else {
+            Write-Host "Using install.ps1 from install.mondoo.com"
+            iex ((New-Object System.Net.WebClient).DownloadString('https://install.mondoo.com/ps1/${{ matrix.package }}'));
+          }
           Install-Mondoo -Product ${{ matrix.package }};
       - name: Verify the correct version is installed
         shell: pwsh
         run: |
           # Logic to validate version has been moved to separate file
           ./test/powershell/verify-cnspec-version.ps1 -ExpectedVersion "${{ steps.version.outputs.version }}"
+
+  upgrade-from-cnquery-ps1:
+    runs-on: windows-latest
+    needs: clear-cache
+    steps:
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        with:
+          fetch-depth: 0
+      - name: Version
+        id: version
+        run: |
+          $v='${{ inputs.version }}'
+          $version=$v.trim("v","V")
+          echo "version=$version" >> $env:GITHUB_OUTPUT
+      - name: Install cnquery (old package) via install.ps1
+        run: |
+          Set-ExecutionPolicy Unrestricted -Scope Process -Force;
+          [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072;
+          iex ((New-Object System.Net.WebClient).DownloadString('https://install.mondoo.com/ps1/cnquery'));
+          Install-Mondoo -Product cnquery;
+      - name: Verify cnquery is installed
+        run: |
+          & 'C:\Program Files\Mondoo\cnquery.exe' version
+      - name: Check if install.ps1 changed
+        id: check_install_ps1
+        shell: bash
+        run: |
+          if git diff --name-only origin/main -- install.ps1 | grep -q install.ps1; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+          fi
+      - name: Upgrade to mql via install.ps1
+        run: |
+          Set-ExecutionPolicy Unrestricted -Scope Process -Force;
+          [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072;
+          if ('${{ steps.check_install_ps1.outputs.changed }}' -eq 'true') {
+            Write-Host "Using local install.ps1 from repository"
+            . .\install.ps1
+          } else {
+            Write-Host "Using install.ps1 from install.mondoo.com"
+            iex ((New-Object System.Net.WebClient).DownloadString('https://install.mondoo.com/ps1/mql'));
+          }
+          Install-Mondoo -Product mql;
+      - name: Verify mql is installed at the expected version
+        shell: pwsh
+        run: |
+          ./test/powershell/verify-cnspec-version.ps1 -ExpectedVersion "${{ steps.version.outputs.version }}" -BinaryBaseName "mql"
+      - name: Verify cnquery.exe points to cnspec (backward compat)
+        run: |
+          $version=& 'C:\Program Files\Mondoo\cnquery.exe' version
+          Write-Output "cnquery.exe version: $version"
+          $match=$version -like "*${{ steps.version.outputs.version }}*"
+          if (-not $match) {
+            Write-Error "cnquery.exe version mismatch"
+            exit 1
+          }

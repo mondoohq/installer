@@ -1,4 +1,4 @@
-// Copyright (c) Mondoo, Inc.
+// Copyright Mondoo, Inc. 2025, 2026
 // SPDX-License-Identifier: BUSL-1.1
 
 package main
@@ -24,16 +24,19 @@ type SourceFile struct {
 }
 
 type Product struct {
-	LatestUrl   string
-	Description string
-	Homepage    string
-	PkgName     string
-	Class       string
-	License     string
-	ExtraFiles  []SourceFile
-	BinFile     bool
-	IncludeOpt  bool
-	Depends     []string
+	LatestUrl      string
+	Description    string
+	Homepage       string
+	PkgName        string
+	Class          string
+	License        string
+	ExtraFiles     []SourceFile
+	BinFile        bool
+	IncludeOpt     bool
+	Depends        []string
+	Conflicts      []string
+	Replaces       []string
+	CnquerySymlink bool
 }
 
 var products = map[string]Product{
@@ -70,33 +73,41 @@ var products = map[string]Product{
 		BinFile:    false,
 		Depends: []string{
 			"cnspec",
+			"mql",
 		},
+		Conflicts: []string{"cnquery"},
+		Replaces:  []string{"cnquery"},
 	},
-	"cnquery": {
-		LatestUrl:   "https://releases.mondoo.com/cnquery/latest.json?ignoreCache=1",
+	"mql": {
+		LatestUrl:   "https://releases.mondoo.com/mql/latest.json?ignoreCache=1",
 		Description: "Cloud-Native Query - Asset Inventory Framework",
 		Homepage:    "https://mondoo.com",
-		PkgName:     "cnquery",
-		Class:       "Cnquery",
+		PkgName:     "mql",
+		Class:       "Mql",
 		License:     "BUSL-1.1",
 		BinFile:     true,
+		Conflicts:   []string{"cnquery"},
+		Replaces:    []string{"cnquery"},
 	},
 	"cnspec": {
-		LatestUrl:   "https://releases.mondoo.com/cnspec/latest.json?ignoreCache=1",
-		Description: "Cloud-Native Security and Policy Framework ",
-		Homepage:    "https://mondoo.com",
-		PkgName:     "cnspec",
-		Class:       "Cnspec",
-		License:     "BUSL-1.1",
-		BinFile:     true,
+		LatestUrl:      "https://releases.mondoo.com/cnspec/latest.json?ignoreCache=1",
+		Description:    "Cloud-Native Security and Policy Framework ",
+		Homepage:       "https://mondoo.com",
+		PkgName:        "cnspec",
+		Class:          "Cnspec",
+		License:        "BUSL-1.1",
+		BinFile:        true,
+		CnquerySymlink: true,
+		Conflicts:      []string{"cnquery"},
+		Replaces:       []string{"cnquery"},
 		Depends: []string{
-			"cnquery",
+			"mql",
 		},
 	},
 }
 
 // Usage: go run main.go
-// Example: go run generator/main.go cnquery /path
+// Example: go run generator/main.go mql /path
 func main() {
 	if len(os.Args) != 3 {
 		panic("need argument for product and path")
@@ -227,6 +238,10 @@ source=(
 )
 arch=('x86_64')
 depends=({{ range .Depends }}'{{ . }}'{{ end }})
+{{ if .Conflicts -}}
+conflicts=({{ range .Conflicts }}'{{ . }}'{{ end }})
+replaces=({{ range .Replaces }}'{{ . }}'{{ end }})
+{{ end -}}
 
 sha256sums=({{- if .BinFile }}'{{ .Sha256 }}'{{- end }}
             {{ range .ExtraSha256 -}}
@@ -239,6 +254,9 @@ package() {
   {{- if .BinFile }}
   install -dm755 ${pkgdir}/usr/bin
   cp ${srcdir}/$pkgname ${pkgdir}/usr/bin/.
+  {{- end }}
+  {{- if .CnquerySymlink }}
+  ln -s /usr/bin/cnspec "${pkgdir}/usr/bin/cnquery"
   {{- end }}
 
   {{ range .ExtraFiles -}}
@@ -269,6 +287,12 @@ sha256sums = {{ .Sha256 }}
 sha256sums = {{ . }}
 {{ end }}
 
+{{ range .Conflicts -}}
+conflicts = {{ . }}
+{{ end -}}
+{{ range .Replaces -}}
+replaces = {{ . }}
+{{ end -}}
 pkgname = {{ .PkgName }}
 `
 

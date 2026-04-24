@@ -7,18 +7,23 @@ on:
         description: 'Mondoo client version'
         required: true
 
+permissions: {}
+
 jobs:
   build_container:
+    permissions:
+      contents: read
     runs-on: ubuntu-latest
     timeout-minutes: 10
     name: Build Docker
     steps:
       - name: Clean Version
         id: version
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
         run: |
-          VERSION="${{ inputs.version}}"
-          echo "VERSION=${VERSION}" >> $GITHUB_ENV
-          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "VERSION=${INPUT_VERSION}" >> $GITHUB_ENV
+          echo "version=${INPUT_VERSION}" >> $GITHUB_OUTPUT
 
       - name: Clone repository
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
@@ -28,7 +33,7 @@ jobs:
       - name: Set up QEMU
         uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130 # v3.7.0
         with:
-          image: tonistiigi/binfmt:latest
+          image: tonistiigi/binfmt@sha256:d3b963f787999e6c0219a48dba02978769286ff61a5f4d26245cb6a6e5567ea3 # latest
           platforms: arm64,arm
 
       - name: Set up Docker BuildX

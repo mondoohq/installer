@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 #
 # Copyright (c) 2019-2025 Mondoo, Inc.
 # License: Apache License, Version 2.0
@@ -15,12 +15,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# The Mondoo installation script installs cnspec and cnquery on supported
+# The Mondoo installation script installs cnspec and mql on supported
 # Linux distros and macOS using its native package manager.
 #
-# Use this command to install cnspec and cnquery on your system with this script:
+# Use this command to install cnspec and mql on your system with this script:
 #
-# bash -c "$(curl -sSL https://install.mondoo.com/sh/cnquery)"
+# sh -c "$(curl -sSL https://install.mondoo.com/sh/mql)"
 #
 # The script detects the operating system and uses the appropriate package.
 # To override the automatic detection, you can set the -i flag to specify
@@ -35,15 +35,15 @@
 # the client with Mondoo Platform. Systemd services are only activated
 # if Mondoo is properly authenticated.
 #
-# Please note that we aim to be POSIX-compatible in this script.
+# This script is POSIX sh compatible.
 # If you find anything that violates these constraints, please reach out.
 # See: https://unix.stackexchange.com/questions/73750/difference-between-function-foo-and-foo
 
-MONDOO_PRODUCT_NAME="mondoo package for cnquery and cnspec" # product name
+MONDOO_PRODUCT_NAME="mondoo package for mql and cnspec" # product name
 MONDOO_PKG_NAME="mondoo" # pkg name in the package repository
 MONDOO_BINARY="cnspec" # binary that we search for
 
-# read bash flags
+# read flags
 MONDOO_INSTALLER=''
 MONDOO_SERVICE=''
 MONDOO_REGISTRATION_TOKEN=''
@@ -52,10 +52,12 @@ TIMER='60'
 SPLAY='60'
 ANNOTATION=''
 NAME=''
-PROVIDERS_URL=''
+UPDATES_URL=''
+PROVIDERS_URL=''  # deprecated, use -U (UPDATES_URL)
+API_PROXY=''
 
 print_usage() {
-  echo "usage: [-i]" >&2
+  echo "usage: [-i] [-s] [-t token] [-u] [-U url] [-x proxy]" >&2
   echo "  Options: " >&2
   echo "    -i <installer>:     Select a specific installer, options are:" >&2
   echo "                        macOS: brew, pkg" >&2
@@ -73,10 +75,14 @@ print_usage() {
   echo "                        Default uses hostname" >&2
   echo "    -a <annotation>:    Set annotations as key/value pairs (e.g., foo=bar,biz=bap)." >&2
   echo "                        Adds these annotations to the mondoo.yml. (default [])" >&2
-  echo "    -p <providers_url>: Set custom URL where providers are downloaded from." >&2
+  echo "    -p <providers_url>: (Deprecated) Set custom URL where providers are downloaded from." >&2
+  echo "                        Use -U instead." >&2
+  echo "    -U <updates_url>:  Set the updates URL for mql and provider updates." >&2
+  echo "    -x <api_proxy>:    Set API proxy for cnspec login (e.g., http://proxy:3128)." >&2
+  echo "                        Auto-detected from https_proxy env var if not set." >&2
 }
 
-while getopts 'i:s:u:vt:vr:y:n:a:p:' flag; do
+while getopts 'i:s:u:vt:vr:y:n:a:p:U:x:' flag; do
   case "${flag}" in
     i) MONDOO_INSTALLER="${OPTARG}" ;;
     s) MONDOO_SERVICE="${OPTARG}" ;;
@@ -86,9 +92,11 @@ while getopts 'i:s:u:vt:vr:y:n:a:p:' flag; do
     y) SPLAY="${OPTARG}" ;;
     n) NAME="${OPTARG}" ;;
     a) ANNOTATION="${OPTARG}" ;;
-    p) PROVIDERS_URL="${OPTARG}" ;;
+    p) PROVIDERS_URL="${OPTARG}"; echo "WARNING: -p is deprecated, use -U instead" >&2 ;;
+    U) UPDATES_URL="${OPTARG}" ;;
+    x) API_PROXY="${OPTARG}" ;;
     *) print_usage
-       exit 1 ;;
+       fail ;;
   esac
 done
 
@@ -103,27 +111,38 @@ greenb="\033[1;32m"
 purple="\033[0;35m"
 purpleb="\033[1;35m"
 
-red() { echo -e "${red}${1}${end}"; }
-red_bold() { echo -e "${redb}${1}${end}"; }
-green() { echo -e "${green}${1}${end}"; }
-green_bold() { echo -e "${greenb}${1}${end}"; }
-lightblue() { echo -e "${lightblue}${1}${end}"; }
-lightblue_bold() { echo -e "${lightblueb}${1}${end}"; }
-purple() { echo -e "${purple}${1}${end}"; }
-purple_bold() { echo -e "${purpleb}${1}${end}"; }
+red() { printf '%b\n' "${red}${1}${end}"; }
+red_bold() { printf '%b\n' "${redb}${1}${end}"; }
+green() { printf '%b\n' "${green}${1}${end}"; }
+green_bold() { printf '%b\n' "${greenb}${1}${end}"; }
+lightblue() { printf '%b\n' "${lightblue}${1}${end}"; }
+lightblue_bold() { printf '%b\n' "${lightblueb}${1}${end}"; }
+purple() { printf '%b\n' "${purple}${1}${end}"; }
+purple_bold() { printf '%b\n' "${purpleb}${1}${end}"; }
 
 on_error() {
+  _exit_ok=true  # prevent re-entry from the EXIT trap
   red "The ${MONDOO_PRODUCT_NAME} install script encountered a problem. For assistance, please join our community on GitHub Discussions."
   echo
   echo "* Mondoo Community GitHub Discussions https://github.com/orgs/mondoohq/discussions"
   echo
   echo "* GitHub: https://github.com/mondoohq/installer"
   echo
-  exit 1
 }
 
-# register a trap for error signals
-trap on_error ERR
+# POSIX-compatible error trap: EXIT fires on every exit, so we use a
+# wrapper that calls on_error only for truly unexpected failures.
+# Any code path that prints its own message calls fail() instead of
+# bare "exit 1", which sets the guard to suppress the generic message.
+_exit_ok=false
+trap '[ "$_exit_ok" = true ] || on_error' EXIT
+
+# Use fail() for intentional error exits that already print a message.
+# Use "_exit_ok=true; exit 0" for successful exits.
+fail() {
+  _exit_ok=true
+  exit 1
+}
 
 purple_bold "${MONDOO_PRODUCT_NAME} Installer"
 purple "
@@ -134,29 +153,18 @@ purple "
 :_;:_;:_;\`.__.':_;:_;\`.__.'\`.__.'\`.__.
 "
 
-echo -e "\nWelcome to the ${MONDOO_PRODUCT_NAME} installer. We
-will auto-detect your operating system to determine the best installation
-method. If you experience any issues, please reach us at:
-
-  * Mondoo Community GitHub Discussions:
-    https://github.com/orgs/mondoohq/discussions
-
-This installer is licensed under the Apache License, Version 2.0
-
-  * GitHub:
-  https://github.com/mondoohq/installer
-"
+printf '\nWelcome to the %s installer. We\nwill auto-detect your operating system to determine the best installation\nmethod. If you experience any issues, please reach us at:\n\n  * Mondoo Community GitHub Discussions:\n    https://github.com/orgs/mondoohq/discussions\n\nThis installer is licensed under the Apache License, Version 2.0\n\n  * GitHub:\n  https://github.com/mondoohq/installer\n\n' "${MONDOO_PRODUCT_NAME}"
 
 if [ "${MONDOO_INSTALLER}" != '' ]; then
-  echo -e "\nUser defined package type: $MONDOO_INSTALLER";
+  printf '\nUser defined package type: %s\n' "$MONDOO_INSTALLER"
 fi
 
 if [ "${MONDOO_SERVICE}" != '' ]; then
-  echo -e "\nMondoo Service creation enabled";
+  printf '\nMondoo Service creation enabled\n'
 fi
 
 if [ "${MONDOO_AUTOUPDATER}" != '' ]; then
-  echo -e "\nMondoo auto updater creation enabled";
+  printf '\nMondoo auto updater creation enabled\n'
 fi
 
 # Detect operating system
@@ -172,19 +180,19 @@ DISTRIBUTION="$(
 
 if [ "$DISTRIBUTION" = "Darwin" ]; then
   OS="macOS"
-elif [ -f /etc/debian_version ] || [ "$DISTRIBUTION" == "Debian" ] || [ "$DISTRIBUTION" == "Ubuntu" ]; then
+elif [ -f /etc/debian_version ] || [ "$DISTRIBUTION" = "Debian" ] || [ "$DISTRIBUTION" = "Ubuntu" ]; then
   OS="Debian"
-elif [ "$AWS_EXECUTION_ENV" == "CloudShell" ] || [ "$POWERSHELL_DISTRIBUTION_CHANNEL" == "CloudShell" ]; then
+elif [ "$AWS_EXECUTION_ENV" = "CloudShell" ] || [ "$POWERSHELL_DISTRIBUTION_CHANNEL" = "CloudShell" ]; then
   OS="CloudShell"
-elif [ -f /etc/redhat-release ] || [ "$DISTRIBUTION" == "RedHat" ] || [ "$DISTRIBUTION" == "CentOS" ] || [ "$DISTRIBUTION" == "Amazon" ] || [ "$DISTRIBUTION" == "AlmaLinux" ] || [ "$DISTRIBUTION" == "Rocky Linux" ] || [ "$DISTRIBUTION" == "EulerOS" ] || [ "$DISTRIBUTION" == "openEuler" ]; then
+elif [ -f /etc/redhat-release ] || [ "$DISTRIBUTION" = "RedHat" ] || [ "$DISTRIBUTION" = "CentOS" ] || [ "$DISTRIBUTION" = "Amazon" ] || [ "$DISTRIBUTION" = "AlmaLinux" ] || [ "$DISTRIBUTION" = "Rocky Linux" ] || [ "$DISTRIBUTION" = "EulerOS" ] || [ "$DISTRIBUTION" = "openEuler" ]; then
   OS="RedHat"
-elif [ -f /etc/photon-release ] || [ "$DISTRIBUTION" == "Photon" ]; then
+elif [ -f /etc/photon-release ] || [ "$DISTRIBUTION" = "Photon" ]; then
   # NOTE: it requires tdnf >= 2.1.2-3.ph3, before remote http gpg keys were not supported
   OS="RedHat"
 # openSUSE and SUSE use /etc/SuSE-release
-elif [ -f /etc/SuSE-release ] || [ "$DISTRIBUTION" == "SUSE" ] || [ "$DISTRIBUTION" == "openSUSE" ]; then
+elif [ -f /etc/SuSE-release ] || [ "$DISTRIBUTION" = "SUSE" ] || [ "$DISTRIBUTION" = "openSUSE" ]; then
   OS="Suse"
-elif [ -f /etc/arch-release ] || [ "$DISTRIBUTION" == "Arch" ]; then
+elif [ -f /etc/arch-release ] || [ "$DISTRIBUTION" = "Arch" ]; then
   OS="Arch"
 fi
 
@@ -196,7 +204,7 @@ fi
 MONDOO_BINARY_PATH="${MONDOO_BINARY}" # default expects the binary in default path
 MONDOO_EXECUTABLE=""
 MONDOO_INSTALLED=false
-UserAgent="MondooInstallScript/1.0 (+https://mondoo.com/) ShellScript/$BASH_VERSION ($OS $DISTRIBUTION)"
+UserAgent="MondooInstallScript/1.0 (+https://mondoo.com/) ShellScript ($OS $DISTRIBUTION)"
 
 detect_mondoo() {
   # Include possible installation locations in $PATH
@@ -216,7 +224,7 @@ detect_mondoo
 # ------------
 # Used for all privileged calls. If the script is run as root, this is not required.
 
-if [ "$UID" = "0" ]; then
+if [ "$(id -u)" = "0" ]; then
   sudo_cmd() {
     "$@"
   }
@@ -227,7 +235,7 @@ else
     else
       red "This command needs to run with elevated privileges, but we could not find the 'sudo' command in your path (\$PATH)."
       echo "The command we tried to run is: $*"
-      exit 1
+      fail
     fi
   }
 fi
@@ -257,7 +265,7 @@ install_portable() {
     FAIL=true
     red "This script needs the 'curl' command, but we could not find 'curl' in your path (\$PATH)."
   fi
-  if [ $FAIL = true ]; then exit 1; fi
+  if [ $FAIL = true ]; then fail; fi
 
   case "$OS" in
   "macOS") SYSTEM="darwin" ;;
@@ -274,7 +282,7 @@ install_portable() {
   "armv8l") ARCH="arm64" ;;
   *)
     red "${MONDOO_PRODUCT_NAME} does not support the (${ARCH_DETECT}) architecture."
-    exit 1
+    fail
     ;;
   esac
 
@@ -289,14 +297,17 @@ install_portable() {
   detect_portable
   if [ -z "$MONDOO_EXECUTABLE" ]; then
     red "We could not find the '${MONDOO_BINARY}' executable in the present working directory."
-    exit 1
+    fail
   fi
 
   purple_bold "We installed a portable version of ${MONDOO_BINARY} to $PWD"
-  if [[ ":$PATH:" == ":$PWD:" ]]; then
-  purple_bold "For convenience, add the following line to your .bashrc"
-  purple_bold "export PATH=\$PATH:$PWD"
-  fi
+  case ":$PATH:" in
+    *":$PWD:"*) ;;
+    *)
+      purple_bold "For convenience, add the following line to your shell profile"
+      purple_bold "export PATH=\$PATH:$PWD"
+      ;;
+  esac
 }
 
 # macOS installer
@@ -304,7 +315,7 @@ install_portable() {
 
 configure_macos_installer() {
   # auto-detect installer type
-  if [ "${MONDOO_INSTALLER}" == "" ] && [ -x "$(command -v brew)" ]; then
+  if [ "${MONDOO_INSTALLER}" = "" ] && [ -x "$(command -v brew)" ]; then
       MONDOO_INSTALLER="brew"
   else
       MONDOO_INSTALLER="pkg"
@@ -313,7 +324,7 @@ configure_macos_installer() {
   # Brew may be installed but the pkg being used instead
   pkgutil --pkg-info=com.mondoo.client 2>/dev/null >/dev/null && MONDOO_INSTALLER="pkg"
 
-  if [ "${MONDOO_INSTALLER}" == "brew" ]; then
+  if [ "${MONDOO_INSTALLER}" = "brew" ]; then
     # Homebrew doesn't support empty metapackages, so we redefine the package name to cnspec
     MONDOO_PKG_NAME="cnspec"
 
@@ -336,10 +347,10 @@ configure_macos_installer() {
       fi
     }
 
-  elif [ "${MONDOO_INSTALLER}" == "pkg" ]; then
+  elif [ "${MONDOO_INSTALLER}" = "pkg" ]; then
     mondoo_install() {
       detect_latest_version
-      if [[ "${CURRENT_VERSION}" != "${MONDOO_LATEST_VERSION}" ]]
+      if [ "${CURRENT_VERSION}" != "${MONDOO_LATEST_VERSION}" ]
       then
         FILE="${MONDOO_PKG_NAME}_${MONDOO_LATEST_VERSION}_darwin_universal.pkg"
         URL="https://releases.mondoo.com/${MONDOO_PKG_NAME}/${MONDOO_LATEST_VERSION}/${FILE}"
@@ -383,7 +394,7 @@ configure_archlinux_installer() {
     mondoo_install() {
       red "Mondoo uses yay or paru to install on AUR, but we could not find either command in your path (\$PATH)."
       echo "You can install the ${MONDOO_PRODUCT_NAME} package manually from AUR, or use one of the above installers directly."
-      exit 1
+      fail
     }
     mondoo_update() { mondoo_install "$@"; }
   fi
@@ -419,7 +430,7 @@ EOL
     MONDOO_INSTALLER=""
     mondoo_install() {
       red "Mondoo uses YUM to install on Red Hat Linux, but we could not find the 'yum' command in your path (\$PATH)."
-      exit 1
+      fail
     }
     mondoo_update() { mondoo_install "$@"; }
 
@@ -468,7 +479,7 @@ configure_debian_installer() {
     MONDOO_INSTALLER=""
     mondoo_install() {
       red "Mondoo uses APT to install on Debian Linux, but we could not find the 'apt' command in your path (\$PATH)."
-      exit 1
+      fail
     }
     mondoo_update() { mondoo_install "$@"; }
 
@@ -501,7 +512,7 @@ configure_suse_installer() {
     MONDOO_INSTALLER=""
     mondoo_install() {
       red "Mondoo uses ZYPPER to install on SUSE Linux, but we could not find the 'zypper' command in your path (\$PATH)."
-      exit 1
+      fail
     }
     mondoo_update() { mondoo_install "$@"; }
 
@@ -531,10 +542,21 @@ configure_cloudshell_installer() {
 # --------------------
 
 detect_mondoo_registered() {
-  if [ "$(
-    ${MONDOO_BINARY_PATH} status >/dev/null 2>&1
-    echo $?
-  )" -eq "0" ]; then
+  ${MONDOO_BINARY_PATH} status >/dev/null 2>&1 &
+  _status_pid=$!
+  _elapsed=0
+  while kill -0 "$_status_pid" 2>/dev/null; do
+    if [ "$_elapsed" -ge 10 ]; then
+      kill "$_status_pid" 2>/dev/null
+      wait "$_status_pid" 2>/dev/null
+      MONDOO_IS_REGISTERED=false
+      return
+    fi
+    sleep 1
+    _elapsed=$((_elapsed + 1))
+  done
+  wait "$_status_pid"
+  if [ $? -eq 0 ]; then
     MONDOO_IS_REGISTERED=true
   else
     MONDOO_IS_REGISTERED=false
@@ -543,7 +565,7 @@ detect_mondoo_registered() {
 
 configure_token() {
   if [ -z "${MONDOO_REGISTRATION_TOKEN}" ]; then
-    echo -e "\n* No registration token provided, skipping Mondoo Platform authentication."
+    printf '\n* No registration token provided, skipping Mondoo Platform authentication.\n'
     return
   fi
 
@@ -571,42 +593,63 @@ configure_token() {
     purple_bold "\n* ${MONDOO_PRODUCT_NAME} was successfully registered."
   else
     red "\n* Failed to register ${MONDOO_PRODUCT_NAME}. Please reach out in the Mondoo Community GitHub Discussions - https://github.com/orgs/mondoohq/discussions."
-    exit 1
+    fail
   fi
 }
 
-configure_login_cmd() {
-  # Base command
-  local config_dir_path="$1"
-  local config_file_path="${config_dir_path}/mondoo.yml"
-  local _cmd
-  _cmd=(sudo_cmd "${MONDOO_BINARY_PATH}" login --config "$config_file_path" --token "$MONDOO_REGISTRATION_TOKEN" --timer "$TIMER" --splay "$SPLAY")
+run_login_cmd() {
+  # Build and execute the login command using positional parameters
+  # (POSIX-compatible, no arrays or eval needed)
+  config_dir_path="$1"
+  config_file_path="${config_dir_path}/mondoo.yml"
+  set -- sudo_cmd "${MONDOO_BINARY_PATH}" login \
+    --config "$config_file_path" \
+    --token "$MONDOO_REGISTRATION_TOKEN" \
+    --timer "$TIMER" --splay "$SPLAY"
 
   # Add --annotation option if set
   if [ -n "$ANNOTATION" ]; then
-    _cmd+=(--annotation "$ANNOTATION")
+    set -- "$@" --annotation "$ANNOTATION"
   fi
 
   # Add --name option if set
   if [ -n "$NAME" ]; then
-    _cmd+=(--name "$NAME")
+    set -- "$@" --name "$NAME"
   fi
 
-  # If a custom providers URL is not set via the -p flag, and this is not a
-  # standard installation, set the default providers URL. This check is
-  # designed to be modified by a server-side replacement for on-premise installers.
+  # Resolve updates URL: -U takes priority, then deprecated -p, then auto-detect.
+  # NOTE: On-premise builds replace "releases.mondoo.com" throughout this file.
+  # The _standard_host check is deliberately split so the replacement does NOT
+  # match it. This lets the case fall through to set the URL for on-premise.
+  if [ -z "$UPDATES_URL" ] && [ -n "$PROVIDERS_URL" ]; then
+    UPDATES_URL="$PROVIDERS_URL"
+  fi
   RELEASES_URL="https://releases.mondoo.com"
-  if [ -z "$PROVIDERS_URL" ] && [[ ! "$RELEASES_URL" =~ releases\.mondoo\.com ]]; then
-    echo "lightblue_bold '\n* Overriding providers URL'"
-    PROVIDERS_URL="https://releases.mondoo.com/providers/"
+  _standard_host="releases.mondoo"".com"
+  if [ -z "$UPDATES_URL" ]; then
+    case "$RELEASES_URL" in
+      *"$_standard_host"*) ;;
+      *)
+        lightblue_bold "\n* Overriding updates URL"
+        UPDATES_URL="${RELEASES_URL}"
+        ;;
+    esac
   fi
 
-  # Add --providers-url option if set
-  if [ -n "$PROVIDERS_URL" ]; then
-    _cmd+=(--providers-url "$PROVIDERS_URL")
+  # Add --updates-url option if set
+  if [ -n "$UPDATES_URL" ]; then
+    set -- "$@" --updates-url "$UPDATES_URL"
   fi
 
-  echo "${_cmd[@]}"
+  # Add --api-proxy if set via flag or auto-detected from environment
+  if [ -z "$API_PROXY" ]; then
+    API_PROXY="${https_proxy:-${HTTPS_PROXY:-}}"
+  fi
+  if [ -n "$API_PROXY" ]; then
+    set -- "$@" --api-proxy "$API_PROXY"
+  fi
+
+  "$@"
 }
 
 configure_macos_token() {
@@ -614,11 +657,7 @@ configure_macos_token() {
   config_path="$HOME/.config/mondoo"
   mkdir -p "$config_path"
 
-  # Get the login command
-  login_cmd=$(configure_login_cmd "$config_path")
-
-  # Execute the command
-  eval "$login_cmd"
+  run_login_cmd "$config_path"
 
   if [ "$MONDOO_SERVICE" = "enable" ]; then
     sudo_cmd cp "$config_path/mondoo.yml" /Library/Mondoo/etc/mondoo.yml
@@ -627,16 +666,10 @@ configure_macos_token() {
 
 configure_linux_token() {
   purple_bold "\n* Authenticate with Mondoo Platform"
-  local config_path="/etc/opt/mondoo"
+  config_path="/etc/opt/mondoo"
   sudo_cmd mkdir -p "$config_path"
 
-
-  # Get the login command
-  login_cmd=$(configure_login_cmd "$config_path")
-
-
-  # Execute the command
-  eval "$login_cmd"
+  run_login_cmd "$config_path"
 
   if [ "$(cat /proc/1/comm)" = "init" ]; then
     purple_bold "\n* Restart upstart service"
@@ -654,7 +687,7 @@ postinstall_check() {
   detect_mondoo
   if [ "$MONDOO_INSTALLED" = false ]; then
     red "${MONDOO_PRODUCT_NAME} installation failed (can't find the ${MONDOO_BINARY} binary)."
-    exit 1
+    fail
   fi
 
   echo "${MONDOO_PRODUCT_NAME} installation completed."
@@ -786,7 +819,7 @@ finalize_setup() {
   purple_bold "\n${MONDOO_PRODUCT_NAME} is ready to go!"
 
   # Deprecated: Only relevant for installing the mondoo package, warn the user to login. Do not warn open source users.
-  if [ "$MONDOO_PRODUCT_NAME" = "mondoo package for cnquery and cnspec" ]; then
+  if [ "$MONDOO_PRODUCT_NAME" = "mondoo package for mql and cnspec" ]; then
     detect_mondoo_registered
     if [ "$MONDOO_IS_REGISTERED" = false ]; then
       echo
@@ -804,7 +837,7 @@ finalize_setup() {
     echo
     lightblue_bold "Run the following command to scan this system:"
     echo
-    echo -e "${MONDOO_BINARY} scan"
+    printf '%s scan\n' "${MONDOO_BINARY}"
     echo
     lightblue_bold "Learn more in our quick start guides: https://mondoo.com/docs/"
     echo
@@ -812,27 +845,27 @@ finalize_setup() {
 }
 
 # Determine which OS installer we are going to use
-if [[ "$OS" = "macOS" ]]; then
+if [ "$OS" = "macOS" ]; then
   configure_macos_installer
 
-elif [[ "$OS" = "Arch" ]]; then
+elif [ "$OS" = "Arch" ]; then
   configure_archlinux_installer
 
-elif [[ "$OS" = "RedHat" ]]; then
+elif [ "$OS" = "RedHat" ]; then
   configure_rhel_installer
 
-elif [[ "$OS" = "Debian" ]]; then
+elif [ "$OS" = "Debian" ]; then
   configure_debian_installer
 
-elif [[ "$OS" = "Suse" ]]; then
+elif [ "$OS" = "Suse" ]; then
   configure_suse_installer
 
-elif [[ "$OS" = "CloudShell" ]]; then
+elif [ "$OS" = "CloudShell" ]; then
   configure_cloudshell_installer
 
 else
   purple "Your operating system is not yet supported by this installer."
-  exit 1
+  fail
 fi
 
 # Mondoo installation / update
@@ -842,15 +875,17 @@ if [ $MONDOO_INSTALLED = true ]; then
   purple_bold "\n* ${MONDOO_PRODUCT_NAME} is already installed. Updating Mondoo..."
   mondoo_update "$@";
   finalize_setup
+  _exit_ok=true
   exit 0
 fi
 
 if [ -z "${MONDOO_INSTALLER}" ]; then
   red "Cannot determine which installer to use. Exiting."
-  exit 1
+  fail
 fi
 purple_bold "\n* Installing ${MONDOO_PRODUCT_NAME} via $MONDOO_INSTALLER"
 mondoo_install
 
 postinstall_check
 finalize_setup
+_exit_ok=true

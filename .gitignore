@@ -17,7 +17,7 @@ packages/msi/v16
 **/.**.swp
 
 # Arch AUR Generated Files
-packages/archlinux/cnquery
+packages/archlinux/mql
 packages/archlinux/cnspec
 
 # vscode

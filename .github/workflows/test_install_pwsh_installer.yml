@@ -6,6 +6,9 @@ on:
     paths:
       - '**.ps1'
 
+permissions:
+  contents: read
+
 jobs:
   pwsh_install_script:
     name: Run PowerShell install script
