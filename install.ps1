@@ -185,7 +185,7 @@ function Install-Mondoo {
       }
 
       $system32 = [Environment]::GetFolderPath('System')
-      $candidates = @('cnspec.exe', 'cnquery.exe') | ForEach-Object { Join-Path $system32 $_ }
+      $candidates = @('cnspec.exe', 'cnquery.exe', 'mql.exe') | ForEach-Object { Join-Path $system32 $_ }
 
       foreach ($path in $candidates) {
         if (-not (Test-Path -LiteralPath $path)) { continue }
