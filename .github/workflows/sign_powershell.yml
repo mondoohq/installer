@@ -136,7 +136,6 @@ jobs:
         if: ${{ inputs.skip-publish == false && inputs.use-test-cert == false }}
         uses: peter-evans/create-pull-request@22a9089034f40e5a961c8808d113e2c98fb63676 # v7.0.11
         with:
-          token: ${{ steps.generate-token.outputs.token }}
           sign-commits: true
           commit-message: "Sign powershell scripts"
           title: "Sign powershell scripts"
@@ -151,18 +150,10 @@ jobs:
             powershell/Mondoo.Installer/Mondoo.Installer.psm1
             powershell/Mondoo.Installer/Mondoo.Installer.psd1
 
-      - name: Generate review-bot token
-        id: generate-review-token
-        if: ${{ inputs.skip-publish == false && inputs.use-test-cert == false && steps.cpr.outputs.pull-request-number != '' }}
-        uses: actions/create-github-app-token@1b10c78c7865c340bc4f6099eb2f838309f1e8c3 # v3.1.1
-        with:
-          client-id: ${{ secrets.MONDOO_PR_REVIEW_APP_ID }}
-          private-key: ${{ secrets.MONDOO_PR_REVIEW_APP_PRIVATE_KEY }}
-
       - name: Approve PR
         if: ${{ inputs.skip-publish == false && inputs.use-test-cert == false && steps.cpr.outputs.pull-request-number != '' }}
         env:
-          GH_TOKEN: ${{ steps.generate-review-token.outputs.token }}
+          GH_TOKEN: ${{ steps.generate-token.outputs.token }}
         run: gh pr review --approve ${{ steps.cpr.outputs.pull-request-number }}
 
       - name: Merge PR
