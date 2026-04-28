@@ -50,6 +50,8 @@ jobs:
     name: Sign PowerShell scripts
     runs-on: windows-2025
     environment: prod
+    # Skip the recursive trigger from this workflow's own merge commits.
+    if: ${{ github.event_name != 'push' || !startsWith(github.event.head_commit.message, 'Sign powershell scripts') }}
     steps:
       - name: Dump all inputs
         env:
