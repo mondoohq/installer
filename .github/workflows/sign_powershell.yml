@@ -155,4 +155,4 @@ jobs:
         if: ${{ inputs.skip-publish == false && inputs.use-test-cert == false && steps.cpr.outputs.pull-request-number != '' }}
         env:
           GH_TOKEN: ${{ steps.generate-token.outputs.token }}
-        run: gh pr merge --squash --delete-branch ${{ steps.cpr.outputs.pull-request-number }}
+        run: gh pr merge --squash --auto --delete-branch ${{ steps.cpr.outputs.pull-request-number }}
