@@ -42,6 +42,8 @@ permissions:
   id-token: write
   # Required for the commit back of the signed scripts
   contents: write
+  # Required to open the PR with the signed scripts
+  pull-requests: write
 
 jobs:
   sign_scripts:
@@ -112,21 +114,45 @@ jobs:
             ${{ github.workspace }}\powershell\Mondoo.Installer\Mondoo.Installer.psd1
           retention-days: 14
 
-      - name: Commit changes
-        # Only commit changes if not skipping AND not using a test certificate.
-        # We don't want test-signed artifacts to be
-        # potentially merged into our production branches.
+      # Branch protection on main blocks direct pushes and requires verified
+      # signatures, so we open a PR via the mergebot app (commits made through
+      # the GitHub API are signed by GitHub) and immediately merge it.
+      - name: Configure git line endings
         if: ${{ inputs.skip-publish == false && inputs.use-test-cert == false }}
         run: |
-          # Force Git Config to use CRLF
           git config core.autocrlf false
           git config core.eol crlf
-          # commit changes
-          git config --global user.email "tools@mondoo.com"
-          git config --global user.name "Mondoo Tools"
-          git add install.ps1
-          git add download.ps1
-          git add powershell/Mondoo.Installer/Mondoo.Installer.psm1
-          git add powershell/Mondoo.Installer/Mondoo.Installer.psd1
-          git commit -m "Sign powershell scripts"
-          git push
+
+      - name: Generate mergebot token
+        id: generate-token
+        if: ${{ inputs.skip-publish == false && inputs.use-test-cert == false }}
+        uses: actions/create-github-app-token@1b10c78c7865c340bc4f6099eb2f838309f1e8c3 # v3.1.1
+        with:
+          client-id: ${{ secrets.MONDOO_MERGEBOT_APP_ID }}
+          private-key: ${{ secrets.MONDOO_MERGEBOT_APP_PRIVATE_KEY }}
+
+      - name: Open PR with signed scripts
+        id: cpr
+        if: ${{ inputs.skip-publish == false && inputs.use-test-cert == false }}
+        uses: peter-evans/create-pull-request@22a9089034f40e5a961c8808d113e2c98fb63676 # v7.0.11
+        with:
+          token: ${{ steps.generate-token.outputs.token }}
+          sign-commits: true
+          commit-message: "Sign powershell scripts"
+          title: "Sign powershell scripts"
+          body: |
+            Automated signing of PowerShell scripts produced by the
+            [Sign PowerShell Scripts workflow](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}).
+          branch: automation/sign-powershell-scripts
+          delete-branch: true
+          add-paths: |
+            install.ps1
+            download.ps1
+            powershell/Mondoo.Installer/Mondoo.Installer.psm1
+            powershell/Mondoo.Installer/Mondoo.Installer.psd1
+
+      - name: Merge PR
+        if: ${{ inputs.skip-publish == false && inputs.use-test-cert == false && steps.cpr.outputs.pull-request-number != '' }}
+        env:
+          GH_TOKEN: ${{ steps.generate-token.outputs.token }}
+        run: gh pr merge --squash --auto --delete-branch ${{ steps.cpr.outputs.pull-request-number }}
