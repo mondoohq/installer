@@ -31,4 +31,4 @@ jobs:
           remote-repository-name: cla
           remote-organization-name: mondoohq
           branch: "main"
-          allowlist: mondoo-tools,github-actions[bot],dependabot[bot],mondoo-mergebot
+          allowlist: mondoo-tools,github-actions[bot],dependabot[bot],mondoo-mergebot[bot]
