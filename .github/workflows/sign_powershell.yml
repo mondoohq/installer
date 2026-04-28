@@ -151,6 +151,20 @@ jobs:
             powershell/Mondoo.Installer/Mondoo.Installer.psm1
             powershell/Mondoo.Installer/Mondoo.Installer.psd1
 
+      - name: Generate review-bot token
+        id: generate-review-token
+        if: ${{ inputs.skip-publish == false && inputs.use-test-cert == false && steps.cpr.outputs.pull-request-number != '' }}
+        uses: actions/create-github-app-token@1b10c78c7865c340bc4f6099eb2f838309f1e8c3 # v3.1.1
+        with:
+          client-id: ${{ secrets.MONDOO_PR_REVIEW_APP_ID }}
+          private-key: ${{ secrets.MONDOO_PR_REVIEW_APP_PRIVATE_KEY }}
+
+      - name: Approve PR
+        if: ${{ inputs.skip-publish == false && inputs.use-test-cert == false && steps.cpr.outputs.pull-request-number != '' }}
+        env:
+          GH_TOKEN: ${{ steps.generate-review-token.outputs.token }}
+        run: gh pr review --approve ${{ steps.cpr.outputs.pull-request-number }}
+
       - name: Merge PR
         if: ${{ inputs.skip-publish == false && inputs.use-test-cert == false && steps.cpr.outputs.pull-request-number != '' }}
         env:
