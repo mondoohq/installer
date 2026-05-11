@@ -23,5 +23,8 @@ packages/archlinux/cnspec
 # vscode
 .vscode
 
+# Python venv
+test/.venv
+
 # OS caches
 .DS_Store
