@@ -32,13 +32,19 @@ jobs:
         env:
           INPUT_VERSION: ${{ inputs.version }}
         run: |
-          VERSION=$(echo "${INPUT_VERSION}" | sed 's/^v//')
-          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          VERSION="${INPUT_VERSION#v}"
+          if [[ ! "$VERSION" =~ ^[0-9]+[.][0-9]+[.][0-9]+(-[0-9A-Za-z.-]+)?([+][0-9A-Za-z.-]+)?$ ]]; then
+            echo "Invalid version: $INPUT_VERSION"
+            exit 1
+          fi
+          printf 'version=%s\n' "$VERSION" >> "$GITHUB_OUTPUT"
       - name: Testing mondoo/mql:${{ matrix.tag }}....
+        env:
+          EXPECTED_VERSION: ${{ steps.version.outputs.version }}
         run: |
           version=$(docker run --rm -v $(pwd):/work -w /work mondoo/mql:${{ matrix.tag }} version)
-          echo $version
-          echo $version | grep -q ${{ steps.version.outputs.version }}
+          echo "$version"
+          echo "$version" | grep -q "$EXPECTED_VERSION"
   cnspec-containers:
     runs-on: ubuntu-latest
     strategy:
@@ -52,13 +58,19 @@ jobs:
         env:
           INPUT_VERSION: ${{ inputs.version }}
         run: |
-          VERSION=$(echo "${INPUT_VERSION}" | sed 's/^v//')
-          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          VERSION="${INPUT_VERSION#v}"
+          if [[ ! "$VERSION" =~ ^[0-9]+[.][0-9]+[.][0-9]+(-[0-9A-Za-z.-]+)?([+][0-9A-Za-z.-]+)?$ ]]; then
+            echo "Invalid version: $INPUT_VERSION"
+            exit 1
+          fi
+          printf 'version=%s\n' "$VERSION" >> "$GITHUB_OUTPUT"
       - name: Testing mondoo/cnspec:${{ matrix.tag }}....
+        env:
+          EXPECTED_VERSION: ${{ steps.version.outputs.version }}
         run: |
           version=$(docker run --rm -v $(pwd):/work -w /work mondoo/cnspec:${{ matrix.tag }} version)
-          echo $version
-          echo $version | grep -q ${{ steps.version.outputs.version }}
+          echo "$version"
+          echo "$version" | grep -q "$EXPECTED_VERSION"
 
   mondoo-containers:
     runs-on: ubuntu-latest
@@ -73,10 +85,16 @@ jobs:
         env:
           INPUT_VERSION: ${{ inputs.version }}
         run: |
-          VERSION=$(echo "${INPUT_VERSION}" | sed 's/^v//')
-          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          VERSION="${INPUT_VERSION#v}"
+          if [[ ! "$VERSION" =~ ^[0-9]+[.][0-9]+[.][0-9]+(-[0-9A-Za-z.-]+)?([+][0-9A-Za-z.-]+)?$ ]]; then
+            echo "Invalid version: $INPUT_VERSION"
+            exit 1
+          fi
+          printf 'version=%s\n' "$VERSION" >> "$GITHUB_OUTPUT"
       - name: Testing mondoo/client:${{ matrix.tag }}....
+        env:
+          EXPECTED_VERSION: ${{ steps.version.outputs.version }}
         run: |
           version=$(docker run --rm -v $(pwd):/work -w /work mondoo/client:${{ matrix.tag }} version)
-          echo $version
-          echo $version | grep -q ${{ steps.version.outputs.version }}
+          echo "$version"
+          echo "$version" | grep -q "$EXPECTED_VERSION"

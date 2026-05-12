@@ -155,8 +155,12 @@ jobs:
           BUCKET: ${{ needs.parse-inputs.outputs.bucket }}
           REINDEX_PATH: ${{ inputs.reindex-path }}
         run: |
-          echo "bucket=${BUCKET}" >> $GITHUB_OUTPUT
-          echo "reindex-path=${REINDEX_PATH}" >> $GITHUB_OUTPUT
+          if [[ -n "$REINDEX_PATH" && ! "$REINDEX_PATH" =~ ^[A-Za-z0-9._/-]+$ ]]; then
+            echo "Invalid reindex-path: $REINDEX_PATH"
+            exit 1
+          fi
+          printf 'bucket=%s\n' "$BUCKET" >> "$GITHUB_OUTPUT"
+          printf 'reindex-path=%s\n' "$REINDEX_PATH" >> "$GITHUB_OUTPUT"
       - name: "Authenticate to Google Cloud"
         uses: "google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093" # v3.0.0
         with:
@@ -182,19 +186,22 @@ jobs:
           TOKEN: ${{ steps.auth.outputs.id_token }}
           BUCKETNAME: ${{ needs.parse-inputs.outputs.bucket }}
           GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
+          VERSION: ${{ needs.parse-inputs.outputs.version }}
           SKIP: ${{ (needs.parse-inputs.outputs.skip-publish == 'true') && 'echo skipping...' || '' }}
         run: |
-          $SKIP ./releasr release cp  https://github.com/mondoohq/mql/releases/tag/v${{ needs.parse-inputs.outputs.version }} gs://${{ needs.parse-inputs.outputs.bucket }}
-          $SKIP ./releasr release cp  https://github.com/mondoohq/cnspec/releases/tag/v${{ needs.parse-inputs.outputs.version }} gs://${{ needs.parse-inputs.outputs.bucket }}
+          $SKIP ./releasr release cp "https://github.com/mondoohq/mql/releases/tag/v${VERSION}" "gs://${BUCKETNAME}"
+          $SKIP ./releasr release cp "https://github.com/mondoohq/cnspec/releases/tag/v${VERSION}" "gs://${BUCKETNAME}"
       - name: "Remove Artifacts.json & Index.html from path (Optional)"
         env:
+          BUCKETNAME: ${{ needs.parse-inputs.outputs.bucket }}
+          REINDEX_PATH: ${{ steps.inputs.outputs.reindex-path }}
           SKIP: ${{ (needs.parse-inputs.outputs.skip-publish == 'true') && 'echo skipping...' || '' }}
         run: |
-          if [ -n "${{ inputs.reindex-path }}" ]; then
-            echo "Removing artifacts.json & index.html from path ${{ inputs.reindex-path }}"
+          if [ -n "$REINDEX_PATH" ]; then
+            echo "Removing artifacts.json & index.html from path $REINDEX_PATH"
             # If the files don't exist this will fail, but that's ok
-            $SKIP gsutil rm gs://${{ needs.parse-inputs.outputs.bucket }}/${{ inputs.reindex-path }}/artifacts.json || true
-            $SKIP gsutil rm gs://${{ needs.parse-inputs.outputs.bucket }}/${{ inputs.reindex-path }}/index.html || true
+            $SKIP gsutil rm "gs://${BUCKETNAME}/${REINDEX_PATH}/artifacts.json" || true
+            $SKIP gsutil rm "gs://${BUCKETNAME}/${REINDEX_PATH}/index.html" || true
           fi
       - name: Regenerate Release Indexes
         env:
@@ -204,7 +211,7 @@ jobs:
           IDX_OPTS: ${{ inputs.reindex-full && '--force-recompute' || '' }}
           SKIP: ${{ (needs.parse-inputs.outputs.skip-publish == 'true') && 'echo skipping...' || '' }}
         run: |
-          $SKIP ./releasr idx gs://${{ needs.parse-inputs.outputs.bucket }} $IDX_OPTS
+          $SKIP ./releasr idx "gs://${BUCKETNAME}" $IDX_OPTS
       - name: Restart minstaller Cloud Run Service
         env:
           MINSTALLER: ${{ (needs.parse-inputs.outputs.skip-publish == 'true') && 'minstaller-dev' || 'minstaller' }}
@@ -215,8 +222,10 @@ jobs:
               run services replace "$MINSTALLER.yaml" --region us-central1
           rm "$MINSTALLER.yaml"
       - name: Invalidate Google Load Balancer caches (ETA~10 minutes)
+        env:
+          REINDEX_PATH: ${{ steps.inputs.outputs.reindex-path || '*' }}
         run: |
-          gcloud compute url-maps invalidate-cdn-cache releases-mondoo-io --path "/${{ inputs.reindex-path || '*' }}"
+          gcloud compute url-maps invalidate-cdn-cache releases-mondoo-io --path "/${REINDEX_PATH}"
   build-arch:
     uses: ./.github/workflows/pkg_arch-aur.yaml
     needs: [parse-inputs, reindex]

@@ -68,7 +68,14 @@ jobs:
         run: echo "$INPUTS_JSON"
 
       - name: Ensure version of mql and cnspec are available
+        env:
+          VERSION: ${{ inputs.version }}
         run: |
+          if [[ ! "$VERSION" =~ ^[0-9]+[.][0-9]+[.][0-9]+(-[0-9A-Za-z.-]+)?([+][0-9A-Za-z.-]+)?$ ]]; then
+            echo "Invalid version: $VERSION"
+            exit 1
+          fi
+
           # Function to check URL with retry logic
           check_url_with_retry() {
             local url="$1"
@@ -95,12 +102,12 @@ jobs:
 
           # Check all required URLs
           urls=(
-            "https://github.com/mondoohq/mql/releases/download/v${{ inputs.version }}/mql_${{ inputs.version }}_windows_amd64.zip"
-            "https://github.com/mondoohq/cnspec/releases/download/v${{ inputs.version }}/cnspec_${{ inputs.version }}_windows_amd64.zip"
-            "https://github.com/mondoohq/mql/releases/download/v${{ inputs.version }}/mql_${{ inputs.version }}_windows_arm64.zip"
-            "https://github.com/mondoohq/cnspec/releases/download/v${{ inputs.version }}/cnspec_${{ inputs.version }}_windows_arm64.zip"
-            "https://github.com/mondoohq/mql/releases/download/v${{ inputs.version }}/mql_v${{ inputs.version }}_SHA256SUMS"
-            "https://github.com/mondoohq/cnspec/releases/download/v${{ inputs.version }}/cnspec_v${{ inputs.version }}_SHA256SUMS"
+            "https://github.com/mondoohq/mql/releases/download/v${VERSION}/mql_${VERSION}_windows_amd64.zip"
+            "https://github.com/mondoohq/cnspec/releases/download/v${VERSION}/cnspec_${VERSION}_windows_amd64.zip"
+            "https://github.com/mondoohq/mql/releases/download/v${VERSION}/mql_${VERSION}_windows_arm64.zip"
+            "https://github.com/mondoohq/cnspec/releases/download/v${VERSION}/cnspec_${VERSION}_windows_arm64.zip"
+            "https://github.com/mondoohq/mql/releases/download/v${VERSION}/mql_v${VERSION}_SHA256SUMS"
+            "https://github.com/mondoohq/cnspec/releases/download/v${VERSION}/cnspec_v${VERSION}_SHA256SUMS"
           )
 
           failed=0
@@ -115,7 +122,7 @@ jobs:
             exit 1
           fi
 
-          echo "✓ All required binaries are available for version ${{ inputs.version }}"
+          echo "✓ All required binaries are available for version $VERSION"
 
   dist-prepare:
     name: Prepare Distribution for Packaging
@@ -399,10 +406,12 @@ jobs:
           $gci.Kill()
           gci
       - name: Verify the correct mql version is installed
+        env:
+          EXPECTED_VERSION: ${{ inputs.version }}
         run: |
           $version=& 'C:\Program Files\Mondoo\mql.exe' version
-          Write-Output "comparing $version -like '*${{ inputs.version }}*'"
-          $match=$version -like "*${{ inputs.version }}*"
+          Write-Output "comparing $version -like '*$env:EXPECTED_VERSION*'"
+          $match=$version -like "*$env:EXPECTED_VERSION*"
           if (-not $match) {
             exit 1
           }
@@ -410,10 +419,12 @@ jobs:
         run: |
           & 'C:\Program Files\Mondoo\mql.exe' run -c "os.base.packages.where(name == 'Mondoo') { name }"
       - name: Verify the correct cnspec version is installed
+        env:
+          EXPECTED_VERSION: ${{ inputs.version }}
         run: |
           $version=& 'C:\Program Files\Mondoo\cnspec.exe' version
-          Write-Output "comparing $version -like '*${{ inputs.version }}*'"
-          $match=$version -like "*${{ inputs.version }}*"
+          Write-Output "comparing $version -like '*$env:EXPECTED_VERSION*'"
+          $match=$version -like "*$env:EXPECTED_VERSION*"
           if (-not $match) {
             exit 1
           }
@@ -421,8 +432,10 @@ jobs:
         run: |
           & 'C:\Program Files\Mondoo\cnspec.exe' run -c "os.base.packages.where(name == 'Mondoo') { name }"
       - name: Login to edge with cnspec
+        env:
+          REGISTRATION_TOKEN: ${{ secrets.INSTALL_TEST_MONDOO_REGISTRATION_TOKEN }}
         run: |
-          & 'C:\Program Files\Mondoo\cnspec.exe' login -t "${{ secrets.INSTALL_TEST_MONDOO_REGISTRATION_TOKEN }}" --config C:\ProgramData\Mondoo\mondoo.yml
+          & 'C:\Program Files\Mondoo\cnspec.exe' login -t "$env:REGISTRATION_TOKEN" --config C:\ProgramData\Mondoo\mondoo.yml
       - name: Run a basic cnspec sanity check
         run: |
           & 'C:\Program Files\Mondoo\cnspec.exe' policy download mondoo-windows-installer -f mondoo-windows-installer.mql.yaml
@@ -431,10 +444,12 @@ jobs:
         run: |
           & 'C:\Program Files\Mondoo\cnspec.exe' logout --config C:\ProgramData\Mondoo\mondoo.yml --force
       - name: Verify cnquery.exe points to cnspec (backward compat)
+        env:
+          EXPECTED_VERSION: ${{ inputs.version }}
         run: |
           $version=& 'C:\Program Files\Mondoo\cnquery.exe' version
-          Write-Output "comparing $version -like '*${{ inputs.version }}*'"
-          $match=$version -like "*${{ inputs.version }}*"
+          Write-Output "comparing $version -like '*$env:EXPECTED_VERSION*'"
+          $match=$version -like "*$env:EXPECTED_VERSION*"
           if (-not $match) {
             exit 1
           }
@@ -470,18 +485,20 @@ jobs:
       - name: Verify access to release bucket
         env:
           VERSION: ${{ inputs.version }}
+          BUCKET: ${{ inputs.bucket }}
         run: |
-          gsutil ls gs://${{ inputs.bucket }}/mondoo
+          gsutil ls "gs://${BUCKET}/mondoo"
       - name: Upload static content to buckets
         env:
           VERSION: ${{ inputs.version }}
+          BUCKET: ${{ inputs.bucket }}
           SKIP: ${{ inputs.skip-publish && 'echo skipping...' || '' }}
         run: |
           cd dist
           mv mondoo_${{ matrix.arch }}.msi mondoo_${VERSION}_windows_${{ matrix.arch }}.msi
           sha256sum mondoo_${VERSION}_windows_${{ matrix.arch }}.msi >> checksums.windows_${{ matrix.arch }}.txt
-          $SKIP gsutil cp checksums.windows_${{ matrix.arch }}.txt gs://${{ inputs.bucket }}/mondoo/${VERSION}/checksums.windows_${{ matrix.arch }}.txt
-          $SKIP gsutil cp mondoo_${VERSION}_windows_${{ matrix.arch }}.msi gs://${{ inputs.bucket }}/mondoo/${VERSION}/mondoo_${VERSION}_windows_${{ matrix.arch }}.msi
+          $SKIP gsutil cp checksums.windows_${{ matrix.arch }}.txt "gs://${BUCKET}/mondoo/${VERSION}/checksums.windows_${{ matrix.arch }}.txt"
+          $SKIP gsutil cp mondoo_${VERSION}_windows_${{ matrix.arch }}.msi "gs://${BUCKET}/mondoo/${VERSION}/mondoo_${VERSION}_windows_${{ matrix.arch }}.msi"
       - name: Cleanup
         run: |
           rm -f "${{ steps.gauth.outputs.credentials_file_path }}"

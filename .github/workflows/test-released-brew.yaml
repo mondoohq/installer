@@ -41,15 +41,21 @@ jobs:
         env:
           INPUT_VERSION: ${{ inputs.version }}
         run: |
-          VERSION=$(echo "${INPUT_VERSION}" | sed 's/^v//')
-          echo "package_version=${VERSION}" >> $GITHUB_OUTPUT
+          VERSION="${INPUT_VERSION#v}"
+          if [[ ! "$VERSION" =~ ^[0-9]+[.][0-9]+[.][0-9]+(-[0-9A-Za-z.-]+)?([+][0-9A-Za-z.-]+)?$ ]]; then
+            echo "Invalid version: $INPUT_VERSION"
+            exit 1
+          fi
+          printf 'package_version=%s\n' "$VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Executing ${{ matrix.package }}....
         run: |
           ${{ matrix.package }} version
       - name: Verify the correct version is installed
+        env:
+          EXPECTED_VERSION: ${{ steps.version.outputs.package_version }}
         run: |
-          ${{ matrix.package }} version | grep -q ${{ steps.version.outputs.package_version}}
+          ${{ matrix.package }} version | grep -q "$EXPECTED_VERSION"
 
   cask:
     runs-on: macos-latest
@@ -68,11 +74,17 @@ jobs:
         env:
           INPUT_VERSION: ${{ inputs.version }}
         run: |
-          VERSION=$(echo "${INPUT_VERSION}" | sed 's/^v//')
-          echo "package_version=${VERSION}" >> $GITHUB_OUTPUT
+          VERSION="${INPUT_VERSION#v}"
+          if [[ ! "$VERSION" =~ ^[0-9]+[.][0-9]+[.][0-9]+(-[0-9A-Za-z.-]+)?([+][0-9A-Za-z.-]+)?$ ]]; then
+            echo "Invalid version: $INPUT_VERSION"
+            exit 1
+          fi
+          printf 'package_version=%s\n' "$VERSION" >> "$GITHUB_OUTPUT"
       - name: Executing cnspec from Mondoo package....
         run: |
           /Library/Mondoo/bin/cnspec version
       - name: Verify the correct version is installed
+        env:
+          EXPECTED_VERSION: ${{ steps.version.outputs.package_version }}
         run: |
-          /Library/Mondoo/bin/cnspec version | grep -q ${{ steps.version.outputs.package_version}}
+          /Library/Mondoo/bin/cnspec version | grep -q "$EXPECTED_VERSION"

@@ -25,6 +25,9 @@ jobs:
       - name: Wait for packages to be published (Release Event)
         id: check_release_file
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # v3.0.2
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+          MINSTALLER_API_KEY: ${{ secrets.MINSTALLER_API_KEY }}
         with:
           retry_wait_seconds: 20
           timeout_seconds: 20
@@ -32,8 +35,8 @@ jobs:
           retry_on: error
           # error on HTTP code different to 200
           command: |
-            vSEMVER=${{ inputs.version }}
-            SEMVER="${vSEMVER//v}"
+            vSEMVER="${INPUT_VERSION}"
+            SEMVER="${vSEMVER#v}"
 
             # Clear cache before checking with retry logic
             echo "Clearing minstaller's cache..."
@@ -46,7 +49,7 @@ jobs:
 
               cache_response=$(curl -s -w "HTTP_CODE:%{http_code}" \
                 -X POST https://install.mondoo.com/_/cache/clear-all \
-                -H "X-API-Key: ${{ secrets.MINSTALLER_API_KEY }}" 2>/dev/null || true)
+                -H "X-API-Key: ${MINSTALLER_API_KEY}" 2>/dev/null || true)
 
               if echo "$cache_response" | grep -q "HTTP_CODE:200"; then
                 echo "✅ Cache cleared successfully on attempt $cache_attempt"
@@ -116,10 +119,16 @@ jobs:
           fetch-depth: 0
       - name: Version
         id: version
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
         run: |
-          $v='${{ inputs.version }}'
-          $version=$v.trim("v","V")
-          echo "version=$version" >> $env:GITHUB_OUTPUT
+          $v=$env:INPUT_VERSION
+          $version=$v.TrimStart("v", "V")
+          if ($version -notmatch '^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?(\+[0-9A-Za-z.-]+)?$') {
+            Write-Error "Invalid version: $v"
+            exit 1
+          }
+          "version=$version" >> $env:GITHUB_OUTPUT
       - name: Check if install.ps1 changed
         id: check_install_ps1
         shell: bash
@@ -145,9 +154,11 @@ jobs:
           Install-Mondoo -Product ${{ matrix.package }};
       - name: Verify the correct version is installed
         shell: pwsh
+        env:
+          EXPECTED_VERSION: ${{ steps.version.outputs.version }}
         run: |
           # Logic to validate version has been moved to separate file
-          ./test/powershell/verify-cnspec-version.ps1 -ExpectedVersion "${{ steps.version.outputs.version }}"  -BinaryBaseName "${{ matrix.package }}"
+          ./test/powershell/verify-cnspec-version.ps1 -ExpectedVersion "$env:EXPECTED_VERSION"  -BinaryBaseName "${{ matrix.package }}"
 
   install-ps1-windows-mondoo:
     runs-on: windows-latest
@@ -162,10 +173,16 @@ jobs:
           fetch-depth: 0
       - name: Version
         id: version
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
         run: |
-          $v='${{ inputs.version }}'
-          $version=$v.trim("v","V")
-          echo "version=$version" >> $env:GITHUB_OUTPUT
+          $v=$env:INPUT_VERSION
+          $version=$v.TrimStart("v", "V")
+          if ($version -notmatch '^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?(\+[0-9A-Za-z.-]+)?$') {
+            Write-Error "Invalid version: $v"
+            exit 1
+          }
+          "version=$version" >> $env:GITHUB_OUTPUT
       - name: Check if install.ps1 changed
         id: check_install_ps1
         shell: bash
@@ -191,9 +208,11 @@ jobs:
           Install-Mondoo -Product ${{ matrix.package }};
       - name: Verify the correct version is installed
         shell: pwsh
+        env:
+          EXPECTED_VERSION: ${{ steps.version.outputs.version }}
         run: |
           # Logic to validate version has been moved to separate file
-          ./test/powershell/verify-cnspec-version.ps1 -ExpectedVersion "${{ steps.version.outputs.version }}"
+          ./test/powershell/verify-cnspec-version.ps1 -ExpectedVersion "$env:EXPECTED_VERSION"
 
   upgrade-from-cnquery-ps1:
     runs-on: windows-latest
@@ -204,10 +223,16 @@ jobs:
           fetch-depth: 0
       - name: Version
         id: version
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
         run: |
-          $v='${{ inputs.version }}'
-          $version=$v.trim("v","V")
-          echo "version=$version" >> $env:GITHUB_OUTPUT
+          $v=$env:INPUT_VERSION
+          $version=$v.TrimStart("v", "V")
+          if ($version -notmatch '^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?(\+[0-9A-Za-z.-]+)?$') {
+            Write-Error "Invalid version: $v"
+            exit 1
+          }
+          "version=$version" >> $env:GITHUB_OUTPUT
       - name: Install cnquery (old package) via install.ps1
         run: |
           Set-ExecutionPolicy Unrestricted -Scope Process -Force;
@@ -240,8 +265,10 @@ jobs:
           Install-Mondoo -Product mql;
       - name: Verify mql is installed at the expected version
         shell: pwsh
+        env:
+          EXPECTED_VERSION: ${{ steps.version.outputs.version }}
         run: |
-          ./test/powershell/verify-cnspec-version.ps1 -ExpectedVersion "${{ steps.version.outputs.version }}" -BinaryBaseName "mql"
+          ./test/powershell/verify-cnspec-version.ps1 -ExpectedVersion "$env:EXPECTED_VERSION" -BinaryBaseName "mql"
       # TODO: re-enable once cnquery.exe is updated by the mql upgrade
       # - name: Verify cnquery.exe points to cnspec (backward compat)
       #   run: |

@@ -59,8 +59,19 @@ jobs:
     runs-on: ubuntu-latest
     env:
       VERSION: ${{ inputs.version }}
+      BUCKET: ${{ inputs.bucket }}
     steps:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+      - name: Validate inputs
+        run: |
+          if [[ ! "$VERSION" =~ ^[0-9]+[.][0-9]+[.][0-9]+(-[0-9A-Za-z.-]+)?([+][0-9A-Za-z.-]+)?$ ]]; then
+            echo "Invalid version: $VERSION"
+            exit 1
+          fi
+          if [[ ! "$BUCKET" =~ ^[A-Za-z0-9._-]+$ ]]; then
+            echo "Invalid bucket name: $BUCKET"
+            exit 1
+          fi
       - name: Create destination folder
         run: |
           cd  helper
@@ -117,7 +128,7 @@ jobs:
         env:
           SKIP: ${{ inputs.skip-publish && 'echo skipping...' || '' }}
         run: |
-          $SKIP gsutil cp -r helper/packages/* gs://${{ inputs.bucket }}/mondoo/${{ inputs.version }}/
+          $SKIP gsutil cp -r helper/packages/* "gs://${BUCKET}/mondoo/${VERSION}/"
 
       - name: Upload files to GitHub Release Page
         if: ${{ !inputs.skip-publish }}
