@@ -265,6 +265,16 @@ jobs:
       - dist-prepare
     #  For Version: ${{ inputs.version }}
     steps:
+      - name: Validate arch
+        env:
+          ARCH: ${{ matrix.arch }}
+        run: |
+          $arch = $env:ARCH
+          if (@("amd64", "arm64") -notcontains $arch) {
+            Write-Error "Invalid arch: $arch"
+            exit 1
+          }
+
       - name: Checkout repository
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
@@ -280,11 +290,7 @@ jobs:
           ARCH: ${{ matrix.arch }}
         run: |
           $mondooVersion = ${env:VERSION}
-          $arch = ${env:ARCH}
-          if (@("amd64", "arm64") -notcontains $arch) {
-            Write-Error "Invalid arch: $arch"
-            exit 1
-          }
+          $arch = $env:ARCH
           echo "Running build job for version ${mondooVersion}"
           Copy-Item ".\dist\$arch\mql.exe" .\packages\msi\msi\
           Copy-Item ".\dist\$arch\cnspec.exe" .\packages\msi\msi\
@@ -331,11 +337,7 @@ jobs:
         env:
           ARCH: ${{ matrix.arch }}
         run: |
-          $arch = ${env:ARCH}
-          if (@("amd64", "arm64") -notcontains $arch) {
-            Write-Error "Invalid arch: $arch"
-            exit 1
-          }
+          $arch = $env:ARCH
           Copy-Item ".\packages\msi\mondoo_${arch}.msi" ".\dist\$arch"
           Remove-Item -Path ".\dist\$arch\mql.exe" -Force
           Remove-Item -Path ".\dist\$arch\cnspec.exe" -Force
@@ -359,6 +361,16 @@ jobs:
       - msi-build
     runs-on: windows-2025
     steps:
+      - name: Validate arch
+        env:
+          ARCH: ${{ matrix.arch }}
+        run: |
+          $arch = $env:ARCH
+          if (@("amd64", "arm64") -notcontains $arch) {
+            Write-Error "Invalid arch: $arch"
+            exit 1
+          }
+
       - name: Download MSI Package
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
@@ -370,11 +382,7 @@ jobs:
         env:
           ARCH: ${{ matrix.arch }}
         run: |
-          $arch = ${env:ARCH}
-          if (@("amd64", "arm64") -notcontains $arch) {
-            Write-Error "Invalid arch: $arch"
-            exit 1
-          }
+          $arch = $env:ARCH
           $msiFileName = "mondoo_${arch}.msi"
           $msiFilePath = Join-Path -Path (Get-Location) -ChildPath "dist\$msiFileName"
 
@@ -428,11 +436,7 @@ jobs:
         env:
           ARCH: ${{ matrix.arch }}
         run: |
-          $arch = ${env:ARCH}
-          if (@("amd64", "arm64") -notcontains $arch) {
-            Write-Error "Invalid arch: $arch"
-            exit 1
-          }
+          $arch = $env:ARCH
           $TEMP_PATH = $env:TEMP
           cd dist
           $msiexec = Start-Process "msiexec" "/i mondoo_${arch}.msi /qn /l*! install.log" -NoNewWindow -PassThru

@@ -85,12 +85,22 @@ jobs:
       - name: Install.sh/${{ matrix.package }} on ${{ matrix.distro }}
         env:
           EXPECTED_VERSION: ${{ steps.version.outputs.version }}
+          PACKAGE: ${{ matrix.package }}
+          DISTRO: ${{ matrix.distro }}
         run: |
-          docker run --rm -e EXPECTED_VERSION -v "$(pwd):/work" -w /work ${{ matrix.distro }} \
-          bash -c "apt-get update && apt-get install -y curl && \
-            curl -sSL https://install.mondoo.com/sh/${{ matrix.package }} | bash -x - && \
-            ${{ matrix.package }} version | grep -q \"\$EXPECTED_VERSION\" && \
-            if [ '${{ matrix.package }}' = 'cnspec' ]; then cnquery version | grep -q \"\$EXPECTED_VERSION\"; fi"
+          if [[ "$PACKAGE" != "mql" && "$PACKAGE" != "cnspec" ]]; then
+            echo "Invalid package: $PACKAGE"
+            exit 1
+          fi
+          if [[ ! "$DISTRO" =~ ^[A-Za-z0-9._/@:-]+$ ]]; then
+            echo "Invalid distro: $DISTRO"
+            exit 1
+          fi
+          docker run --rm -e EXPECTED_VERSION -e PACKAGE -v "$(pwd):/work" -w /work "$DISTRO" \
+          bash -c 'apt-get update && apt-get install -y curl && \
+            curl -sSL "https://install.mondoo.com/sh/${PACKAGE}" | bash -x - && \
+            "$PACKAGE" version | grep -q "$EXPECTED_VERSION" && \
+            if [ "$PACKAGE" = "cnspec" ]; then cnquery version | grep -q "$EXPECTED_VERSION"; fi'
 
   install-sh-yum:
     runs-on: ubuntu-latest
@@ -129,11 +139,21 @@ jobs:
       - name: Install.sh/${{ matrix.package }} on ${{ matrix.distro }}
         env:
           EXPECTED_VERSION: ${{ steps.version.outputs.version }}
+          PACKAGE: ${{ matrix.package }}
+          DISTRO: ${{ matrix.distro }}
         run: |
-          docker run --rm -e EXPECTED_VERSION -v "$(pwd):/work" -w /work ${{ matrix.distro }} \
-          bash -c "curl -sSL https://install.mondoo.com/sh/${{ matrix.package }} | bash - && \
-            ${{ matrix.package }} version | grep -q \"\$EXPECTED_VERSION\" && \
-            if [ '${{ matrix.package }}' = 'cnspec' ]; then cnquery version | grep -q \"\$EXPECTED_VERSION\"; fi"
+          if [[ "$PACKAGE" != "mql" && "$PACKAGE" != "cnspec" ]]; then
+            echo "Invalid package: $PACKAGE"
+            exit 1
+          fi
+          if [[ ! "$DISTRO" =~ ^[A-Za-z0-9._/@:-]+$ ]]; then
+            echo "Invalid distro: $DISTRO"
+            exit 1
+          fi
+          docker run --rm -e EXPECTED_VERSION -e PACKAGE -v "$(pwd):/work" -w /work "$DISTRO" \
+          bash -c 'curl -sSL "https://install.mondoo.com/sh/${PACKAGE}" | bash - && \
+            "$PACKAGE" version | grep -q "$EXPECTED_VERSION" && \
+            if [ "$PACKAGE" = "cnspec" ]; then cnquery version | grep -q "$EXPECTED_VERSION"; fi'
 
   install-sh-zypper:
     runs-on: ubuntu-latest
@@ -162,12 +182,22 @@ jobs:
       - name: Install.sh/${{ matrix.package }} on ${{ matrix.distro }}
         env:
           EXPECTED_VERSION: ${{ steps.version.outputs.version }}
+          PACKAGE: ${{ matrix.package }}
+          DISTRO: ${{ matrix.distro }}
         run: |
-          docker run --rm -e EXPECTED_VERSION -v "$(pwd):/work" -w /work ${{ matrix.distro }} \
-          bash -c "zypper -n install curl && \
-            curl -sSL https://install.mondoo.com/sh/${{ matrix.package }} | bash - && \
-            ${{ matrix.package }} version | grep -q \"\$EXPECTED_VERSION\" && \
-            if [ '${{ matrix.package }}' = 'cnspec' ]; then cnquery version | grep -q \"\$EXPECTED_VERSION\"; fi"
+          if [[ "$PACKAGE" != "mql" && "$PACKAGE" != "cnspec" ]]; then
+            echo "Invalid package: $PACKAGE"
+            exit 1
+          fi
+          if [[ ! "$DISTRO" =~ ^[A-Za-z0-9._/@:-]+$ ]]; then
+            echo "Invalid distro: $DISTRO"
+            exit 1
+          fi
+          docker run --rm -e EXPECTED_VERSION -e PACKAGE -v "$(pwd):/work" -w /work "$DISTRO" \
+          bash -c 'zypper -n install curl && \
+            curl -sSL "https://install.mondoo.com/sh/${PACKAGE}" | bash - && \
+            "$PACKAGE" version | grep -q "$EXPECTED_VERSION" && \
+            if [ "$PACKAGE" = "cnspec" ]; then cnquery version | grep -q "$EXPECTED_VERSION"; fi'
 
   install-sh-macos:
     runs-on: macos-latest
@@ -190,14 +220,26 @@ jobs:
           fi
           printf 'version=%s\n' "$VERSION" >> "$GITHUB_OUTPUT"
       - name: Install.sh/${{ matrix.package }} on ${{ matrix.os }}
+        env:
+          PACKAGE: ${{ matrix.package }}
         run: |
-          bash -c "$(curl -sSL https://install.mondoo.com/sh/${{ matrix.package }})"
-          ${{ matrix.package }} version
+          if [[ "$PACKAGE" != "mql" && "$PACKAGE" != "cnspec" ]]; then
+            echo "Invalid package: $PACKAGE"
+            exit 1
+          fi
+          installer_url="https://install.mondoo.com/sh/${PACKAGE}"
+          bash -c "$(curl -sSL "$installer_url")"
+          "$PACKAGE" version
       - name: Verify the correct version is installed
         env:
           EXPECTED_VERSION: ${{ steps.version.outputs.version }}
+          PACKAGE: ${{ matrix.package }}
         run: |
-          ${{ matrix.package }} version | grep -q "$EXPECTED_VERSION"
+          if [[ "$PACKAGE" != "mql" && "$PACKAGE" != "cnspec" ]]; then
+            echo "Invalid package: $PACKAGE"
+            exit 1
+          fi
+          "$PACKAGE" version | grep -q "$EXPECTED_VERSION"
       - name: Verify cnquery symlink points to cnspec (cnspec only)
         if: matrix.package == 'cnspec'
         env:
@@ -235,8 +277,13 @@ jobs:
       - name: Upgrade cnquery -> mql on ${{ matrix.distro }}
         env:
           EXPECTED_VERSION: ${{ steps.version.outputs.version }}
+          DISTRO: ${{ matrix.distro }}
         run: |
-          docker run --rm -e EXPECTED_VERSION -v "$(pwd):/work" -w /work ${{ matrix.distro }} \
+          if [[ ! "$DISTRO" =~ ^[A-Za-z0-9._/@:-]+$ ]]; then
+            echo "Invalid distro: $DISTRO"
+            exit 1
+          fi
+          docker run --rm -e EXPECTED_VERSION -v "$(pwd):/work" -w /work "$DISTRO" \
           bash -c "set -e && \
             echo '==> Installing curl...' && \
             apt-get update && apt-get install -y curl && \
