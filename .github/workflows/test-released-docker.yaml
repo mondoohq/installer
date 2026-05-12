@@ -41,8 +41,9 @@ jobs:
       - name: Testing mondoo/mql:${{ matrix.tag }}....
         env:
           EXPECTED_VERSION: ${{ steps.version.outputs.version }}
+          IMAGE_TAG: ${{ matrix.tag }}
         run: |
-          version=$(docker run --rm -v $(pwd):/work -w /work mondoo/mql:${{ matrix.tag }} version)
+          version=$(docker run --rm -v "$(pwd):/work" -w /work "mondoo/mql:${IMAGE_TAG}" version)
           echo "$version"
           echo "$version" | grep -q "$EXPECTED_VERSION"
   cnspec-containers:
@@ -67,8 +68,9 @@ jobs:
       - name: Testing mondoo/cnspec:${{ matrix.tag }}....
         env:
           EXPECTED_VERSION: ${{ steps.version.outputs.version }}
+          IMAGE_TAG: ${{ matrix.tag }}
         run: |
-          version=$(docker run --rm -v $(pwd):/work -w /work mondoo/cnspec:${{ matrix.tag }} version)
+          version=$(docker run --rm -v "$(pwd):/work" -w /work "mondoo/cnspec:${IMAGE_TAG}" version)
           echo "$version"
           echo "$version" | grep -q "$EXPECTED_VERSION"
 
@@ -94,7 +96,8 @@ jobs:
       - name: Testing mondoo/client:${{ matrix.tag }}....
         env:
           EXPECTED_VERSION: ${{ steps.version.outputs.version }}
+          IMAGE_TAG: ${{ matrix.tag }}
         run: |
-          version=$(docker run --rm -v $(pwd):/work -w /work mondoo/client:${{ matrix.tag }} version)
+          version=$(docker run --rm -v "$(pwd):/work" -w /work "mondoo/client:${IMAGE_TAG}" version)
           echo "$version"
           echo "$version" | grep -q "$EXPECTED_VERSION"

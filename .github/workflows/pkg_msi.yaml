@@ -139,10 +139,16 @@ jobs:
       - name: Download, Verify and Extract the Binaries
         env:
           VERSION: ${{ inputs.version }}
+          ARCH: ${{ matrix.arch }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          if [[ "$ARCH" != "amd64" && "$ARCH" != "arm64" ]]; then
+            echo "Invalid arch: $ARCH"
+            exit 1
+          fi
+
           # Create directory and enter it
-          mkdir -p dist/${{ matrix.arch }} && cd dist/${{ matrix.arch }}
+          mkdir -p "dist/${ARCH}" && cd "dist/${ARCH}"
 
           # Function to download with retry logic
           download_with_retry() {
@@ -181,17 +187,18 @@ jobs:
           fi
 
           # Download cnspec
-          if ! download_with_retry "https://github.com/mondoohq/cnspec/releases/download/v${VERSION}/cnspec_${VERSION}_windows_${{ matrix.arch }}.zip" "cnspec_${VERSION}_windows_${{ matrix.arch }}.zip"; then
+          cnspec_zip="cnspec_${VERSION}_windows_${ARCH}.zip"
+          if ! download_with_retry "https://github.com/mondoohq/cnspec/releases/download/v${VERSION}/${cnspec_zip}" "$cnspec_zip"; then
             exit 1
           fi
 
           # Validate cnspec checksum
-          expected_checksum=$(grep "cnspec_${VERSION}_windows_${{ matrix.arch }}.zip" cnspec_v${VERSION}_SHA256SUMS | awk '{print $1}')
+          expected_checksum=$(grep "$cnspec_zip" "cnspec_v${VERSION}_SHA256SUMS" | awk '{print $1}')
           if [ -z "$expected_checksum" ]; then
-            echo "ERROR: Could not find expected checksum for cnspec_${VERSION}_windows_${{ matrix.arch }}.zip"
+            echo "ERROR: Could not find expected checksum for $cnspec_zip"
             exit 1
           fi
-          actual_checksum=$(sha256sum "cnspec_${VERSION}_windows_${{ matrix.arch }}.zip" | awk '{print $1}')
+          actual_checksum=$(sha256sum "$cnspec_zip" | awk '{print $1}')
           if [ "$actual_checksum" != "$expected_checksum" ]; then
             echo "ERROR: Checksum mismatch for cnspec binary"
             echo "Expected: $expected_checksum"
@@ -201,24 +208,25 @@ jobs:
           echo "✓ cnspec checksum validated successfully"
 
           # Extract and cleanup cnspec
-          if ! unzip cnspec_${VERSION}_windows_${{ matrix.arch }}.zip; then
+          if ! unzip "$cnspec_zip"; then
             echo "ERROR: Failed to extract cnspec binary"
             exit 1
           fi
-          rm cnspec_${VERSION}_windows_${{ matrix.arch }}.zip cnspec_v${VERSION}_SHA256SUMS
+          rm "$cnspec_zip" "cnspec_v${VERSION}_SHA256SUMS"
 
           # Download mql
-          if ! download_with_retry "https://github.com/mondoohq/mql/releases/download/v${VERSION}/mql_${VERSION}_windows_${{ matrix.arch }}.zip" "mql_${VERSION}_windows_${{ matrix.arch }}.zip"; then
+          mql_zip="mql_${VERSION}_windows_${ARCH}.zip"
+          if ! download_with_retry "https://github.com/mondoohq/mql/releases/download/v${VERSION}/${mql_zip}" "$mql_zip"; then
             exit 1
           fi
 
           # Validate mql checksum
-          expected_checksum=$(grep "mql_${VERSION}_windows_${{ matrix.arch }}.zip" mql_v${VERSION}_SHA256SUMS | awk '{print $1}')
+          expected_checksum=$(grep "$mql_zip" "mql_v${VERSION}_SHA256SUMS" | awk '{print $1}')
           if [ -z "$expected_checksum" ]; then
-            echo "ERROR: Could not find expected checksum for mql_${VERSION}_windows_${{ matrix.arch }}.zip"
+            echo "ERROR: Could not find expected checksum for $mql_zip"
             exit 1
           fi
-          actual_checksum=$(sha256sum "mql_${VERSION}_windows_${{ matrix.arch }}.zip" | awk '{print $1}')
+          actual_checksum=$(sha256sum "$mql_zip" | awk '{print $1}')
           if [ "$actual_checksum" != "$expected_checksum" ]; then
             echo "ERROR: Checksum mismatch for mql binary"
             echo "Expected: $expected_checksum"
@@ -228,11 +236,11 @@ jobs:
           echo "✓ mql checksum validated successfully"
 
           # Extract and cleanup mql
-          if ! unzip mql_${VERSION}_windows_${{ matrix.arch }}.zip; then
+          if ! unzip "$mql_zip"; then
             echo "ERROR: Failed to extract mql binary"
             exit 1
           fi
-          rm mql_${VERSION}_windows_${{ matrix.arch }}.zip mql_v${VERSION}_SHA256SUMS
+          rm "$mql_zip" "mql_v${VERSION}_SHA256SUMS"
 
           echo "Successfully downloaded and extracted binaries:"
           ls -lh
@@ -269,18 +277,24 @@ jobs:
       - name: Build MSI
         env:
           VERSION: ${{ inputs.version }}
+          ARCH: ${{ matrix.arch }}
         run: |
           $mondooVersion = ${env:VERSION}
+          $arch = ${env:ARCH}
+          if (@("amd64", "arm64") -notcontains $arch) {
+            Write-Error "Invalid arch: $arch"
+            exit 1
+          }
           echo "Running build job for version ${mondooVersion}"
-          Copy-Item .\dist\${{ matrix.arch }}\mql.exe .\packages\msi\msi\
-          Copy-Item .\dist\${{ matrix.arch }}\cnspec.exe .\packages\msi\msi\
-          Copy-Item .\dist\${{ matrix.arch }}\cnspec.exe .\packages\msi\msi\cnquery.exe
-          Copy-Item .\dist\${{ matrix.arch }}\mql.exe .\packages\msi\appx\
-          Copy-Item .\dist\${{ matrix.arch }}\cnspec.exe .\packages\msi\appx\
+          Copy-Item ".\dist\$arch\mql.exe" .\packages\msi\msi\
+          Copy-Item ".\dist\$arch\cnspec.exe" .\packages\msi\msi\
+          Copy-Item ".\dist\$arch\cnspec.exe" .\packages\msi\msi\cnquery.exe
+          Copy-Item ".\dist\$arch\mql.exe" .\packages\msi\appx\
+          Copy-Item ".\dist\$arch\cnspec.exe" .\packages\msi\appx\
           # build msi package
           echo " - Packaging MSI..."
           Set-Location -Path '.\packages\msi\'
-          ./package.ps1 -version $mondooVersion -arch ${{ matrix.arch }}
+          ./package.ps1 -version $mondooVersion -arch $arch
 
       - name: Azure login
         uses: azure/login@a457da9ea143d694b1b9c7c869ebb04ebe844ef5 # v2.3.0
@@ -314,10 +328,17 @@ jobs:
           cache-dependencies: true
 
       - name: Cleanup dist before upload
+        env:
+          ARCH: ${{ matrix.arch }}
         run: |
-          Copy-Item '.\packages\msi\mondoo_${{ matrix.arch }}.msi' '.\dist\${{ matrix.arch }}'
-          Remove-Item -Path .\dist\${{ matrix.arch }}\mql.exe -Force
-          Remove-Item -Path .\dist\${{ matrix.arch }}\cnspec.exe -Force
+          $arch = ${env:ARCH}
+          if (@("amd64", "arm64") -notcontains $arch) {
+            Write-Error "Invalid arch: $arch"
+            exit 1
+          }
+          Copy-Item ".\packages\msi\mondoo_${arch}.msi" ".\dist\$arch"
+          Remove-Item -Path ".\dist\$arch\mql.exe" -Force
+          Remove-Item -Path ".\dist\$arch\cnspec.exe" -Force
 
       - name: Upload Distribution
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
@@ -346,8 +367,15 @@ jobs:
       - name: Verify Signed MSI Status
         if: ${{ inputs.use-test-cert == false }}
         shell: powershell
+        env:
+          ARCH: ${{ matrix.arch }}
         run: |
-          $msiFileName = "mondoo_${{ matrix.arch }}.msi"
+          $arch = ${env:ARCH}
+          if (@("amd64", "arm64") -notcontains $arch) {
+            Write-Error "Invalid arch: $arch"
+            exit 1
+          }
+          $msiFileName = "mondoo_${arch}.msi"
           $msiFilePath = Join-Path -Path (Get-Location) -ChildPath "dist\$msiFileName"
 
           Write-Host "Attempting to verify digital signature for MSI: $msiFilePath"
@@ -397,10 +425,17 @@ jobs:
               exit 1 # Fail the step
           }
       - name: Install artifact
+        env:
+          ARCH: ${{ matrix.arch }}
         run: |
+          $arch = ${env:ARCH}
+          if (@("amd64", "arm64") -notcontains $arch) {
+            Write-Error "Invalid arch: $arch"
+            exit 1
+          }
           $TEMP_PATH = $env:TEMP
           cd dist
-          $msiexec = Start-Process "msiexec" "/i mondoo_${{ matrix.arch }}.msi /qn /l*! install.log" -NoNewWindow -PassThru
+          $msiexec = Start-Process "msiexec" "/i mondoo_${arch}.msi /qn /l*! install.log" -NoNewWindow -PassThru
           $gci = Start-Process "powershell" "Get-Content -Path install.log -Wait" -NoNewWindow -PassThru
           $msiexec.WaitForExit() 
           $gci.Kill()
@@ -492,13 +527,18 @@ jobs:
         env:
           VERSION: ${{ inputs.version }}
           BUCKET: ${{ inputs.bucket }}
+          ARCH: ${{ matrix.arch }}
           SKIP: ${{ inputs.skip-publish && 'echo skipping...' || '' }}
         run: |
           cd dist
-          mv mondoo_${{ matrix.arch }}.msi mondoo_${VERSION}_windows_${{ matrix.arch }}.msi
-          sha256sum mondoo_${VERSION}_windows_${{ matrix.arch }}.msi >> checksums.windows_${{ matrix.arch }}.txt
-          $SKIP gsutil cp checksums.windows_${{ matrix.arch }}.txt "gs://${BUCKET}/mondoo/${VERSION}/checksums.windows_${{ matrix.arch }}.txt"
-          $SKIP gsutil cp mondoo_${VERSION}_windows_${{ matrix.arch }}.msi "gs://${BUCKET}/mondoo/${VERSION}/mondoo_${VERSION}_windows_${{ matrix.arch }}.msi"
+          if [[ "$ARCH" != "amd64" && "$ARCH" != "arm64" ]]; then
+            echo "Invalid arch: $ARCH"
+            exit 1
+          fi
+          mv "mondoo_${ARCH}.msi" "mondoo_${VERSION}_windows_${ARCH}.msi"
+          sha256sum "mondoo_${VERSION}_windows_${ARCH}.msi" >> "checksums.windows_${ARCH}.txt"
+          $SKIP gsutil cp "checksums.windows_${ARCH}.txt" "gs://${BUCKET}/mondoo/${VERSION}/checksums.windows_${ARCH}.txt"
+          $SKIP gsutil cp "mondoo_${VERSION}_windows_${ARCH}.msi" "gs://${BUCKET}/mondoo/${VERSION}/mondoo_${VERSION}_windows_${ARCH}.msi"
       - name: Cleanup
         run: |
           rm -f "${{ steps.gauth.outputs.credentials_file_path }}"
