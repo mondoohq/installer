@@ -32,9 +32,15 @@ jobs:
           /bin/bash -c "$(curl --retry 10 --retry-delay 60 -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
       - name: Testing install of ${{ matrix.package }}....
+        env:
+          PACKAGE: ${{ matrix.package }}
         run: |
           brew tap mondoohq/mondoo
-          brew install ${{ matrix.package }}
+          if [[ "$PACKAGE" != "mql" && "$PACKAGE" != "cnspec" ]]; then
+            echo "Invalid package: $PACKAGE"
+            exit 1
+          fi
+          brew install "$PACKAGE"
 
       - name: Version
         id: version
@@ -49,13 +55,24 @@ jobs:
           printf 'package_version=%s\n' "$VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Executing ${{ matrix.package }}....
+        env:
+          PACKAGE: ${{ matrix.package }}
         run: |
-          ${{ matrix.package }} version
+          if [[ "$PACKAGE" != "mql" && "$PACKAGE" != "cnspec" ]]; then
+            echo "Invalid package: $PACKAGE"
+            exit 1
+          fi
+          "$PACKAGE" version
       - name: Verify the correct version is installed
         env:
           EXPECTED_VERSION: ${{ steps.version.outputs.package_version }}
+          PACKAGE: ${{ matrix.package }}
         run: |
-          ${{ matrix.package }} version | grep -q "$EXPECTED_VERSION"
+          if [[ "$PACKAGE" != "mql" && "$PACKAGE" != "cnspec" ]]; then
+            echo "Invalid package: $PACKAGE"
+            exit 1
+          fi
+          "$PACKAGE" version | grep -q "$EXPECTED_VERSION"
 
   cask:
     runs-on: macos-latest

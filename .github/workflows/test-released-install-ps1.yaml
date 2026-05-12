@@ -141,24 +141,33 @@ jobs:
             echo "install.ps1 has not changed compared to main"
           fi
       - name: Install.ps1/${{ matrix.package }} on ${{ matrix.os }}
+        env:
+          PACKAGE: ${{ matrix.package }}
+          INSTALL_PS1_CHANGED: ${{ steps.check_install_ps1.outputs.changed }}
         run: |
+          $product = $env:PACKAGE
+          if (@("mql", "cnspec") -notcontains $product) {
+            Write-Error "Invalid package: $product"
+            exit 1
+          }
           Set-ExecutionPolicy Unrestricted -Scope Process -Force;
           [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072;
-          if ('${{ steps.check_install_ps1.outputs.changed }}' -eq 'true') {
+          if ($env:INSTALL_PS1_CHANGED -eq 'true') {
             Write-Host "Using local install.ps1 from repository"
             . .\install.ps1
           } else {
             Write-Host "Using install.ps1 from install.mondoo.com"
-            iex ((New-Object System.Net.WebClient).DownloadString('https://install.mondoo.com/ps1/${{ matrix.package }}'));
+            iex ((New-Object System.Net.WebClient).DownloadString("https://install.mondoo.com/ps1/$product"));
           }
-          Install-Mondoo -Product ${{ matrix.package }};
+          Install-Mondoo -Product $product;
       - name: Verify the correct version is installed
         shell: pwsh
         env:
           EXPECTED_VERSION: ${{ steps.version.outputs.version }}
+          BINARY_BASE_NAME: ${{ matrix.package }}
         run: |
           # Logic to validate version has been moved to separate file
-          ./test/powershell/verify-cnspec-version.ps1 -ExpectedVersion "$env:EXPECTED_VERSION"  -BinaryBaseName "${{ matrix.package }}"
+          ./test/powershell/verify-cnspec-version.ps1 -ExpectedVersion "$env:EXPECTED_VERSION"  -BinaryBaseName "$env:BINARY_BASE_NAME"
 
   install-ps1-windows-mondoo:
     runs-on: windows-latest
@@ -195,17 +204,25 @@ jobs:
             echo "install.ps1 has not changed compared to main"
           fi
       - name: Install.ps1/${{ matrix.package }} on ${{ matrix.os }}
+        env:
+          PACKAGE: ${{ matrix.package }}
+          INSTALL_PS1_CHANGED: ${{ steps.check_install_ps1.outputs.changed }}
         run: |
+          $product = $env:PACKAGE
+          if ($product -ne "mondoo") {
+            Write-Error "Invalid package: $product"
+            exit 1
+          }
           Set-ExecutionPolicy Unrestricted -Scope Process -Force;
           [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072;
-          if ('${{ steps.check_install_ps1.outputs.changed }}' -eq 'true') {
+          if ($env:INSTALL_PS1_CHANGED -eq 'true') {
             Write-Host "Using local install.ps1 from repository"
             . .\install.ps1
           } else {
             Write-Host "Using install.ps1 from install.mondoo.com"
-            iex ((New-Object System.Net.WebClient).DownloadString('https://install.mondoo.com/ps1/${{ matrix.package }}'));
+            iex ((New-Object System.Net.WebClient).DownloadString("https://install.mondoo.com/ps1/$product"));
           }
-          Install-Mondoo -Product ${{ matrix.package }};
+          Install-Mondoo -Product $product;
       - name: Verify the correct version is installed
         shell: pwsh
         env:
