@@ -60,14 +60,33 @@ jobs:
           # strip leading 'v', e.g. v1.0.0
           V="${VERSION##v}"
           echo "Version: $V"
-          echo "version=${V}" >> "$GITHUB_OUTPUT"
           # strip trailing pre-release version e.g. 1.0.0-beta
-          echo "trimmed_version=${V%%-*}" >> "$GITHUB_OUTPUT"
-          if [[ ! ${V%%-*} =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+          trimmed_version="${V%%-*}"
+          if [[ ! "$V" =~ ^[0-9]+[.][0-9]+[.][0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
             echo "Invalid version: $VERSION"
             exit 1
           fi
+          if [[ ! "$trimmed_version" =~ ^[0-9]+[.][0-9]+[.][0-9]+$ ]]; then
+            echo "Invalid trimmed version: $trimmed_version"
+            exit 1
+          fi
+          if [[ ! "$NAME" =~ ^[A-Za-z0-9._-]+$ ]]; then
+            echo "Invalid package name: $NAME"
+            exit 1
+          fi
+          if [[ ! "$BUCKET" =~ ^[A-Za-z0-9._-]+$ ]]; then
+            echo "Invalid bucket name: $BUCKET"
+            exit 1
+          fi
+          if [[ "$SKIP_PUBLISH" != "true" && "$SKIP_PUBLISH" != "false" ]]; then
+            echo "Invalid skip-publish value: $SKIP_PUBLISH"
+            exit 1
+          fi
 
-          echo "name=$NAME" >> "$GITHUB_OUTPUT"
-          echo "skip-publish=$SKIP_PUBLISH" >> "$GITHUB_OUTPUT"
-          echo "bucket=$BUCKET" >> "$GITHUB_OUTPUT"
+          {
+            printf 'version=%s\n' "$V"
+            printf 'trimmed_version=%s\n' "$trimmed_version"
+            printf 'name=%s\n' "$NAME"
+            printf 'skip-publish=%s\n' "$SKIP_PUBLISH"
+            printf 'bucket=%s\n' "$BUCKET"
+          } >> "$GITHUB_OUTPUT"

@@ -25,6 +25,9 @@ jobs:
       - name: Wait for packages to be published (Release Event)
         id: check_release_file
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # v3.0.2
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+          MINSTALLER_API_KEY: ${{ secrets.MINSTALLER_API_KEY }}
         with:
           retry_wait_seconds: 20
           timeout_seconds: 5
@@ -32,14 +35,14 @@ jobs:
           retry_on: error
           # error on HTTP code different to 200
           command: |
-            vSEMVER=${{ inputs.version }}
-            SEMVER="${vSEMVER//v}"
+            vSEMVER="${INPUT_VERSION}"
+            SEMVER="${vSEMVER#v}"
 
             # Clear cache before checking (ignore failures)
             echo "Clearing minstaller's cache..."
             cache_response=$(curl -s -w "HTTP_CODE:%{http_code}" \
               -X POST https://install.mondoo.com/_/cache/clear-all \
-              -H "X-API-Key: ${{ secrets.MINSTALLER_API_KEY }}" 2>/dev/null || true)
+              -H "X-API-Key: ${MINSTALLER_API_KEY}" 2>/dev/null || true)
 
             if echo "$cache_response" | grep -q "HTTP_CODE:200"; then
               echo "✅ Cache cleared successfully"
@@ -73,15 +76,31 @@ jobs:
         env:
           INPUT_VERSION: ${{ inputs.version }}
         run: |
-          VERSION=$(echo "${INPUT_VERSION}" | sed 's/^v//')
-          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          VERSION="${INPUT_VERSION#v}"
+          if [[ ! "$VERSION" =~ ^[0-9]+[.][0-9]+[.][0-9]+(-[0-9A-Za-z.-]+)?([+][0-9A-Za-z.-]+)?$ ]]; then
+            echo "Invalid version: $INPUT_VERSION"
+            exit 1
+          fi
+          printf 'version=%s\n' "$VERSION" >> "$GITHUB_OUTPUT"
       - name: Install.sh/${{ matrix.package }} on ${{ matrix.distro }}
+        env:
+          EXPECTED_VERSION: ${{ steps.version.outputs.version }}
+          PACKAGE: ${{ matrix.package }}
+          DISTRO: ${{ matrix.distro }}
         run: |
-          docker run --rm -v $(pwd):/work -w /work ${{ matrix.distro }} \
-          bash -c "apt-get update && apt-get install -y curl && \
-            curl -sSL https://install.mondoo.com/sh/${{ matrix.package }} | bash -x - && \
-            ${{ matrix.package }} version | grep -q ${{ steps.version.outputs.version }} && \
-            if [ '${{ matrix.package }}' = 'cnspec' ]; then cnquery version | grep -q ${{ steps.version.outputs.version }}; fi"
+          if [[ "$PACKAGE" != "mql" && "$PACKAGE" != "cnspec" ]]; then
+            echo "Invalid package: $PACKAGE"
+            exit 1
+          fi
+          if [[ ! "$DISTRO" =~ ^[A-Za-z0-9._/@:-]+$ ]]; then
+            echo "Invalid distro: $DISTRO"
+            exit 1
+          fi
+          docker run --rm -e EXPECTED_VERSION -e PACKAGE -v "$(pwd):/work" -w /work "$DISTRO" \
+          bash -c 'apt-get update && apt-get install -y curl && \
+            curl -sSL "https://install.mondoo.com/sh/${PACKAGE}" | bash -x - && \
+            "$PACKAGE" version | grep -q "$EXPECTED_VERSION" && \
+            if [ "$PACKAGE" = "cnspec" ]; then cnquery version | grep -q "$EXPECTED_VERSION"; fi'
 
   install-sh-yum:
     runs-on: ubuntu-latest
@@ -111,14 +130,30 @@ jobs:
         env:
           INPUT_VERSION: ${{ inputs.version }}
         run: |
-          VERSION=$(echo "${INPUT_VERSION}" | sed 's/^v//')
-          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          VERSION="${INPUT_VERSION#v}"
+          if [[ ! "$VERSION" =~ ^[0-9]+[.][0-9]+[.][0-9]+(-[0-9A-Za-z.-]+)?([+][0-9A-Za-z.-]+)?$ ]]; then
+            echo "Invalid version: $INPUT_VERSION"
+            exit 1
+          fi
+          printf 'version=%s\n' "$VERSION" >> "$GITHUB_OUTPUT"
       - name: Install.sh/${{ matrix.package }} on ${{ matrix.distro }}
+        env:
+          EXPECTED_VERSION: ${{ steps.version.outputs.version }}
+          PACKAGE: ${{ matrix.package }}
+          DISTRO: ${{ matrix.distro }}
         run: |
-          docker run --rm -v $(pwd):/work -w /work ${{ matrix.distro }} \
-          bash -c "curl -sSL https://install.mondoo.com/sh/${{ matrix.package }} | bash - && \
-            ${{ matrix.package }} version | grep -q ${{ steps.version.outputs.version }} && \
-            if [ '${{ matrix.package }}' = 'cnspec' ]; then cnquery version | grep -q ${{ steps.version.outputs.version }}; fi"
+          if [[ "$PACKAGE" != "mql" && "$PACKAGE" != "cnspec" ]]; then
+            echo "Invalid package: $PACKAGE"
+            exit 1
+          fi
+          if [[ ! "$DISTRO" =~ ^[A-Za-z0-9._/@:-]+$ ]]; then
+            echo "Invalid distro: $DISTRO"
+            exit 1
+          fi
+          docker run --rm -e EXPECTED_VERSION -e PACKAGE -v "$(pwd):/work" -w /work "$DISTRO" \
+          bash -c 'curl -sSL "https://install.mondoo.com/sh/${PACKAGE}" | bash - && \
+            "$PACKAGE" version | grep -q "$EXPECTED_VERSION" && \
+            if [ "$PACKAGE" = "cnspec" ]; then cnquery version | grep -q "$EXPECTED_VERSION"; fi'
 
   install-sh-zypper:
     runs-on: ubuntu-latest
@@ -138,15 +173,31 @@ jobs:
         env:
           INPUT_VERSION: ${{ inputs.version }}
         run: |
-          VERSION=$(echo "${INPUT_VERSION}" | sed 's/^v//')
-          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          VERSION="${INPUT_VERSION#v}"
+          if [[ ! "$VERSION" =~ ^[0-9]+[.][0-9]+[.][0-9]+(-[0-9A-Za-z.-]+)?([+][0-9A-Za-z.-]+)?$ ]]; then
+            echo "Invalid version: $INPUT_VERSION"
+            exit 1
+          fi
+          printf 'version=%s\n' "$VERSION" >> "$GITHUB_OUTPUT"
       - name: Install.sh/${{ matrix.package }} on ${{ matrix.distro }}
+        env:
+          EXPECTED_VERSION: ${{ steps.version.outputs.version }}
+          PACKAGE: ${{ matrix.package }}
+          DISTRO: ${{ matrix.distro }}
         run: |
-          docker run --rm -v $(pwd):/work -w /work ${{ matrix.distro }} \
-          bash -c "zypper -n install curl && \
-            curl -sSL https://install.mondoo.com/sh/${{ matrix.package }} | bash - && \
-            ${{ matrix.package }} version | grep -q ${{ steps.version.outputs.version }} && \
-            if [ '${{ matrix.package }}' = 'cnspec' ]; then cnquery version | grep -q ${{ steps.version.outputs.version }}; fi"
+          if [[ "$PACKAGE" != "mql" && "$PACKAGE" != "cnspec" ]]; then
+            echo "Invalid package: $PACKAGE"
+            exit 1
+          fi
+          if [[ ! "$DISTRO" =~ ^[A-Za-z0-9._/@:-]+$ ]]; then
+            echo "Invalid distro: $DISTRO"
+            exit 1
+          fi
+          docker run --rm -e EXPECTED_VERSION -e PACKAGE -v "$(pwd):/work" -w /work "$DISTRO" \
+          bash -c 'zypper -n install curl && \
+            curl -sSL "https://install.mondoo.com/sh/${PACKAGE}" | bash - && \
+            "$PACKAGE" version | grep -q "$EXPECTED_VERSION" && \
+            if [ "$PACKAGE" = "cnspec" ]; then cnquery version | grep -q "$EXPECTED_VERSION"; fi'
 
   install-sh-macos:
     runs-on: macos-latest
@@ -162,19 +213,39 @@ jobs:
         env:
           INPUT_VERSION: ${{ inputs.version }}
         run: |
-          VERSION=$(echo "${INPUT_VERSION}" | sed 's/^v//')
-          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          VERSION="${INPUT_VERSION#v}"
+          if [[ ! "$VERSION" =~ ^[0-9]+[.][0-9]+[.][0-9]+(-[0-9A-Za-z.-]+)?([+][0-9A-Za-z.-]+)?$ ]]; then
+            echo "Invalid version: $INPUT_VERSION"
+            exit 1
+          fi
+          printf 'version=%s\n' "$VERSION" >> "$GITHUB_OUTPUT"
       - name: Install.sh/${{ matrix.package }} on ${{ matrix.os }}
+        env:
+          PACKAGE: ${{ matrix.package }}
         run: |
-          bash -c "$(curl -sSL https://install.mondoo.com/sh/${{ matrix.package }})"
-          ${{ matrix.package }} version
+          if [[ "$PACKAGE" != "mql" && "$PACKAGE" != "cnspec" ]]; then
+            echo "Invalid package: $PACKAGE"
+            exit 1
+          fi
+          installer_url="https://install.mondoo.com/sh/${PACKAGE}"
+          bash -c "$(curl -sSL "$installer_url")"
+          "$PACKAGE" version
       - name: Verify the correct version is installed
+        env:
+          EXPECTED_VERSION: ${{ steps.version.outputs.version }}
+          PACKAGE: ${{ matrix.package }}
         run: |
-          ${{ matrix.package }} version | grep -q ${{ steps.version.outputs.version }}
+          if [[ "$PACKAGE" != "mql" && "$PACKAGE" != "cnspec" ]]; then
+            echo "Invalid package: $PACKAGE"
+            exit 1
+          fi
+          "$PACKAGE" version | grep -q "$EXPECTED_VERSION"
       - name: Verify cnquery symlink points to cnspec (cnspec only)
         if: matrix.package == 'cnspec'
+        env:
+          EXPECTED_VERSION: ${{ steps.version.outputs.version }}
         run: |
-          cnquery version | grep -q ${{ steps.version.outputs.version }}
+          cnquery version | grep -q "$EXPECTED_VERSION"
 
   upgrade-from-cnquery-apt:
     runs-on: ubuntu-latest
@@ -197,11 +268,22 @@ jobs:
         env:
           INPUT_VERSION: ${{ inputs.version }}
         run: |
-          VERSION=$(echo "${INPUT_VERSION}" | sed 's/^v//')
-          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          VERSION="${INPUT_VERSION#v}"
+          if [[ ! "$VERSION" =~ ^[0-9]+[.][0-9]+[.][0-9]+(-[0-9A-Za-z.-]+)?([+][0-9A-Za-z.-]+)?$ ]]; then
+            echo "Invalid version: $INPUT_VERSION"
+            exit 1
+          fi
+          printf 'version=%s\n' "$VERSION" >> "$GITHUB_OUTPUT"
       - name: Upgrade cnquery -> mql on ${{ matrix.distro }}
+        env:
+          EXPECTED_VERSION: ${{ steps.version.outputs.version }}
+          DISTRO: ${{ matrix.distro }}
         run: |
-          docker run --rm -v $(pwd):/work -w /work ${{ matrix.distro }} \
+          if [[ ! "$DISTRO" =~ ^[A-Za-z0-9._/@:-]+$ ]]; then
+            echo "Invalid distro: $DISTRO"
+            exit 1
+          fi
+          docker run --rm -e EXPECTED_VERSION -v "$(pwd):/work" -w /work "$DISTRO" \
           bash -c "set -e && \
             echo '==> Installing curl...' && \
             apt-get update && apt-get install -y curl && \
@@ -212,7 +294,7 @@ jobs:
             echo '==> Installing mql (should replace cnquery)...' && \
             curl -sSL https://install.mondoo.com/sh/mql | bash -x - && \
             echo '==> Verifying mql version...' && \
-            mql version | grep -q ${{ steps.version.outputs.version }} && \
+            mql version | grep -q \"\$EXPECTED_VERSION\" && \
             echo '==> Verifying cnquery was removed...' && \
             if dpkg -l 2>/dev/null | awk '/^ii/{print \$2}' | grep -qx cnquery; then echo 'ERROR: cnquery should have been removed but is still installed'; exit 1; fi && \
             echo '==> SUCCESS: cnquery was properly replaced by mql'"

@@ -47,10 +47,17 @@ jobs:
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
       - name: Run mondoo-pkg and upgrade tests
+        env:
+          VERSION: ${{ inputs.version }}
+          RELEASES_URL: ${{ inputs.releases-url || 'https://releases.mondoo.love' }}
         run: |
+          if [[ ! "$VERSION" =~ ^[0-9]+[.][0-9]+[.][0-9]+(-[0-9A-Za-z.-]+)?([+][0-9A-Za-z.-]+)?$ ]]; then
+            echo "Invalid version: $VERSION"
+            exit 1
+          fi
           python3 test/auto_update/test_auto_update.py \
-            --install-version "${{ inputs.version }}" \
-            --releases-url "${{ inputs.releases-url || 'https://releases.mondoo.love' }}" \
+            --install-version "$VERSION" \
+            --releases-url "$RELEASES_URL" \
             --skip-auto-update \
             --skip-self-upgrade
 
@@ -63,10 +70,17 @@ jobs:
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
       - name: Run auto-update tests
+        env:
+          VERSION: ${{ inputs.version }}
+          RELEASES_URL: ${{ inputs.releases-url || 'https://releases.mondoo.love' }}
         run: |
+          if [[ ! "$VERSION" =~ ^[0-9]+[.][0-9]+[.][0-9]+(-[0-9A-Za-z.-]+)?([+][0-9A-Za-z.-]+)?$ ]]; then
+            echo "Invalid version: $VERSION"
+            exit 1
+          fi
           python3 test/auto_update/test_auto_update.py \
-            --install-version "${{ inputs.version }}" \
-            --releases-url "${{ inputs.releases-url || 'https://releases.mondoo.love' }}" \
+            --install-version "$VERSION" \
+            --releases-url "$RELEASES_URL" \
             --skip-mondoo-pkg \
             --skip-upgrade \
             --skip-self-upgrade
@@ -81,11 +95,23 @@ jobs:
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
       - name: Run self-upgrade tests
+        env:
+          VERSION: ${{ inputs.version }}
+          RELEASES_URL: ${{ inputs.releases-url || 'https://releases.mondoo.love' }}
+          SELF_UPGRADE_FROM: ${{ inputs.self-upgrade-from }}
         run: |
+          if [[ ! "$VERSION" =~ ^[0-9]+[.][0-9]+[.][0-9]+(-[0-9A-Za-z.-]+)?([+][0-9A-Za-z.-]+)?$ ]]; then
+            echo "Invalid version: $VERSION"
+            exit 1
+          fi
+          if [[ -n "$SELF_UPGRADE_FROM" && ! "$SELF_UPGRADE_FROM" =~ ^[0-9]+[.][0-9]+[.][0-9]+(-[0-9A-Za-z.-]+)?([+][0-9A-Za-z.-]+)?$ ]]; then
+            echo "Invalid self-upgrade-from version: $SELF_UPGRADE_FROM"
+            exit 1
+          fi
           python3 test/auto_update/test_auto_update.py \
-            --install-version "${{ inputs.version }}" \
-            --releases-url "${{ inputs.releases-url || 'https://releases.mondoo.love' }}" \
+            --install-version "$VERSION" \
+            --releases-url "$RELEASES_URL" \
             --skip-auto-update \
             --skip-mondoo-pkg \
             --skip-upgrade \
-            --self-upgrade-from "${{ inputs.self-upgrade-from }}"
+            --self-upgrade-from "$SELF_UPGRADE_FROM"

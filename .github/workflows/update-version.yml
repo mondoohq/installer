@@ -43,7 +43,7 @@ jobs:
             echo "Invalid version: $VERSION"
             exit 1
           fi
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          printf 'version=%s\n' "$VERSION" >> "$GITHUB_OUTPUT"
       - name: Commit VERSION file
         run: |
           echo ${VERSION} > VERSION

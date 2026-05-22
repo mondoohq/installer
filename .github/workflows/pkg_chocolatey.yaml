@@ -44,15 +44,36 @@ jobs:
       - name: Checkout
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
+      - name: Validate inputs
+        env:
+          VERSION: ${{ inputs.version }}
+          PACKAGE: ${{ matrix.package }}
+        run: |
+          if [[ ! "$VERSION" =~ ^[0-9]+[.][0-9]+[.][0-9]+(-[0-9A-Za-z.-]+)?([+][0-9A-Za-z.-]+)?$ ]]; then
+            echo "Invalid version: $VERSION"
+            exit 1
+          fi
+          if [[ "$PACKAGE" != "mql" && "$PACKAGE" != "cnspec" && "$PACKAGE" != "cnquery" ]]; then
+            echo "Invalid package: $PACKAGE"
+            exit 1
+          fi
+
       - name: Generate and Validate Package
-        run: make -C packages/chocolatey generate validate VERSION=${{ inputs.version }} PACKAGES=${{ matrix.package }}
+        env:
+          VERSION: ${{ inputs.version }}
+          PACKAGE: ${{ matrix.package }}
+        run: make -C packages/chocolatey generate validate VERSION="$VERSION" PACKAGES="$PACKAGE"
 
       - name: Pack Package
-        run: make -C packages/chocolatey pack VERSION=${{ inputs.version }} PACKAGES=${{ matrix.package }}
+        env:
+          VERSION: ${{ inputs.version }}
+          PACKAGE: ${{ matrix.package }}
+        run: make -C packages/chocolatey pack VERSION="$VERSION" PACKAGES="$PACKAGE"
 
       - name: Publish Package
         if: ${{ ! inputs.skip-publish }}
         env:
           CHOCO_API_KEY: ${{ secrets.CHOCOLATEY_API_KEY }}
-        run: make -C packages/chocolatey publish VERSION=${{ inputs.version }} PACKAGES=${{ matrix.package }}
-
+          VERSION: ${{ inputs.version }}
+          PACKAGE: ${{ matrix.package }}
+        run: make -C packages/chocolatey publish VERSION="$VERSION" PACKAGES="$PACKAGE"

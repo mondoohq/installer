@@ -36,27 +36,41 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Clear minstaller cache with retry
+        env:
+          CACHE_MAX_ATTEMPTS: ${{ inputs.max_attempts }}
+          CACHE_RETRY_DELAY: ${{ inputs.retry_delay }}
+          MINSTALLER_API_KEY: ${{ secrets.MINSTALLER_API_KEY }}
         run: |
           echo "Clearing minstaller's cache..."
           cache_cleared=false
-          cache_max_attempts=${{ inputs.max_attempts }}
+          cache_max_attempts="${CACHE_MAX_ATTEMPTS}"
+          cache_retry_delay="${CACHE_RETRY_DELAY}"
           cache_attempt=1
-          
-          while [ $cache_attempt -le $cache_max_attempts ] && [ "$cache_cleared" = false ]; do
+
+          if [[ ! "$cache_max_attempts" =~ ^[1-9][0-9]*$ ]]; then
+            echo "Invalid max_attempts: $cache_max_attempts"
+            exit 1
+          fi
+          if [[ ! "$cache_retry_delay" =~ ^[0-9]+$ ]]; then
+            echo "Invalid retry_delay: $cache_retry_delay"
+            exit 1
+          fi
+
+          while [ "$cache_attempt" -le "$cache_max_attempts" ] && [ "$cache_cleared" = false ]; do
             echo "Cache clear attempt $cache_attempt/$cache_max_attempts..."
-            
+
             cache_response=$(curl -s -w "HTTP_CODE:%{http_code}" \
               -X POST https://install.mondoo.com/_/cache/clear-all \
-              -H "X-API-Key: ${{ secrets.MINSTALLER_API_KEY }}" 2>/dev/null || true)
+              -H "X-API-Key: ${MINSTALLER_API_KEY}" 2>/dev/null || true)
 
             if echo "$cache_response" | grep -q "HTTP_CODE:200"; then
               echo "✅ Cache cleared successfully on attempt $cache_attempt"
               cache_cleared=true
             else
               echo "⚠️ Cache clear attempt $cache_attempt failed..."
-              if [ $cache_attempt -lt $cache_max_attempts ]; then
-                echo "Waiting ${{ inputs.retry_delay }} seconds before retry..."
-                sleep ${{ inputs.retry_delay }}
+              if [ "$cache_attempt" -lt "$cache_max_attempts" ]; then
+                echo "Waiting $cache_retry_delay seconds before retry..."
+                sleep "$cache_retry_delay"
               fi
             fi
 

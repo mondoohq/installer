@@ -28,11 +28,17 @@ jobs:
         env:
           INPUT_VERSION: ${{ inputs.version }}
         run: |
-          VERSION=$(echo "${INPUT_VERSION}" | sed 's/^v//')
-          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          VERSION="${INPUT_VERSION#v}"
+          if [[ ! "$VERSION" =~ ^[0-9]+[.][0-9]+[.][0-9]+(-[0-9A-Za-z.-]+)?([+][0-9A-Za-z.-]+)?$ ]]; then
+            echo "Invalid version: $INPUT_VERSION"
+            exit 1
+          fi
+          printf 'version=%s\n' "$VERSION" >> "$GITHUB_OUTPUT"
       - name: Install mql with MakePKG on Arch Linux
+        env:
+          EXPECTED_VERSION: ${{ steps.version.outputs.version }}
         run: |
-          docker run --rm -v $(pwd):/work -w /work archlinux:latest \
+          docker run --rm -e EXPECTED_VERSION -v "$(pwd):/work" -w /work archlinux:latest \
           bash -c "pacman -Syu --noconfirm && \
                     pacman -S --noconfirm base-devel git &&  \
                     cd /tmp && \
@@ -40,7 +46,7 @@ jobs:
                     su test -c \"git clone https://aur.archlinux.org/mql && cd mql && makepkg\" && \
                     cd  mql && \
                     pacman -U --noconfirm  mql-*.zst && \
-                    mql version | grep -q ${{ steps.version.outputs.version }}"
+                    mql version | grep -q \"\$EXPECTED_VERSION\""
       
   arch-cnspec-yay:
     runs-on: ubuntu-latest
@@ -51,11 +57,17 @@ jobs:
         env:
           INPUT_VERSION: ${{ inputs.version }}
         run: |
-          VERSION=$(echo "${INPUT_VERSION}" | sed 's/^v//')
-          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          VERSION="${INPUT_VERSION#v}"
+          if [[ ! "$VERSION" =~ ^[0-9]+[.][0-9]+[.][0-9]+(-[0-9A-Za-z.-]+)?([+][0-9A-Za-z.-]+)?$ ]]; then
+            echo "Invalid version: $INPUT_VERSION"
+            exit 1
+          fi
+          printf 'version=%s\n' "$VERSION" >> "$GITHUB_OUTPUT"
       - name: Install cnspec with Yay on Arch Linux
+        env:
+          EXPECTED_VERSION: ${{ steps.version.outputs.version }}
         run: |
-          docker run --rm -v $(pwd):/work -w /work archlinux:latest \
+          docker run --rm -e EXPECTED_VERSION -v "$(pwd):/work" -w /work archlinux:latest \
           bash -c " pacman -Syu --noconfirm && \
                     pacman -S --noconfirm base-devel git go &&  \
                     cd /tmp && \
@@ -65,8 +77,8 @@ jobs:
                     cd  yay && \
                     pacman -U --noconfirm  yay-*.zst && \
                     su test -c \"yay -S --noconfirm cnspec\" && \
-                    cnspec version | grep -q ${{ steps.version.outputs.version }} && \
-                    cnquery version | grep -q ${{ steps.version.outputs.version }}"
+                    cnspec version | grep -q \"\$EXPECTED_VERSION\" && \
+                    cnquery version | grep -q \"\$EXPECTED_VERSION\""
 
   # TODO: re-enable once the cnquery -> mql upgrade path works on Arch Linux
   # arch-upgrade-cnquery-to-mql:
