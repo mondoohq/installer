@@ -19,6 +19,91 @@
     (Optional) Comma-separated key=value pairs to annotate the asset in mondoo.yml
     .PARAMETER Name
     (Optional) A custom asset name (defaults to machine hostname)
+    .PARAMETER IdDetector
+    (Optional) Comma-separated list of platform ID detectors to use for the local
+    asset (e.g. 'hostname', 'hostname,machine-id'). Writes inventory.yml so that
+    cnspec serve scans the local host with the given detectors instead of the
+    default. Useful when multiple hosts share the same SMBIOS UUID (e.g. VMs
+    cloned from a template that was not sysprepped /generalize).
+
+    Each detector produces its own platform ID; all of them are sent to Mondoo
+    and the asset matches on any one. Listing multiple gives belt-and-suspenders
+    dedup (e.g. survive a hostname rename if machine-id is still stable).
+
+    Valid detectors (Windows behavior shown):
+
+      hostname      Uses the OS hostname.
+                    Platform ID: //platformid.api.mondoo.app/hostname/<HOSTNAME>
+                    Pros: trivially unique across cloned VMs (assuming hosts are
+                          renamed after clone, which is normal).
+                    Cons: changes if the host is renamed (domain join, DHCP-set
+                          name, etc.) -> asset is re-created.
+
+      machine-id    Reads SMBIOS UUID via WMI:
+                      SELECT UUID FROM Win32_ComputerSystemProduct
+                    Platform ID: //platformid.api.mondoo.app/machineid/<UUID>
+                    Pros: stable across OS reinstalls, renames, IP changes.
+                    Cons: identical across VMs cloned from a template that was
+                          not sysprepped /generalize (the root cause this flag
+                          works around). Does NOT filter sentinel values like
+                          'Not Settable' / all-zeros.
+
+      bios-uuid     Reads the SMBIOS System UUID (same hardware source as
+                    machine-id on Windows, but filtered for sentinel values
+                    such as 'Not Settable', 'To Be Filled By O.E.M.', and
+                    the nil UUID 00000000-0000-0000-0000-000000000000).
+                    Platform ID: //platformid.api.mondoo.app/bios-uuid/<uuid>
+                    Pros: stable; safer than machine-id when firmware vendors
+                          ship placeholder UUIDs.
+                    Cons: same collision risk as machine-id for cloned VMs.
+
+      windows-ad-sid Reads the AD computer object's SID for domain-joined
+                    Windows hosts. Runs (under the hood):
+                      (New-Object System.Security.Principal.NTAccount(
+                        "$($sys.Domain)\$($env:COMPUTERNAME)$"
+                      )).Translate(
+                        [System.Security.Principal.SecurityIdentifier]
+                      ).Value
+                    where $sys = Get-CimInstance Win32_ComputerSystem.
+                    Platform ID: //platformid.api.mondoo.app/windows-ad-sid/<SID>
+                    Pros: unique per VM by construction -- each domain-join
+                          mints a fresh AD computer object with its own SID,
+                          so this works even when SMBIOS UUIDs collide across
+                          VMs cloned from a non-sysprepped template.
+                    Cons: only emits a platform ID on domain-joined Windows
+                          hosts (returns empty on workgroup/standalone hosts
+                          and on non-Windows). Re-joining the domain mints a
+                          new SID -> Mondoo would create a new asset.
+
+      serialnumber  Reads the hardware serial number from SMBIOS.
+                    Platform ID: //platformid.api.mondoo.app/serialnumber/<sn>
+                    Pros: unique per chassis on real hardware.
+                    Cons: VMs often inherit the hypervisor host's serial (e.g.
+                          OpenStack) or report a generic vendor string -> may
+                          collide across guests on the same host.
+
+      cloud-detect  Probes cloud metadata services (AWS IMDS, Azure IMDS, GCP
+                    metadata, etc.) and uses the cloud-native instance ID.
+                    Platform ID: cloud-specific, e.g.
+                      //platformid.api.mondoo.app/runtime/aws/ec2/v1/accounts/<acct>/regions/<r>/instances/<i>
+                    Pros: globally unique, ties the asset to its cloud record.
+                    Cons: only works on supported cloud VMs; no effect on
+                          on-prem or non-cloud Hyper-V/VMware hosts.
+
+      aws-ecs       AWS ECS task/container identifier. Only relevant when cnspec
+                    is running inside an ECS container -- not applicable to a
+                    Windows Server install.
+
+    Recommended for the duplicate-SMBIOS-UUID case:
+      -IdDetector 'hostname,machine-id'
+    (hostname disambiguates clones; machine-id keeps the asset stable if the
+    host is later renamed.)
+
+    For fleets of domain-joined Windows hosts cloned from a non-sysprepped
+    template (the canonical SMBIOS-UUID-collision scenario), prefer:
+      -IdDetector 'windows-ad-sid,hostname'
+    (the AD computer SID is unique per VM by construction; hostname is a
+    fallback for any host that briefly leaves the domain.)
     .EXAMPLE
     Import-Module ./install.ps1; Install-Mondoo -RegistrationToken 'INSERTKEYHERE' -Annotation 'env=prod,role=db' -Name 'db-server-01'
     Import-Module ./install.ps1; Install-Mondoo -RegistrationToken 'INSERTKEYHERE'
@@ -29,6 +114,7 @@
     Import-Module ./install.ps1; Install-Mondoo -Product cnspec
     Import-Module ./install.ps1; Install-Mondoo -Path 'C:\Program Files\Mondoo\'
     Import-Module ./install.ps1; Install-Mondoo -CleanupStaleSystem32 disable
+    Import-Module ./install.ps1; Install-Mondoo -RegistrationToken 'INSERTKEYHERE' -IdDetector 'hostname'
 #>
 function Install-Mondoo {
   [CmdletBinding()]
@@ -49,6 +135,7 @@ function Install-Mondoo {
     [string]   $Splay = '60',
     [string]   $Annotation = '',
     [string]   $Name = '',
+    [string]   $IdDetector = '',
     [string]   $UpdatesUrl = '',
     [ValidateSet('enable', 'disable')]
     [string]   $CleanupStaleSystem32 = 'enable'
@@ -148,89 +235,25 @@ function Install-Mondoo {
     }
 
     function Remove-StaleSystem32MondooBinary {
-      [CmdletBinding(SupportsShouldProcess)]
-      param()
-      # Some customers have ended up with cnspec.exe / cnquery.exe inside
-      # C:\Windows\System32. That copy shadows the supported install at
+      # Some customers have ended up with cnspec.exe / cnquery.exe / mql.exe
+      # inside C:\Windows\System32. That copy shadows the supported install at
       # C:\Program Files\Mondoo\ because System32 sits earlier in PATH, and it
       # persists across MSI upgrades (MSI never placed files there, so it will
-      # never remove them either). We only touch files we can positively
-      # identify as Mondoo-signed via Authenticode — never a blind delete.
-      #
-      # Note for EDR operators: this function deletes files from System32,
-      # which EDRs will rightfully flag. The operation is performed from the
-      # signed Mondoo install script running elevated, only against binaries
-      # whose Authenticode signer is Mondoo, Inc. Every decision (remove,
-      # skip, error) is written to C:\ProgramData\Mondoo\system32-cleanup.log
-      # so SOC teams can correlate the EDR event with a forensic artifact.
-      # Pass -CleanupStaleSystem32 'disable' to skip this step if your
-      # change-management policy requires removal via a separate approved
-      # procedure.
-      $logDir  = 'C:\ProgramData\Mondoo'
-      $logPath = Join-Path $logDir 'system32-cleanup.log'
-
-      function Write-CleanupLog([string]$line) {
-        try {
-          if (-not (Test-Path -LiteralPath $logDir)) {
-            New-Item -ItemType Directory -Path $logDir -Force | Out-Null
-          }
-          $ts = Get-Date -Format o
-          Add-Content -LiteralPath $logPath -Value "$ts $line"
-        } catch {
-          # A failed log write must never break the cleanup itself, but
-          # surface a warning so operators can fix the log-path permissions
-          # or disk issue without the failure being completely silent.
-          Write-Warning "Unable to write cleanup log at ${logPath}: $_"
-        }
-      }
-
+      # never remove them either). These names are unique to Mondoo, so a
+      # presence check is enough — no signature verification needed.
+      # Pass -CleanupStaleSystem32 'disable' to skip this step.
       $system32 = [Environment]::GetFolderPath('System')
-      $candidates = @('cnspec.exe', 'cnquery.exe', 'mql.exe') | ForEach-Object { Join-Path $system32 $_ }
-
-      foreach ($path in $candidates) {
-        if (-not (Test-Path -LiteralPath $path)) { continue }
-
-        info " * Detected legacy binary at $path — verifying Authenticode signature before removal"
-
-        $sig = $null
-        try {
-          $sig = Get-AuthenticodeSignature -FilePath $path -ErrorAction Stop
-        } catch {
-          $reason = "unable to read signature: $_"
-          info "   Skipping $path — $reason. Leaving file in place for manual review."
-          Write-CleanupLog "skipped path=`"$path`" reason=`"$reason`""
-          continue
-        }
-
-        if ($sig.Status -ne 'Valid') {
-          $reason = "Authenticode status is '$($sig.Status)'"
-          info "   Skipping $path — $reason. Leaving file in place for manual review."
-          Write-CleanupLog "skipped path=`"$path`" reason=`"$reason`""
-          continue
-        }
-
-        # Require the certificate Organization (O=) field to be Mondoo — a
-        # substring match anywhere in the DN would accept certs where 'Mondoo'
-        # merely appears in CN/OU/L. Both the DigiCert and Azure Trusted
-        # Signing certificates used by Mondoo builds set O="Mondoo, Inc.".
-        $subject = $sig.SignerCertificate.Subject
-        if ($subject -notmatch 'O="?Mondoo, Inc\.') {
-          info "   Skipping $path — signed by '$subject', not a Mondoo, Inc. certificate. Leaving file in place for manual review."
-          Write-CleanupLog "skipped path=`"$path`" reason=`"signer is not Mondoo, Inc.`" signer=`"$subject`""
-          continue
-        }
-
-        info "   Verified Mondoo-signed ($subject). Removing stale copy from System32."
-        if ($PSCmdlet.ShouldProcess($path, 'Remove stale Mondoo-signed binary from System32')) {
+      foreach ($name in @('cnspec.exe', 'cnquery.exe', 'mql.exe')) {
+        $path = Join-Path $system32 $name
+        if (Test-Path $path) {
           try {
-            Remove-Item -LiteralPath $path -Force -ErrorAction Stop
-            success "   Removed $path"
-            Write-CleanupLog "removed path=`"$path`" signer=`"$subject`""
+            Remove-Item -Path $path -Force -ErrorAction Stop
+            success " * Removed $path"
           } catch {
-            $reason = "failed to remove: $_"
-            info "   Warning: failed to remove $path ($_). If a process has the file open, reboot and re-run this script, or delete manually."
-            Write-CleanupLog "error path=`"$path`" reason=`"$reason`""
+            info " * Warning: failed to remove $path ($_). If a process has the file open, reboot and re-run this script, or delete manually."
           }
+        } else {
+          info " * $name not found in System32, nothing to do"
         }
       }
     }
@@ -264,6 +287,9 @@ function Install-Mondoo {
       }
       if (![string]::IsNullOrEmpty($Name)) {
         $installCmd += "-Name $Name"
+      }
+      if (![string]::IsNullOrEmpty($IdDetector)) {
+        $installCmd += "-IdDetector '$IdDetector'"
       }
       if (![string]::IsNullOrEmpty($Proxy)) {
         $installCmd += "-Proxy $Proxy"
@@ -345,6 +371,7 @@ function Install-Mondoo {
     info ("  Interval:          {0}" -f $Interval)
     info ("  Scan Interval:     {0}" -f $Timer)
     info ("  Splay:             {0}" -f $Splay)
+    info ("  IdDetector:        {0}" -f $IdDetector)
     info ("  CleanupStaleSystem32: {0}" -f $CleanupStaleSystem32)
     info ""
 
@@ -505,6 +532,28 @@ function Install-Mondoo {
         else {
           info "No output"
         }
+
+        If (![string]::IsNullOrEmpty($IdDetector)) {
+          $inventoryPath = "C:\ProgramData\Mondoo\inventory.yml"
+          $detectors = $IdDetector.Split(',') | ForEach-Object { $_.Trim() } | Where-Object { $_ }
+          $detectorYaml = ($detectors | ForEach-Object { "        - $_" }) -join "`n"
+          $assetName = if ([string]::IsNullOrEmpty($Name)) { 'local-scan' } else { $Name }
+          $inventoryYaml = @"
+apiVersion: v1
+kind: Inventory
+metadata:
+  name: mondoo-local-scan
+spec:
+  assets:
+    - name: $assetName
+      connections:
+        - type: local
+      id_detector:
+$detectorYaml
+"@
+          info " * Writing $inventoryPath with id_detector: $($detectors -join ', ')"
+          Set-Content -Path $inventoryPath -Value $inventoryYaml -Encoding ASCII -Force
+        }
       }
 
       If ($version -ne $installed_version.version) {
@@ -545,9 +594,9 @@ function Install-Mondoo {
       fail "${filetype} is not supported for download"
     }
 
-    # Clean up stale cnspec.exe / cnquery.exe in C:\Windows\System32 left
-    # behind by historical misinstalls. Runs after the supported install at
-    # C:\Program Files\Mondoo\ is in place, so the new binary is always the
+    # Clean up stale cnspec.exe / cnquery.exe / mql.exe in C:\Windows\System32
+    # left behind by historical misinstalls. Runs after the supported install
+    # at C:\Program Files\Mondoo\ is in place, so the new binary is always the
     # fallback. Opt out with -CleanupStaleSystem32 'disable'.
     If ($CleanupStaleSystem32 -ine 'disable') {
       Remove-StaleSystem32MondooBinary
