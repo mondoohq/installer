@@ -237,10 +237,12 @@ source=(
     {{ end -}}
 )
 arch=('x86_64')
-depends=({{ range .Depends }}'{{ . }}'{{ end }})
+depends=({{ pkgbuildArray .Depends }})
 {{ if .Conflicts -}}
-conflicts=({{ range .Conflicts }}'{{ . }}'{{ end }})
-replaces=({{ range .Replaces }}'{{ . }}'{{ end }})
+conflicts=({{ pkgbuildArray .Conflicts }})
+{{ end -}}
+{{ if .Replaces -}}
+replaces=({{ pkgbuildArray .Replaces }})
 {{ end -}}
 
 sha256sums=({{- if .BinFile }}'{{ .Sha256 }}'{{- end }}
@@ -267,8 +269,18 @@ package() {
 #vim: syntax=sh`
 
 func renderPkgBuild(b PkgBuild, out io.Writer) error {
-	t := template.Must(template.New("formula").Parse(pkgBuildTemplate))
+	t := template.Must(template.New("formula").Funcs(template.FuncMap{
+		"pkgbuildArray": pkgbuildArray,
+	}).Parse(pkgBuildTemplate))
 	return t.Execute(out, b)
+}
+
+func pkgbuildArray(values []string) string {
+	quoted := make([]string, 0, len(values))
+	for _, value := range values {
+		quoted = append(quoted, "'"+strings.ReplaceAll(value, "'", "'\"'\"'")+"'")
+	}
+	return strings.Join(quoted, " ")
 }
 
 var pkgSourceInfoTemplate = `pkgbase = {{ .PkgName }}
@@ -278,11 +290,18 @@ pkgrel = 1
 url = https://mondoo.com
 arch = x86_64
 license = {{ .License }}
+{{ range .Depends -}}
+depends = {{ . }}
+{{ end -}}
+{{- if .BinFile }}
 source = https://releases.mondoo.com/{{ .PkgName }}/{{ .Version }}/{{ .PkgName }}_{{ .Version }}_linux_amd64.tar.gz
+{{ end -}}
 {{ range .ExtraFiles -}}
 source = {{ .Name }}
 {{ end }}
+{{- if .BinFile }}
 sha256sums = {{ .Sha256 }}
+{{ end -}}
 {{ range .ExtraSha256 -}}
 sha256sums = {{ . }}
 {{ end }}

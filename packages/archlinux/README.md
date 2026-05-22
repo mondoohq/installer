@@ -34,10 +34,10 @@ We highly recommend using one of the [AUR_helpers](https://wiki.archlinux.org/ti
 
 ```bash
 # install mql
-yay -Ss mql
+yay -S mql
 
 # install cnspec
-yay -Ss cnspec
+yay -S cnspec
 ```
 
 # Test github action
