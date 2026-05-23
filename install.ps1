@@ -235,25 +235,89 @@ function Install-Mondoo {
     }
 
     function Remove-StaleSystem32MondooBinary {
-      # Some customers have ended up with cnspec.exe / cnquery.exe / mql.exe
-      # inside C:\Windows\System32. That copy shadows the supported install at
+      [CmdletBinding(SupportsShouldProcess)]
+      param()
+      # Some customers have ended up with cnspec.exe / cnquery.exe inside
+      # C:\Windows\System32. That copy shadows the supported install at
       # C:\Program Files\Mondoo\ because System32 sits earlier in PATH, and it
       # persists across MSI upgrades (MSI never placed files there, so it will
-      # never remove them either). These names are unique to Mondoo, so a
-      # presence check is enough — no signature verification needed.
-      # Pass -CleanupStaleSystem32 'disable' to skip this step.
-      $system32 = [Environment]::GetFolderPath('System')
-      foreach ($name in @('cnspec.exe', 'cnquery.exe', 'mql.exe')) {
-        $path = Join-Path $system32 $name
-        if (Test-Path $path) {
-          try {
-            Remove-Item -Path $path -Force -ErrorAction Stop
-            success " * Removed $path"
-          } catch {
-            info " * Warning: failed to remove $path ($_). If a process has the file open, reboot and re-run this script, or delete manually."
+      # never remove them either). We only touch files we can positively
+      # identify as Mondoo-signed via Authenticode — never a blind delete.
+      #
+      # Note for EDR operators: this function deletes files from System32,
+      # which EDRs will rightfully flag. The operation is performed from the
+      # signed Mondoo install script running elevated, only against binaries
+      # whose Authenticode signer is Mondoo, Inc. Every decision (remove,
+      # skip, error) is written to C:\ProgramData\Mondoo\system32-cleanup.log
+      # so SOC teams can correlate the EDR event with a forensic artifact.
+      # Pass -CleanupStaleSystem32 'disable' to skip this step if your
+      # change-management policy requires removal via a separate approved
+      # procedure.
+      $logDir  = 'C:\ProgramData\Mondoo'
+      $logPath = Join-Path $logDir 'system32-cleanup.log'
+
+      function Write-CleanupLog([string]$line) {
+        try {
+          if (-not (Test-Path -LiteralPath $logDir)) {
+            New-Item -ItemType Directory -Path $logDir -Force | Out-Null
           }
-        } else {
-          info " * $name not found in System32, nothing to do"
+          $ts = Get-Date -Format o
+          Add-Content -LiteralPath $logPath -Value "$ts $line"
+        } catch {
+          # A failed log write must never break the cleanup itself, but
+          # surface a warning so operators can fix the log-path permissions
+          # or disk issue without the failure being completely silent.
+          Write-Warning "Unable to write cleanup log at ${logPath}: $_"
+        }
+      }
+
+      $system32 = [Environment]::GetFolderPath('System')
+      $candidates = @('cnspec.exe', 'cnquery.exe', 'mql.exe') | ForEach-Object { Join-Path $system32 $_ }
+
+      foreach ($path in $candidates) {
+        if (-not (Test-Path -LiteralPath $path)) { continue }
+
+        info " * Detected legacy binary at $path — verifying Authenticode signature before removal"
+
+        $sig = $null
+        try {
+          $sig = Get-AuthenticodeSignature -FilePath $path -ErrorAction Stop
+        } catch {
+          $reason = "unable to read signature: $_"
+          info "   Skipping $path — $reason. Leaving file in place for manual review."
+          Write-CleanupLog "skipped path=`"$path`" reason=`"$reason`""
+          continue
+        }
+
+        if ($sig.Status -ne 'Valid') {
+          $reason = "Authenticode status is '$($sig.Status)'"
+          info "   Skipping $path — $reason. Leaving file in place for manual review."
+          Write-CleanupLog "skipped path=`"$path`" reason=`"$reason`""
+          continue
+        }
+
+        # Require the certificate Organization (O=) field to be Mondoo — a
+        # substring match anywhere in the DN would accept certs where 'Mondoo'
+        # merely appears in CN/OU/L. Both the DigiCert and Azure Trusted
+        # Signing certificates used by Mondoo builds set O="Mondoo, Inc.".
+        $subject = $sig.SignerCertificate.Subject
+        if ($subject -notmatch 'O="?Mondoo, Inc\.') {
+          info "   Skipping $path — signed by '$subject', not a Mondoo, Inc. certificate. Leaving file in place for manual review."
+          Write-CleanupLog "skipped path=`"$path`" reason=`"signer is not Mondoo, Inc.`" signer=`"$subject`""
+          continue
+        }
+
+        info "   Verified Mondoo-signed ($subject). Removing stale copy from System32."
+        if ($PSCmdlet.ShouldProcess($path, 'Remove stale Mondoo-signed binary from System32')) {
+          try {
+            Remove-Item -LiteralPath $path -Force -ErrorAction Stop
+            success "   Removed $path"
+            Write-CleanupLog "removed path=`"$path`" signer=`"$subject`""
+          } catch {
+            $reason = "failed to remove: $_"
+            info "   Warning: failed to remove $path ($_). If a process has the file open, reboot and re-run this script, or delete manually."
+            Write-CleanupLog "error path=`"$path`" reason=`"$reason`""
+          }
         }
       }
     }
@@ -288,8 +352,12 @@ function Install-Mondoo {
       if (![string]::IsNullOrEmpty($Name)) {
         $installCmd += "-Name $Name"
       }
-      if (![string]::IsNullOrEmpty($IdDetector)) {
-        $installCmd += "-IdDetector '$IdDetector'"
+      if ($script:NormalizedIdDetectors.Count -gt 0) {
+        # Values were validated against $script:ValidIdDetectors (alphanumerics
+        # and dashes only) so they're safe to splice in. Use the normalized,
+        # joined form to avoid re-using the raw -IdDetector input.
+        $joined = $script:NormalizedIdDetectors -join ','
+        $installCmd += "-IdDetector `"$joined`""
       }
       if (![string]::IsNullOrEmpty($Proxy)) {
         $installCmd += "-Proxy $Proxy"
@@ -356,6 +424,32 @@ function Install-Mondoo {
   Your processor architecture $env:PROCESSOR_ARCHITECTURE is not supported yet. Please come join us in
   our Mondoo Community GitHub Discussions https://github.com/orgs/mondoohq/discussions or email us at hello@mondoo.com
   "
+    }
+
+    # Validate -IdDetector against an allowlist before it flows into any
+    # inventory.yml content or scheduled-task command line. Unknown detector
+    # names would either be silently ignored by cnspec or, worse, enable YAML
+    # injection if the value embedded newlines / nested keys. The list mirrors
+    # ids/ids.go in the mql repo; keep them in sync.
+    $script:ValidIdDetectors = @(
+      'hostname',
+      'machine-id',
+      'bios-uuid',
+      'serialnumber',
+      'cloud-detect',
+      'aws-ecs',
+      'windows-ad-sid'
+    )
+    $script:NormalizedIdDetectors = @()
+    If (![string]::IsNullOrEmpty($IdDetector)) {
+      $script:NormalizedIdDetectors = $IdDetector.Split(',') |
+        ForEach-Object { $_.Trim() } |
+        Where-Object { $_ }
+      foreach ($d in $script:NormalizedIdDetectors) {
+        if ($script:ValidIdDetectors -notcontains $d) {
+          fail "Invalid -IdDetector value '$d'. Valid detectors: $($script:ValidIdDetectors -join ', ')"
+        }
+      }
     }
 
     info "Arguments:"
@@ -533,11 +627,23 @@ function Install-Mondoo {
           info "No output"
         }
 
-        If (![string]::IsNullOrEmpty($IdDetector)) {
+        If ($script:NormalizedIdDetectors.Count -gt 0) {
+          # Inventory.yml is written next to mondoo.yml because cnspec serve
+          # loads inventory.yml from the same directory as its --config path.
+          # The MSI install path above always points cnspec at
+          # C:\ProgramData\Mondoo\mondoo.yml (see $login_params), so the
+          # inventory must live in the same fixed directory regardless of
+          # the binary install path ($Path).
           $inventoryPath = "C:\ProgramData\Mondoo\inventory.yml"
-          $detectors = $IdDetector.Split(',') | ForEach-Object { $_.Trim() } | Where-Object { $_ }
-          $detectorYaml = ($detectors | ForEach-Object { "        - $_" }) -join "`n"
-          $assetName = if ([string]::IsNullOrEmpty($Name)) { 'local-scan' } else { $Name }
+          # Detector names were validated against $script:ValidIdDetectors
+          # earlier — safe to splice into YAML without re-escaping. Indent
+          # to match the list under id_detector: in the heredoc below.
+          $detectorYaml = ($script:NormalizedIdDetectors | ForEach-Object { "        - $_" }) -join "`n"
+          $rawAssetName = if ([string]::IsNullOrEmpty($Name)) { 'local-scan' } else { $Name }
+          # Emit the asset name as a single-quoted YAML scalar with single
+          # quotes doubled per the YAML spec. This prevents YAML injection
+          # from a -Name value that contains newlines, colons, or `#`.
+          $escapedAssetName = "'" + ($rawAssetName -replace "'", "''") + "'"
           $inventoryYaml = @"
 apiVersion: v1
 kind: Inventory
@@ -545,13 +651,13 @@ metadata:
   name: mondoo-local-scan
 spec:
   assets:
-    - name: $assetName
+    - name: $escapedAssetName
       connections:
         - type: local
       id_detector:
 $detectorYaml
 "@
-          info " * Writing $inventoryPath with id_detector: $($detectors -join ', ')"
+          info " * Writing $inventoryPath with id_detector: $($script:NormalizedIdDetectors -join ', ')"
           Set-Content -Path $inventoryPath -Value $inventoryYaml -Encoding ASCII -Force
         }
       }
