@@ -626,25 +626,30 @@ function Install-Mondoo {
         else {
           info "No output"
         }
+      }
 
-        If ($script:NormalizedIdDetectors.Count -gt 0) {
-          # Inventory.yml is written next to mondoo.yml because cnspec serve
-          # loads inventory.yml from the same directory as its --config path.
-          # The MSI install path above always points cnspec at
-          # C:\ProgramData\Mondoo\mondoo.yml (see $login_params), so the
-          # inventory must live in the same fixed directory regardless of
-          # the binary install path ($Path).
-          $inventoryPath = "C:\ProgramData\Mondoo\inventory.yml"
-          # Detector names were validated against $script:ValidIdDetectors
-          # earlier — safe to splice into YAML without re-escaping. Indent
-          # to match the list under id_detector: in the heredoc below.
-          $detectorYaml = ($script:NormalizedIdDetectors | ForEach-Object { "        - $_" }) -join "`n"
-          $rawAssetName = if ([string]::IsNullOrEmpty($Name)) { 'local-scan' } else { $Name }
-          # Emit the asset name as a single-quoted YAML scalar with single
-          # quotes doubled per the YAML spec. This prevents YAML injection
-          # from a -Name value that contains newlines, colons, or `#`.
-          $escapedAssetName = "'" + ($rawAssetName -replace "'", "''") + "'"
-          $inventoryYaml = @"
+      # Write inventory.yml whenever -IdDetector was passed, independent of
+      # whether we just ran cnspec login. Existing installs reconfigure their
+      # local-scan detectors by running this script again with -IdDetector
+      # alone (no -RegistrationToken); nesting this inside the login block
+      # would silently skip those runs.
+      If ($script:NormalizedIdDetectors.Count -gt 0) {
+        # Inventory.yml lives next to mondoo.yml because cnspec serve loads
+        # inventory.yml from the same directory as its --config path. The MSI
+        # install path always points cnspec at C:\ProgramData\Mondoo\mondoo.yml
+        # (see $login_params above), so the inventory must live in the same
+        # fixed directory regardless of the binary install path ($Path).
+        $inventoryPath = "C:\ProgramData\Mondoo\inventory.yml"
+        # Detector names were validated against $script:ValidIdDetectors
+        # earlier — safe to splice into YAML without re-escaping. Indent
+        # to match the list under id_detector: in the heredoc below.
+        $detectorYaml = ($script:NormalizedIdDetectors | ForEach-Object { "        - $_" }) -join "`n"
+        $rawAssetName = if ([string]::IsNullOrEmpty($Name)) { 'local-scan' } else { $Name }
+        # Emit the asset name as a single-quoted YAML scalar with single
+        # quotes doubled per the YAML spec. This prevents YAML injection
+        # from a -Name value that contains newlines, colons, or `#`.
+        $escapedAssetName = "'" + ($rawAssetName -replace "'", "''") + "'"
+        $inventoryYaml = @"
 apiVersion: v1
 kind: Inventory
 metadata:
@@ -657,9 +662,8 @@ spec:
       id_detector:
 $detectorYaml
 "@
-          info " * Writing $inventoryPath with id_detector: $($script:NormalizedIdDetectors -join ', ')"
-          Set-Content -Path $inventoryPath -Value $inventoryYaml -Encoding ASCII -Force
-        }
+        info " * Writing $inventoryPath with id_detector: $($script:NormalizedIdDetectors -join ', ')"
+        Set-Content -Path $inventoryPath -Value $inventoryYaml -Encoding ASCII -Force
       }
 
       If ($version -ne $installed_version.version) {
