@@ -19,6 +19,91 @@
     (Optional) Comma-separated key=value pairs to annotate the asset in mondoo.yml
     .PARAMETER Name
     (Optional) A custom asset name (defaults to machine hostname)
+    .PARAMETER IdDetector
+    (Optional) Comma-separated list of platform ID detectors to use for the local
+    asset (e.g. 'hostname', 'hostname,machine-id'). Writes inventory.yml so that
+    cnspec serve scans the local host with the given detectors instead of the
+    default. Useful when multiple hosts share the same SMBIOS UUID (e.g. VMs
+    cloned from a template that was not sysprepped /generalize).
+
+    Each detector produces its own platform ID; all of them are sent to Mondoo
+    and the asset matches on any one. Listing multiple gives belt-and-suspenders
+    dedup (e.g. survive a hostname rename if machine-id is still stable).
+
+    Valid detectors (Windows behavior shown):
+
+      hostname      Uses the OS hostname.
+                    Platform ID: //platformid.api.mondoo.app/hostname/<HOSTNAME>
+                    Pros: trivially unique across cloned VMs (assuming hosts are
+                          renamed after clone, which is normal).
+                    Cons: changes if the host is renamed (domain join, DHCP-set
+                          name, etc.) -> asset is re-created.
+
+      machine-id    Reads SMBIOS UUID via WMI:
+                      SELECT UUID FROM Win32_ComputerSystemProduct
+                    Platform ID: //platformid.api.mondoo.app/machineid/<UUID>
+                    Pros: stable across OS reinstalls, renames, IP changes.
+                    Cons: identical across VMs cloned from a template that was
+                          not sysprepped /generalize (the root cause this flag
+                          works around). Does NOT filter sentinel values like
+                          'Not Settable' / all-zeros.
+
+      bios-uuid     Reads the SMBIOS System UUID (same hardware source as
+                    machine-id on Windows, but filtered for sentinel values
+                    such as 'Not Settable', 'To Be Filled By O.E.M.', and
+                    the nil UUID 00000000-0000-0000-0000-000000000000).
+                    Platform ID: //platformid.api.mondoo.app/bios-uuid/<uuid>
+                    Pros: stable; safer than machine-id when firmware vendors
+                          ship placeholder UUIDs.
+                    Cons: same collision risk as machine-id for cloned VMs.
+
+      windows-ad-sid Reads the AD computer object's SID for domain-joined
+                    Windows hosts. Runs (under the hood):
+                      (New-Object System.Security.Principal.NTAccount(
+                        "$($sys.Domain)\$($env:COMPUTERNAME)$"
+                      )).Translate(
+                        [System.Security.Principal.SecurityIdentifier]
+                      ).Value
+                    where $sys = Get-CimInstance Win32_ComputerSystem.
+                    Platform ID: //platformid.api.mondoo.app/windows-ad-sid/<SID>
+                    Pros: unique per VM by construction -- each domain-join
+                          mints a fresh AD computer object with its own SID,
+                          so this works even when SMBIOS UUIDs collide across
+                          VMs cloned from a non-sysprepped template.
+                    Cons: only emits a platform ID on domain-joined Windows
+                          hosts (returns empty on workgroup/standalone hosts
+                          and on non-Windows). Re-joining the domain mints a
+                          new SID -> Mondoo would create a new asset.
+
+      serialnumber  Reads the hardware serial number from SMBIOS.
+                    Platform ID: //platformid.api.mondoo.app/serialnumber/<sn>
+                    Pros: unique per chassis on real hardware.
+                    Cons: VMs often inherit the hypervisor host's serial (e.g.
+                          OpenStack) or report a generic vendor string -> may
+                          collide across guests on the same host.
+
+      cloud-detect  Probes cloud metadata services (AWS IMDS, Azure IMDS, GCP
+                    metadata, etc.) and uses the cloud-native instance ID.
+                    Platform ID: cloud-specific, e.g.
+                      //platformid.api.mondoo.app/runtime/aws/ec2/v1/accounts/<acct>/regions/<r>/instances/<i>
+                    Pros: globally unique, ties the asset to its cloud record.
+                    Cons: only works on supported cloud VMs; no effect on
+                          on-prem or non-cloud Hyper-V/VMware hosts.
+
+      aws-ecs       AWS ECS task/container identifier. Only relevant when cnspec
+                    is running inside an ECS container -- not applicable to a
+                    Windows Server install.
+
+    Recommended for the duplicate-SMBIOS-UUID case:
+      -IdDetector 'hostname,machine-id'
+    (hostname disambiguates clones; machine-id keeps the asset stable if the
+    host is later renamed.)
+
+    For fleets of domain-joined Windows hosts cloned from a non-sysprepped
+    template (the canonical SMBIOS-UUID-collision scenario), prefer:
+      -IdDetector 'windows-ad-sid,hostname'
+    (the AD computer SID is unique per VM by construction; hostname is a
+    fallback for any host that briefly leaves the domain.)
     .EXAMPLE
     Import-Module ./install.ps1; Install-Mondoo -RegistrationToken 'INSERTKEYHERE' -Annotation 'env=prod,role=db' -Name 'db-server-01'
     Import-Module ./install.ps1; Install-Mondoo -RegistrationToken 'INSERTKEYHERE'
@@ -29,6 +114,7 @@
     Import-Module ./install.ps1; Install-Mondoo -Product cnspec
     Import-Module ./install.ps1; Install-Mondoo -Path 'C:\Program Files\Mondoo\'
     Import-Module ./install.ps1; Install-Mondoo -CleanupStaleSystem32 disable
+    Import-Module ./install.ps1; Install-Mondoo -RegistrationToken 'INSERTKEYHERE' -IdDetector 'hostname'
 #>
 function Install-Mondoo {
   [CmdletBinding()]
@@ -49,6 +135,7 @@ function Install-Mondoo {
     [string]   $Splay = '60',
     [string]   $Annotation = '',
     [string]   $Name = '',
+    [string]   $IdDetector = '',
     [string]   $UpdatesUrl = '',
     [ValidateSet('enable', 'disable')]
     [string]   $CleanupStaleSystem32 = 'enable'
@@ -265,6 +352,13 @@ function Install-Mondoo {
       if (![string]::IsNullOrEmpty($Name)) {
         $installCmd += "-Name $Name"
       }
+      if ($script:NormalizedIdDetectors.Count -gt 0) {
+        # Values were validated against $script:ValidIdDetectors (alphanumerics
+        # and dashes only) so they're safe to splice in. Use the normalized,
+        # joined form to avoid re-using the raw -IdDetector input.
+        $joined = $script:NormalizedIdDetectors -join ','
+        $installCmd += "-IdDetector `"$joined`""
+      }
       if (![string]::IsNullOrEmpty($Proxy)) {
         $installCmd += "-Proxy $Proxy"
       }
@@ -291,6 +385,38 @@ function Install-Mondoo {
       }
       else {
         fail "Installation of $Product Updater Task failed"
+      }
+    }
+
+    # Validate -IdDetector against an allowlist before any consumer (the
+    # scheduled-task command assembly in CreateAndRegisterMondooUpdaterTask
+    # and the inventory.yml writer further down) can read
+    # $script:NormalizedIdDetectors. Defined here, immediately after the
+    # function declarations and before any other top-level statement, so a
+    # reader scanning the file does not have to reason about whether the
+    # variable is populated by the time those consumers run.
+    #
+    # Unknown detector names would either be silently ignored by cnspec or,
+    # worse, enable YAML injection if the value embedded newlines / nested
+    # keys. The list mirrors ids/ids.go in the mql repo; keep them in sync.
+    $script:ValidIdDetectors = @(
+      'hostname',
+      'machine-id',
+      'bios-uuid',
+      'serialnumber',
+      'cloud-detect',
+      'aws-ecs',
+      'windows-ad-sid'
+    )
+    $script:NormalizedIdDetectors = @()
+    If (![string]::IsNullOrEmpty($IdDetector)) {
+      $script:NormalizedIdDetectors = $IdDetector.Split(',') |
+        ForEach-Object { $_.Trim() } |
+        Where-Object { $_ }
+      foreach ($d in $script:NormalizedIdDetectors) {
+        if ($script:ValidIdDetectors -notcontains $d) {
+          fail "Invalid -IdDetector value '$d'. Valid detectors: $($script:ValidIdDetectors -join ', ')"
+        }
       }
     }
 
@@ -345,6 +471,7 @@ function Install-Mondoo {
     info ("  Interval:          {0}" -f $Interval)
     info ("  Scan Interval:     {0}" -f $Timer)
     info ("  Splay:             {0}" -f $Splay)
+    info ("  IdDetector:        {0}" -f ($script:NormalizedIdDetectors -join ', '))
     info ("  CleanupStaleSystem32: {0}" -f $CleanupStaleSystem32)
     info ""
 
@@ -507,6 +634,44 @@ function Install-Mondoo {
         }
       }
 
+      # Write inventory.yml whenever -IdDetector was passed, independent of
+      # whether we just ran cnspec login. Existing installs reconfigure their
+      # local-scan detectors by running this script again with -IdDetector
+      # alone (no -RegistrationToken); nesting this inside the login block
+      # would silently skip those runs.
+      If ($script:NormalizedIdDetectors.Count -gt 0) {
+        # Inventory.yml lives next to mondoo.yml because cnspec serve loads
+        # inventory.yml from the same directory as its --config path. The MSI
+        # install path always points cnspec at C:\ProgramData\Mondoo\mondoo.yml
+        # (see $login_params above), so the inventory must live in the same
+        # fixed directory regardless of the binary install path ($Path).
+        $inventoryPath = "C:\ProgramData\Mondoo\inventory.yml"
+        # Detector names were validated against $script:ValidIdDetectors
+        # earlier — safe to splice into YAML without re-escaping. Indent
+        # to match the list under id_detector: in the heredoc below.
+        $detectorYaml = ($script:NormalizedIdDetectors | ForEach-Object { "        - $_" }) -join "`n"
+        $rawAssetName = if ([string]::IsNullOrEmpty($Name)) { 'local-scan' } else { $Name }
+        # Emit the asset name as a single-quoted YAML scalar with single
+        # quotes doubled per the YAML spec. This prevents YAML injection
+        # from a -Name value that contains newlines, colons, or `#`.
+        $escapedAssetName = "'" + ($rawAssetName -replace "'", "''") + "'"
+        $inventoryYaml = @"
+apiVersion: v1
+kind: Inventory
+metadata:
+  name: mondoo-local-scan
+spec:
+  assets:
+    - name: $escapedAssetName
+      connections:
+        - type: local
+      id_detector:
+$detectorYaml
+"@
+        info " * Writing $inventoryPath with id_detector: $($script:NormalizedIdDetectors -join ', ')"
+        Set-Content -Path $inventoryPath -Value $inventoryYaml -Encoding ASCII -Force
+      }
+
       If ($version -ne $installed_version.version) {
         If (@(0, 3010) -contains $process.ExitCode) {
           success " * $Product was installed successfully!"
@@ -545,9 +710,9 @@ function Install-Mondoo {
       fail "${filetype} is not supported for download"
     }
 
-    # Clean up stale cnspec.exe / cnquery.exe in C:\Windows\System32 left
-    # behind by historical misinstalls. Runs after the supported install at
-    # C:\Program Files\Mondoo\ is in place, so the new binary is always the
+    # Clean up stale cnspec.exe / cnquery.exe / mql.exe in C:\Windows\System32
+    # left behind by historical misinstalls. Runs after the supported install
+    # at C:\Program Files\Mondoo\ is in place, so the new binary is always the
     # fallback. Opt out with -CleanupStaleSystem32 'disable'.
     If ($CleanupStaleSystem32 -ine 'disable') {
       Remove-StaleSystem32MondooBinary
