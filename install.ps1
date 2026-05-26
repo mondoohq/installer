@@ -388,6 +388,38 @@ function Install-Mondoo {
       }
     }
 
+    # Validate -IdDetector against an allowlist before any consumer (the
+    # scheduled-task command assembly in CreateAndRegisterMondooUpdaterTask
+    # and the inventory.yml writer further down) can read
+    # $script:NormalizedIdDetectors. Defined here, immediately after the
+    # function declarations and before any other top-level statement, so a
+    # reader scanning the file does not have to reason about whether the
+    # variable is populated by the time those consumers run.
+    #
+    # Unknown detector names would either be silently ignored by cnspec or,
+    # worse, enable YAML injection if the value embedded newlines / nested
+    # keys. The list mirrors ids/ids.go in the mql repo; keep them in sync.
+    $script:ValidIdDetectors = @(
+      'hostname',
+      'machine-id',
+      'bios-uuid',
+      'serialnumber',
+      'cloud-detect',
+      'aws-ecs',
+      'windows-ad-sid'
+    )
+    $script:NormalizedIdDetectors = @()
+    If (![string]::IsNullOrEmpty($IdDetector)) {
+      $script:NormalizedIdDetectors = $IdDetector.Split(',') |
+        ForEach-Object { $_.Trim() } |
+        Where-Object { $_ }
+      foreach ($d in $script:NormalizedIdDetectors) {
+        if ($script:ValidIdDetectors -notcontains $d) {
+          fail "Invalid -IdDetector value '$d'. Valid detectors: $($script:ValidIdDetectors -join ', ')"
+        }
+      }
+    }
+
     purple "Mondoo Windows Installer Script"
     purple "
                           .-.
@@ -426,32 +458,6 @@ function Install-Mondoo {
   "
     }
 
-    # Validate -IdDetector against an allowlist before it flows into any
-    # inventory.yml content or scheduled-task command line. Unknown detector
-    # names would either be silently ignored by cnspec or, worse, enable YAML
-    # injection if the value embedded newlines / nested keys. The list mirrors
-    # ids/ids.go in the mql repo; keep them in sync.
-    $script:ValidIdDetectors = @(
-      'hostname',
-      'machine-id',
-      'bios-uuid',
-      'serialnumber',
-      'cloud-detect',
-      'aws-ecs',
-      'windows-ad-sid'
-    )
-    $script:NormalizedIdDetectors = @()
-    If (![string]::IsNullOrEmpty($IdDetector)) {
-      $script:NormalizedIdDetectors = $IdDetector.Split(',') |
-        ForEach-Object { $_.Trim() } |
-        Where-Object { $_ }
-      foreach ($d in $script:NormalizedIdDetectors) {
-        if ($script:ValidIdDetectors -notcontains $d) {
-          fail "Invalid -IdDetector value '$d'. Valid detectors: $($script:ValidIdDetectors -join ', ')"
-        }
-      }
-    }
-
     info "Arguments:"
     info ("  Product:           {0}" -f $Product)
     info ("  RegistrationToken: {0}" -f $RegistrationToken)
@@ -465,7 +471,7 @@ function Install-Mondoo {
     info ("  Interval:          {0}" -f $Interval)
     info ("  Scan Interval:     {0}" -f $Timer)
     info ("  Splay:             {0}" -f $Splay)
-    info ("  IdDetector:        {0}" -f $IdDetector)
+    info ("  IdDetector:        {0}" -f ($script:NormalizedIdDetectors -join ', '))
     info ("  CleanupStaleSystem32: {0}" -f $CleanupStaleSystem32)
     info ""
 
