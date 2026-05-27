@@ -650,11 +650,9 @@ function Install-Mondoo {
         # earlier — safe to splice into YAML without re-escaping. Indent
         # to match the list under id_detector: in the heredoc below.
         $detectorYaml = ($script:NormalizedIdDetectors | ForEach-Object { "        - $_" }) -join "`n"
-        $rawAssetName = if ([string]::IsNullOrEmpty($Name)) { 'local-scan' } else { $Name }
-        # Emit the asset name as a single-quoted YAML scalar with single
-        # quotes doubled per the YAML spec. This prevents YAML injection
-        # from a -Name value that contains newlines, colons, or `#`.
-        $escapedAssetName = "'" + ($rawAssetName -replace "'", "''") + "'"
+        # Deliberately omit the asset `name:` here. Setting it would override
+        # the asset name in Mondoo; the asset name is instead supplied at
+        # registration via --name (see $login_params above) when -Name is set.
         $inventoryYaml = @"
 apiVersion: v1
 kind: Inventory
@@ -662,8 +660,7 @@ metadata:
   name: mondoo-local-scan
 spec:
   assets:
-    - name: $escapedAssetName
-      connections:
+    - connections:
         - type: local
       id_detector:
 $detectorYaml
