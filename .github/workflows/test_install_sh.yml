@@ -81,7 +81,7 @@ jobs:
 
       - id: slack
         if: github.event_name != 'pull_request'
-        uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a # v2.1.1
+        uses: slackapi/slack-github-action@45a88b9581bfab2566dc881e2cd66d334e621e2c # v3.0.3
         with:
           method: chat.postMessage
           token: ${{ secrets.SLACK_BOT_TOKEN }}
@@ -120,7 +120,7 @@ jobs:
           tags: |
             mondoohq/mondoo-install-test:${{ matrix.target }}
 
-      - uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a # v2.1.1
+      - uses: slackapi/slack-github-action@45a88b9581bfab2566dc881e2cd66d334e621e2c # v3.0.3
         if: always() && github.event_name != 'pull_request'
         with:
           method: chat.update
