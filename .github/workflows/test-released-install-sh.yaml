@@ -67,7 +67,7 @@ jobs:
             "ubuntu:24.04",
           ]
     steps:
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
       - name: Version
         id: version
         env:
@@ -105,7 +105,7 @@ jobs:
           ]
         ## Note: centos:8 is obsoleted by Centos Stream 9 and EOL, do not use, refer to https://www.centos.org/centos-linux-eol/
     steps:
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
       - name: Version
         id: version
         env:
@@ -132,7 +132,7 @@ jobs:
             "registry.suse.com/suse/sle15:15.6",
           ]
     steps:
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
       - name: Version
         id: version
         env:
@@ -156,7 +156,7 @@ jobs:
         os: ["macos-latest"]
         package: ["cnspec", "mql"]
     steps:
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
       - name: Version
         id: version
         env:
@@ -191,7 +191,7 @@ jobs:
             "ubuntu:24.04",
           ]
     steps:
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
       - name: Version
         id: version
         env:
@@ -233,7 +233,7 @@ jobs:
   #           "oraclelinux:9",
   #         ]
   #   steps:
-  #     - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+  #     - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
   #     - name: Version
   #       id: version
   #       env:
@@ -269,7 +269,7 @@ jobs:
   #           "registry.suse.com/suse/sle15:15.6",
   #         ]
   #   steps:
-  #     - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+  #     - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
   #     - name: Version
   #       id: version
   #       env:
