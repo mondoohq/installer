@@ -25,3 +25,7 @@ packages/archlinux/cnspec
 
 # OS caches
 .DS_Store
+
+# PowerShell Pester Reports - custom and default
+pester-results.xml
+testResults.xml
