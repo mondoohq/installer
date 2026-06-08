@@ -326,50 +326,21 @@ function Install-Mondoo {
       info " * Create and register the Mondoo update task"
       NewScheduledTaskFolder $taskpath
 
-      # Start building the command string
-      $command = @(
-        '[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12;'
-        '$wc = New-Object Net.Webclient;'
-      )
-
-      if (![string]::IsNullOrEmpty($Proxy)) {
-        $command += '$wc.proxy = New-Object System.Net.WebProxy(' + "'$Proxy'" + ');'
+      # Build the task argument via the pure helper so the (fragile) quoting is
+      # unit-tested off-Windows. See Get-MondooUpdaterTaskArgument and test/install.Tests.ps1.
+      $taskArgs = @{
+        Product    = $Product
+        Path       = $Path
+        Service    = $Service
+        Annotation = $Annotation
+        Name       = $Name
+        IdDetector = $script:NormalizedIdDetectors
+        Proxy      = $Proxy
+        UpdateTask = $UpdateTask
+        Time       = $Time
+        Interval   = $Interval
       }
-
-      $command += 'iex ($wc.DownloadString(' + "'https://install.mondoo.com/ps1'" + '));'
-
-      # Start building the Install-Mondoo command
-      $installCmd = @("Install-Mondoo")
-      $installCmd += "-Product $Product"
-      $installCmd += "-Path '$Path'"
-
-      if ($Service.ToLower() -eq 'enable' -and $Product.ToLower() -eq 'mondoo') {
-        $installCmd += "-Service enable"
-      }
-      if (![string]::IsNullOrEmpty($Annotation)) {
-        $installCmd += "-Annotation '$Annotation'"
-      }
-      if (![string]::IsNullOrEmpty($Name)) {
-        $installCmd += "-Name $Name"
-      }
-      if ($script:NormalizedIdDetectors.Count -gt 0) {
-        # Values were validated against $script:ValidIdDetectors (alphanumerics
-        # and dashes only) so they're safe to splice in. Use the normalized,
-        # joined form to avoid re-using the raw -IdDetector input.
-        $joined = $script:NormalizedIdDetectors -join ','
-        $installCmd += "-IdDetector `"$joined`""
-      }
-      if (![string]::IsNullOrEmpty($Proxy)) {
-        $installCmd += "-Proxy $Proxy"
-      }
-      if ($UpdateTask.ToLower() -eq 'enable') {
-        $installCmd += "-UpdateTask enable -Time $Time -Interval $Interval;"
-      }
-
-      $command += ($installCmd -join ' ')
-
-      # Wrap command in quotes for -Command argument
-      $taskArgument = "-NoProfile -WindowStyle Hidden -ExecutionPolicy RemoteSigned -Command `"&{ $($command -join ' ') }`""
+      $taskArgument = Get-MondooUpdaterTaskArgument @taskArgs
       info " * Scheduled Task argument: $taskArgument"
 
       # Build scheduled task components
@@ -736,6 +707,78 @@ $detectorYaml
     # reset erroractionpreference
     $erroractionpreference = $previous_erroractionpreference
   }
+}
+
+function Get-MondooUpdaterTaskArgument {
+  # Build the powershell.exe argument string for the Mondoo updater scheduled task.
+  #
+  # This is intentionally a pure, string-only function (no side effects, no Windows-only
+  # cmdlets) so the quoting can be unit-tested off-Windows. See test/install.Tests.ps1.
+  #
+  # IMPORTANT: the whole payload is wrapped in -Command "...". Every value spliced into
+  # that payload MUST use single quotes (or no quotes) and never an embedded double quote.
+  # An unescaped double quote inside the payload terminates the outer -Command string when
+  # powershell.exe parses the task argument, truncating the &{ ... } block and silently
+  # breaking the updater. A double-quoted -IdDetector did exactly that.
+  [CmdletBinding()]
+  [OutputType([string])]
+  param(
+    [string]   $Product = 'mondoo',
+    [string]   $Path = 'C:\Program Files\Mondoo\',
+    [string]   $Service = '',
+    [string]   $Annotation = '',
+    [string]   $Name = '',
+    [string[]] $IdDetector = @(),
+    [string]   $Proxy = '',
+    [string]   $UpdateTask = '',
+    [string]   $Time = '',
+    [string]   $Interval = ''
+  )
+
+  # Start building the command string
+  $command = @(
+    '[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12;'
+    '$wc = New-Object Net.Webclient;'
+  )
+
+  if (![string]::IsNullOrEmpty($Proxy)) {
+    $command += '$wc.proxy = New-Object System.Net.WebProxy(' + "'$Proxy'" + ');'
+  }
+
+  $command += 'iex ($wc.DownloadString(' + "'https://install.mondoo.com/ps1'" + '));'
+
+  # Start building the Install-Mondoo command. Quote spliced values with single quotes only.
+  $installCmd = @('Install-Mondoo')
+  $installCmd += "-Product $Product"
+  $installCmd += "-Path '$Path'"
+
+  if ($Service.ToLower() -eq 'enable' -and $Product.ToLower() -eq 'mondoo') {
+    $installCmd += '-Service enable'
+  }
+  if (![string]::IsNullOrEmpty($Annotation)) {
+    $installCmd += "-Annotation '$Annotation'"
+  }
+  if (![string]::IsNullOrEmpty($Name)) {
+    $installCmd += "-Name $Name"
+  }
+  if ($IdDetector.Count -gt 0) {
+    # Single quotes, NOT double — a double quote here terminates the outer -Command
+    # string and breaks the whole task (the original bug). Values are validated against
+    # an allowlist (alphanumerics/dashes) upstream, so single quotes are safe.
+    $joined = $IdDetector -join ','
+    $installCmd += "-IdDetector '$joined'"
+  }
+  if (![string]::IsNullOrEmpty($Proxy)) {
+    $installCmd += "-Proxy $Proxy"
+  }
+  if ($UpdateTask.ToLower() -eq 'enable') {
+    $installCmd += "-UpdateTask enable -Time $Time -Interval $Interval;"
+  }
+
+  $command += ($installCmd -join ' ')
+
+  # Wrap command in quotes for -Command argument
+  "-NoProfile -WindowStyle Hidden -ExecutionPolicy RemoteSigned -Command `"&{ $($command -join ' ') }`""
 }
 
 # SIG # Begin signature block

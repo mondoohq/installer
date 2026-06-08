@@ -1,0 +1,44 @@
+name: PowerShell Unit Tests
+
+on:
+  workflow_dispatch: # Allows manual triggering
+  pull_request:
+    paths:
+      - "install.ps1"
+      - "test/**.Tests.ps1"
+      - ".github/workflows/test_powershell_pester.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  pester:
+    name: Pester (install.ps1)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+
+      - name: Install Pester
+        shell: pwsh
+        run: Install-Module -Name Pester -MinimumVersion 5.5.0 -Force -Scope CurrentUser -SkipPublisherCheck
+
+      - name: Run Pester tests
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          Import-Module Pester -MinimumVersion 5.5.0
+          $config = New-PesterConfiguration
+          $config.Run.Path = './test'
+          $config.Run.Exit = $true          # non-zero exit on failure -> fails the job
+          $config.Output.Verbosity = 'Detailed'
+          $config.TestResult.Enabled = $true
+          $config.TestResult.OutputPath = 'pester-results.xml'
+          Invoke-Pester -Configuration $config
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: pester-results
+          path: pester-results.xml
