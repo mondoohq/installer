@@ -168,11 +168,13 @@ test/download_sh:
 
 .PHONY: test/powershell
 test/powershell:
-	pwsh -Command "Install-Module -Name PSScriptAnalyzer"
-	pwsh -Command "Invoke-ScriptAnalyzer -Path .\install.ps1"
-	pwsh -Command "Invoke-ScriptAnalyzer -Path .\download.ps1"
-	pwsh -Command "Invoke-ScriptAnalyzer -Path .\powershell/Mondoo.Installer/Mondoo.Installer.psm1"
-	pwsh -Command "Test-ModuleManifest -Path ".\powershell\Mondoo.Installer\Mondoo.Installer.psd1""
+	pwsh -Command "if (-not (Get-Module -ListAvailable -Name PSScriptAnalyzer | Where-Object Version -ge ([version]'1.24.0'))) { Install-Module -Name PSScriptAnalyzer -MinimumVersion 1.24.0 -Force -Scope CurrentUser -SkipPublisherCheck }"
+	pwsh -Command "Invoke-ScriptAnalyzer -Path ./install.ps1"
+	pwsh -Command "Invoke-ScriptAnalyzer -Path ./download.ps1"
+	pwsh -Command "Invoke-ScriptAnalyzer -Path ./powershell/Mondoo.Installer/Mondoo.Installer.psm1"
+	pwsh -Command "Test-ModuleManifest -Path ./powershell/Mondoo.Installer/Mondoo.Installer.psd1"
+	pwsh -Command "if (-not (Get-Module -ListAvailable -Name Pester | Where-Object Version -ge ([version]'5.5.0'))) { Install-Module -Name Pester -MinimumVersion 5.5.0 -Force -Scope CurrentUser -SkipPublisherCheck }"
+	pwsh -Command "Invoke-Pester -Path ./test -CI"
 
 # Copywrite Check Tool: https://github.com/hashicorp/copywrite
 license: license/headers/check
