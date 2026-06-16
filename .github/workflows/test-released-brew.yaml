@@ -34,6 +34,8 @@ jobs:
       - name: Testing install of ${{ matrix.package }}....
         run: |
           brew tap mondoohq/mondoo
+          # brew trust is required for non-official taps: https://docs.brew.sh/Tap-Trust
+          brew trust mondoohq/mondoo
           brew install ${{ matrix.package }}
 
       - name: Version
@@ -61,6 +63,9 @@ jobs:
 
       - name: Testing install of mondoo cask....
         run: |
+          brew tap mondoohq/mondoo
+          # brew trust is required for non-official taps: https://docs.brew.sh/Tap-Trust
+          brew trust mondoohq/mondoo
           brew install --cask mondoohq/mondoo/mondoo
 
       - name: Version
