@@ -75,7 +75,7 @@ jobs:
 
       - name: Build and push root images
         if: ${{ needs.parse-inputs.outputs.skip-publish != 'true' }}
-        uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
+        uses: docker/build-push-action@f9f3042f7e2789586610d6e8b85c8f03e5195baf # v7.2.0
         with:
           sbom: true
           provenance: true
@@ -96,7 +96,7 @@ jobs:
         if: ${{ needs.parse-inputs.outputs.skip-publish != 'true' }}
         # make it optional until we fixed https://github.com/mondoohq/cnquery/issues/3107
         continue-on-error: true
-        uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
+        uses: docker/build-push-action@f9f3042f7e2789586610d6e8b85c8f03e5195baf # v7.2.0
         with:
           sbom: true
           provenance: true
@@ -113,7 +113,7 @@ jobs:
 
       - name: Build and push rootless images
         if: ${{ needs.parse-inputs.outputs.skip-publish != 'true' }}
-        uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
+        uses: docker/build-push-action@f9f3042f7e2789586610d6e8b85c8f03e5195baf # v7.2.0
         with:
           sbom: true
           provenance: true
@@ -129,7 +129,7 @@ jobs:
 
       - name: Build and push root images (ubi)
         if: ${{ needs.parse-inputs.outputs.skip-publish != 'true' }}
-        uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
+        uses: docker/build-push-action@f9f3042f7e2789586610d6e8b85c8f03e5195baf # v7.2.0
         with:
           sbom: true
           provenance: true
@@ -146,7 +146,7 @@ jobs:
 
       - name: Build and push rootless images (ubi)
         if: ${{ needs.parse-inputs.outputs.skip-publish != 'true' }}
-        uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
+        uses: docker/build-push-action@f9f3042f7e2789586610d6e8b85c8f03e5195baf # v7.2.0
         with:
           sbom: true
           provenance: true
