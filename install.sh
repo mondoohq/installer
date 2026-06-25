@@ -587,6 +587,8 @@ configure_token() {
         if [ ! -f /etc/opt/mondoo/mondoo.yml ] && [ -f "$config_path/mondoo.yml" ]; then
           sudo_cmd mkdir -p /etc/opt/mondoo
           sudo_cmd cp "$config_path/mondoo.yml" /etc/opt/mondoo/mondoo.yml
+          # mondoo.yml contains the service account credential; restrict access.
+          sudo_cmd chmod 0600 /etc/opt/mondoo/mondoo.yml
         fi
       fi
     fi
