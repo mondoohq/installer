@@ -579,17 +579,10 @@ configure_token() {
     if [ "$MONDOO_SERVICE" = "enable" ]; then
       if [ "$OS" = "macOS" ]; then
         sudo_cmd cp "$config_path/mondoo.yml" /Library/Mondoo/etc/mondoo.yml
-      else
-        # cnspec status (above) may have been satisfied by a user-context config
-        # at $HOME/.config/mondoo/mondoo.yml. The systemd service reads from
-        # /etc/opt/mondoo/mondoo.yml — if it's missing, seed it from the user
-        # config so the service doesn't crash-loop on start.
-        if [ ! -f /etc/opt/mondoo/mondoo.yml ] && [ -f "$config_path/mondoo.yml" ]; then
-          sudo_cmd mkdir -p /etc/opt/mondoo
-          sudo_cmd cp "$config_path/mondoo.yml" /etc/opt/mondoo/mondoo.yml
-          # mondoo.yml contains the service account credential; restrict access.
-          sudo_cmd chmod 0600 /etc/opt/mondoo/mondoo.yml
-        fi
+      elif [ ! -f /etc/opt/mondoo/mondoo.yml ] && [ -f "$config_path/mondoo.yml" ]; then
+        sudo_cmd mkdir -p /etc/opt/mondoo
+        sudo_cmd cp "$config_path/mondoo.yml" /etc/opt/mondoo/mondoo.yml
+        sudo_cmd chmod 0600 /etc/opt/mondoo/mondoo.yml
       fi
     fi
     return
