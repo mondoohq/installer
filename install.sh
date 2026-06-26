@@ -576,8 +576,14 @@ configure_token() {
     purple_bold "(you can manually run '${MONDOO_BINARY} login' to re-authenticate)."
     purple_bold "To re-register with a new space, please remove your Mondoo config file first."
     config_path="$HOME/.config/mondoo"
-    if [ "$MONDOO_SERVICE" = "enable" ] && [ "$OS" = "macOS" ]; then
-      sudo_cmd cp "$config_path/mondoo.yml" /Library/Mondoo/etc/mondoo.yml
+    if [ "$MONDOO_SERVICE" = "enable" ]; then
+      if [ "$OS" = "macOS" ]; then
+        sudo_cmd cp "$config_path/mondoo.yml" /Library/Mondoo/etc/mondoo.yml
+      elif [ ! -f /etc/opt/mondoo/mondoo.yml ] && [ -f "$config_path/mondoo.yml" ]; then
+        sudo_cmd mkdir -p /etc/opt/mondoo
+        sudo_cmd cp "$config_path/mondoo.yml" /etc/opt/mondoo/mondoo.yml
+        sudo_cmd chmod 0600 /etc/opt/mondoo/mondoo.yml
+      fi
     fi
     return
   fi
