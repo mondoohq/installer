@@ -337,20 +337,20 @@ configure_macos_installer() {
 
     mondoo_install() {
       purple_bold "\n* Configuring brew sources for Mondoo Repository via 'brew tap'"
-      brew tap ${MONDOO_BREW_TAP}
+      brew tap "${MONDOO_BREW_TAP}"
 
       purple_bold "\n* Installing ${MONDOO_PRODUCT_NAME} via 'brew install'"
-      brew install ${MONDOO_BREW_FORMULA} -q
+      brew install "${MONDOO_BREW_FORMULA}" -q
     }
 
     mondoo_update() {
       purple_bold "\n* Upgrade ${MONDOO_PRODUCT_NAME} via 'brew upgrade'"
       if brew tap | grep mondoolabs/mondoo >/dev/null; then
         purple_bold "  - Legacy tap already exists, uninstalling Mondoo and re-installing from new tap"
-        brew uninstall ${MONDOO_PKG_NAME} && brew untap mondoolabs/mondoo
-        brew tap ${MONDOO_BREW_TAP} && brew install ${MONDOO_BREW_FORMULA}
+        brew uninstall "${MONDOO_PKG_NAME}" && brew untap mondoolabs/mondoo
+        brew tap "${MONDOO_BREW_TAP}" && brew install "${MONDOO_BREW_FORMULA}"
       else
-        brew upgrade ${MONDOO_BREW_FORMULA} -q
+        brew upgrade "${MONDOO_BREW_FORMULA}" -q
       fi
     }
 
