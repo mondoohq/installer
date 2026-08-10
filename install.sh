@@ -328,12 +328,19 @@ configure_macos_installer() {
     # Homebrew doesn't support empty metapackages, so we redefine the package name to cnspec
     MONDOO_PKG_NAME="cnspec"
 
+    # Since Homebrew 6.0.0, formulae from non-official taps must be trusted before
+    # they can be loaded. Installing (or upgrading) by fully qualified name trusts
+    # just that formula, so users don't have to trust the whole tap or run
+    # 'brew trust' themselves. See: https://docs.brew.sh/Tap-Trust
+    MONDOO_BREW_TAP="mondoohq/mondoo"
+    MONDOO_BREW_FORMULA="${MONDOO_BREW_TAP}/${MONDOO_PKG_NAME}"
+
     mondoo_install() {
       purple_bold "\n* Configuring brew sources for Mondoo Repository via 'brew tap'"
-      brew tap mondoohq/mondoo
+      brew tap ${MONDOO_BREW_TAP}
 
       purple_bold "\n* Installing ${MONDOO_PRODUCT_NAME} via 'brew install'"
-      brew install ${MONDOO_PKG_NAME} -q
+      brew install ${MONDOO_BREW_FORMULA} -q
     }
 
     mondoo_update() {
@@ -341,9 +348,9 @@ configure_macos_installer() {
       if brew tap | grep mondoolabs/mondoo >/dev/null; then
         purple_bold "  - Legacy tap already exists, uninstalling Mondoo and re-installing from new tap"
         brew uninstall ${MONDOO_PKG_NAME} && brew untap mondoolabs/mondoo
-        brew tap mondoohq/mondoo && brew install ${MONDOO_PKG_NAME}
+        brew tap ${MONDOO_BREW_TAP} && brew install ${MONDOO_BREW_FORMULA}
       else
-        brew upgrade ${MONDOO_PKG_NAME} -q
+        brew upgrade ${MONDOO_BREW_FORMULA} -q
       fi
     }
 
