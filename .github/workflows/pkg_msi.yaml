@@ -398,6 +398,23 @@ jobs:
           $msiexec.WaitForExit() 
           $gci.Kill()
           gci
+      - name: Verify service recovery configuration
+        run: |
+          $recovery = (& sc.exe qfailure Mondoo 2>&1) -join "`n"
+          Write-Output $recovery
+          if ($LASTEXITCODE -ne 0) {
+            throw "Unable to query the Mondoo service recovery configuration"
+          }
+
+          if ($recovery -notmatch 'RESET_PERIOD.*86400') {
+            throw "Expected the service failure count to reset after 86400 seconds"
+          }
+          if ([regex]::Matches($recovery, '30000 milliseconds').Count -ne 2) {
+            throw "Expected exactly two restart actions with a 30-second delay"
+          }
+          if ([regex]::Matches($recovery, '43200000 milliseconds').Count -ne 1) {
+            throw "Expected the third restart action to have a 12-hour delay"
+          }
       - name: Verify the correct mql version is installed
         run: |
           $version=& 'C:\Program Files\Mondoo\mql.exe' version

@@ -81,6 +81,7 @@
       <RemoveExistingProducts After="InstallInitialize" />
       <Custom Action="RegisterMondooAgent" Before="MigrateMondooConfiguration"><![CDATA[REGISTRATIONTOKEN <> "" AND NOT Installed]]></Custom>
       <Custom Action="MigrateMondooConfiguration" Before="InstallServices"><![CDATA[NOT REMOVE]]></Custom>
+      <Custom Action="ConfigureMondooServiceRecovery" After="InstallServices"><![CDATA[NOT REMOVE]]></Custom>
     </InstallExecuteSequence>
     <!-- Ensure packages cannot be installed twice -->
     <!-- https://stackoverflow.com/questions/7656509/wix-msi-how-to-avoid-installing-same-msi-twice -->
