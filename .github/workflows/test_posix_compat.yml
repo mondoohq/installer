@@ -8,6 +8,7 @@ on:
       - 'install.sh'
       - 'download.sh'
       - 'test/install_sh/test_params.sh'
+      - 'test/install_sh/test_status_timeout.sh'
       - '.github/workflows/test_posix_compat.yml'
 
 permissions:
@@ -43,3 +44,6 @@ jobs:
 
       - name: Test parameter passing
         run: sh test/install_sh/test_params.sh
+
+      - name: Test cnspec status probe
+        run: sh test/install_sh/test_status_timeout.sh
