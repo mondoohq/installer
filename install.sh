@@ -551,37 +551,53 @@ configure_cloudshell_installer() {
 MONDOO_STATUS_TIMEOUT='10'
 MONDOO_STATUS_GRACE='3'
 
-# Sets MONDOO_IS_REGISTERED to true, false, or unknown. "unknown" means the
-# check timed out, which is not the same as "not registered".
-detect_mondoo_registered() {
+# Runs 'cnspec status' with a hard time limit. Exits 0 (registered), 1 (not
+# registered) or 2 (no answer in time).
+_bounded_status_probe() {
   ${MONDOO_BINARY_PATH} status >/dev/null 2>&1 &
   _status_pid=$!
   _elapsed=0
   while kill -0 "$_status_pid" 2>/dev/null; do
     if [ "$_elapsed" -ge "$MONDOO_STATUS_TIMEOUT" ]; then
-      # Escalate to SIGKILL and never wait on it: a "wait" here blocks forever
-      # when the process does not die on SIGTERM, hanging the whole installer.
       kill -s TERM "$_status_pid" 2>/dev/null
-      _grace=0
+      _waited=0
       while kill -0 "$_status_pid" 2>/dev/null; do
-        if [ "$_grace" -ge "$MONDOO_STATUS_GRACE" ]; then
+        # Outlived SIGKILL, so it is stuck in an uninterruptible syscall.
+        # Waiting on a process that cannot die is what hung the installer.
+        if [ "$_waited" -ge "$((MONDOO_STATUS_GRACE * 2))" ]; then
+          return 2
+        fi
+        if [ "$_waited" -eq "$MONDOO_STATUS_GRACE" ]; then
           kill -s KILL "$_status_pid" 2>/dev/null
-          break
         fi
         sleep 1
-        _grace=$((_grace + 1))
+        _waited=$((_waited + 1))
       done
-      MONDOO_IS_REGISTERED=unknown
-      return
+      wait "$_status_pid" 2>/dev/null
+      return 2
     fi
     sleep 1
     _elapsed=$((_elapsed + 1))
   done
+  # Normalized, so 2 always means "timed out" and never a cnspec exit code.
   if wait "$_status_pid"; then
-    MONDOO_IS_REGISTERED=true
-  else
-    MONDOO_IS_REGISTERED=false
+    return 0
   fi
+  return 1
+}
+
+# Sets MONDOO_IS_REGISTERED to true, false, or unknown. "unknown" means the
+# check timed out, which is not the same as "not registered".
+detect_mondoo_registered() {
+  # The probe owns the background job inside a subshell with stderr discarded,
+  # so the shell's own job notices ("... Killed ...") cannot land in the output.
+  _probe_rc=0
+  ( _bounded_status_probe ) 2>/dev/null || _probe_rc=$?
+  case "$_probe_rc" in
+    0) MONDOO_IS_REGISTERED=true ;;
+    1) MONDOO_IS_REGISTERED=false ;;
+    *) MONDOO_IS_REGISTERED=unknown ;;
+  esac
 }
 
 configure_token() {
@@ -847,7 +863,8 @@ finalize_setup() {
   # Display final message
   purple_bold "\n${MONDOO_PRODUCT_NAME} is ready to go!"
 
-  # Only closing hints follow, so nothing below may report the install as failed.
+  # Only closing hints follow: satisfy the EXIT trap now so nothing below can
+  # report a completed install as failed.
   _exit_ok=true
 
   # Deprecated: Only relevant for installing the mondoo package, warn the user to login. Do not warn open source users.

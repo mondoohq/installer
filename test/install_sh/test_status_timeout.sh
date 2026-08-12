@@ -41,6 +41,23 @@ assert_at_most() {
   fi
 }
 
+# install.sh runs on source, so the functions under test are extracted instead.
+# The closing brace is anchored to its own line and the result is validated, so
+# a reshaped function fails loudly here rather than eval'ing a partial slice.
+extract_fn() {
+  _snippet="$(sed -n "/^$1()/,/^}\$/p" "$INSTALL_SH")"
+  if [ -z "$_snippet" ] || [ "$(printf '%s\n' "$_snippet" | tail -1)" != "}" ]; then
+    printf 'ERROR: could not extract %s() from %s\n' "$1" "$INSTALL_SH" >&2
+    return 1
+  fi
+  printf '%s\n' "$_snippet"
+}
+
+# set -e aborts the test if any extraction fails
+PROBE_FN="$(extract_fn _bounded_status_probe)"
+DETECT_FN="$(extract_fn detect_mondoo_registered)"
+FINALIZE_FN="$(extract_fn finalize_setup)"
+
 STUB_DIR="$(mktemp -d)"
 trap 'rm -rf "$STUB_DIR"' EXIT
 
@@ -70,7 +87,8 @@ probe() {
     MONDOO_BINARY_PATH="$STUB_DIR/$1"
     MONDOO_STATUS_TIMEOUT=2
     MONDOO_STATUS_GRACE=1
-    eval "$(sed -n '/^detect_mondoo_registered()/,/^}/p' "$INSTALL_SH")"
+    eval "$PROBE_FN"
+    eval "$DETECT_FN"
     detect_mondoo_registered
     echo "$MONDOO_IS_REGISTERED"
   )
@@ -108,6 +126,11 @@ elapsed=$(( $(date +%s) - started ))
 assert_equals "wedged status times out as unknown" "$result" "unknown"
 assert_at_most "wedged status does not hang" "$elapsed" 8
 
+# The killed probe must be reaped, otherwise the shell reports the job itself
+# ("install.sh: line N: 123 Killed ...") over the installer's own output.
+noise="$( { probe wedged >/dev/null; } 2>&1 )"
+assert_equals "timeout path prints no job notice" "$noise" ""
+
 # finalize_setup must not probe again once configure_token has an answer.
 result="$(
   MONDOO_IS_REGISTERED=true
@@ -119,7 +142,7 @@ result="$(
   detect_mondoo_registered() { echo "PROBED"; }
   purple_bold() { :; }
   lightblue_bold() { :; }
-  eval "$(sed -n '/^finalize_setup()/,/^}/p' "$INSTALL_SH")"
+  eval "$FINALIZE_FN"
   finalize_setup
 )"
 assert_equals "finalize_setup reuses a known registration state" "$result" ""
