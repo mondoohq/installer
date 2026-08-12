@@ -548,26 +548,56 @@ configure_cloudshell_installer() {
 # Post-install actions
 # --------------------
 
-detect_mondoo_registered() {
+MONDOO_STATUS_TIMEOUT='10'
+MONDOO_STATUS_GRACE='3'
+
+# Runs 'cnspec status' with a hard time limit. Exits 0 (registered), 1 (not
+# registered) or 2 (no answer in time).
+_bounded_status_probe() {
   ${MONDOO_BINARY_PATH} status >/dev/null 2>&1 &
   _status_pid=$!
   _elapsed=0
   while kill -0 "$_status_pid" 2>/dev/null; do
-    if [ "$_elapsed" -ge 10 ]; then
-      kill "$_status_pid" 2>/dev/null
+    if [ "$_elapsed" -ge "$MONDOO_STATUS_TIMEOUT" ]; then
+      kill -s TERM "$_status_pid" 2>/dev/null
+      _waited=0
+      while kill -0 "$_status_pid" 2>/dev/null; do
+        # Outlived SIGKILL, so it is stuck in an uninterruptible syscall.
+        # Waiting on a process that cannot die is what hung the installer.
+        if [ "$_waited" -ge "$((MONDOO_STATUS_GRACE * 2))" ]; then
+          return 2
+        fi
+        if [ "$_waited" -eq "$MONDOO_STATUS_GRACE" ]; then
+          kill -s KILL "$_status_pid" 2>/dev/null
+        fi
+        sleep 1
+        _waited=$((_waited + 1))
+      done
       wait "$_status_pid" 2>/dev/null
-      MONDOO_IS_REGISTERED=false
-      return
+      return 2
     fi
     sleep 1
     _elapsed=$((_elapsed + 1))
   done
-  wait "$_status_pid"
-  if [ $? -eq 0 ]; then
-    MONDOO_IS_REGISTERED=true
-  else
-    MONDOO_IS_REGISTERED=false
+  # Normalized, so 2 always means "timed out" and never a cnspec exit code.
+  if wait "$_status_pid"; then
+    return 0
   fi
+  return 1
+}
+
+# Sets MONDOO_IS_REGISTERED to true, false, or unknown. "unknown" means the
+# check timed out, which is not the same as "not registered".
+detect_mondoo_registered() {
+  # The probe owns the background job inside a subshell with stderr discarded,
+  # so the shell's own job notices ("... Killed ...") cannot land in the output.
+  _probe_rc=0
+  ( _bounded_status_probe ) 2>/dev/null || _probe_rc=$?
+  case "$_probe_rc" in
+    0) MONDOO_IS_REGISTERED=true ;;
+    1) MONDOO_IS_REGISTERED=false ;;
+    *) MONDOO_IS_REGISTERED=unknown ;;
+  esac
 }
 
 configure_token() {
@@ -604,6 +634,8 @@ configure_token() {
   detect_mondoo_registered
   if [ "$MONDOO_IS_REGISTERED" = true ]; then
     purple_bold "\n* ${MONDOO_PRODUCT_NAME} was successfully registered."
+  elif [ "$MONDOO_IS_REGISTERED" = unknown ]; then
+    red "\n* Could not verify the registration of ${MONDOO_PRODUCT_NAME} within ${MONDOO_STATUS_TIMEOUT}s ('${MONDOO_BINARY} status' did not respond). Continuing - run '${MONDOO_BINARY} status' to check manually."
   else
     red "\n* Failed to register ${MONDOO_PRODUCT_NAME}. Please reach out in the Mondoo Community GitHub Discussions - https://github.com/orgs/mondoohq/discussions."
     fail
@@ -831,9 +863,16 @@ finalize_setup() {
   # Display final message
   purple_bold "\n${MONDOO_PRODUCT_NAME} is ready to go!"
 
+  # Only closing hints follow: satisfy the EXIT trap now so nothing below can
+  # report a completed install as failed.
+  _exit_ok=true
+
   # Deprecated: Only relevant for installing the mondoo package, warn the user to login. Do not warn open source users.
   if [ "$MONDOO_PRODUCT_NAME" = "mondoo package for mql and cnspec" ]; then
-    detect_mondoo_registered
+    # configure_token already answered this when a token was provided
+    if [ -z "$MONDOO_IS_REGISTERED" ]; then
+      detect_mondoo_registered
+    fi
     if [ "$MONDOO_IS_REGISTERED" = false ]; then
       echo
       lightblue_bold "Your journey is only beginning! Register this asset with Mondoo to gain access to policies, reports, and more features."
