@@ -6,6 +6,10 @@
 
 <Include xmlns="http://schemas.microsoft.com/wix/2006/wi">
     <Directory Id="TARGETDIR" Name="SourceDir">
+      <!-- Referenced by the ConfigureMondooServiceRecovery custom action to
+           locate the native 64-bit sc.exe. WiX v3 requires standard
+           directories to be declared before they can be referenced. -->
+      <Directory Id="System64Folder" />
       <Directory Id="ProgramFiles64Folder">
         <Directory Id="INSTALLLOCATION" Name="Mondoo" />
       </Directory>
