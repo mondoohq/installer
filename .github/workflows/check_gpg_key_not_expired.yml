@@ -44,12 +44,36 @@ jobs:
         run: |
           echo Installing Mondoo cnspec...
           bash -xc "$(curl -sSL https://install.mondoo.com/sh/cnspec)"
-      
-      - name: Check expiration of public-package-signing.gpg
+
+      - name: Write the public signing key
         shell: bash
         run: |
-          cnspec providers install network
-          cnspec scan local --detect-cicd --score-threshold 100 --policy-bundle test/cnspec/check-gpg.mql.yaml -o full
+          if [[ -z "$GPG_PUBKEY" ]]; then
+            echo "::error::GPG_PUBKEY secret is not set"
+            exit 1
+          fi
+          base64 -d <<<"$GPG_PUBKEY" > public-package-signing.gpg
+        env:
+          GPG_PUBKEY: "${{ secrets.GPG_PUBKEY }}"
+
+      - name: Check expiration of the public package signing key
+        shell: bash
+        run: |
+          cnspec scan local --detect-cicd --risk-threshold 100 --policy-bundle test/cnspec/check-gpg.mql.yaml -o full
+
+      - name: Report the key expiration date
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          expires=$(cnspec run local -j -c '
+            parse.openpgp(content: file("public-package-signing.gpg").content).list {
+              primaryPublicKey.id
+              expiresOn = primaryPublicKey.creationTime + identities[0].signatures[0].keyLifetimeSecs * time.second
+              expiresOn
+            }' | jq -er '.[0]["parse.openpgp.list"][0] | "Key \(.["primaryPublicKey.id"]) expires on \(.expiresOn)"')
+          echo "$expires"
+          echo "$expires" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Install OpenPGP & cURL
         run: sudo apt install gpg -y
@@ -57,7 +81,7 @@ jobs:
       - name: Check Public GPG Signing Key Harmony
         shell: bash
         run: |
-          bash test/scripts/cert-harmony.sh
+          bash test/scripts/cert-harmony.sh public-package-signing.gpg
 
       - uses: slackapi/slack-github-action@45a88b9581bfab2566dc881e2cd66d334e621e2c # v3.0.3
         if: always()

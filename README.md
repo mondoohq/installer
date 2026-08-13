@@ -228,10 +228,10 @@ make test/powershell
 
 ## Code Signature Verification
 
-Mondoo signs Microsoft Windows executables, PowerShell scripts, Linux packages and code signs Apple macOS executables. The public code signing certificate and public GPG key ist store in the [Installer Repo](https://github.com/mondoohq/installer).
+Mondoo signs Microsoft Windows executables, PowerShell scripts, Linux packages and code signs Apple macOS executables.
 
-- Public certificate for code signing `public-code-signing.cer`
-- Public GPG key for package signing `public-package-signing.gpg`
+- Public certificate for code signing: `public-code-signing.cer` in the [Installer Repo](https://github.com/mondoohq/installer)
+- Public GPG key for package signing: <https://releases.mondoo.com/rpm/pubkey.gpg> (identical to <https://releases.mondoo.com/debian/pubkey.gpg>)
 
 ## Microsoft
 
