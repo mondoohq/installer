@@ -29,3 +29,6 @@ packages/archlinux/cnspec
 # PowerShell Pester Reports - custom and default
 pester-results.xml
 testResults.xml
+
+# Public package signing key, written from the GPG_PUBKEY secret during CI
+public-package-signing.gpg

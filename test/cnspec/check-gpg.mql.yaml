@@ -2,10 +2,14 @@
 # SPDX-License-Identifier: BUSL-1.1
 
 # Read more about the policy structure at https://mondoo.com/docs/platform/policies/overview
+#
+# The public key is not stored in this repository. Write it to
+# ./public-package-signing.gpg (from the GPG_PUBKEY secret, or from
+# https://releases.mondoo.com/rpm/pubkey.gpg) before running the scan.
 policies:
   - uid: check-gpg
     name: Check Mondoo's public package signing key
-    version: 1.0.0
+    version: 2.0.0
     tags:
       mondoo.com/category: security,gpg
       mondoo.com/platform: local
@@ -16,11 +20,32 @@ policies:
       - filters: asset.family.contains("unix")
         checks:
           - uid: check-gpg-not-expired
+        queries:
+          - uid: gpg-key-expiration
 queries:
   - uid: check-gpg-not-expired
     title: Ensure the package signing gpg key is not expired
     docs:
       desc: |
-        GPG keys are used by Mondoo to digitally sign Linux/ UNix packages as a way for end-users to verify that the packages they receive has not been altered or compromised by a third party.
+        GPG keys are used by Mondoo to digitally sign Linux/Unix packages as a way for end-users to verify that the packages they receive has not been altered or compromised by a third party.
+
+        A key expires at its *primary key's* creation time plus the key lifetime carried in the self-signature, which is why both values are read here. Do not use `keyExpiresIn`: it measures the lifetime from the *signature's* creation time, so a key that has already expired still reports time remaining once it has been re-signed.
     mql: |-
-      parse.openpgp( path: "./public-package-signing.gpg")[0]{ identities{ signatures{ keyExpiresIn.days > 30  } } }
+      parse.openpgp(content: file("public-package-signing.gpg").content).list {
+        keyCreatedAt = primaryPublicKey.creationTime
+        identities.all(
+          signatures.all( keyCreatedAt + keyLifetimeSecs * time.second - time.now > 30 * time.day )
+        )
+      }
+  - uid: gpg-key-expiration
+    title: Mondoo's package signing gpg key expiration date
+    docs:
+      desc: |
+        Reports the key ID, fingerprint and expiration date of the package signing key so the values are visible in the scan output.
+    mql: |-
+      parse.openpgp(content: file("public-package-signing.gpg").content).list {
+        primaryPublicKey.id
+        primaryPublicKey.fingerprint
+        expiresOn = primaryPublicKey.creationTime + identities[0].signatures[0].keyLifetimeSecs * time.second
+        expiresOn
+      }
