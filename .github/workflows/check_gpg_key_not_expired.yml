@@ -47,7 +47,12 @@ jobs:
 
       - name: Write the public signing key
         shell: bash
-        run: base64 -d <<<"$GPG_PUBKEY" > public-package-signing.gpg
+        run: |
+          if [[ -z "$GPG_PUBKEY" ]]; then
+            echo "::error::GPG_PUBKEY secret is not set"
+            exit 1
+          fi
+          base64 -d <<<"$GPG_PUBKEY" > public-package-signing.gpg
         env:
           GPG_PUBKEY: "${{ secrets.GPG_PUBKEY }}"
 
@@ -60,12 +65,13 @@ jobs:
         if: always()
         shell: bash
         run: |
+          set -euo pipefail
           expires=$(cnspec run local -j -c '
             parse.openpgp(content: file("public-package-signing.gpg").content).list {
               primaryPublicKey.id
               expiresOn = primaryPublicKey.creationTime + identities[0].signatures[0].keyLifetimeSecs * time.second
               expiresOn
-            }' | jq -r '.[0]["parse.openpgp.list"][0] | "Key \(.["primaryPublicKey.id"]) expires on \(.expiresOn)"')
+            }' | jq -er '.[0]["parse.openpgp.list"][0] | "Key \(.["primaryPublicKey.id"]) expires on \(.expiresOn)"')
           echo "$expires"
           echo "$expires" >> "$GITHUB_STEP_SUMMARY"
 

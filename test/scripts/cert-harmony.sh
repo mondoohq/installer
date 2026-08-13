@@ -14,7 +14,7 @@ if [[ ! -s ${REFERENCE} ]]; then
 	echo "Reference key ${REFERENCE} is missing or empty!"
 	exit 1
 fi
-REFERENCE=$(cd "$(dirname "${REFERENCE}")" && pwd)/$(basename "${REFERENCE}")
+REFERENCE=$(realpath "${REFERENCE}")
 
 FAIL=0
 DIR=/tmp/cert-${RANDOM}
