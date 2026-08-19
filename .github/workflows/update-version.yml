@@ -68,8 +68,11 @@ jobs:
         uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
         with:
           base: main
-          committer: Mondoo Tools <tools@mondoo.com>
-          author: Mondoo Tools <tools@mondoo.com>
+          # main requires signed commits; without this the PR is created but
+          # merges as BLOCKED. Note that sign-commits makes the action ignore
+          # the committer/author inputs and attribute commits to the identity
+          # of the token used here (github-actions[bot]).
+          sign-commits: true
           commit-message: ${{ steps.title.outputs.COMMIT_TITLE }}
           title: ${{ steps.title.outputs.COMMIT_TITLE }}
           branch: ${{ steps.title.outputs.BRANCH_NAME }}
@@ -108,10 +111,19 @@ jobs:
           gh pr review "${PR_NUMBER}" --approve
       - name: Merge Pull Request
         if: steps.create-pr.outputs.pull-request-number
+        # Bounded so a required check that never reports fails the job (and
+        # fires the Slack alert below) rather than hanging until the job limit.
+        timeout-minutes: 20
         env:
           GH_TOKEN: ${{ steps.generate-token.outputs.token }}
           PR_NUMBER: ${{ steps.create-pr.outputs.pull-request-number }}
         run: |
+          # The merge is attempted seconds after the PR is opened, long before
+          # required checks finish, so wait for them first. --watch keeps this
+          # synchronous: unlike `gh pr merge --auto`, a failed check or refused
+          # merge fails the job instead of silently leaving the PR open.
+          echo "Waiting for checks on PR #${PR_NUMBER}"
+          gh pr checks "${PR_NUMBER}" --watch --fail-fast --interval 10
           echo "Merging PR #${PR_NUMBER}"
           gh pr merge "${PR_NUMBER}" --squash --delete-branch
       # The VERSION bump must not fail silently: main would stay out of sync
