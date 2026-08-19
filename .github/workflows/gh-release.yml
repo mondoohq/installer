@@ -12,6 +12,10 @@ on:
         type: boolean
         description: "Publish as a pre-release (do not promote to Latest)"
         default: false
+      dry-run:
+        type: boolean
+        description: "Skip softprops release + slack (test skip-publish/make_latest wiring only)"
+        default: false
 
 permissions: {}
 
@@ -38,7 +42,20 @@ jobs:
         run: |
           echo "This user is not allowed to trigger the workflow"
           exit 1
+      # Print the resolved release parameters so workflow_dispatch with
+      # dry-run=true can verify the make_latest / prerelease / skip-publish
+      # wiring end to end without creating a GitHub release.
+      - name: Print resolved release parameters
+        run: |
+          echo "event:                 ${{ github.event_name }}"
+          echo "parse-inputs version:  ${{ needs.parse-inputs.outputs.version }}"
+          echo "parse-inputs skip:     ${{ needs.parse-inputs.outputs.skip-publish }}"
+          echo "computed tag_name:     v${{ needs.parse-inputs.outputs.version }}"
+          echo "computed make_latest:  ${{ needs.parse-inputs.outputs.skip-publish == 'true' && 'false' || 'legacy' }}"
+          echo "computed prerelease:   ${{ needs.parse-inputs.outputs.skip-publish == 'true' }}"
+          echo "dry-run:               ${{ inputs.dry-run }}"
       - id: slack
+        if: ${{ !inputs.dry-run }}
         uses: slackapi/slack-github-action@45a88b9581bfab2566dc881e2cd66d334e621e2c # v3.0.3
         with:
           method: chat.postMessage
@@ -68,6 +85,7 @@ jobs:
           private-key: ${{ secrets.MONDOO_MERGEBOT_APP_PRIVATE_KEY }}
       - name: Release
         id: release
+        if: ${{ !inputs.dry-run }}
         uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b # v2.5.0
         with:
           tag_name: v${{ needs.parse-inputs.outputs.version }}
@@ -76,7 +94,7 @@ jobs:
           prerelease: ${{ needs.parse-inputs.outputs.skip-publish == 'true' }}
           token: ${{ steps.generate-token.outputs.token }}
       - uses: slackapi/slack-github-action@45a88b9581bfab2566dc881e2cd66d334e621e2c # v3.0.3
-        if: ${{ always() }}
+        if: ${{ always() && !inputs.dry-run }}
         with:
           method: chat.update
           token: ${{ secrets.SLACK_BOT_TOKEN }}
