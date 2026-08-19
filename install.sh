@@ -706,13 +706,20 @@ configure_macos_token() {
     config_path="${MONDOO_MACOS_CONFIG%/*}"
     sudo_cmd mkdir -p "$config_path"
     run_login_cmd "$config_path"
-    # cnspec only falls back to the system config if it can read it
-    sudo_cmd chmod 0644 "$MONDOO_MACOS_CONFIG"
+    restrict_macos_config
   else
     config_path="$HOME/.config/mondoo"
     mkdir -p "$config_path"
     run_login_cmd "$config_path"
   fi
+}
+
+# The service config holds credentials, so it is readable for admins only.
+# cnspec falls back to it only if the user running it can read the file, and on
+# macOS everyone who can sudo is in the admin group.
+restrict_macos_config() {
+  sudo_cmd chown root:admin "$MONDOO_MACOS_CONFIG"
+  sudo_cmd chmod 0640 "$MONDOO_MACOS_CONFIG"
 }
 
 # Moves a user config from an older installer to the service config, so a
@@ -726,9 +733,12 @@ migrate_macos_config() {
   if [ ! -f "$MONDOO_MACOS_CONFIG" ]; then
     purple_bold "\n* Moving ${_user_config} to ${MONDOO_MACOS_CONFIG}"
     sudo_cmd mkdir -p "${MONDOO_MACOS_CONFIG%/*}"
-    sudo_cmd cp "$_user_config" "$MONDOO_MACOS_CONFIG"
-    sudo_cmd chmod 0644 "$MONDOO_MACOS_CONFIG"
-    sudo_cmd rm -f "$_user_config"
+    if sudo_cmd cp "$_user_config" "$MONDOO_MACOS_CONFIG"; then
+      restrict_macos_config
+      sudo_cmd rm -f "$_user_config"
+    else
+      red "\n* Could not copy ${_user_config} to ${MONDOO_MACOS_CONFIG}, keeping the existing config."
+    fi
   elif sudo_cmd cmp -s "$_user_config" "$MONDOO_MACOS_CONFIG"; then
     purple_bold "\n* Removing the duplicate config at ${_user_config}"
     sudo_cmd rm -f "$_user_config"

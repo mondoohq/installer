@@ -54,6 +54,7 @@ login_config() {
     rm -rf "${WORK_DIR:?}/home" "${WORK_DIR:?}/system"
     purple_bold() { :; }
     sudo_cmd() { "$@"; }
+    restrict_macos_config() { :; } # needs root
     run_login_cmd() { : > "$1/mondoo.yml"; echo "$1/mondoo.yml"; }
     eval "$TOKEN_FN"
     configure_macos_token
@@ -76,6 +77,7 @@ migrate() {
     purple_bold() { :; }
     red() { :; }
     sudo_cmd() { "$@"; }
+    restrict_macos_config() { :; } # needs root
     eval "$MIGRATE_FN"
     migrate_macos_config
     printf 'user=%s system=%s\n' \
