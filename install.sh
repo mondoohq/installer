@@ -705,46 +705,12 @@ configure_macos_token() {
   if [ "$MONDOO_SERVICE" = "enable" ]; then
     config_path="${MONDOO_MACOS_CONFIG%/*}"
     sudo_cmd mkdir -p "$config_path"
-    run_login_cmd "$config_path"
-    restrict_macos_config
   else
     config_path="$HOME/.config/mondoo"
     mkdir -p "$config_path"
-    run_login_cmd "$config_path"
-  fi
-}
-
-# The service config holds credentials, so it is readable for admins only.
-# cnspec falls back to it only if the user running it can read the file, and on
-# macOS everyone who can sudo is in the admin group.
-restrict_macos_config() {
-  sudo_cmd chown root:admin "$MONDOO_MACOS_CONFIG"
-  sudo_cmd chmod 0640 "$MONDOO_MACOS_CONFIG"
-}
-
-# Moves a user config from an older installer to the service config, so a
-# service install is not left with two configs that can drift apart.
-migrate_macos_config() {
-  _user_config="$HOME/.config/mondoo/mondoo.yml"
-  if [ ! -f "$_user_config" ]; then
-    return
   fi
 
-  if [ ! -f "$MONDOO_MACOS_CONFIG" ]; then
-    purple_bold "\n* Moving ${_user_config} to ${MONDOO_MACOS_CONFIG}"
-    sudo_cmd mkdir -p "${MONDOO_MACOS_CONFIG%/*}"
-    if sudo_cmd cp "$_user_config" "$MONDOO_MACOS_CONFIG"; then
-      restrict_macos_config
-      sudo_cmd rm -f "$_user_config"
-    else
-      red "\n* Could not copy ${_user_config} to ${MONDOO_MACOS_CONFIG}, keeping the existing config."
-    fi
-  elif sudo_cmd cmp -s "$_user_config" "$MONDOO_MACOS_CONFIG"; then
-    purple_bold "\n* Removing the duplicate config at ${_user_config}"
-    sudo_cmd rm -f "$_user_config"
-  else
-    red "\n* ${_user_config} and ${MONDOO_MACOS_CONFIG} differ. The service uses ${MONDOO_MACOS_CONFIG}, remove ${_user_config} to avoid a split configuration."
-  fi
+  run_login_cmd "$config_path"
 }
 
 configure_linux_token() {
@@ -885,10 +851,6 @@ EOL
 }
 
 finalize_setup() {
-
-  if [ "$OS" = "macOS" ] && [ "$MONDOO_SERVICE" = "enable" ]; then
-    migrate_macos_config
-  fi
 
   # Authenticate with Mondoo platform if a registration token is provided
   configure_token
