@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# Copyright Mondoo, Inc. 2025, 2026
+# SPDX-License-Identifier: BUSL-1.1
+#
 # Determine base branch for the installer's VERSION-file bump PR.
 #
 # When main's VERSION file has the same major as the incoming release,
