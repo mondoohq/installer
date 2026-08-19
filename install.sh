@@ -548,6 +548,10 @@ configure_cloudshell_installer() {
 # Post-install actions
 # --------------------
 
+# Config the launchd service reads. cnspec falls back to it when there is no
+# user config, so macOS service installs keep this one config only.
+MONDOO_MACOS_CONFIG='/Library/Mondoo/etc/mondoo.yml'
+
 MONDOO_STATUS_TIMEOUT='10'
 MONDOO_STATUS_GRACE='3'
 
@@ -612,11 +616,9 @@ configure_token() {
     purple_bold "\n* ${MONDOO_PRODUCT_NAME} is already logged-in. Skipping login"
     purple_bold "(you can manually run '${MONDOO_BINARY} login' to re-authenticate)."
     purple_bold "To re-register with a new space, please remove your Mondoo config file first."
-    config_path="$HOME/.config/mondoo"
-    if [ "$MONDOO_SERVICE" = "enable" ]; then
-      if [ "$OS" = "macOS" ]; then
-        sudo_cmd cp "$config_path/mondoo.yml" /Library/Mondoo/etc/mondoo.yml
-      elif [ ! -f /etc/opt/mondoo/mondoo.yml ] && [ -f "$config_path/mondoo.yml" ]; then
+    if [ "$MONDOO_SERVICE" = "enable" ] && [ "$OS" != "macOS" ]; then
+      config_path="$HOME/.config/mondoo"
+      if [ ! -f /etc/opt/mondoo/mondoo.yml ] && [ -f "$config_path/mondoo.yml" ]; then
         sudo_cmd mkdir -p /etc/opt/mondoo
         sudo_cmd cp "$config_path/mondoo.yml" /etc/opt/mondoo/mondoo.yml
         sudo_cmd chmod 0600 /etc/opt/mondoo/mondoo.yml
@@ -699,13 +701,39 @@ run_login_cmd() {
 
 configure_macos_token() {
   purple_bold "\n* Authenticate with Mondoo Platform"
-  config_path="$HOME/.config/mondoo"
-  mkdir -p "$config_path"
-
-  run_login_cmd "$config_path"
 
   if [ "$MONDOO_SERVICE" = "enable" ]; then
-    sudo_cmd cp "$config_path/mondoo.yml" /Library/Mondoo/etc/mondoo.yml
+    config_path="${MONDOO_MACOS_CONFIG%/*}"
+    sudo_cmd mkdir -p "$config_path"
+    run_login_cmd "$config_path"
+    # cnspec only falls back to the system config if it can read it
+    sudo_cmd chmod 0644 "$MONDOO_MACOS_CONFIG"
+  else
+    config_path="$HOME/.config/mondoo"
+    mkdir -p "$config_path"
+    run_login_cmd "$config_path"
+  fi
+}
+
+# Moves a user config from an older installer to the service config, so a
+# service install is not left with two configs that can drift apart.
+migrate_macos_config() {
+  _user_config="$HOME/.config/mondoo/mondoo.yml"
+  if [ ! -f "$_user_config" ]; then
+    return
+  fi
+
+  if [ ! -f "$MONDOO_MACOS_CONFIG" ]; then
+    purple_bold "\n* Moving ${_user_config} to ${MONDOO_MACOS_CONFIG}"
+    sudo_cmd mkdir -p "${MONDOO_MACOS_CONFIG%/*}"
+    sudo_cmd cp "$_user_config" "$MONDOO_MACOS_CONFIG"
+    sudo_cmd chmod 0644 "$MONDOO_MACOS_CONFIG"
+    sudo_cmd rm -f "$_user_config"
+  elif sudo_cmd cmp -s "$_user_config" "$MONDOO_MACOS_CONFIG"; then
+    purple_bold "\n* Removing the duplicate config at ${_user_config}"
+    sudo_cmd rm -f "$_user_config"
+  else
+    red "\n* ${_user_config} and ${MONDOO_MACOS_CONFIG} differ. The service uses ${MONDOO_MACOS_CONFIG}, remove ${_user_config} to avoid a split configuration."
   fi
 }
 
@@ -761,7 +789,7 @@ service() {
                 <string>/Library/Mondoo/bin/cnspec</string>
                 <string>serve</string>
                 <string>--config</string>
-                <string>/Library/Mondoo/etc/mondoo.yml</string>
+                <string>${MONDOO_MACOS_CONFIG}</string>
         </array>
         <key>RunAtLoad</key>
         <true/>
@@ -776,6 +804,7 @@ EOL
     sleep 5
     sudo_cmd launchctl bootstrap system /Library/LaunchDaemons/com.mondoo.client.plist
     sudo_cmd launchctl start com.mondoo.client
+    purple_bold "\n* The service and cnspec use the config at ${MONDOO_MACOS_CONFIG}"
   elif [ "$OS" = "Arch" ]; then
     purple_bold "\n* Enable and start the mondoo service"
     sudo_cmd systemctl enable mondoo.service
@@ -846,6 +875,10 @@ EOL
 }
 
 finalize_setup() {
+
+  if [ "$OS" = "macOS" ] && [ "$MONDOO_SERVICE" = "enable" ]; then
+    migrate_macos_config
+  fi
 
   # Authenticate with Mondoo platform if a registration token is provided
   configure_token

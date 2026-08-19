@@ -9,7 +9,7 @@
 		<string>/Library/Mondoo/bin/cnspec</string>
 		<string>serve</string>
 		<string>--config</string>
-		<string>~/.config/mondoo/mondoo.yml</string>
+		<string>/Library/Mondoo/etc/mondoo.yml</string>
 	</array>
 	<key>RunAtLoad</key>
 	<false/>
