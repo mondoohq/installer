@@ -68,8 +68,11 @@ jobs:
         uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
         with:
           base: main
-          committer: Mondoo Tools <tools@mondoo.com>
-          author: Mondoo Tools <tools@mondoo.com>
+          # main requires signed commits; without this the PR is created but
+          # merges as BLOCKED. Note that sign-commits makes the action ignore
+          # the committer/author inputs and attribute commits to the identity
+          # of the token used here (github-actions[bot]).
+          sign-commits: true
           commit-message: ${{ steps.title.outputs.COMMIT_TITLE }}
           title: ${{ steps.title.outputs.COMMIT_TITLE }}
           branch: ${{ steps.title.outputs.BRANCH_NAME }}
