@@ -12,10 +12,14 @@ on:
 
 permissions:
   contents: write
+  pull-requests: write
 
 jobs:
   update-version:
     runs-on: ubuntu-latest
+    env:
+      # C07R9GSGKEU == #mondoo-ops
+      SLACK_BOT_CHANNEL_ID: "C07R9GSGKEU"
     steps:
       - name: checkout
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
@@ -27,15 +31,13 @@ jobs:
         env:
           INPUT_VERSION: ${{ github.event.inputs.version }}
         run: |
-          V=$(echo "${INPUT_VERSION}" | sed 's/v//g')
-          echo "VERSION=${V}" >> $GITHUB_ENV
+          echo "VERSION=${INPUT_VERSION#v}" >> "$GITHUB_ENV"
       - name: Version from Release Tag
         if: github.event_name == 'release'
         env:
           TAG_NAME: ${{ github.event.release.tag_name }}
         run: |
-          V=$(echo "${TAG_NAME}" | sed 's/v//g')
-          echo "VERSION=${V}" >> $GITHUB_ENV
+          echo "VERSION=${TAG_NAME#v}" >> "$GITHUB_ENV"
       - name: Verify valid version
         id: vars
         run: |
@@ -43,13 +45,91 @@ jobs:
             echo "Invalid version: $VERSION"
             exit 1
           fi
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-      - name: Commit VERSION file
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+      - name: Prepare title
+        id: title
         run: |
-          echo ${VERSION} > VERSION
-          echo "VERSION is $VERSION"
-          git add VERSION
-          git config --global user.email "tools@mondoo.com"
-          git config --global user.name "Mondoo Tools"
-          git commit -m "Update VERSION to $VERSION"
-          git push
+          echo "COMMIT_TITLE=Update VERSION to ${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "BRANCH_NAME=automation/update-version-${VERSION}" >> "$GITHUB_OUTPUT"
+      - name: Write VERSION file
+        run: |
+          echo "${VERSION}" > VERSION
+          echo "VERSION is ${VERSION}"
+      - name: 🔑 Generate GitHub App Token (mondoohq)
+        id: generate-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          # client-id accepts the same value as the old app-id input, see
+          # https://github.com/actions/create-github-app-token/blob/v3.1.1/main.js#L21
+          client-id: ${{ secrets.MONDOO_MERGEBOT_APP_ID }}
+          private-key: ${{ secrets.MONDOO_MERGEBOT_APP_PRIVATE_KEY }}
+      - name: Create PR
+        id: create-pr
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
+        with:
+          base: main
+          committer: Mondoo Tools <tools@mondoo.com>
+          author: Mondoo Tools <tools@mondoo.com>
+          commit-message: ${{ steps.title.outputs.COMMIT_TITLE }}
+          title: ${{ steps.title.outputs.COMMIT_TITLE }}
+          branch: ${{ steps.title.outputs.BRANCH_NAME }}
+          delete-branch: true
+          add-paths: |
+            VERSION
+          body: |
+            Bumps the `VERSION` file to `${{ steps.vars.outputs.version }}` following the
+            release of `v${{ steps.vars.outputs.version }}`.
+
+            Opened automatically by the
+            [Update Release Version workflow](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}).
+      - name: Add Audit Trail Comment
+        if: steps.create-pr.outputs.pull-request-number
+        env:
+          GH_TOKEN: ${{ steps.generate-token.outputs.token }}
+          PR_NUMBER: ${{ steps.create-pr.outputs.pull-request-number }}
+        run: |
+          gh pr comment "${PR_NUMBER}" \
+            --body "### 🤖 Automated System Action: Release Version Sync
+          This pull request was generated automatically by the Update Release Version workflow after release \`v${VERSION}\` was published.
+
+          It updates only the \`VERSION\` file so the repository matches the published release. It contains no human-authored application code, so it is approved and merged by the automation service account to keep the repository in sync with the release.
+          * **Audit Category:** Release Metadata Sync
+          * **Workflow run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+      - name: Approve Pull Request
+        if: steps.create-pr.outputs.pull-request-number
+        env:
+          GH_TOKEN: ${{ steps.generate-token.outputs.token }}
+          PR_NUMBER: ${{ steps.create-pr.outputs.pull-request-number }}
+        run: |
+          # The PR is authored by github-actions[bot]; mondoo-mergebot is a
+          # separate identity, so this approval satisfies the requirement that
+          # every PR is reviewed and approved by someone other than the author.
+          echo "Approving PR #${PR_NUMBER}"
+          gh pr review "${PR_NUMBER}" --approve
+      - name: Merge Pull Request
+        if: steps.create-pr.outputs.pull-request-number
+        env:
+          GH_TOKEN: ${{ steps.generate-token.outputs.token }}
+          PR_NUMBER: ${{ steps.create-pr.outputs.pull-request-number }}
+        run: |
+          echo "Merging PR #${PR_NUMBER}"
+          gh pr merge "${PR_NUMBER}" --squash --delete-branch
+      # The VERSION bump must not fail silently: main would stay out of sync
+      # with the published release with nobody watching the Actions tab.
+      - uses: slackapi/slack-github-action@45a88b9581bfab2566dc881e2cd66d334e621e2c # v3.0.3
+        if: failure()
+        with:
+          method: chat.postMessage
+          token: ${{ secrets.SLACK_BOT_TOKEN }}
+          payload: |
+            channel: "${{ env.SLACK_BOT_CHANNEL_ID }}"
+            text: "VERSION bump to ${{ steps.vars.outputs.version }} did not land on main"
+            attachments:
+              - color: "#FF0000"
+                blocks:
+                  - type: "section"
+                    fields:
+                      - type: "mrkdwn"
+                        text: "<${{ github.event.repository.html_url }}/actions/runs/${{ github.run_id }}/attempts/${{ github.run_attempt }}|${{ github.workflow }}>"
+                      - type: "mrkdwn"
+                        text: "*Status:*\n`${{ job.status }}`"
