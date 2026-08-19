@@ -9,6 +9,10 @@ on:
         description: 'Version that should be released'
         required: true
         default: '1.2.3'
+      dry-run:
+        description: 'Skip PR create/approve/merge/slack (test base-branch decision only)'
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -41,32 +45,29 @@ jobs:
             exit 1
           fi
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+      # Sparse-checkout the scripts dir before we know the target branch, so
+      # we can run determine-version-bump-base.sh to figure out where to open
+      # the bump PR. The full checkout of the target branch happens below.
+      - name: Checkout scripts
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          sparse-checkout: '.github/scripts'
+          sparse-checkout-cone-mode: false
       # Route the VERSION bump to the right branch by comparing the incoming
       # release's major with the major currently on main (read from main's
       # VERSION file). Matching major -> base=main; any other major -> base=
       # v{major} support branch (e.g. a v13.35.1 release while main tracks
       # v14 -> base=v13). Prevents a v13 patch from clobbering main's VERSION.
+      # Logic lives in .github/scripts/determine-version-bump-base.sh and is
+      # unit-tested via .github/scripts/tests/determine-version-bump-base.bats.
       - name: Determine base branch
         id: base
         env:
+          GH_REPO: ${{ github.repository }}
           GH_TOKEN: ${{ github.token }}
         run: |
-          RELEASE_MAJOR="${VERSION%%.*}"
-          MAIN_VERSION=$(gh api "/repos/${{ github.repository }}/contents/VERSION?ref=main" --jq '.content' \
-            | base64 -d \
-            | head -1 \
-            | tr -d '[:space:]')
-          MAIN_MAJOR="${MAIN_VERSION%%.*}"
-          if [ -z "$MAIN_MAJOR" ]; then
-            echo "Could not read main's VERSION file" >&2
-            exit 1
-          fi
-          if [ "$RELEASE_MAJOR" = "$MAIN_MAJOR" ]; then
-            BASE=main
-          else
-            BASE="v${RELEASE_MAJOR}"
-          fi
-          echo "Release major: ${RELEASE_MAJOR}, main major: ${MAIN_MAJOR}, base: ${BASE}"
+          BASE=$(.github/scripts/determine-version-bump-base.sh "$VERSION")
+          echo "Release: ${VERSION}, resolved base branch: ${BASE}"
           echo "base=${BASE}" >> "$GITHUB_OUTPUT"
       - name: checkout
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
@@ -82,7 +83,22 @@ jobs:
         run: |
           echo "${VERSION}" > VERSION
           echo "VERSION is ${VERSION}"
+      # Dry-run stops here after the routing/decision + local file write, so
+      # a workflow_dispatch with dry-run=true exercises the routing end to
+      # end without opening or approving a real PR.
+      - name: Dry run summary
+        if: ${{ inputs.dry-run }}
+        run: |
+          echo "::notice::DRY RUN — no PR opened."
+          echo "  version: ${VERSION}"
+          echo "  base:    ${{ steps.base.outputs.base }}"
+          echo "  branch:  ${{ steps.title.outputs.BRANCH_NAME }}"
+          echo "  title:   ${{ steps.title.outputs.COMMIT_TITLE }}"
+          echo
+          echo "Would have written this VERSION file:"
+          cat VERSION
       - name: 🔑 Generate GitHub App Token (mondoohq)
+        if: ${{ !inputs.dry-run }}
         id: generate-token
         uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
         with:
@@ -91,6 +107,7 @@ jobs:
           client-id: ${{ secrets.MONDOO_MERGEBOT_APP_ID }}
           private-key: ${{ secrets.MONDOO_MERGEBOT_APP_PRIVATE_KEY }}
       - name: Create PR
+        if: ${{ !inputs.dry-run }}
         id: create-pr
         uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
         with:
@@ -113,7 +130,7 @@ jobs:
             Opened automatically by the
             [Update Release Version workflow](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}).
       - name: Add Audit Trail Comment
-        if: steps.create-pr.outputs.pull-request-number
+        if: ${{ !inputs.dry-run && steps.create-pr.outputs.pull-request-number }}
         env:
           GH_TOKEN: ${{ steps.generate-token.outputs.token }}
           PR_NUMBER: ${{ steps.create-pr.outputs.pull-request-number }}
@@ -126,7 +143,7 @@ jobs:
           * **Audit Category:** Release Metadata Sync
           * **Workflow run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
       - name: Approve Pull Request
-        if: steps.create-pr.outputs.pull-request-number
+        if: ${{ !inputs.dry-run && steps.create-pr.outputs.pull-request-number }}
         env:
           GH_TOKEN: ${{ steps.generate-token.outputs.token }}
           PR_NUMBER: ${{ steps.create-pr.outputs.pull-request-number }}
@@ -137,7 +154,7 @@ jobs:
           echo "Approving PR #${PR_NUMBER}"
           gh pr review "${PR_NUMBER}" --approve
       - name: Merge Pull Request
-        if: steps.create-pr.outputs.pull-request-number
+        if: ${{ !inputs.dry-run && steps.create-pr.outputs.pull-request-number }}
         # Bounded so a required check that never reports fails the job (and
         # fires the Slack alert below) rather than hanging until the job limit.
         timeout-minutes: 20
@@ -153,10 +170,10 @@ jobs:
           gh pr checks "${PR_NUMBER}" --watch --fail-fast --interval 10
           echo "Merging PR #${PR_NUMBER}"
           gh pr merge "${PR_NUMBER}" --squash --delete-branch
-      # The VERSION bump must not fail silently: main would stay out of sync
-      # with the published release with nobody watching the Actions tab.
+      # The VERSION bump must not fail silently: the target branch would stay
+      # out of sync with the published release with nobody watching Actions.
       - uses: slackapi/slack-github-action@45a88b9581bfab2566dc881e2cd66d334e621e2c # v3.0.3
-        if: failure()
+        if: ${{ failure() && !inputs.dry-run }}
         with:
           method: chat.postMessage
           token: ${{ secrets.SLACK_BOT_TOKEN }}
