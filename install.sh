@@ -548,6 +548,10 @@ configure_cloudshell_installer() {
 # Post-install actions
 # --------------------
 
+# Config the launchd service reads. cnspec falls back to it when there is no
+# user config, so macOS service installs keep this one config only.
+MONDOO_MACOS_CONFIG='/Library/Mondoo/etc/mondoo.yml'
+
 MONDOO_STATUS_TIMEOUT='10'
 MONDOO_STATUS_GRACE='3'
 
@@ -612,11 +616,9 @@ configure_token() {
     purple_bold "\n* ${MONDOO_PRODUCT_NAME} is already logged-in. Skipping login"
     purple_bold "(you can manually run '${MONDOO_BINARY} login' to re-authenticate)."
     purple_bold "To re-register with a new space, please remove your Mondoo config file first."
-    config_path="$HOME/.config/mondoo"
-    if [ "$MONDOO_SERVICE" = "enable" ]; then
-      if [ "$OS" = "macOS" ]; then
-        sudo_cmd cp "$config_path/mondoo.yml" /Library/Mondoo/etc/mondoo.yml
-      elif [ ! -f /etc/opt/mondoo/mondoo.yml ] && [ -f "$config_path/mondoo.yml" ]; then
+    if [ "$MONDOO_SERVICE" = "enable" ] && [ "$OS" != "macOS" ]; then
+      config_path="$HOME/.config/mondoo"
+      if [ ! -f /etc/opt/mondoo/mondoo.yml ] && [ -f "$config_path/mondoo.yml" ]; then
         sudo_cmd mkdir -p /etc/opt/mondoo
         sudo_cmd cp "$config_path/mondoo.yml" /etc/opt/mondoo/mondoo.yml
         sudo_cmd chmod 0600 /etc/opt/mondoo/mondoo.yml
@@ -699,14 +701,16 @@ run_login_cmd() {
 
 configure_macos_token() {
   purple_bold "\n* Authenticate with Mondoo Platform"
-  config_path="$HOME/.config/mondoo"
-  mkdir -p "$config_path"
-
-  run_login_cmd "$config_path"
 
   if [ "$MONDOO_SERVICE" = "enable" ]; then
-    sudo_cmd cp "$config_path/mondoo.yml" /Library/Mondoo/etc/mondoo.yml
+    config_path="${MONDOO_MACOS_CONFIG%/*}"
+    sudo_cmd mkdir -p "$config_path"
+  else
+    config_path="$HOME/.config/mondoo"
+    mkdir -p "$config_path"
   fi
+
+  run_login_cmd "$config_path"
 }
 
 configure_linux_token() {
@@ -761,7 +765,7 @@ service() {
                 <string>/Library/Mondoo/bin/cnspec</string>
                 <string>serve</string>
                 <string>--config</string>
-                <string>/Library/Mondoo/etc/mondoo.yml</string>
+                <string>${MONDOO_MACOS_CONFIG}</string>
         </array>
         <key>RunAtLoad</key>
         <true/>
@@ -776,6 +780,7 @@ EOL
     sleep 5
     sudo_cmd launchctl bootstrap system /Library/LaunchDaemons/com.mondoo.client.plist
     sudo_cmd launchctl start com.mondoo.client
+    purple_bold "\n* The service and cnspec use the config at ${MONDOO_MACOS_CONFIG}"
   elif [ "$OS" = "Arch" ]; then
     purple_bold "\n* Enable and start the mondoo service"
     sudo_cmd systemctl enable mondoo.service
