@@ -1,6 +1,11 @@
 # Copyright Mondoo, Inc. 2025, 2026
 # SPDX-License-Identifier: BUSL-1.1
 
+# /// script
+# requires-python = ">=3.9"
+# dependencies = ["requests"]
+# ///
+
 import requests
 from typing import List, Dict, Set
 import sys
