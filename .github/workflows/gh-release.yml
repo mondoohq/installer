@@ -24,33 +24,52 @@ env:
   SLACK_BOT_CHANNEL_ID: "C07QZDJFF89"
 
 jobs:
-  # Resolve skip-publish to a canonical "true"/"false" string. Doing this
-  # in a bash step avoids the fragile `||` truthiness rules that mix
-  # workflow_dispatch's boolean input with repository_dispatch's JSON
-  # client payload value: any of true / True / TRUE / 1 -> true, and
+  # Resolve skip-publish and dry-run to canonical "true"/"false" strings.
+  # Doing this in a bash step avoids the fragile `||` truthiness rules
+  # that mix workflow_dispatch's boolean inputs with repository_dispatch's
+  # JSON client payload values: any of true / True / TRUE / 1 -> true,
   # anything else (including empty and the string "false") -> false.
+  # dry-run is resolved from client_payload too so it can be threaded
+  # through by callers, not just workflow_dispatch.
   resolve-inputs:
     runs-on: ubuntu-latest
     outputs:
       skip-publish: ${{ steps.resolve.outputs.skip-publish }}
+      dry-run: ${{ steps.resolve.outputs.dry-run }}
     steps:
       - id: resolve
         env:
           EVENT_NAME: ${{ github.event_name }}
           WF_SKIP_PUBLISH: ${{ inputs.skip-publish }}
           CP_SKIP_PUBLISH: ${{ github.event.client_payload.skip-publish }}
+          WF_DRY_RUN: ${{ inputs.dry-run }}
+          CP_DRY_RUN: ${{ github.event.client_payload.dry-run }}
         run: |
+          normalize() {
+            case "$1" in
+              [Tt][Rr][Uu][Ee]|1) echo true ;;
+              *)                  echo false ;;
+            esac
+          }
           case "$EVENT_NAME" in
-            workflow_dispatch)   RAW="$WF_SKIP_PUBLISH" ;;
-            repository_dispatch) RAW="$CP_SKIP_PUBLISH" ;;
-            *)                   RAW="" ;;
+            workflow_dispatch)
+              SKIP_RAW="$WF_SKIP_PUBLISH"
+              DRY_RAW="$WF_DRY_RUN"
+              ;;
+            repository_dispatch)
+              SKIP_RAW="$CP_SKIP_PUBLISH"
+              DRY_RAW="$CP_DRY_RUN"
+              ;;
+            *)
+              SKIP_RAW=""
+              DRY_RAW=""
+              ;;
           esac
-          case "$RAW" in
-            [Tt][Rr][Uu][Ee]|1) OUT=true ;;
-            *)                  OUT=false ;;
-          esac
-          echo "event=$EVENT_NAME wf=$WF_SKIP_PUBLISH cp=$CP_SKIP_PUBLISH -> skip-publish=$OUT"
-          echo "skip-publish=$OUT" >> "$GITHUB_OUTPUT"
+          SKIP_OUT=$(normalize "$SKIP_RAW")
+          DRY_OUT=$(normalize "$DRY_RAW")
+          echo "event=$EVENT_NAME skip-publish($SKIP_RAW)=$SKIP_OUT dry-run($DRY_RAW)=$DRY_OUT"
+          echo "skip-publish=$SKIP_OUT" >> "$GITHUB_OUTPUT"
+          echo "dry-run=$DRY_OUT" >> "$GITHUB_OUTPUT"
 
   parse-inputs:
     needs: resolve-inputs
@@ -64,7 +83,7 @@ jobs:
     permissions:
       contents: write
     runs-on: ubuntu-latest
-    needs: parse-inputs
+    needs: [parse-inputs, resolve-inputs]
     steps:
       - name: Check calling user
         if: ${{ github.event_name == 'repository_dispatch' && github.event.sender.login != 'mondoo-mergebot[bot]' }}
@@ -73,18 +92,32 @@ jobs:
           exit 1
       # Print the resolved release parameters so workflow_dispatch with
       # dry-run=true can verify the make_latest / prerelease / skip-publish
-      # wiring end to end without creating a GitHub release.
+      # wiring end to end without creating a GitHub release. Values pass
+      # through env: rather than being interpolated straight into the
+      # script, so a hostile release input can't inject shell.
       - name: Print resolved release parameters
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          VERSION: ${{ needs.parse-inputs.outputs.version }}
+          SKIP_PUBLISH: ${{ needs.parse-inputs.outputs.skip-publish }}
+          DRY_RUN: ${{ needs.resolve-inputs.outputs.dry-run }}
         run: |
-          echo "event:                 ${{ github.event_name }}"
-          echo "parse-inputs version:  ${{ needs.parse-inputs.outputs.version }}"
-          echo "parse-inputs skip:     ${{ needs.parse-inputs.outputs.skip-publish }}"
-          echo "computed tag_name:     v${{ needs.parse-inputs.outputs.version }}"
-          echo "computed make_latest:  ${{ needs.parse-inputs.outputs.skip-publish == 'true' && 'false' || 'legacy' }}"
-          echo "computed prerelease:   ${{ needs.parse-inputs.outputs.skip-publish == 'true' }}"
-          echo "dry-run:               ${{ inputs.dry-run }}"
+          if [ "$SKIP_PUBLISH" = "true" ]; then
+            MAKE_LATEST=false
+            PRERELEASE=true
+          else
+            MAKE_LATEST=legacy
+            PRERELEASE=false
+          fi
+          echo "event:                 $EVENT_NAME"
+          echo "parse-inputs version:  $VERSION"
+          echo "parse-inputs skip:     $SKIP_PUBLISH"
+          echo "computed tag_name:     v$VERSION"
+          echo "computed make_latest:  $MAKE_LATEST"
+          echo "computed prerelease:   $PRERELEASE"
+          echo "dry-run:               $DRY_RUN"
       - id: slack
-        if: ${{ !inputs.dry-run }}
+        if: ${{ needs.resolve-inputs.outputs.dry-run != 'true' }}
         uses: slackapi/slack-github-action@45a88b9581bfab2566dc881e2cd66d334e621e2c # v3.0.3
         with:
           method: chat.postMessage
@@ -114,7 +147,7 @@ jobs:
           private-key: ${{ secrets.MONDOO_MERGEBOT_APP_PRIVATE_KEY }}
       - name: Release
         id: release
-        if: ${{ !inputs.dry-run }}
+        if: ${{ needs.resolve-inputs.outputs.dry-run != 'true' }}
         uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b # v2.5.0
         with:
           tag_name: v${{ needs.parse-inputs.outputs.version }}
@@ -123,7 +156,7 @@ jobs:
           prerelease: ${{ needs.parse-inputs.outputs.skip-publish == 'true' }}
           token: ${{ steps.generate-token.outputs.token }}
       - uses: slackapi/slack-github-action@45a88b9581bfab2566dc881e2cd66d334e621e2c # v3.0.3
-        if: ${{ always() && !inputs.dry-run }}
+        if: ${{ always() && needs.resolve-inputs.outputs.dry-run != 'true' }}
         with:
           method: chat.update
           token: ${{ secrets.SLACK_BOT_TOKEN }}
