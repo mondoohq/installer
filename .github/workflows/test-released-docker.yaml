@@ -24,7 +24,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        tag: ["latest", "latest-ubi-rootless", "latest-rootless"]
+        suffix: ["", "-ubi-rootless", "-rootless"]
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
       - name: Version
@@ -34,9 +34,9 @@ jobs:
         run: |
           VERSION=$(echo "${INPUT_VERSION}" | sed 's/^v//')
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
-      - name: Testing mondoo/mql:${{ matrix.tag }}....
+      - name: Testing mondoo/mql:${{ steps.version.outputs.version }}${{ matrix.suffix }}....
         run: |
-          version=$(docker run --rm -v $(pwd):/work -w /work mondoo/mql:${{ matrix.tag }} version)
+          version=$(docker run --rm -v $(pwd):/work -w /work mondoo/mql:${{ steps.version.outputs.version }}${{ matrix.suffix }} version)
           echo $version
           echo $version | grep -q ${{ steps.version.outputs.version }}
   cnspec-containers:
@@ -44,7 +44,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        tag: ["latest", "latest-ubi-rootless", "latest-rootless"]
+        suffix: ["", "-ubi-rootless", "-rootless"]
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
       - name: Version
@@ -54,9 +54,9 @@ jobs:
         run: |
           VERSION=$(echo "${INPUT_VERSION}" | sed 's/^v//')
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
-      - name: Testing mondoo/cnspec:${{ matrix.tag }}....
+      - name: Testing mondoo/cnspec:${{ steps.version.outputs.version }}${{ matrix.suffix }}....
         run: |
-          version=$(docker run --rm -v $(pwd):/work -w /work mondoo/cnspec:${{ matrix.tag }} version)
+          version=$(docker run --rm -v $(pwd):/work -w /work mondoo/cnspec:${{ steps.version.outputs.version }}${{ matrix.suffix }} version)
           echo $version
           echo $version | grep -q ${{ steps.version.outputs.version }}
 
@@ -65,7 +65,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        tag: ["latest", "latest-ubi-rootless", "latest-rootless"]
+        suffix: ["", "-ubi-rootless", "-rootless"]
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
       - name: Version
@@ -75,8 +75,8 @@ jobs:
         run: |
           VERSION=$(echo "${INPUT_VERSION}" | sed 's/^v//')
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
-      - name: Testing mondoo/client:${{ matrix.tag }}....
+      - name: Testing mondoo/client:${{ steps.version.outputs.version }}${{ matrix.suffix }}....
         run: |
-          version=$(docker run --rm -v $(pwd):/work -w /work mondoo/client:${{ matrix.tag }} version)
+          version=$(docker run --rm -v $(pwd):/work -w /work mondoo/client:${{ steps.version.outputs.version }}${{ matrix.suffix }} version)
           echo $version
           echo $version | grep -q ${{ steps.version.outputs.version }}
