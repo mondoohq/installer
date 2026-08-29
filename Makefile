@@ -40,6 +40,11 @@ test/install_sh/params:
 test/install_sh/status:
 	sh test/install_sh/test_status_timeout.sh
 
+## install.sh macOS config tests
+.PHONY: test/install_sh/macos_config
+test/install_sh/macos_config:
+	sh test/install_sh/test_macos_config.sh
+
 ## POSIX sh compatibility checks for install.sh
 .PHONY: test/posix
 test/posix:

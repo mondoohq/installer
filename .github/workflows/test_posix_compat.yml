@@ -9,6 +9,7 @@ on:
       - 'download.sh'
       - 'test/install_sh/test_params.sh'
       - 'test/install_sh/test_status_timeout.sh'
+      - 'test/install_sh/test_macos_config.sh'
       - '.github/workflows/test_posix_compat.yml'
 
 permissions:
@@ -47,3 +48,6 @@ jobs:
 
       - name: Test cnspec status probe
         run: sh test/install_sh/test_status_timeout.sh
+
+      - name: Test macOS config handling
+        run: sh test/install_sh/test_macos_config.sh
