@@ -1082,6 +1082,9 @@ ${_updater_proxy_plist}
 </dict>
 </plist>
 EOL
+    # CIS "Ensure access to all logfiles has been configured" requires 0640 or stricter
+    sudo_cmd touch /var/log/mondoo-updater.log
+    sudo_cmd chmod 0640 /var/log/mondoo-updater.log
     sleep 5
     sudo_cmd launchctl load /Library/LaunchDaemons/com.mondoo.autoupdater.plist
     sudo_cmd launchctl start /Library/LaunchDaemons/com.mondoo.autoupdater.plist
@@ -1096,6 +1099,9 @@ EOL
     # may carry credentials. run-parts executes cron.weekly as root, so nothing
     # needs to read it but root.
     sudo_cmd chmod 700 /etc/cron.weekly/mondoo-update
+    # CIS "Ensure access to all logfiles has been configured" requires 0640 or stricter
+    sudo_cmd touch /var/log/mondoo-updater.log
+    sudo_cmd chmod 0640 /var/log/mondoo-updater.log
   fi
 }
 
