@@ -846,6 +846,8 @@ touch /var/log/mondoo-updater.log
 chmod 0640 /var/log/mondoo-updater.log
 date > /var/log/mondoo-updater.log
 curl -sSL https://install.mondoo.com/sh | bash -s -- -s enable >> /var/log/mondoo-updater.log
+# Re-assert last so the log ends every run compliant, whatever happened above
+chmod 0640 /var/log/mondoo-updater.log
 EOL
     sudo_cmd chmod a+x /etc/cron.weekly/mondoo-update
     sudo_cmd touch /var/log/mondoo-updater.log
@@ -866,6 +868,15 @@ finalize_setup() {
   # Enable Mondoo auto updater
   if [ "$MONDOO_AUTOUPDATER" = "enable" ]; then
     autoupdater
+  fi
+
+  # Self-heal: older installs created /var/log/mondoo-updater.log with the
+  # default umask (0644), failing the CIS "Ensure access to all logfiles has
+  # been configured" control (0640 or stricter). The weekly auto-update
+  # re-runs this script with "-s enable" only, so repair the mode here —
+  # autoupdater() is never reached on that path.
+  if [ -f /var/log/mondoo-updater.log ]; then
+    sudo_cmd chmod 0640 /var/log/mondoo-updater.log
   fi
 
   # Display final message
