@@ -71,6 +71,7 @@ case "$(uname -m)" in
     arm)     arch="arm" ;;
     aarch64) arch="arm64";;
     arm64)   arch="arm64";;
+    s390x)   arch="s390x";;
     *)       fail "Cannot detect architecture" ;;
 esac
 
@@ -101,15 +102,19 @@ sha_url="${pkg_base_url}/sha256"
 
 UserAgent="MondooDownloadScript/1.0 (+https://mondoo.com/) ShellScript/$BASH_VERSION ($OS $DISTRIBUTION)"
 
+# download the checksum first. It is a few bytes, and a 404 here means the
+# package index has nothing for this platform/arch, which is worth reporting
+# before we start writing a tarball to disk.
+purple_bold "Downloading ${sha_url}"
+if ! expectedSha=$(curl -fsSL "${sha_url}"); then
+  fail "No ${product} package for ${os}/${arch} (version ${version}).\nLooked in ${pkg_base_url}"
+fi
+echo -e "Expected binary hash: ${expectedSha}"
+
 # download binary
 purple_bold "Downloading ${download_url}"
 binarySha=$(curl -A "${UserAgent}" -fsSL "${download_url}" | tee "${filename}" | ${sha256bin} | cut -b 1-64)
 echo -e "Downloaded binary hash: ${binarySha}"
-
-# download the checksum
-purple_bold "Downloading ${sha_url}"
-expectedSha=$(curl -fsSL "${sha_url}")
-echo -e "Expected binary hash: ${expectedSha}"
 
 # extract binary
 if [ "$binarySha" = "$expectedSha" ]; then

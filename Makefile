@@ -40,6 +40,11 @@ test/install_sh/params:
 test/install_sh/status:
 	sh test/install_sh/test_status_timeout.sh
 
+## install.sh architecture detection tests
+.PHONY: test/install_sh/arch
+test/install_sh/arch:
+	sh test/install_sh/test_arch_detect.sh
+
 ## POSIX sh compatibility checks for install.sh
 .PHONY: test/posix
 test/posix:
@@ -81,6 +86,23 @@ test/install_sh:
 		dockerfile=$${entry%%:*}; target=$${entry##*:}; \
 		echo "==> Building $$dockerfile --target $$target"; \
 		docker build --no-cache --target $$target -f test/install_sh/$$dockerfile test/install_sh/ \
+		|| exit 1; \
+	done
+
+## Docker-based install.sh tests on IBM Z. These are emulated, so they are kept
+## out of the target list above and need an s390x binfmt handler first:
+##   docker run --rm --privileged tonistiigi/binfmt --install s390x
+INSTALL_SH_S390X_TARGETS := \
+	almalinux.s390x.Dockerfile:almalinux9_s390x \
+	debian.s390x.Dockerfile:debian12_s390x
+
+.PHONY: test/install_sh/s390x
+test/install_sh/s390x:
+	cp install.sh test/install_sh && chmod +x test/install_sh/install.sh
+	@for entry in $(INSTALL_SH_S390X_TARGETS); do \
+		dockerfile=$${entry%%:*}; target=$${entry##*:}; \
+		echo "==> Building $$dockerfile --target $$target (linux/s390x)"; \
+		docker build --no-cache --platform linux/s390x --target $$target -f test/install_sh/$$dockerfile test/install_sh/ \
 		|| exit 1; \
 	done
 
@@ -156,7 +178,7 @@ test/install_sh/upgrade-yum:
 
 ## Run all install.sh tests
 .PHONY: test/install_sh/all
-test/install_sh/all: test/install_sh/params test/install_sh/status test/posix test/install_sh test/install_sh/apt test/install_sh/yum test/install_sh/zypper
+test/install_sh/all: test/install_sh/params test/install_sh/status test/install_sh/arch test/posix test/install_sh test/install_sh/apt test/install_sh/yum test/install_sh/zypper
 
 .PHONY: test/download_sh
 # MONDOO_REGISTRATION_TOKEN="changeme"

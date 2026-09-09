@@ -312,6 +312,7 @@ install_portable() {
   "aarch64") ARCH="arm64" ;;
   "armv8b") ARCH="arm64" ;;
   "armv8l") ARCH="arm64" ;;
+  "s390x") ARCH="s390x" ;;
   *)
     red "${MONDOO_PRODUCT_NAME} does not support the (${ARCH_DETECT}) architecture."
     fail
