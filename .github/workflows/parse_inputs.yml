@@ -82,9 +82,14 @@ jobs:
           # not mean "release candidate": it compares EQUAL to 14.0.0, outranks
           # every real 14.0.0-rc.N, and would derive the stable channel here.
           # A pre-release is introduced with `-`, never `+`.
+          #
+          # The list is the words someone would plausibly reach for meaning
+          # "not the final release". `preview` and `edge` are on it because
+          # they are now channel names, which makes them likelier to be typed
+          # here by mistake, not less.
           META="${V#*+}"
           if [ "$META" != "$V" ] && \
-             printf '%s' "$META" | grep -Eiq '(^|[.-])(pre|rc|alpha|beta|dev|canary|nightly|snapshot)([.-]|[0-9]|$)'; then
+             printf '%s' "$META" | grep -Eiq '(^|[.-])(pre|rc|alpha|beta|dev|canary|nightly|snapshot|preview|edge|test|next)([.-]|[0-9]|$)'; then
             echo "::error::version $V puts a pre-release marker in build metadata, which is ignored for precedence. This would publish to the stable channel. Use a hyphen: ${V%%+*}-${META}"
             exit 1
           fi

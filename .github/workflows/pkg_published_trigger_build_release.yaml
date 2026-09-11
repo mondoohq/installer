@@ -145,16 +145,18 @@ jobs:
   # the indexes, which is what puts a release on releases.mondoo.com and into
   # its channel's pointer document. Runs for every channel.
   #
-  # `always()` because the packaging jobs it waits on are skipped on a
-  # pre-release, and a skipped dependency would otherwise skip this too. The
-  # explicit result check keeps a *failed* packaging job from publishing.
+  # `!cancelled()` rather than `always()`: the packaging jobs it waits on are
+  # skipped on a pre-release, and a skipped dependency would otherwise skip this
+  # too — but `always()` would also publish to the bucket after someone cancels
+  # the run, which is an outward-facing side effect nobody asked for. The
+  # explicit result checks keep a *failed* packaging job from publishing.
   reindex:
     runs-on: ubuntu-latest
     needs:
       [check-version, parse-inputs, build-mondoo-pkgs, build-macos, build-msi]
     if: >-
       ${{
-        always() &&
+        !cancelled() &&
         needs.parse-inputs.result == 'success' &&
         !contains(fromJSON('["failure", "cancelled"]'), needs.check-version.result) &&
         !contains(fromJSON('["failure", "cancelled"]'), needs.build-mondoo-pkgs.result) &&
@@ -292,16 +294,36 @@ jobs:
       skip-publish: ${{ needs.parse-inputs.outputs.skip-publish == 'true' }}
 
   update-notify:
-    # always(): the packaging jobs it waits on are skipped on a pre-release,
-    # and the run still needs its Slack message closed out.
+    # always(), deliberately: this job's entire purpose is to close out the
+    # Slack message with the run's outcome, so it has to run when that outcome
+    # is failure or cancellation. Guarding it on its dependencies would leave a
+    # broken run showing "In Progress" forever.
     if: ${{ always() }}
     needs: [notify, build-homebrew, build-container, build-chocolatey, reindex]
     runs-on: ubuntu-latest
     steps:
       - name: Set status
         id: status
+        env:
+          # A pre-release skips every packaging job, so requiring all four to be
+          # 'success' would post red on every successful pre-release run. Green
+          # means nothing failed; skipped is not failed.
+          RESULTS: >-
+            ${{ needs.reindex.result }}
+            ${{ needs.build-chocolatey.result }}
+            ${{ needs.build-container.result }}
+            ${{ needs.build-homebrew.result }}
         run: |
-          echo "status_success=${{ needs.reindex.result == 'success' && needs.build-chocolatey.result == 'success' && needs.build-container.result == 'success' && needs.build-homebrew.result == 'success' }}" >> $GITHUB_OUTPUT
+          set -euo pipefail
+          ok=true
+          for result in $RESULTS; do
+            case "$result" in
+              success|skipped) ;;
+              *) ok=false ;;
+            esac
+          done
+          echo "results: $RESULTS -> success=$ok"
+          echo "status_success=$ok" >> "$GITHUB_OUTPUT"
       - uses: slackapi/slack-github-action@45a88b9581bfab2566dc881e2cd66d334e621e2c # v3.0.3
         if: ${{ always() }}
         with:
