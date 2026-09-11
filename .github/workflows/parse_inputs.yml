@@ -36,6 +36,8 @@ on:
         value: ${{ jobs.parse-inputs.outputs.trimmed-version }}
       name:
         value: ${{ jobs.parse-inputs.outputs.name }}
+      channel:
+        value: ${{ jobs.parse-inputs.outputs.channel }}
 
 jobs:
   parse-inputs:
@@ -53,6 +55,7 @@ jobs:
       version: ${{ steps.evaluate.outputs.version }}
       trimmed-version: ${{ steps.evaluate.outputs.trimmed_version }}
       name: ${{ steps.evaluate.outputs.name }}
+      channel: ${{ steps.evaluate.outputs.channel }}
     steps:
       - name: Set input variables
         id: evaluate
@@ -67,6 +70,20 @@ jobs:
             echo "Invalid version: $VERSION"
             exit 1
           fi
+
+          # The release channel is derived from the semver pre-release segment,
+          # never declared: 14.0.0-rc.2 is preview, 13.38.1 is stable. Build
+          # metadata is not a pre-release, so 8.4.0+41 stays stable. Derived
+          # here rather than taken from the dispatch payload so an older caller
+          # that sends no channel still gets the right answer.
+          # See minstaller ADR 0003.
+          CORE="${V%%+*}"
+          case "$CORE" in
+            *-*) CHANNEL=preview ;;
+            *)   CHANNEL=stable ;;
+          esac
+          echo "Channel: $CHANNEL"
+          echo "channel=$CHANNEL" >> "$GITHUB_OUTPUT"
 
           echo "name=$NAME" >> "$GITHUB_OUTPUT"
           echo "skip-publish=$SKIP_PUBLISH" >> "$GITHUB_OUTPUT"

@@ -2,7 +2,11 @@ name: "PKG: Package, Release, Reindex"
 
 on:
   release:
-    types: [released]
+    # `released` fires for a final release, `prereleased` for a pre-release.
+    # Both publish binaries to the release bucket; only `released` packages.
+    # Listening to `released` alone is what made publishing a pre-release a
+    # manual runbook step. See minstaller ADR 0003.
+    types: [released, prereleased]
   workflow_dispatch:
     inputs:
       skip-publish:
@@ -71,8 +75,16 @@ jobs:
       version: ${{ (github.event_name == 'workflow_dispatch' && inputs.version) || github.event.release.tag_name }}
       bucket: ${{ inputs.bucket }}
 
+  # Packaging is stable-only. apt, yum, chocolatey, the MSI and the macOS pkg
+  # are how a machine gets Mondoo by default, and a release candidate does not
+  # belong in any of them. This job gates every build-* job below; the bucket
+  # publication in `reindex` deliberately does not need it.
+  #
+  # A pre-release skips these jobs rather than failing the run: the run is
+  # expected and its other half has work to do.
   check-version:
     needs: [parse-inputs]
+    if: ${{ needs.parse-inputs.outputs.channel == 'stable' }}
     runs-on: ubuntu-latest
     steps:
       - env:
@@ -129,10 +141,26 @@ jobs:
       version: ${{ needs.parse-inputs.outputs.version }}
       skip-publish: ${{ needs.parse-inputs.outputs.skip-publish == 'true' }}
       bucket: ${{ needs.parse-inputs.outputs.bucket }}
+  # Copies the cnspec and mql binaries into the release bucket and regenerates
+  # the indexes, which is what puts a release on releases.mondoo.com and into
+  # its channel's pointer document. Runs for every channel.
+  #
+  # `always()` because the packaging jobs it waits on are skipped on a
+  # pre-release, and a skipped dependency would otherwise skip this too. The
+  # explicit result check keeps a *failed* packaging job from publishing.
   reindex:
     runs-on: ubuntu-latest
     needs:
       [check-version, parse-inputs, build-mondoo-pkgs, build-macos, build-msi]
+    if: >-
+      ${{
+        always() &&
+        needs.parse-inputs.result == 'success' &&
+        !contains(fromJSON('["failure", "cancelled"]'), needs.check-version.result) &&
+        !contains(fromJSON('["failure", "cancelled"]'), needs.build-mondoo-pkgs.result) &&
+        !contains(fromJSON('["failure", "cancelled"]'), needs.build-macos.result) &&
+        !contains(fromJSON('["failure", "cancelled"]'), needs.build-msi.result)
+      }}
     steps:
       # fetch a token for the mondoo-mergebot app
       - name: Generate token
@@ -218,6 +246,8 @@ jobs:
         run: |
           gcloud compute url-maps invalidate-cdn-cache releases-mondoo-io --path "/${{ inputs.reindex-path || '*' }}"
   build-arch:
+    # Packaging: stable only. See check-version.
+    if: ${{ needs.parse-inputs.outputs.channel == 'stable' }}
     uses: ./.github/workflows/pkg_arch-aur.yaml
     needs: [parse-inputs, reindex]
     secrets:
@@ -228,6 +258,8 @@ jobs:
       version: ${{ needs.parse-inputs.outputs.version }}
       skip: ${{ needs.parse-inputs.outputs.skip-publish == 'true' }}
   build-chocolatey:
+    # Packaging: stable only. See check-version.
+    if: ${{ needs.parse-inputs.outputs.channel == 'stable' }}
     uses: ./.github/workflows/pkg_chocolatey.yaml
     needs: [parse-inputs, reindex]
     secrets:
@@ -236,7 +268,8 @@ jobs:
       version: ${{ needs.parse-inputs.outputs.version }}
       skip-publish: ${{ needs.parse-inputs.outputs.skip-publish == 'true' }}
   build-container:
-    if: ${{ needs.parse-inputs.outputs.skip-publish != 'true' }}
+    # Packaging: stable only. See check-version.
+    if: ${{ needs.parse-inputs.outputs.skip-publish != 'true' && needs.parse-inputs.outputs.channel == 'stable' }}
     needs: [parse-inputs, reindex]
     uses: ./.github/workflows/build_container.yml
     secrets:
@@ -246,6 +279,8 @@ jobs:
       version: ${{ needs.parse-inputs.outputs.version }}
       skip-publish: ${{ needs.parse-inputs.outputs.skip-publish == 'true' }}
   build-homebrew:
+    # Packaging: stable only. See check-version.
+    if: ${{ needs.parse-inputs.outputs.channel == 'stable' }}
     needs: [parse-inputs, reindex]
     uses: mondoohq/homebrew-mondoo/.github/workflows/release.yml@master
     # TODO(mondoohq/homebrew-mondoo#59): Replace secrets: inherit with explicit
@@ -257,6 +292,9 @@ jobs:
       skip-publish: ${{ needs.parse-inputs.outputs.skip-publish == 'true' }}
 
   update-notify:
+    # always(): the packaging jobs it waits on are skipped on a pre-release,
+    # and the run still needs its Slack message closed out.
+    if: ${{ always() }}
     needs: [notify, build-homebrew, build-container, build-chocolatey, reindex]
     runs-on: ubuntu-latest
     steps:
