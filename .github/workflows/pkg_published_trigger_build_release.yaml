@@ -2,11 +2,19 @@ name: "PKG: Package, Release, Reindex"
 
 on:
   release:
-    # `released` fires for a final release, `prereleased` for a pre-release.
-    # Both publish binaries to the release bucket; only `released` packages.
-    # Listening to `released` alone is what made publishing a pre-release a
-    # manual runbook step. See minstaller ADR 0003.
-    types: [released, prereleased]
+    # `published`, not `[released, prereleased]`.
+    #
+    # `prereleased` fires when a pre-release is *created*, which is not when we
+    # need it. v14.0.0-rc.3's release object was created hours before it was
+    # published, so by publish time that activity had long passed and this
+    # workflow never ran -- while test-released-all.yaml, which listens to
+    # `published`, fired on the same release.
+    #
+    # The event type was never doing real work anyway: every job below gates on
+    # `needs.parse-inputs.outputs.channel`, derived from the version itself.
+    # Keying off the type as well was a second, less reliable copy of a decision
+    # already made. See minstaller ADR 0003.
+    types: [published]
   workflow_dispatch:
     inputs:
       skip-publish:
