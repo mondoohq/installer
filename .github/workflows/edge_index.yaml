@@ -1,0 +1,206 @@
+name: "Edge: Index & Prune"
+
+# cnspec and mql publish their edge binaries to gs://<bucket>/edge/<product>/
+# themselves, then dispatch here. Indexing needs releasr, which is a private
+# repository, and both of those are public — so this half lives here.
+#
+# The channel this produces is what `install.mondoo.com/package/<product>/latest.json?channel=edge`
+# resolves through. See minstaller ADR 0003.
+
+on:
+  repository_dispatch:
+    types: [edge-published]
+  workflow_dispatch:
+    inputs:
+      product:
+        description: "Product to index (cnspec or mql)"
+        required: true
+        type: choice
+        options:
+          - cnspec
+          - mql
+      bucket:
+        description: "GCP Release Bucket Name"
+        required: false
+        default: "releases-us.mondoo.io"
+        type: choice
+        options:
+          - "releases-us.mondoo.io"
+          - "releases-com-test"
+      keep:
+        description: "How many edge builds to retain"
+        required: false
+        default: "20"
+        type: string
+      version:
+        description: "Expected version after indexing (optional; verified if given)"
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+env:
+  # Edge builds land on every push to main — roughly 70 a week — at about
+  # 216 MB each. Without a cap the prefix grows by ~65 GB a month forever.
+  # Twenty is a couple of days of history, which is what an edge build is for.
+  DEFAULT_KEEP: "20"
+
+jobs:
+  edge-index:
+    name: "Index and prune edge/<product>"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Converge inputs
+        id: inputs
+        env:
+          PRODUCT: ${{ inputs.product || github.event.client_payload.product }}
+          VERSION: ${{ inputs.version || github.event.client_payload.version }}
+          BUCKET: ${{ inputs.bucket || github.event.client_payload.bucket || 'releases-us.mondoo.io' }}
+          KEEP: ${{ inputs.keep || github.event.client_payload.keep }}
+        run: |
+          set -euo pipefail
+
+          # An unrecognised product would have this job index, and prune, a
+          # prefix nobody meant to touch.
+          case "$PRODUCT" in
+            cnspec|mql) ;;
+            *) echo "::error::unsupported product '$PRODUCT'"; exit 1 ;;
+          esac
+
+          KEEP="${KEEP:-$DEFAULT_KEEP}"
+          if ! printf '%s' "$KEEP" | grep -Eq '^[0-9]+$' || [ "$KEEP" -lt 1 ]; then
+            echo "::error::keep must be a positive integer, got '$KEEP'"
+            exit 1
+          fi
+
+          echo "product=$PRODUCT" >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "bucket=$BUCKET" >> "$GITHUB_OUTPUT"
+          echo "keep=$KEEP" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: "Authenticate to Google Cloud"
+        uses: "google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093" # v3.0.0
+        with:
+          credentials_json: "${{ secrets.GCP_CREDENTIALS }}"
+
+      - name: "Set up Cloud SDK"
+        uses: "google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db" # v3.0.1
+
+      - name: Generate token to read releasr
+        id: generate-token
+        uses: actions/create-github-app-token@1b10c78c7865c340bc4f6099eb2f838309f1e8c3 # v3.1.1
+        with:
+          client-id: ${{ secrets.MONDOO_MERGEBOT_APP_ID }}
+          private-key: ${{ secrets.MONDOO_MERGEBOT_APP_PRIVATE_KEY }}
+          owner: mondoohq
+          repositories: releasr
+
+      - name: Get latest releasr binary
+        uses: robinraju/release-downloader@28fc21f50d76778e7023361aa1f863e717d3d56f # v1.13
+        with:
+          repository: mondoohq/releasr
+          latest: true
+          fileName: releasr
+          out-file-path: .
+          token: ${{ steps.generate-token.outputs.token }}
+
+      - name: Make releasr executable
+        run: chmod +x releasr
+
+      # Prune before indexing, so the index describes what is actually left.
+      # Doing it the other way round leaves latest.json referencing a version
+      # that was deleted moments later.
+      - name: Prune old edge builds
+        env:
+          BUCKET: ${{ steps.inputs.outputs.bucket }}
+          PRODUCT: ${{ steps.inputs.outputs.product }}
+          KEEP: ${{ steps.inputs.outputs.keep }}
+        run: |
+          set -euo pipefail
+          prefix="gs://${BUCKET}/edge/${PRODUCT}"
+
+          # One checksum file per version directory, listed with its creation
+          # time. Ordering by time rather than by version on purpose: this is a
+          # retention decision about which builds are old, and the answer must
+          # not change if a version string is ever malformed.
+          listing="$(gsutil ls -l "${prefix}/*/*_SHA256SUMS" 2>/dev/null || true)"
+          if [ -z "$listing" ]; then
+            echo "nothing published under ${prefix} yet, nothing to prune"
+            exit 0
+          fi
+
+          # Parse once, into "date url" lines. Deriving the format check and the
+          # prune list from two separate pipelines would mean the guard could
+          # pass while the pipeline it is guarding parsed something else.
+          # awk drops gsutil's trailing "TOTAL:" summary line.
+          entries="$(printf '%s\n' "$listing" | awk 'NF==3 && $3 ~ /^gs:\/\// {print $2" "$3}')"
+          if [ -z "$entries" ]; then
+            # The listing was not empty, so objects exist and the format
+            # changed under us. Pruning nothing is the safe outcome, but it must
+            # not pass silently: the prefix would grow unbounded from here.
+            echo "::error::gsutil listing did not match the expected 'size date url' format, refusing to guess"
+            printf '%s\n' "$listing" | head -5
+            exit 1
+          fi
+
+          # Newest first, drop the KEEP newest, keep the version directory.
+          stale="$(printf '%s\n' "$entries" \
+            | sort -r \
+            | tail -n +$((KEEP + 1)) \
+            | awk '{print $2}' \
+            | sed 's#/[^/]*$##')"
+
+          if [ -z "$stale" ]; then
+            echo "at or below the ${KEEP}-build retention limit, nothing to prune"
+            exit 0
+          fi
+
+          echo "pruning $(printf '%s\n' "$stale" | wc -l | tr -d ' ') edge builds, keeping the newest ${KEEP}:"
+          printf '%s\n' "$stale" | sed 's/^/  /'
+          # One invocation rather than one per directory: -m parallelises across
+          # everything it is given, and a partial failure fails the step instead
+          # of leaving the loop to carry on.
+          printf '%s\n' "$stale" | xargs gsutil -m rm -r
+
+      - name: Regenerate edge indexes
+        # No TOKEN here: it is read only by `releasr serve`, never by `idx`.
+        # The neighbouring release workflow passes one, which is where this was
+        # copied from; minting an identity token this command ignores just puts
+        # a credential in the process environment for no reason.
+        # No BUCKETNAME: releasr reads it only when no bucket argument is given,
+        # and the argument is given below.
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BUCKET: ${{ steps.inputs.outputs.bucket }}
+          PRODUCT: ${{ steps.inputs.outputs.product }}
+        run: |
+          set -euo pipefail
+          # --channel edge scopes the run to the edge/ tree, so a routine edge
+          # build cannot rewrite the stable product indexes.
+          ./releasr idx "gs://${BUCKET}" --channel edge --app "${PRODUCT}" --update-parent
+
+      - name: Verify the edge channel resolves
+        env:
+          BUCKET: ${{ steps.inputs.outputs.bucket }}
+          PRODUCT: ${{ steps.inputs.outputs.product }}
+          VERSION: ${{ steps.inputs.outputs.version }}
+        run: |
+          set -euo pipefail
+          latest="$(gsutil cat "gs://${BUCKET}/edge/${PRODUCT}/latest.json" | jq -r .version)"
+          echo "edge/${PRODUCT}/latest.json -> ${latest}"
+
+          if [ -n "$VERSION" ] && [ "$latest" != "$VERSION" ]; then
+            echo "::error::edge/${PRODUCT}/latest.json is ${latest}, expected the build just published (${VERSION})"
+            exit 1
+          fi
+
+      - name: Invalidate CDN cache for the edge prefix
+        env:
+          PRODUCT: ${{ steps.inputs.outputs.product }}
+        run: |
+          gcloud compute url-maps invalidate-cdn-cache releases-mondoo-io \
+            --path "/edge/${PRODUCT}/*" --async
