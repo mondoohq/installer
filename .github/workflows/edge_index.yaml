@@ -32,6 +32,10 @@ on:
         required: false
         default: "20"
         type: string
+      version:
+        description: "Expected version after indexing (optional; verified if given)"
+        required: false
+        type: string
 
 permissions:
   contents: read
@@ -51,7 +55,7 @@ jobs:
         id: inputs
         env:
           PRODUCT: ${{ inputs.product || github.event.client_payload.product }}
-          VERSION: ${{ github.event.client_payload.version }}
+          VERSION: ${{ inputs.version || github.event.client_payload.version }}
           BUCKET: ${{ inputs.bucket || github.event.client_payload.bucket || 'releases-us.mondoo.io' }}
           KEEP: ${{ inputs.keep || github.event.client_payload.keep }}
         run: |
@@ -129,11 +133,12 @@ jobs:
             exit 0
           fi
 
-          # "size  date  url" -> sort by date, newest first, drop the KEEP
-          # newest, and delete whatever remains.
+          # Parse once, into "date url" lines. Deriving the format check and the
+          # prune list from two separate pipelines would mean the guard could
+          # pass while the pipeline it is guarding parsed something else.
           # awk drops gsutil's trailing "TOTAL:" summary line.
-          parsed="$(printf '%s\n' "$listing" | awk 'NF==3 && $3 ~ /^gs:\/\// {print $3}')"
-          if [ -z "$parsed" ]; then
+          entries="$(printf '%s\n' "$listing" | awk 'NF==3 && $3 ~ /^gs:\/\// {print $2" "$3}')"
+          if [ -z "$entries" ]; then
             # The listing was not empty, so objects exist and the format
             # changed under us. Pruning nothing is the safe outcome, but it must
             # not pass silently: the prefix would grow unbounded from here.
@@ -142,8 +147,8 @@ jobs:
             exit 1
           fi
 
-          stale="$(printf '%s\n' "$listing" \
-            | awk 'NF==3 && $3 ~ /^gs:\/\// {print $2" "$3}' \
+          # Newest first, drop the KEEP newest, keep the version directory.
+          stale="$(printf '%s\n' "$entries" \
             | sort -r \
             | tail -n +$((KEEP + 1)) \
             | awk '{print $2}' \
@@ -156,18 +161,19 @@ jobs:
 
           echo "pruning $(printf '%s\n' "$stale" | wc -l | tr -d ' ') edge builds, keeping the newest ${KEEP}:"
           printf '%s\n' "$stale" | sed 's/^/  /'
-          printf '%s\n' "$stale" | while read -r dir; do
-            [ -n "$dir" ] || continue
-            gsutil -m rm -r "$dir"
-          done
+          # One invocation rather than one per directory: -m parallelises across
+          # everything it is given, and a partial failure fails the step instead
+          # of leaving the loop to carry on.
+          printf '%s\n' "$stale" | xargs gsutil -m rm -r
 
       - name: Regenerate edge indexes
         # No TOKEN here: it is read only by `releasr serve`, never by `idx`.
         # The neighbouring release workflow passes one, which is where this was
         # copied from; minting an identity token this command ignores just puts
         # a credential in the process environment for no reason.
+        # No BUCKETNAME: releasr reads it only when no bucket argument is given,
+        # and the argument is given below.
         env:
-          BUCKETNAME: ${{ steps.inputs.outputs.bucket }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           BUCKET: ${{ steps.inputs.outputs.bucket }}
           PRODUCT: ${{ steps.inputs.outputs.product }}
