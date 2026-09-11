@@ -145,6 +145,11 @@ jobs:
   # the indexes, which is what puts a release on releases.mondoo.com and into
   # its channel's pointer document. Runs for every channel.
   #
+  # Maintenance note: a GitHub Actions `if:` expression cannot call a composite
+  # action or share a named expression, so each packaging job has to be listed
+  # here by hand. Add a build-* job to `needs` below and it must be added to
+  # this condition too, or a failure in it would no longer block publication.
+  #
   # `!cancelled()` rather than `always()`: the packaging jobs it waits on are
   # skipped on a pre-release, and a skipped dependency would otherwise skip this
   # too — but `always()` would also publish to the bucket after someone cancels

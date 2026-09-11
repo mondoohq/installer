@@ -87,6 +87,12 @@ jobs:
           # "not the final release". `preview` and `edge` are on it because
           # they are now channel names, which makes them likelier to be typed
           # here by mistake, not less.
+          #
+          # The boundaries on both sides are what keep it from firing on real
+          # words that merely contain one of them. Verified:
+          #   rejects: +rc.1 +alpha3 +pre-2 +preview +edge.7 +test +next.1
+          #   allows:  +3508 +build.7 +attestation +contest +greatest +latest
+          #            +protest +nextcloud +edgecase
           META="${V#*+}"
           if [ "$META" != "$V" ] && \
              printf '%s' "$META" | grep -Eiq '(^|[.-])(pre|rc|alpha|beta|dev|canary|nightly|snapshot|preview|edge|test|next)([.-]|[0-9]|$)'; then
