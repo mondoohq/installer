@@ -99,10 +99,13 @@ jobs:
         env:
           EVENT_NAME: ${{ github.event_name }}
           VERSION: ${{ needs.parse-inputs.outputs.version }}
+          CHANNEL: ${{ needs.parse-inputs.outputs.channel }}
           SKIP_PUBLISH: ${{ needs.parse-inputs.outputs.skip-publish }}
           DRY_RUN: ${{ needs.resolve-inputs.outputs.dry-run }}
         run: |
-          if [ "$SKIP_PUBLISH" = "true" ]; then
+          # Must mirror the release step below exactly, or dry-run reports
+          # something the real run would not do.
+          if [ "$CHANNEL" != "stable" ] || [ "$SKIP_PUBLISH" = "true" ]; then
             MAKE_LATEST=false
             PRERELEASE=true
           else
@@ -111,6 +114,7 @@ jobs:
           fi
           echo "event:                 $EVENT_NAME"
           echo "parse-inputs version:  $VERSION"
+          echo "parse-inputs channel:  $CHANNEL"
           echo "parse-inputs skip:     $SKIP_PUBLISH"
           echo "computed tag_name:     v$VERSION"
           echo "computed make_latest:  $MAKE_LATEST"
@@ -152,8 +156,22 @@ jobs:
         with:
           tag_name: v${{ needs.parse-inputs.outputs.version }}
           generate_release_notes: true
-          make_latest: ${{ needs.parse-inputs.outputs.skip-publish == 'true' && 'false' || 'legacy' }}
-          prerelease: ${{ needs.parse-inputs.outputs.skip-publish == 'true' }}
+          # A pre-release is published but not promoted, and GitHub fires
+          # `prereleased` rather than `released` when prerelease is true --
+          # which is what lets the packaging pipeline stay stable-only while
+          # bucket publication runs for both.
+          #
+          # The channel is derived from the version's own semver pre-release
+          # segment, which closes the regression #752 documented: a
+          # 14.0.0-rc.1 dispatched with skip-publish=false was published as a
+          # normal release, because auto-detection from the tag is disabled
+          # once make_latest/prerelease are set explicitly.
+          #
+          # skip-publish still forces a pre-release, so the manual override
+          # from #752 keeps working; it can no longer be the only thing
+          # standing between a release candidate and Latest.
+          make_latest: ${{ (needs.parse-inputs.outputs.channel == 'stable' && needs.parse-inputs.outputs.skip-publish != 'true') && 'legacy' || 'false' }}
+          prerelease: ${{ needs.parse-inputs.outputs.channel != 'stable' || needs.parse-inputs.outputs.skip-publish == 'true' }}
           token: ${{ steps.generate-token.outputs.token }}
       - uses: slackapi/slack-github-action@45a88b9581bfab2566dc881e2cd66d334e621e2c # v3.0.3
         if: ${{ always() && needs.resolve-inputs.outputs.dry-run != 'true' }}

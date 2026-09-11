@@ -36,6 +36,8 @@ on:
         value: ${{ jobs.parse-inputs.outputs.trimmed-version }}
       name:
         value: ${{ jobs.parse-inputs.outputs.name }}
+      channel:
+        value: ${{ jobs.parse-inputs.outputs.channel }}
 
 jobs:
   parse-inputs:
@@ -53,6 +55,7 @@ jobs:
       version: ${{ steps.evaluate.outputs.version }}
       trimmed-version: ${{ steps.evaluate.outputs.trimmed_version }}
       name: ${{ steps.evaluate.outputs.name }}
+      channel: ${{ steps.evaluate.outputs.channel }}
     steps:
       - name: Set input variables
         id: evaluate
@@ -67,6 +70,43 @@ jobs:
             echo "Invalid version: $VERSION"
             exit 1
           fi
+
+          # The release channel is derived from the semver pre-release segment,
+          # never declared: 14.0.0-rc.2 is preview, 13.38.1 is stable. Build
+          # metadata is not a pre-release, so 8.4.0+41 stays stable. Derived
+          # here rather than taken from the dispatch payload so an older caller
+          # that sends no channel still gets the right answer.
+          # See minstaller ADR 0003.
+          # Build metadata is everything after a `+`, and SemVer 10 says it
+          # MUST be ignored when determining precedence. So `14.0.0+rc.1` does
+          # not mean "release candidate": it compares EQUAL to 14.0.0, outranks
+          # every real 14.0.0-rc.N, and would derive the stable channel here.
+          # A pre-release is introduced with `-`, never `+`.
+          #
+          # The list is the words someone would plausibly reach for meaning
+          # "not the final release". `preview` and `edge` are on it because
+          # they are now channel names, which makes them likelier to be typed
+          # here by mistake, not less.
+          #
+          # The boundaries on both sides are what keep it from firing on real
+          # words that merely contain one of them. Verified:
+          #   rejects: +rc.1 +alpha3 +pre-2 +preview +edge.7 +test +next.1
+          #   allows:  +3508 +build.7 +attestation +contest +greatest +latest
+          #            +protest +nextcloud +edgecase
+          META="${V#*+}"
+          if [ "$META" != "$V" ] && \
+             printf '%s' "$META" | grep -Eiq '(^|[.-])(pre|rc|alpha|beta|dev|canary|nightly|snapshot|preview|edge|test|next)([.-]|[0-9]|$)'; then
+            echo "::error::version $V puts a pre-release marker in build metadata, which is ignored for precedence. This would publish to the stable channel. Use a hyphen: ${V%%+*}-${META}"
+            exit 1
+          fi
+
+          CORE="${V%%+*}"
+          case "$CORE" in
+            *-*) CHANNEL=preview ;;
+            *)   CHANNEL=stable ;;
+          esac
+          echo "Channel: $CHANNEL"
+          echo "channel=$CHANNEL" >> "$GITHUB_OUTPUT"
 
           echo "name=$NAME" >> "$GITHUB_OUTPUT"
           echo "skip-publish=$SKIP_PUBLISH" >> "$GITHUB_OUTPUT"
