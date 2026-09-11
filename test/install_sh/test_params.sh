@@ -2,9 +2,11 @@
 # Copyright Mondoo, Inc. 2025, 2026
 # SPDX-License-Identifier: BUSL-1.1
 
-# Test that install.sh flag parsing correctly maps to cnspec login parameters.
-# This sources the relevant functions from install.sh and stubs out everything
-# except the login command builder, then asserts the output.
+# Test that install.sh flag parsing correctly maps to cnspec login parameters,
+# and that -x / https_proxy reach the rest of the install (the script's own
+# downloads, and package managers run through sudo). This sources the relevant
+# functions from install.sh and stubs out everything else, then asserts the
+# output.
 
 set -e
 
@@ -148,6 +150,92 @@ assert_contains "has --config" "$result" "--config /etc/opt/mondoo/mondoo.yml"
 assert_contains "has --timer" "$result" "--timer 60"
 assert_contains "has --splay" "$result" "--splay 60"
 assert_contains "has cnspec login" "$result" "cnspec login"
+
+# capture_proxy_env resolves the proxy the way install.sh does right after flag
+# parsing and prints what the rest of the script (and any child process) sees.
+capture_proxy_env() {
+  _api_proxy="${1:-}"
+  _https_proxy_env="${2:-}"
+
+  (
+    API_PROXY="$_api_proxy"
+    if [ -n "$_https_proxy_env" ]; then
+      https_proxy="$_https_proxy_env"
+      export https_proxy
+    else
+      unset https_proxy 2>/dev/null || true
+      unset HTTPS_PROXY 2>/dev/null || true
+    fi
+
+    eval "$(sed -n '/^apply_proxy_env()/,/^}/p' "$INSTALL_SH")"
+    apply_proxy_env
+
+    # A child shell only sees exported variables, which is what curl/apt get.
+    printf 'API_PROXY=%s https_proxy=%s HTTPS_PROXY=%s child=%s' \
+      "$API_PROXY" "${https_proxy:-}" "${HTTPS_PROXY:-}" "$(sh -c 'printf %s "${https_proxy:-}"')"
+  )
+}
+
+# capture_sudo_cmd runs install.sh's sudo_cmd as a non-root user with a fake
+# sudo on PATH that prints its argv, so the exact privileged command is asserted.
+capture_sudo_cmd() {
+  _https_proxy_env="${1:-}"
+  shift
+
+  (
+    _fake_bin="$(mktemp -d)"
+    printf '#!/bin/sh\necho "sudo $*"\n' > "$_fake_bin/sudo"
+    chmod +x "$_fake_bin/sudo"
+    PATH="$_fake_bin:$PATH"
+
+    # Pretend to be an unprivileged user; stub the helpers sudo_cmd may call.
+    id() { echo 1000; }
+    red() { :; }
+    fail() { exit 1; }
+
+    if [ -n "$_https_proxy_env" ]; then
+      https_proxy="$_https_proxy_env"
+      export https_proxy
+    else
+      unset https_proxy 2>/dev/null || true
+      unset HTTPS_PROXY 2>/dev/null || true
+    fi
+
+    eval "$(sed -n '/^sudo_cmd()/,/^}/p' "$INSTALL_SH")"
+    sudo_cmd "$@"
+    rm -rf "$_fake_bin"
+  )
+}
+
+printf '\n==> Testing install.sh proxy handling\n\n'
+
+# Test 12: -x exports https_proxy for curl and the package managers
+result=$(capture_proxy_env "http://proxy:3128")
+assert_contains "-x sets https_proxy" "$result" "https_proxy=http://proxy:3128"
+assert_contains "-x sets HTTPS_PROXY" "$result" "HTTPS_PROXY=http://proxy:3128"
+assert_contains "-x is exported to child processes" "$result" "child=http://proxy:3128"
+
+# Test 13: -x overrides an inherited https_proxy
+result=$(capture_proxy_env "http://flag-proxy:3128" "http://env-proxy:8080")
+assert_contains "-x overrides inherited https_proxy" "$result" "https_proxy=http://flag-proxy:3128"
+assert_not_contains "-x overrides inherited https_proxy (no env)" "$result" "env-proxy"
+
+# Test 14: an inherited https_proxy becomes the API proxy for later steps
+result=$(capture_proxy_env "" "http://env-proxy:8080")
+assert_contains "inherited https_proxy becomes API_PROXY" "$result" "API_PROXY=http://env-proxy:8080"
+
+# Test 15: no proxy leaves the environment untouched
+result=$(capture_proxy_env)
+assert_contains "no proxy = nothing exported" "$result" "API_PROXY= https_proxy= HTTPS_PROXY= child="
+
+# Test 16: sudo_cmd carries the proxy across sudo's env_reset
+result=$(capture_sudo_cmd "http://proxy:3128" apt update)
+assert_contains "sudo_cmd passes the proxy through sudo" "$result" "sudo env https_proxy=http://proxy:3128 HTTPS_PROXY=http://proxy:3128 apt update"
+
+# Test 17: sudo_cmd without a proxy is plain sudo
+result=$(capture_sudo_cmd "" apt update)
+assert_contains "sudo_cmd without proxy is plain sudo" "$result" "sudo apt update"
+assert_not_contains "sudo_cmd without proxy does not use env" "$result" "env"
 
 printf '\n==> Results: %d/%d passed' "$PASS" "$TESTS"
 if [ "$FAIL" -gt 0 ]; then

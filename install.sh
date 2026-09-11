@@ -81,8 +81,9 @@ print_usage() {
   echo "                        Default stable. preview installs the newest" >&2
   echo "                        release candidate; it does not downgrade back." >&2
   echo "    -U <updates_url>:  Set the updates URL for mql and provider updates." >&2
-  echo "    -x <api_proxy>:    Set API proxy for cnspec login (e.g., http://proxy:3128)." >&2
-  echo "                        Auto-detected from https_proxy env var if not set." >&2
+  echo "    -x <proxy>:        Set the HTTP(S) proxy for the whole install (e.g., http://proxy:3128):" >&2
+  echo "                        downloads, package installation, cnspec login (--api-proxy)" >&2
+  echo "                        and the auto updater. Auto-detected from https_proxy if not set." >&2
 }
 
 while getopts 'i:s:u:vt:vr:y:n:a:p:U:x:c:' flag; do
@@ -108,6 +109,25 @@ while getopts 'i:s:u:vt:vr:y:n:a:p:U:x:c:' flag; do
        fail ;;
   esac
 done
+
+# Proxy
+# -----
+# -x has to reach every network call this script makes, not only 'cnspec
+# login': curl, apt/yum/zypper and brew all honor the standard *_proxy
+# variables, so publish it there once. An explicit -x wins over an inherited
+# https_proxy; without -x, an inherited https_proxy becomes the API proxy so
+# every later step (login, auto updater) sees the same value.
+apply_proxy_env() {
+  if [ -z "$API_PROXY" ]; then
+    API_PROXY="${https_proxy:-${HTTPS_PROXY:-}}"
+  fi
+  if [ -n "$API_PROXY" ]; then
+    https_proxy="$API_PROXY"
+    HTTPS_PROXY="$API_PROXY"
+    export https_proxy HTTPS_PROXY
+  fi
+}
+apply_proxy_env
 
 # define colors
 end="\033[0m"
@@ -233,21 +253,26 @@ detect_mondoo
 # ------------
 # Used for all privileged calls. If the script is run as root, this is not required.
 
-if [ "$(id -u)" = "0" ]; then
-  sudo_cmd() {
+sudo_cmd() {
+  if [ "$(id -u)" = "0" ]; then
     "$@"
-  }
-else
-  sudo_cmd() {
-    if [ -x "$(command -v sudo)" ]; then
-      sudo "$@"
+  elif [ ! -x "$(command -v sudo)" ]; then
+    red "This command needs to run with elevated privileges, but we could not find the 'sudo' command in your path (\$PATH)."
+    echo "The command we tried to run is: $*"
+    fail
+  else
+    # sudo resets the environment by default (env_reset), which silently drops
+    # the *_proxy variables apt/yum/zypper need to reach the repositories
+    # through the proxy. Hand them across explicitly; 'env' is portable where
+    # sudo --preserve-env is not.
+    _sudo_proxy="${https_proxy:-${HTTPS_PROXY:-}}"
+    if [ -n "$_sudo_proxy" ]; then
+      sudo env "https_proxy=$_sudo_proxy" "HTTPS_PROXY=$_sudo_proxy" "$@"
     else
-      red "This command needs to run with elevated privileges, but we could not find the 'sudo' command in your path (\$PATH)."
-      echo "The command we tried to run is: $*"
-      fail
+      sudo "$@"
     fi
-  }
-fi
+  fi
+}
 
 # Portable setup
 # --------------
@@ -827,6 +852,18 @@ EOL
 
 autoupdater() {
   purple_bold "\n* Enable and start the mondoo auto updater service"
+
+  # The scheduled run starts from a clean environment, so the proxy has to be
+  # written into the job itself or the updater can never reach releases.mondoo.com.
+  _updater_proxy_plist=""
+  _updater_proxy_env=""
+  _updater_proxy_arg=""
+  if [ -n "$API_PROXY" ]; then
+    _updater_proxy_plist="$(printf '                <string>-x</string>\n                <string>%s</string>' "$API_PROXY")"
+    _updater_proxy_env="export https_proxy='${API_PROXY}' HTTPS_PROXY='${API_PROXY}'"
+    _updater_proxy_arg=" -x '${API_PROXY}'"
+  fi
+
   if [ "$OS" = "macOS" ]; then
      ## Remove old launchd plists
     sudo_cmd launchctl bootout system/com.mondoo.autoupdater
@@ -855,6 +892,7 @@ autoupdater() {
                 <string>pkg</string>
                 <string>-s</string>
                 <string>enable</string>
+${_updater_proxy_plist}
         </array>
         <key>StartInterval</key>
         <integer>86400</integer>
@@ -871,8 +909,9 @@ EOL
   elif [ "$OS" = "RedHat" ] || [ "$OS" = "Debian" ] || [ "$OS" = "Suse" ]; then
     sudo_cmd tee /etc/cron.weekly/mondoo-update <<EOL
 #!/bin/sh
+${_updater_proxy_env}
 date > /var/log/mondoo-updater.log
-curl -sSL https://install.mondoo.com/sh | bash -s -- -s enable >> /var/log/mondoo-updater.log
+curl -sSL https://install.mondoo.com/sh | bash -s -- -s enable${_updater_proxy_arg} >> /var/log/mondoo-updater.log
 EOL
     sudo_cmd chmod a+x /etc/cron.weekly/mondoo-update
   fi
