@@ -350,14 +350,20 @@ jobs:
       - name: Set status
         id: status
         env:
-          # A pre-release skips every packaging job, so requiring all four to be
-          # 'success' would post red on every successful pre-release run. Green
-          # means nothing failed; skipped is not failed.
+          # A pre-release skips every packaging job, so requiring all of these to
+          # be 'success' would post red on every successful pre-release run. Green
+          # means nothing failed; skipped is not failed. Every job reported as a
+          # field below is counted here, or the message shows a red row under a
+          # green header.
           RESULTS: >-
             ${{ needs.reindex.result }}
+            ${{ needs.build-msi.result }}
+            ${{ needs.build-macos.result }}
+            ${{ needs.build-mondoo-pkgs.result }}
             ${{ needs.build-chocolatey.result }}
             ${{ needs.build-container.result }}
             ${{ needs.build-homebrew.result }}
+            ${{ needs.build-arch.result }}
           VERSION: ${{ needs.parse-inputs.outputs.version }}
           CHANNEL: ${{ needs.parse-inputs.outputs.channel }}
           R_REINDEX: ${{ needs.reindex.result }}
@@ -366,6 +372,8 @@ jobs:
           R_PKGS: ${{ needs.build-mondoo-pkgs.result }}
           R_CHOCO: ${{ needs.build-chocolatey.result }}
           R_BREW: ${{ needs.build-homebrew.result }}
+          R_ARCH: ${{ needs.build-arch.result }}
+          R_CONTAINER: ${{ needs.build-container.result }}
         run: |
           set -euo pipefail
           ok=true
@@ -394,21 +402,27 @@ jobs:
             echo "channel_line=:test_tube: *preview* — bucket and signed installers only; the OS repositories are deliberately untouched" >> "$GITHUB_OUTPUT"
           fi
 
+          # Emits the value only. The label and the newline stay in the Slack payload,
+          # where `\n` inside a double-quoted YAML scalar is a real escape — relying on
+          # a substituted `\n` being re-read as one would work by accident of when
+          # GitHub interpolates, and break the day that changes.
           status() {
-            case "$2" in
-              success) echo "*$1:*\n:white_check_mark: Done" ;;
-              skipped) echo "*$1:*\n:double_vertical_bar: Skipped" ;;
-              "")      echo "*$1:*\n:grey_question: Not run" ;;
-              *)       echo "*$1:*\n:x: $2" ;;
+            case "$1" in
+              success) echo ":white_check_mark: Done" ;;
+              skipped) echo ":double_vertical_bar: Skipped" ;;
+              "")      echo ":grey_question: Not run" ;;
+              *)       echo ":x: $1" ;;
             esac
           }
           {
-            echo "s_reindex=$(status 'Bucket + indexes' "$R_REINDEX")"
-            echo "s_msi=$(status 'Windows MSI' "$R_MSI")"
-            echo "s_macos=$(status 'macOS pkg' "$R_MACOS")"
-            echo "s_pkgs=$(status 'apt / yum' "$R_PKGS")"
-            echo "s_choco=$(status Chocolatey "$R_CHOCO")"
-            echo "s_brew=$(status Homebrew "$R_BREW")"
+            echo "s_reindex=$(status "$R_REINDEX")"
+            echo "s_msi=$(status "$R_MSI")"
+            echo "s_macos=$(status "$R_MACOS")"
+            echo "s_pkgs=$(status "$R_PKGS")"
+            echo "s_choco=$(status "$R_CHOCO")"
+            echo "s_brew=$(status "$R_BREW")"
+            echo "s_arch=$(status "$R_ARCH")"
+            echo "s_container=$(status "$R_CONTAINER")"
           } >> "$GITHUB_OUTPUT"
       - uses: slackapi/slack-github-action@45a88b9581bfab2566dc881e2cd66d334e621e2c # v3.0.3
         if: ${{ always() }}
@@ -442,17 +456,21 @@ jobs:
               - type: "section"
                 fields:
                   - type: "mrkdwn"
-                    text: "${{ steps.status.outputs.s_reindex }}"
+                    text: "*Bucket + indexes:*\n${{ steps.status.outputs.s_reindex }}"
                   - type: "mrkdwn"
-                    text: "${{ steps.status.outputs.s_msi }}"
+                    text: "*Windows MSI:*\n${{ steps.status.outputs.s_msi }}"
                   - type: "mrkdwn"
-                    text: "${{ steps.status.outputs.s_macos }}"
+                    text: "*macOS pkg:*\n${{ steps.status.outputs.s_macos }}"
                   - type: "mrkdwn"
-                    text: "${{ steps.status.outputs.s_pkgs }}"
+                    text: "*apt / yum:*\n${{ steps.status.outputs.s_pkgs }}"
                   - type: "mrkdwn"
-                    text: "${{ steps.status.outputs.s_choco }}"
+                    text: "*Chocolatey:*\n${{ steps.status.outputs.s_choco }}"
                   - type: "mrkdwn"
-                    text: "${{ steps.status.outputs.s_brew }}"
+                    text: "*Homebrew:*\n${{ steps.status.outputs.s_brew }}"
+                  - type: "mrkdwn"
+                    text: "*Arch (AUR):*\n${{ steps.status.outputs.s_arch }}"
+                  - type: "mrkdwn"
+                    text: "*Container:*\n${{ steps.status.outputs.s_container }}"
               - type: "section"
                 text:
                   type: "mrkdwn"
