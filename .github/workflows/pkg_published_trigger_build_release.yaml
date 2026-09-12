@@ -83,10 +83,14 @@ jobs:
       version: ${{ (github.event_name == 'workflow_dispatch' && inputs.version) || github.event.release.tag_name }}
       bucket: ${{ inputs.bucket }}
 
-  # Packaging is stable-only. apt, yum, chocolatey, the MSI and the macOS pkg
-  # are how a machine gets Mondoo by default, and a release candidate does not
-  # belong in any of them. This job gates every build-* job below; the bucket
-  # publication in `reindex` deliberately does not need it.
+  # Gates the packaging that reaches a shared, channel-less stream: apt, yum,
+  # chocolatey, homebrew and AUR each have exactly one distribution, so a
+  # release candidate published there is one an `apt upgrade` hands to every
+  # machine that never opted into it.
+  #
+  # Not the MSI or the macOS pkg: those publish a versioned artifact into the
+  # bucket and nothing else, so they build on every channel (see build-msi).
+  # Nor the bucket publication in `reindex`.
   #
   # A pre-release skips these jobs rather than failing the run: the run is
   # expected and its other half has work to do.
@@ -105,9 +109,18 @@ jobs:
           fi
           echo "✅ Version $VERSION is allowed"
 
+  # Channel-independent, unlike the other packaging jobs. This one only
+  # `gsutil cp`s a versioned artifact into the bucket
+  # (mondoo/<version>/mondoo_<version>_windows_<arch>.msi), so a pre-release is
+  # invisible until someone asks for it by version or through the preview
+  # channel. apt, yum, chocolatey, homebrew and AUR have a single stream with no
+  # channel concept, which is why those stay behind check-version.
+  #
+  # Without this a preview user on Windows could only take the zip, not the
+  # installer -- on the platform where the installer is how people install.
   build-msi:
     uses: ./.github/workflows/pkg_msi.yaml
-    needs: [check-version, parse-inputs]
+    needs: [parse-inputs]
     secrets:
       TSIGN_AZURE_CLIENT_ID: ${{ secrets.TSIGN_AZURE_CLIENT_ID }}
       GCP_CREDENTIALS: ${{ secrets.GCP_CREDENTIALS }}
@@ -131,9 +144,13 @@ jobs:
       version: ${{ needs.parse-inputs.outputs.version }}
       skip-publish: ${{ needs.parse-inputs.outputs.skip-publish == 'true' }}
       bucket: ${{ needs.parse-inputs.outputs.bucket }}
+  # Channel-independent for the same reason as build-msi: it publishes only
+  # mondoo/<version>/<name>_<version>_darwin_universal.pkg. Signed and notarized
+  # either way -- an unsigned pre-release pkg would be worse than none, since
+  # Gatekeeper would block it and the workaround teaches a bad habit.
   build-macos:
     uses: ./.github/workflows/pkg_macos.yaml
-    needs: [check-version, parse-inputs]
+    needs: [parse-inputs]
     secrets:
       APPLE_KEYCHAIN_PASSWORD: ${{ secrets.APPLE_KEYCHAIN_PASSWORD }}
       APPLE_KEYS_PRODUCTSIGN_P12: ${{ secrets.APPLE_KEYS_PRODUCTSIGN_P12 }}
