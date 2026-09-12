@@ -123,8 +123,8 @@ function Install-Mondoo {
     [string]   $DownloadType = 'msi',
     [string]   $Path = 'C:\Program Files\Mondoo\',
     [string]   $Version = '',
-    [ValidateSet('', 'stable', 'preview')]
-    [string]   $Channel = '',
+    [ValidateSet('stable', 'preview')]
+    [string]   $Channel = 'stable',
     [string]   $RegistrationToken = '',
     [string]   $Proxy = '',
     [string]   $Service = '',
@@ -181,13 +181,21 @@ function Install-Mondoo {
       Param
       (
         [Parameter(Mandatory)]
-        [string[]]$product
+        [string[]]$product,
+        [ValidateSet('stable', 'preview')]
+        [string]$channel = 'stable'
       )
       # latest.json is the stable channel; preview.json is the pre-release
       # track. Both carry exactly one version and are the same documents the
       # install service and the self-updater resolve through.
+      #
+      # Passed in rather than read from the enclosing scope: this function is
+      # nested inside Install-Mondoo, so $Channel would resolve at runtime, but
+      # an argument makes the dependency visible -- to a reader, and to
+      # PSScriptAnalyzer, which reports an enclosing parameter used only from
+      # inside a nested function as unused.
       $channel_doc = 'latest.json'
-      If ($Channel -eq 'preview') {
+      If ($channel -eq 'preview') {
         $channel_doc = 'preview.json'
       }
       $url_version = "https://releases.mondoo.com/${product}/${channel_doc}"
@@ -490,7 +498,7 @@ function Install-Mondoo {
 
     If ([string]::IsNullOrEmpty($Version)) {
       # latest release
-      $version = determine_latest -product $Product
+      $version = determine_latest -product $Product -channel $Channel
     }
     # construct release URL from releases.mondoo.com
     $releaseurl = "https://releases.mondoo.com/${Product}/${version}/${Product}_${version}_windows_${arch}.${filetype}"
