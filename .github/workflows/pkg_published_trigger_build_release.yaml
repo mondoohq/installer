@@ -329,7 +329,22 @@ jobs:
     # is failure or cancellation. Guarding it on its dependencies would leave a
     # broken run showing "In Progress" forever.
     if: ${{ always() }}
-    needs: [notify, build-homebrew, build-container, build-chocolatey, reindex]
+    # Every job whose result this message reports has to be in `needs`:
+    # `needs.<job>` for a job that is not a dependency evaluates to empty,
+    # so a missing entry renders as "Not run" rather than failing.
+    needs:
+      [
+        notify,
+        parse-inputs,
+        reindex,
+        build-msi,
+        build-macos,
+        build-mondoo-pkgs,
+        build-arch,
+        build-chocolatey,
+        build-container,
+        build-homebrew,
+      ]
     runs-on: ubuntu-latest
     steps:
       - name: Set status
@@ -343,6 +358,14 @@ jobs:
             ${{ needs.build-chocolatey.result }}
             ${{ needs.build-container.result }}
             ${{ needs.build-homebrew.result }}
+          VERSION: ${{ needs.parse-inputs.outputs.version }}
+          CHANNEL: ${{ needs.parse-inputs.outputs.channel }}
+          R_REINDEX: ${{ needs.reindex.result }}
+          R_MSI: ${{ needs.build-msi.result }}
+          R_MACOS: ${{ needs.build-macos.result }}
+          R_PKGS: ${{ needs.build-mondoo-pkgs.result }}
+          R_CHOCO: ${{ needs.build-chocolatey.result }}
+          R_BREW: ${{ needs.build-homebrew.result }}
         run: |
           set -euo pipefail
           ok=true
@@ -354,6 +377,39 @@ jobs:
           done
           echo "results: $RESULTS -> success=$ok"
           echo "status_success=$ok" >> "$GITHUB_OUTPUT"
+          if [ "$ok" = "true" ]; then
+            echo "header=:rocket: ${VERSION} published" >> "$GITHUB_OUTPUT"
+            echo "mention=" >> "$GITHUB_OUTPUT"
+          else
+            echo "header=:x: ${VERSION} failed to publish" >> "$GITHUB_OUTPUT"
+            echo "mention=<!here> " >> "$GITHUB_OUTPUT"
+          fi
+
+          # The channel decides which half of this workflow runs, so it is the first
+          # thing a reader needs in order to know whether a row of "Skipped" is
+          # correct or alarming.
+          if [ "$CHANNEL" = "stable" ]; then
+            echo "channel_line=:package: *stable* — packaged for apt, yum, chocolatey, homebrew and AUR" >> "$GITHUB_OUTPUT"
+          else
+            echo "channel_line=:test_tube: *preview* — bucket and signed installers only; the OS repositories are deliberately untouched" >> "$GITHUB_OUTPUT"
+          fi
+
+          status() {
+            case "$2" in
+              success) echo "*$1:*\n:white_check_mark: Done" ;;
+              skipped) echo "*$1:*\n:double_vertical_bar: Skipped" ;;
+              "")      echo "*$1:*\n:grey_question: Not run" ;;
+              *)       echo "*$1:*\n:x: $2" ;;
+            esac
+          }
+          {
+            echo "s_reindex=$(status 'Bucket + indexes' "$R_REINDEX")"
+            echo "s_msi=$(status 'Windows MSI' "$R_MSI")"
+            echo "s_macos=$(status 'macOS pkg' "$R_MACOS")"
+            echo "s_pkgs=$(status 'apt / yum' "$R_PKGS")"
+            echo "s_choco=$(status Chocolatey "$R_CHOCO")"
+            echo "s_brew=$(status Homebrew "$R_BREW")"
+          } >> "$GITHUB_OUTPUT"
       - uses: slackapi/slack-github-action@45a88b9581bfab2566dc881e2cd66d334e621e2c # v3.0.3
         if: ${{ always() }}
         with:
@@ -362,15 +418,42 @@ jobs:
           payload: |
             channel: "${{ env.SLACK_BOT_CHANNEL_ID }}"
             ts: "${{ needs.notify.outputs.update-ts }}"
-            text: "GitHub Actions Run"
-            attachments:
-              - color: "${{ steps.status.outputs.status_success == 'true' && '#00FF00' || '#FF0000' }}"
-                blocks:
-                  - type: "section"
-                    fields:
-                      - type: "mrkdwn"
-                        text: "<${{ github.event.repository.html_url }}/actions/runs/${{ github.run_id }}/attempts/${{ github.run_attempt }}|${{ github.workflow }}>"
-                      - type: "mrkdwn"
-                        text: " "
-                      - type: "mrkdwn"
-                        text: "*Status:*\n`${{ steps.status.outputs.status_success == 'true' && 'Success' || 'Failed' }}`"
+            text: "${{ steps.status.outputs.mention }}${{ steps.status.outputs.header }}"
+            blocks:
+              - type: "header"
+                text:
+                  type: "plain_text"
+                  text: "${{ steps.status.outputs.header }}"
+                  emoji: true
+              - type: "section"
+                text:
+                  type: "mrkdwn"
+                  text: "${{ steps.status.outputs.channel_line }}"
+              - type: "section"
+                fields:
+                  - type: "mrkdwn"
+                    text: "*Version:*\n`${{ needs.parse-inputs.outputs.version }}`"
+                  - type: "mrkdwn"
+                    text: "*Triggered by:*\n${{ github.actor }}"
+                  - type: "mrkdwn"
+                    text: "*Workflow run:*\n<https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|Open run>"
+                  - type: "mrkdwn"
+                    text: "*Release notes:*\n<https://github.com/${{ github.repository }}/releases/tag/v${{ needs.parse-inputs.outputs.version }}|v${{ needs.parse-inputs.outputs.version }}>"
+              - type: "section"
+                fields:
+                  - type: "mrkdwn"
+                    text: "${{ steps.status.outputs.s_reindex }}"
+                  - type: "mrkdwn"
+                    text: "${{ steps.status.outputs.s_msi }}"
+                  - type: "mrkdwn"
+                    text: "${{ steps.status.outputs.s_macos }}"
+                  - type: "mrkdwn"
+                    text: "${{ steps.status.outputs.s_pkgs }}"
+                  - type: "mrkdwn"
+                    text: "${{ steps.status.outputs.s_choco }}"
+                  - type: "mrkdwn"
+                    text: "${{ steps.status.outputs.s_brew }}"
+              - type: "section"
+                text:
+                  type: "mrkdwn"
+                  text: "*Install:*\n```curl -sSL https://install.mondoo.com/sh | sh```"
