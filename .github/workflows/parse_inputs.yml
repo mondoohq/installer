@@ -63,13 +63,32 @@ jobs:
           # strip leading 'v', e.g. v1.0.0
           V="${VERSION##v}"
           echo "Version: $V"
+
+          # Validate the WHOLE string, and before anything is written to
+          # $GITHUB_OUTPUT. Two reasons:
+          #
+          # Only the core used to be checked (`${V%%-*}`), so everything after
+          # the first `-` was unvalidated -- `1.0.0-rc"x` passed. That value is
+          # interpolated into the Slack payload downstream, which is a
+          # double-quoted YAML scalar, so a quote in the tail fails the notify
+          # step rather than merely rendering oddly.
+          #
+          # And the outputs were written first, so a version this job rejects
+          # was still handed to the jobs that run `if: always()` -- outputs of
+          # a failed job stay readable.
+          #
+          # The character class is SemVer's own, which is why validating here
+          # is worth more than escaping at each of the places it is consumed:
+          # it admits no character that is meaningful to YAML, to Slack markup,
+          # or to a shell.
+          if [[ ! $V =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?(\+[0-9A-Za-z.-]+)?$ ]]; then
+            echo "::error::invalid version: $VERSION"
+            exit 1
+          fi
+
           echo "version=${V}" >> "$GITHUB_OUTPUT"
           # strip trailing pre-release version e.g. 1.0.0-beta
           echo "trimmed_version=${V%%-*}" >> "$GITHUB_OUTPUT"
-          if [[ ! ${V%%-*} =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "Invalid version: $VERSION"
-            exit 1
-          fi
 
           # The release channel is derived from the semver pre-release segment,
           # never declared: 14.0.0-rc.2 is preview, 13.38.1 is stable. Build
