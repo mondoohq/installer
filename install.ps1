@@ -123,6 +123,8 @@ function Install-Mondoo {
     [string]   $DownloadType = 'msi',
     [string]   $Path = 'C:\Program Files\Mondoo\',
     [string]   $Version = '',
+    [ValidateSet('', 'stable', 'preview')]
+    [string]   $Channel = '',
     [string]   $RegistrationToken = '',
     [string]   $Proxy = '',
     [string]   $Service = '',
@@ -181,7 +183,14 @@ function Install-Mondoo {
         [Parameter(Mandatory)]
         [string[]]$product
       )
-      $url_version = "https://releases.mondoo.com/${product}/latest.json"
+      # latest.json is the stable channel; preview.json is the pre-release
+      # track. Both carry exactly one version and are the same documents the
+      # install service and the self-updater resolve through.
+      $channel_doc = 'latest.json'
+      If ($Channel -eq 'preview') {
+        $channel_doc = 'preview.json'
+      }
+      $url_version = "https://releases.mondoo.com/${product}/${channel_doc}"
       $wc = New-Object Net.Webclient
       If (![string]::IsNullOrEmpty($Proxy)) {
         $wc.proxy = New-Object System.Net.WebProxy($Proxy)

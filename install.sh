@@ -57,7 +57,7 @@ PROVIDERS_URL=''  # deprecated, use -U (UPDATES_URL)
 API_PROXY=''
 
 print_usage() {
-  echo "usage: [-i] [-s] [-t token] [-u] [-U url] [-x proxy]" >&2
+  echo "usage: [-i] [-s] [-t token] [-u] [-U url] [-x proxy] [-c channel]" >&2
   echo "  Options: " >&2
   echo "    -i <installer>:     Select a specific installer, options are:" >&2
   echo "                        macOS: brew, pkg" >&2
@@ -77,12 +77,15 @@ print_usage() {
   echo "                        Adds these annotations to the mondoo.yml. (default [])" >&2
   echo "    -p <providers_url>: (Deprecated) Set custom URL where providers are downloaded from." >&2
   echo "                        Use -U instead." >&2
+  echo "    -c <channel>:       Release channel to install from: stable or preview." >&2
+  echo "                        Default stable. preview installs the newest" >&2
+  echo "                        release candidate; it does not downgrade back." >&2
   echo "    -U <updates_url>:  Set the updates URL for mql and provider updates." >&2
   echo "    -x <api_proxy>:    Set API proxy for cnspec login (e.g., http://proxy:3128)." >&2
   echo "                        Auto-detected from https_proxy env var if not set." >&2
 }
 
-while getopts 'i:s:u:vt:vr:y:n:a:p:U:x:' flag; do
+while getopts 'i:s:u:vt:vr:y:n:a:p:U:x:c:' flag; do
   case "${flag}" in
     i) MONDOO_INSTALLER="${OPTARG}" ;;
     s) MONDOO_SERVICE="${OPTARG}" ;;
@@ -95,6 +98,12 @@ while getopts 'i:s:u:vt:vr:y:n:a:p:U:x:' flag; do
     p) PROVIDERS_URL="${OPTARG}"; echo "WARNING: -p is deprecated, use -U instead" >&2 ;;
     U) UPDATES_URL="${OPTARG}" ;;
     x) API_PROXY="${OPTARG}" ;;
+    c) MONDOO_CHANNEL="${OPTARG}"
+       case "${MONDOO_CHANNEL}" in
+         stable|preview) ;;
+         *) echo "unknown channel '${MONDOO_CHANNEL}', expected stable or preview" >&2
+            exit 1 ;;
+       esac ;;
     *) print_usage
        fail ;;
   esac
@@ -251,8 +260,31 @@ detect_portable() {
   fi
 }
 
+# Resolve the version to install from the channel's pointer document.
+#
+# This used to scrape the directory listing for the first thing shaped like
+# N.N.N, which broke the moment pre-releases were published: the pattern has no
+# hyphen in it, so `14.0.0-rc.3/` was read as `14.0.0` — a version that does not
+# exist, giving a 404 download rather than an error anyone could read.
+#
+# latest.json and preview.json are the published contract, carry exactly one
+# version, and are what the install service and the self-updater already use.
 detect_latest_version() {
-  MONDOO_LATEST_VERSION="$(curl https://releases.mondoo.com/${MONDOO_PKG_NAME}/ 2>/dev/null | grep -Eo 'href="[[:alnum:]]+\.[[:alnum:]]+\.[[:alnum:]]+' | head -n1 | sed 's/href="//')"
+  channel_doc="latest.json"
+  if [ "${MONDOO_CHANNEL}" = "preview" ]; then
+    channel_doc="preview.json"
+  fi
+
+  MONDOO_LATEST_VERSION="$(curl -A "${UserAgent}" -fsSL \
+    "https://releases.mondoo.com/${MONDOO_PKG_NAME}/${channel_doc}" 2>/dev/null \
+    | grep -o '"version"[[:space:]]*:[[:space:]]*"[^"]*"' \
+    | head -n1 \
+    | sed 's/.*"\([^"]*\)"$/\1/')"
+
+  if [ -z "${MONDOO_LATEST_VERSION}" ]; then
+    red "Could not determine the latest ${MONDOO_PKG_NAME} version from the ${MONDOO_CHANNEL:-stable} channel."
+    fail
+  fi
 }
 
 install_portable() {
