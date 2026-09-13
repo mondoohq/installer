@@ -9,6 +9,56 @@ permissions:
   contents: read
 
 jobs:
+  # Whether this pull request touches the MSI sources at all. A job cannot
+  # carry a `paths` filter the way a workflow trigger can, so the question is
+  # answered once here and the WiX job keys off it.
+  changes:
+    name: Detect changed areas
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      msi: ${{ steps.filter.outputs.msi }}
+    steps:
+      # No checkout. The question is "which files does this pull request
+      # touch", which GitHub already knows, so asking it avoids cloning the
+      # repository to compute a diff.
+      #
+      # A `git diff BASE...HEAD` needs a merge base, so it needs real history
+      # on both sides -- a shallow clone of each cannot produce one. That
+      # leaves a full clone as the only working git answer, which is a lot of
+      # work to decide whether to start a second job.
+      - id: filter
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+
+          # This workflow is pull_request-only today, so PR is always set. If a
+          # push trigger is ever added, run the lint rather than skip it: the
+          # cost of being wrong here is a Windows runner, and the cost of being
+          # wrong the other way is an MSI error reaching main unnoticed, which
+          # is what this check exists to prevent.
+          if [ -z "${PR:-}" ]; then
+            echo "msi=true" >> "$GITHUB_OUTPUT"
+            echo "No pull request number in this event; linting rather than assuming nothing changed."
+            exit 0
+          fi
+
+          # --paginate: the unpaged call returns the first 30 files only, and a
+          # large pull request would look as though it changed nothing here.
+          if gh api --paginate "/repos/${REPO}/pulls/${PR}/files" --jq '.[].filename' \
+             | grep -qE '^(packages/msi/|\.github/workflows/lint_wix\.yaml)'; then
+            echo "msi=true" >> "$GITHUB_OUTPUT"
+            echo "MSI sources changed; the WiX lint will run."
+          else
+            echo "msi=false" >> "$GITHUB_OUTPUT"
+            echo "No MSI sources changed; the WiX lint is skipped."
+          fi
+
   shellcheck:
     name: Shellcheck
     runs-on: ubuntu-latest
@@ -38,3 +88,13 @@ jobs:
         uses: github/codeql-action/upload-sarif@68bde559dea0fdcac2102bfdf6230c5f70eb485e # v4.35.4
         with:
           sarif_file: results.sarif
+
+  # Last, and only once the cheap lints are green. candle and light need a
+  # Windows runner, and the errors they catch (unresolved references, the ICE
+  # suite) are invisible to every other check here -- two of them reached main
+  # before this existed.
+  wix:
+    name: WiX MSI sources
+    needs: [changes, shellcheck, powershell]
+    if: needs.changes.outputs.msi == 'true'
+    uses: ./.github/workflows/lint_wix.yaml
