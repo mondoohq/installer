@@ -1,0 +1,55 @@
+# Configuration for crate-ci/typos (see .github/workflows/spell-check.yaml)
+# Docs: https://github.com/crate-ci/typos
+
+[files]
+extend-exclude = [
+  # Third-party licence text. Not ours to correct, and the RTF/HTML markup
+  # splits words across control sequences so most hits are not words at all.
+  "packages/msi/msi/license.rtf",
+  "packages/archlinux/mondoo/LICENSE.html",
+  # Binary assets
+  "*.png",
+  "*.jpg",
+  "*.ico",
+  "*.bmp",
+]
+
+# Terms typos misflags. Each maps the word to itself so typos treats it as
+# correct. Matching is case-insensitive.
+[default.extend-words]
+# Base64 fragments from the Authenticode signature blocks appended to the
+# signed PowerShell scripts. typos reads them as words; they are not.
+nd = "nd"
+ba = "ba"
+ue = "ue"
+fo = "fo"
+pn = "pn"
+iz = "iz"
+iy = "iy"
+tbe = "tbe"
+tpe = "tpe"
+hpe = "hpe"
+tha = "tha"
+ot = "ot"
+usag = "usag"
+informat = "informat"
+informatio = "informatio"
+# PowerShell operators read as words: -ine is case-insensitive not-equal.
+ine = "ine"
+# Product and tool names
+aks = "aks"             # Azure Kubernetes Service
+hashi = "hashi"         # HashiCorp
+copywrite = "copywrite" # HashiCorp copywrite tool, used by the license check
+# Real misspellings that cannot be corrected here.
+#
+# TODO(#785): appears in install.ps1 and Mondoo.Installer.psm1, both of which
+# carry an Authenticode signature in the repository. Editing the text
+# invalidates that signature, and signing is a manual workflow_dispatch
+# (sign_powershell.yml), so a fix has to be paired with a re-sign rather than
+# ridden along with an unrelated change. Remove this entry with that fix.
+registred = "registred"
+# TODO(#786): the shell variable orignalVersion in the Arch PKGBUILD, emitted
+# from a template in packages/archlinux/generator/main.go. Renaming it means
+# changing the generator and regenerating the package. Remove this entry with
+# that fix.
+orignal = "orignal"
