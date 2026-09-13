@@ -45,6 +45,13 @@ test/install_sh/status:
 test/install_sh/arch:
 	sh test/install_sh/test_arch_detect.sh
 
+## install.sh behind an HTTP proxy, with real network isolation. Needs docker,
+## pulls a squid image, and takes a couple of minutes -- so it is kept out of
+## the target list below and run on its own.
+.PHONY: test/install_sh/proxy
+test/install_sh/proxy:
+	sh test/install_sh/test_proxy.sh
+
 ## POSIX sh compatibility checks for install.sh
 .PHONY: test/posix
 test/posix:
