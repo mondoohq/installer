@@ -116,8 +116,10 @@ jobs:
           fetch-depth: 0
       - name: Version
         id: version
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
         run: |
-          $v='${{ inputs.version }}'
+          $v=$env:INPUT_VERSION
           $version=$v.trim("v","V")
           echo "version=$version" >> $env:GITHUB_OUTPUT
       - name: Check if install.ps1 changed
@@ -162,8 +164,10 @@ jobs:
           fetch-depth: 0
       - name: Version
         id: version
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
         run: |
-          $v='${{ inputs.version }}'
+          $v=$env:INPUT_VERSION
           $version=$v.trim("v","V")
           echo "version=$version" >> $env:GITHUB_OUTPUT
       - name: Check if install.ps1 changed
@@ -204,8 +208,10 @@ jobs:
           fetch-depth: 0
       - name: Version
         id: version
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
         run: |
-          $v='${{ inputs.version }}'
+          $v=$env:INPUT_VERSION
           $version=$v.trim("v","V")
           echo "version=$version" >> $env:GITHUB_OUTPUT
       - name: Install cnquery (old package) via install.ps1
