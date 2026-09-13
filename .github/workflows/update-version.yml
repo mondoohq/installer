@@ -198,7 +198,16 @@ jobs:
           # If these checks were required on main, none of this would be
           # needed: `gh pr merge` would refuse until they passed. That is the
           # better fix and this is the one available from inside the workflow.
+          # Both are tuned to what this repository's suite actually did on
+          # PR #760 -- a 2m36s spread between the first check registering and
+          # the last. They will need revisiting if that spread grows: the cost
+          # of being wrong low is a merge that skipped its checks, the cost of
+          # being wrong high is a slower release, so prefer generous.
           SETTLE_FLOOR_SECONDS=300
+          QUIET_SECONDS=60
+          # Under the step's timeout-minutes, so the loop reports its own
+          # failure rather than being killed mid-wait.
+          SETTLE_DEADLINE_SECONDS=900
           STARTED_AT=$(date +%s)
 
           # Phase 1: something to watch. Its own budget, so a slow first
@@ -229,11 +238,15 @@ jobs:
           # real quiet period rather than "unchanged across one poll"; the
           # floor then guarantees a minimum total wait regardless of when the
           # changes happened to fall.
-          QUIET_SECONDS=60
+          #
+          # Bounded by elapsed time rather than an iteration count: each pass
+          # blocks inside --watch for however long the slowest check takes, so
+          # counting iterations would give up after an amount of time nobody
+          # can predict from reading it.
           settled=0
           previous=-1
           last_change_at=${STARTED_AT}
-          for _ in $(seq 1 20); do
+          while [ "$(( $(date +%s) - STARTED_AT ))" -lt "${SETTLE_DEADLINE_SECONDS}" ]; do
             count=$(gh pr view "${PR_NUMBER}" --json statusCheckRollup \
               --jq '.statusCheckRollup | length' 2>/dev/null || echo 0)
             count=${count:-0}
@@ -264,7 +277,7 @@ jobs:
           done
 
           if [ "${settled}" -ne 1 ]; then
-            echo "::error::checks on PR #${PR_NUMBER} never settled"
+            echo "::error::checks on PR #${PR_NUMBER} did not settle within ${SETTLE_DEADLINE_SECONDS}s"
             exit 1
           fi
 
