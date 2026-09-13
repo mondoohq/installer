@@ -314,7 +314,11 @@ jobs:
     # Packaging: stable only. See check-version.
     if: ${{ needs.parse-inputs.outputs.channel == 'stable' }}
     needs: [parse-inputs, reindex]
-    uses: mondoohq/homebrew-mondoo/.github/workflows/release.yml@master
+    # Pinned like every other `uses:` in this repository. It matters more here
+    # than most: this call passes `secrets: inherit`, so a mutable ref hands
+    # every secret this workflow holds to whatever master points at.
+    # homebrew-mondoo publishes no tags, so this is a commit SHA.
+    uses: mondoohq/homebrew-mondoo/.github/workflows/release.yml@69d5323ed7ea23a3eff2df3235bea621eff7460a # master @ 2026-09-08
     # TODO(mondoohq/homebrew-mondoo#59): Replace secrets: inherit with explicit
     # secrets after adding secrets declarations to the homebrew-mondoo workflow_call
     # trigger. Required secrets: MONDOO_MERGEBOT_APP_ID, MONDOO_MERGEBOT_APP_PRIVATE_KEY

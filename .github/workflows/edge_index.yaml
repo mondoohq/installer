@@ -61,23 +61,66 @@ jobs:
         run: |
           set -euo pipefail
 
-          # An unrecognised product would have this job index, and prune, a
-          # prefix nobody meant to touch.
+          # $GITHUB_OUTPUT is line-oriented, so a value carrying a newline
+          # injects further outputs that later steps read as their own. On
+          # repository_dispatch these values come from another repository's
+          # workflow, so they are only as trustworthy as that repository's CI.
+          #
+          # The previous keep check looked equivalent to this and was not:
+          # `printf '%s' "$KEEP" | grep -Eq '^[0-9]+$'` matches ANY line, so
+          # "20\nbucket=elsewhere" passed it, and the `[ "$KEEP" -lt 1 ]` that
+          # followed errored with status 2 -- read as false by the `||` -- so
+          # the guard never fired. keep= was written last, so that one line
+          # could overwrite every output above it, including the bucket that
+          # `gsutil -m rm -r` runs against.
+
+          # product and bucket are closed sets, so the branch writes the
+          # literal rather than the variable: nothing tainted reaches
+          # $GITHUB_OUTPUT at all. An unrecognised product would have this job
+          # index, and prune, a prefix nobody meant to touch.
           case "$PRODUCT" in
-            cnspec|mql) ;;
+            cnspec) echo "product=cnspec" >> "$GITHUB_OUTPUT" ;;
+            mql)    echo "product=mql"    >> "$GITHUB_OUTPUT" ;;
             *) echo "::error::unsupported product '$PRODUCT'"; exit 1 ;;
           esac
 
+          # A well-formed name for someone else's bucket is exactly the input
+          # worth refusing here, so this is the allowlist the workflow_dispatch
+          # input already offers rather than a shape check.
+          case "$BUCKET" in
+            releases-us.mondoo.io) echo "bucket=releases-us.mondoo.io" >> "$GITHUB_OUTPUT" ;;
+            releases-com-test)     echo "bucket=releases-com-test"     >> "$GITHUB_OUTPUT" ;;
+            *) echo "::error::unsupported bucket '$BUCKET'"; exit 1 ;;
+          esac
+
+          # Digits only, then arithmetic expansion, so what is written is an
+          # integer by construction rather than by inspection.
           KEEP="${KEEP:-$DEFAULT_KEEP}"
-          if ! printf '%s' "$KEEP" | grep -Eq '^[0-9]+$' || [ "$KEEP" -lt 1 ]; then
-            echo "::error::keep must be a positive integer, got '$KEEP'"
+          case "$KEEP" in
+            ''|*[!0-9]*)
+              echo "::error::keep must be a positive integer, got '$KEEP'"
+              exit 1 ;;
+          esac
+          if [ "$((KEEP))" -lt 1 ]; then
+            echo "::error::keep must be at least 1, got '$KEEP'"
             exit 1
           fi
+          echo "keep=$((KEEP))" >> "$GITHUB_OUTPUT"
 
-          echo "product=$PRODUCT" >> "$GITHUB_OUTPUT"
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-          echo "bucket=$BUCKET" >> "$GITHUB_OUTPUT"
-          echo "keep=$KEEP" >> "$GITHUB_OUTPUT"
+          # version is free-form, so it is validated rather than enumerated.
+          # The case pattern matches the whole string, so a newline is rejected
+          # along with everything else outside the charset.
+          #
+          # xgrep does not model a `case` allowlist as a sanitizer, so the line
+          # below is suppressed rather than left to read as an open finding
+          # nobody is acting on. Remove the suppression once mondoohq/xgrep#2643
+          # lands -- the rule should then clear it on its own.
+          case "$VERSION" in
+            '') ;;
+            *[!0-9A-Za-z.+_-]*)
+              echo "::error::invalid version '$VERSION'"; exit 1 ;;
+          esac
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT" # nogrep: actions-env-laundered-injection
 
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
