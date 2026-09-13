@@ -1,26 +1,36 @@
-name: "Test UTF-16 LE encoding for PowerShell Scripts"
+name: "Lint: PowerShell file encoding"
+
+# Runs on pull requests, which is the point: the previous version of this
+# workflow was workflow_dispatch only and had never run once, so it could not
+# have caught anything.
 on:
+  pull_request:
+    paths:
+      - "**.ps1"
+      - "**.psm1"
+      - "**.psd1"
+      - ".github/scripts/check-powershell-encoding.sh"
+      - ".github/workflows/check_powershell_file_encoding.yml"
+  push:
+    branches: [main]
+    paths:
+      - "**.ps1"
+      - "**.psm1"
+      - "**.psd1"
+      - ".github/scripts/check-powershell-encoding.sh"
+      - ".github/workflows/check_powershell_file_encoding.yml"
   workflow_dispatch:
 
 permissions: {}
 
 jobs:
-  check_encoding:
+  encoding:
+    name: UTF-8 BOM and CRLF
     permissions:
       contents: read
-    name: Check UTF-16 LE encoding for PowerShell scripts
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      - name: Install Mondoo cnspec
-        shell: bash
-        run: |
-          echo Installing Mondoo cnspec...
-          bash -c "$(curl -sSL https://install.mondoo.com/sh/cnspec)"
-      
-      - name: Check encoding of install.ps1 and download.ps1
-        shell: bash
-        run: |
-          cnspec scan local --detect-cicd --score-threshold 100 --policy-bundle test/powershell/check-powershell-encoding.mql.yaml -o full
+      - name: Check PowerShell file encoding
+        run: ./.github/scripts/check-powershell-encoding.sh
