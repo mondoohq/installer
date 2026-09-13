@@ -1,0 +1,50 @@
+---
+name: xgrep
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: xgrep-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  scan:
+    name: xgrep
+    permissions:
+      contents: read
+      # upload the SARIF report to code scanning
+      security-events: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # `xgrep ci` diffs against the pull request's merge base, so the
+          # default shallow clone is not enough.
+          fetch-depth: 0
+
+      # ubuntu-latest ships Node, so the npm package is the whole install. Pin
+      # the version so a scan is reproducible and a new release cannot change
+      # this repo's findings without a commit here.
+      - name: Install xgrep
+        run: npm install -g @mondoohq/xgrep@0.62.0
+
+      # `xgrep ci` detects the provider, scans only what the pull request
+      # changed, and writes SARIF. It exits 0 even with findings: the backlog
+      # on main is real (see below), so code scanning is the gate rather than
+      # a hard CLI failure. Add `--error` once that backlog is triaged.
+      - name: Scan
+        run: xgrep ci --sarif -o xgrep.sarif
+
+      - name: Upload SARIF results file
+        if: always()
+        uses: github/codeql-action/upload-sarif@68bde559dea0fdcac2102bfdf6230c5f70eb485e # v4.35.4
+        with:
+          sarif_file: xgrep.sarif
