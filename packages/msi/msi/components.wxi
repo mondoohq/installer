@@ -31,6 +31,26 @@
            ProductVersion above cannot carry it, because Windows Installer
            accepts numeric fields only, so this is the one place the exact
            build is recorded. -->
+      <!-- UPDATECHANNEL=preview at install time puts the machine on the
+           pre-release track, which is otherwise only settable by editing
+           mondoo.yml after the fact — awkward for a fleet deployment, and the
+           channel is the one client-side control the whole preview mechanism
+           has.
+
+           A machine environment variable rather than a config file write:
+           MONDOO_UPDATE_CHANNEL binds to the update_channel setting through
+           viper's env prefix, so no new plumbing is needed on the client, and
+           the service running as LocalSystem reads machine variables. The MSI
+           already sets PATH the same way.
+
+           Not Permanent, so it is removed with the package, and conditioned so
+           a normal install writes nothing: an env var outranks mondoo.yml, and
+           silently overriding a file the admin edited later would be a nasty
+           surprise for someone who never asked for the pinning. -->
+      <Component Id="UpdateChannel" Win64="yes" Directory="INSTALLLOCATION" Guid="3f7a2b91-5c8d-4e16-a0b4-7d29e6c31f58">
+        <Condition><![CDATA[UPDATECHANNEL <> ""]]></Condition>
+        <Environment Id="MondooUpdateChannel" Name="MONDOO_UPDATE_CHANNEL" Value="[UPDATECHANNEL]" System="yes" Action="set" Part="all" />
+      </Component>
       <Component Id="InstallRegistration" Win64="yes" Directory="INSTALLLOCATION" Guid="9a4c1f7e-6d21-4f0b-9f3e-1c2d5a7b8e04">
         <RegistryKey Root="HKLM" Key="SOFTWARE\Mondoo" ForceCreateOnInstall="yes" ForceDeleteOnUninstall="yes">
           <RegistryValue Name="ProductCode" Type="string" Value="[ProductCode]" KeyPath="yes" />

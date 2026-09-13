@@ -64,6 +64,18 @@
     <Property Id="ARPHELPLINK" Value="https://mondoo.com" />
     <!-- Remove repair -->
     <Property Id="ARPNOREPAIR" Value="yes" Secure="yes" />
+    <!-- Set ALLOWDOWNGRADE=1 on the command line to install over a version
+         Windows Installer considers newer or equal. Secure so it survives the
+         handoff to the elevated service. Named after Chrome's property of the
+         same name, which exists for the same reason: the binary updates itself
+         underneath the package, so the package's version is not the authority
+         on what is installed. -->
+    <Property Id="ALLOWDOWNGRADE" Secure="yes" />
+    <!-- Set UPDATECHANNEL=preview to put the machine on the pre-release track
+         at install time. Secure for the same reason as ALLOWDOWNGRADE.
+         Empty by default, which leaves the channel to be derived from the
+         installed build rather than pinned by the installer. -->
+    <Property Id="UPDATECHANNEL" Secure="yes" />
 
     <!-- Windows 10/2016 or later is required. -->
     <!-- https://stackoverflow.com/a/42743062, https://support.microsoft.com/en-us/help/3202260/versionnt-value-for-windows-10-and-windows-server-2016 -->
@@ -75,9 +87,11 @@
 
     <InstallUISequence>
       <Custom Action="MutualExclusiveError" After="FindRelatedProducts"><![CDATA[OTHERSKUFOUND]]></Custom>
+      <Custom Action="AllowDowngradeClearsNewerVersion" Before="WixExitEarlyWithSuccess"><![CDATA[ALLOWDOWNGRADE = "1"]]></Custom>
     </InstallUISequence>
     <InstallExecuteSequence>
       <Custom Action="MutualExclusiveError" After="FindRelatedProducts"><![CDATA[OTHERSKUFOUND]]></Custom>
+      <Custom Action="AllowDowngradeClearsNewerVersion" Before="WixExitEarlyWithSuccess"><![CDATA[ALLOWDOWNGRADE = "1"]]></Custom>
       <RemoveExistingProducts After="InstallInitialize" />
       <Custom Action="RegisterMondooAgent" Before="MigrateMondooConfiguration"><![CDATA[REGISTRATIONTOKEN <> "" AND NOT Installed]]></Custom>
       <Custom Action="MigrateMondooConfiguration" Before="InstallServices"><![CDATA[NOT REMOVE]]></Custom>
@@ -87,13 +101,30 @@
     <!-- https://stackoverflow.com/questions/7656509/wix-msi-how-to-avoid-installing-same-msi-twice -->
     <!-- https://wixtoolset.org/documentation/manual/v3/customactions/wixexitearlywithsuccess.html -->
     <Upgrade Id="$(var.UpgradeCode)">
-      <!-- Detect older product versions -->
-      <UpgradeVersion OnlyDetect="no" IncludeMinimum="yes" IncludeMaximum="no" Minimum="0.0.0" Maximum="$(var.ProductVersion)" Property="PREVIOUSVERSIONSINSTALLED"/>
+      <!-- Detect any installed version, not only older ones.
+           Without a Maximum, an equal or newer product is scheduled for
+           removal too. That matters because ProductVersion carries the semver
+           core only: 14.0.0-rc.4 and 14.0.0-rc.5 are both 14.0.0, so every
+           release candidate in a series looks identical here. Capped at
+           ProductVersion, an equal-version product was never removed, so
+           clearing NEWERVERSIONDETECTED would have installed a second copy
+           beside the first rather than replacing it.
+           Nothing is removed unless the install proceeds, and by default it
+           does not: NEWERVERSIONDETECTED still exits early below. -->
+      <UpgradeVersion OnlyDetect="no" IncludeMinimum="yes" Minimum="0.0.0" Property="PREVIOUSVERSIONSINSTALLED"/>
       <!-- Detect newer or same product versions -->
       <UpgradeVersion OnlyDetect="yes" IncludeMinimum="yes" Minimum="$(var.ProductVersion)" Property="NEWERVERSIONDETECTED"/>
     </Upgrade>
-    <!-- Exits successfully in the case newer version are already installed -->
+    <!-- Exits successfully when a newer (or, because release candidates share
+         a ProductVersion, an equal) version is already installed. -->
     <CustomActionRef Id="WixExitEarlyWithSuccess"/>
+
+    <!-- ALLOWDOWNGRADE=1 clears the flag the early exit keys on, so the
+         install proceeds and PREVIOUSVERSIONSINSTALLED above replaces whatever
+         is there. Scheduled before WixExitEarlyWithSuccess rather than after
+         FindRelatedProducts, because two actions sharing the same predecessor
+         have no defined order between them. -->
+    <CustomAction Id="AllowDowngradeClearsNewerVersion" Property="NEWERVERSIONDETECTED" Value="" />
     <!-- List of features to install -->
     <Feature Id="MainApplication" Level="1">
       <ComponentGroupRef Id="MondooClient" />
