@@ -205,15 +205,19 @@ jobs:
           # being wrong high is a slower release, so prefer generous.
           SETTLE_FLOOR_SECONDS=300
           QUIET_SECONDS=60
-          # Under the step's timeout-minutes, so the loop reports its own
-          # failure rather than being killed mid-wait.
+          # Under the step's timeout-minutes: 20 (line 169), so the loop
+          # reports its own failure rather than being killed mid-wait. A normal
+          # run is the 300s floor plus however long the checks take -- about
+          # seven minutes on the PR #760 suite -- so 20 remains comfortable.
           SETTLE_DEADLINE_SECONDS=900
           STARTED_AT=$(date +%s)
 
           # Phase 1: something to watch. Its own budget, so a slow first
           # registration cannot eat the settle phase's retries.
+          REGISTER_ATTEMPTS=18
+          REGISTER_INTERVAL=10
           registered=0
-          for _ in $(seq 1 18); do
+          for _ in $(seq 1 "${REGISTER_ATTEMPTS}"); do
             # Defaulted twice on purpose: `|| echo 0` covers gh exiting
             # non-zero, ${x:-0} covers it exiting zero with no output. Without
             # the second, an empty value makes every later [ ] comparison
@@ -223,10 +227,10 @@ jobs:
               --jq '.statusCheckRollup | length' 2>/dev/null || echo 0)
             registered=${registered:-0}
             [ "${registered}" -gt 0 ] && break
-            sleep 10
+            sleep "${REGISTER_INTERVAL}"
           done
           if [ "${registered}" -eq 0 ]; then
-            echo "::error::no checks registered on PR #${PR_NUMBER} after 3 minutes"
+            echo "::error::no checks registered on PR #${PR_NUMBER} after $(( REGISTER_ATTEMPTS * REGISTER_INTERVAL ))s"
             exit 1
           fi
 
