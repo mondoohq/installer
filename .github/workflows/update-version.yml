@@ -245,7 +245,7 @@ jobs:
               previous="${count}"
             fi
 
-            if [ $(( now - last_change_at )) -ge "${QUIET_SECONDS}" ] \
+            if [ "$(( now - last_change_at ))" -ge "${QUIET_SECONDS}" ] \
               && [ "${elapsed}" -ge "${SETTLE_FLOOR_SECONDS}" ]; then
               settled=1
               break
