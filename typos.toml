@@ -42,13 +42,14 @@ hashi = "hashi"         # HashiCorp
 copywrite = "copywrite" # HashiCorp copywrite tool, used by the license check
 # Real misspellings that cannot be corrected here.
 #
-# registred: appears in install.ps1 and Mondoo.Installer.psm1, both of which
+# TODO(#785): appears in install.ps1 and Mondoo.Installer.psm1, both of which
 # carry an Authenticode signature in the repository. Editing the text
 # invalidates that signature, and signing is a manual workflow_dispatch
 # (sign_powershell.yml), so a fix has to be paired with a re-sign rather than
-# ridden along with an unrelated change.
+# ridden along with an unrelated change. Remove this entry with that fix.
 registred = "registred"
-# orignal: the shell variable orignalVersion in the Arch PKGBUILD, emitted from
-# a template in packages/archlinux/generator/main.go. Renaming it means
-# changing the generator and regenerating the package.
+# TODO(#786): the shell variable orignalVersion in the Arch PKGBUILD, emitted
+# from a template in packages/archlinux/generator/main.go. Renaming it means
+# changing the generator and regenerating the package. Remove this entry with
+# that fix.
 orignal = "orignal"
