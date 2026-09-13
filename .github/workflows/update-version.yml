@@ -258,7 +258,14 @@ jobs:
               previous="${count}"
             fi
 
-            if [ "$(( now - last_change_at ))" -ge "${QUIET_SECONDS}" ] \
+            # The count is part of the condition, not just its stability: a
+            # persistent 0 -- a flapping API, or the defaults above firing
+            # repeatedly -- is stable too, and without this the loop would
+            # settle on having watched nothing. The final watch below catches
+            # that today, but relying on a later step to reject a state this
+            # one declared good is the wrong place for the check.
+            if [ "${count}" -gt 0 ] \
+              && [ "$(( now - last_change_at ))" -ge "${QUIET_SECONDS}" ] \
               && [ "${elapsed}" -ge "${SETTLE_FLOOR_SECONDS}" ]; then
               settled=1
               break
