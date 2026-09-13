@@ -9,6 +9,7 @@ on:
       - 'download.sh'
       - 'test/install_sh/test_params.sh'
       - 'test/install_sh/test_status_timeout.sh'
+      - 'test/install_sh/test_arch_detect.sh'
       - '.github/workflows/test_posix_compat.yml'
 
 permissions:
@@ -47,3 +48,6 @@ jobs:
 
       - name: Test cnspec status probe
         run: sh test/install_sh/test_status_timeout.sh
+
+      - name: Test architecture detection
+        run: sh test/install_sh/test_arch_detect.sh
