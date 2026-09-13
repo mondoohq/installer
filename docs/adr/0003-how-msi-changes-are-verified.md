@@ -1,6 +1,6 @@
 # 0003. How MSI changes are verified
 
-- **Status:** Proposed
+- **Status:** Accepted
 - **Date:** 2026-09-13
 - **Deciders:** @chris-rock
 - **Consulted / Informed:** Mondoo Engineering
