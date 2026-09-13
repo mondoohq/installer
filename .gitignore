@@ -32,3 +32,6 @@ testResults.xml
 
 # Public package signing key, written from the GPG_PUBKEY secret during CI
 public-package-signing.gpg
+
+# xgrep writes its scan results here
+.xgrep/
