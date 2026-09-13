@@ -45,14 +45,22 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Generate and Validate Package
-        run: make -C packages/chocolatey generate validate VERSION=${{ inputs.version }} PACKAGES=${{ matrix.package }}
+        env:
+          VERSION: ${{ inputs.version }}
+          PACKAGES: ${{ matrix.package }}
+        run: make -C packages/chocolatey generate validate VERSION="${VERSION}" PACKAGES="${PACKAGES}"
 
       - name: Pack Package
-        run: make -C packages/chocolatey pack VERSION=${{ inputs.version }} PACKAGES=${{ matrix.package }}
+        env:
+          VERSION: ${{ inputs.version }}
+          PACKAGES: ${{ matrix.package }}
+        run: make -C packages/chocolatey pack VERSION="${VERSION}" PACKAGES="${PACKAGES}"
 
       - name: Publish Package
         if: ${{ ! inputs.skip-publish }}
         env:
           CHOCO_API_KEY: ${{ secrets.CHOCOLATEY_API_KEY }}
-        run: make -C packages/chocolatey publish VERSION=${{ inputs.version }} PACKAGES=${{ matrix.package }}
+          VERSION: ${{ inputs.version }}
+          PACKAGES: ${{ matrix.package }}
+        run: make -C packages/chocolatey publish VERSION="${VERSION}" PACKAGES="${PACKAGES}"
 

@@ -47,10 +47,13 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Run mondoo-pkg and upgrade tests
+        env:
+          INSTALL_VERSION: ${{ inputs.version }}
+          RELEASES_URL: ${{ inputs.releases-url || 'https://releases.mondoo.love' }}
         run: |
           python3 test/auto_update/test_auto_update.py \
-            --install-version "${{ inputs.version }}" \
-            --releases-url "${{ inputs.releases-url || 'https://releases.mondoo.love' }}" \
+            --install-version "${INSTALL_VERSION}" \
+            --releases-url "${RELEASES_URL}" \
             --skip-auto-update \
             --skip-self-upgrade
 
@@ -63,10 +66,13 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Run auto-update tests
+        env:
+          INSTALL_VERSION: ${{ inputs.version }}
+          RELEASES_URL: ${{ inputs.releases-url || 'https://releases.mondoo.love' }}
         run: |
           python3 test/auto_update/test_auto_update.py \
-            --install-version "${{ inputs.version }}" \
-            --releases-url "${{ inputs.releases-url || 'https://releases.mondoo.love' }}" \
+            --install-version "${INSTALL_VERSION}" \
+            --releases-url "${RELEASES_URL}" \
             --skip-mondoo-pkg \
             --skip-upgrade \
             --skip-self-upgrade
@@ -81,11 +87,15 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Run self-upgrade tests
+        env:
+          INSTALL_VERSION: ${{ inputs.version }}
+          RELEASES_URL: ${{ inputs.releases-url || 'https://releases.mondoo.love' }}
+          SELF_UPGRADE_FROM: ${{ inputs.self-upgrade-from }}
         run: |
           python3 test/auto_update/test_auto_update.py \
-            --install-version "${{ inputs.version }}" \
-            --releases-url "${{ inputs.releases-url || 'https://releases.mondoo.love' }}" \
+            --install-version "${INSTALL_VERSION}" \
+            --releases-url "${RELEASES_URL}" \
             --skip-auto-update \
             --skip-mondoo-pkg \
             --skip-upgrade \
-            --self-upgrade-from "${{ inputs.self-upgrade-from }}"
+            --self-upgrade-from "${SELF_UPGRADE_FROM}"
