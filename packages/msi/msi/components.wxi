@@ -49,6 +49,12 @@
            surprise for someone who never asked for the pinning. -->
       <Component Id="UpdateChannel" Win64="yes" Directory="INSTALLLOCATION" Guid="3f7a2b91-5c8d-4e16-a0b4-7d29e6c31f58">
         <Condition><![CDATA[UPDATECHANNEL <> ""]]></Condition>
+        <!-- An Environment element cannot be a component's KeyPath, so without
+             this WiX falls back to the directory and ICE18 rejects the build:
+             a directory KeyPath has to appear in the CreateFolders table.
+             INSTALLLOCATION is created by the other components regardless, so
+             this only satisfies the rule. -->
+        <CreateFolder />
         <Environment Id="MondooUpdateChannel" Name="MONDOO_UPDATE_CHANNEL" Value="[UPDATECHANNEL]" System="yes" Action="set" Part="all" />
       </Component>
       <Component Id="InstallRegistration" Win64="yes" Directory="INSTALLLOCATION" Guid="9a4c1f7e-6d21-4f0b-9f3e-1c2d5a7b8e04">
