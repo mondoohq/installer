@@ -117,6 +117,9 @@ jobs:
           # not line-oriented and so cannot be injected into. Every value that
           # does reach $GITHUB_OUTPUT above is a literal or an integer.
           case "$VERSION" in
+            # Empty is valid and means "do not verify": the workflow_dispatch
+            # input is optional, and the verify step below is guarded by
+            # `[ -n "$VERSION" ]`. repository_dispatch always sends one.
             '') ;;
             *[!0-9A-Za-z.+_-]*)
               echo "::error::invalid version '$VERSION'"; exit 1 ;;
