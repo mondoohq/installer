@@ -13,11 +13,16 @@ name: "Lint: WiX MSI sources"
 # light does not care what the payload files contain, only that they exist, so
 # stubbing them gives a full link and full ICE validation in about a minute
 # without downloading a release.
+# Called from Script Linting, which runs it after the cheap lints pass rather
+# than alongside them: this needs a Windows runner, and there is no sense
+# spinning one up for a branch that fails shellcheck.
+#
+# Defined here and called there rather than pasted into that workflow, so
+# there is one copy of the steps.
 on:
-  pull_request:
-    paths:
-      - "packages/msi/**"
-      - ".github/workflows/lint_wix.yaml"
+  workflow_call:
+  # Also on merge, so a change that reaches main without passing through the
+  # pull-request path is still linted.
   push:
     branches: [main]
     paths:

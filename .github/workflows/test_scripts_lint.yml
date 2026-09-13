@@ -9,6 +9,32 @@ permissions:
   contents: read
 
 jobs:
+  # Whether this pull request touches the MSI sources at all. A job cannot
+  # carry a `paths` filter the way a workflow trigger can, so the question is
+  # answered once here and the WiX job keys off it.
+  changes:
+    name: Detect changed areas
+    runs-on: ubuntu-latest
+    outputs:
+      msi: ${{ steps.filter.outputs.msi }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - id: filter
+        env:
+          BASE: ${{ github.base_ref }}
+        run: |
+          set -euo pipefail
+          git fetch --no-tags --depth=1 origin "$BASE"
+          if git diff --name-only "origin/${BASE}...HEAD" | grep -qE '^(packages/msi/|\.github/workflows/lint_wix\.yaml)'; then
+            echo "msi=true" >> "$GITHUB_OUTPUT"
+            echo "MSI sources changed; the WiX lint will run."
+          else
+            echo "msi=false" >> "$GITHUB_OUTPUT"
+            echo "No MSI sources changed; the WiX lint is skipped."
+          fi
+
   shellcheck:
     name: Shellcheck
     runs-on: ubuntu-latest
@@ -38,3 +64,13 @@ jobs:
         uses: github/codeql-action/upload-sarif@68bde559dea0fdcac2102bfdf6230c5f70eb485e # v4.35.4
         with:
           sarif_file: results.sarif
+
+  # Last, and only once the cheap lints are green. candle and light need a
+  # Windows runner, and the errors they catch (unresolved references, the ICE
+  # suite) are invisible to every other check here -- two of them reached main
+  # before this existed.
+  wix:
+    name: WiX MSI sources
+    needs: [changes, shellcheck, powershell]
+    if: needs.changes.outputs.msi == 'true'
+    uses: ./.github/workflows/lint_wix.yaml
