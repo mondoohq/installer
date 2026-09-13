@@ -61,23 +61,69 @@ jobs:
         run: |
           set -euo pipefail
 
-          # An unrecognised product would have this job index, and prune, a
-          # prefix nobody meant to touch.
+          # $GITHUB_OUTPUT is line-oriented, so a value carrying a newline
+          # injects further outputs that later steps read as their own. On
+          # repository_dispatch these values come from another repository's
+          # workflow, so they are only as trustworthy as that repository's CI.
+          #
+          # The previous keep check looked equivalent to this and was not:
+          # `printf '%s' "$KEEP" | grep -Eq '^[0-9]+$'` matches ANY line, so
+          # "20\nbucket=elsewhere" passed it, and the `[ "$KEEP" -lt 1 ]` that
+          # followed errored with status 2 -- read as false by the `||` -- so
+          # the guard never fired. keep= was written last, so that one line
+          # could overwrite every output above it, including the bucket that
+          # `gsutil -m rm -r` runs against.
+
+          # product and bucket are closed sets, so the branch writes the
+          # literal rather than the variable: nothing tainted reaches
+          # $GITHUB_OUTPUT at all. An unrecognised product would have this job
+          # index, and prune, a prefix nobody meant to touch.
           case "$PRODUCT" in
-            cnspec|mql) ;;
+            cnspec) echo "product=cnspec" >> "$GITHUB_OUTPUT" ;;
+            mql)    echo "product=mql"    >> "$GITHUB_OUTPUT" ;;
             *) echo "::error::unsupported product '$PRODUCT'"; exit 1 ;;
           esac
 
+          # A well-formed name for someone else's bucket is exactly the input
+          # worth refusing here, so this is the allowlist the workflow_dispatch
+          # input already offers rather than a shape check.
+          case "$BUCKET" in
+            releases-us.mondoo.io) echo "bucket=releases-us.mondoo.io" >> "$GITHUB_OUTPUT" ;;
+            releases-com-test)     echo "bucket=releases-com-test"     >> "$GITHUB_OUTPUT" ;;
+            *) echo "::error::unsupported bucket '$BUCKET'"; exit 1 ;;
+          esac
+
+          # Digits only, then arithmetic expansion, so what is written is an
+          # integer by construction rather than by inspection.
           KEEP="${KEEP:-$DEFAULT_KEEP}"
-          if ! printf '%s' "$KEEP" | grep -Eq '^[0-9]+$' || [ "$KEEP" -lt 1 ]; then
-            echo "::error::keep must be a positive integer, got '$KEEP'"
+          case "$KEEP" in
+            ''|*[!0-9]*)
+              echo "::error::keep must be a positive integer, got '$KEEP'"
+              exit 1 ;;
+          esac
+          if [ "$((KEEP))" -lt 1 ]; then
+            echo "::error::keep must be at least 1, got '$KEEP'"
             exit 1
           fi
+          echo "keep=$((KEEP))" >> "$GITHUB_OUTPUT"
 
-          echo "product=$PRODUCT" >> "$GITHUB_OUTPUT"
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-          echo "bucket=$BUCKET" >> "$GITHUB_OUTPUT"
-          echo "keep=$KEEP" >> "$GITHUB_OUTPUT"
+          # version is free-form, so it is validated rather than enumerated.
+          # The case pattern matches the whole string, so a newline is rejected
+          # along with everything else outside the charset. Rejecting here is
+          # what makes the value safe everywhere it is used later.
+          #
+          # It is deliberately NOT re-emitted as a step output: the one step
+          # that needs it reads the same expression through `env:`, which is
+          # not line-oriented and so cannot be injected into. Every value that
+          # does reach $GITHUB_OUTPUT above is a literal or an integer.
+          case "$VERSION" in
+            # Empty is valid and means "do not verify": the workflow_dispatch
+            # input is optional, and the verify step below is guarded by
+            # `[ -n "$VERSION" ]`. repository_dispatch always sends one.
+            '') ;;
+            *[!0-9A-Za-z.+_-]*)
+              echo "::error::invalid version '$VERSION'"; exit 1 ;;
+          esac
 
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -187,7 +233,9 @@ jobs:
         env:
           BUCKET: ${{ steps.inputs.outputs.bucket }}
           PRODUCT: ${{ steps.inputs.outputs.product }}
-          VERSION: ${{ steps.inputs.outputs.version }}
+          # Read directly rather than through a step output -- see the note in
+          # "Converge inputs". Validation there still gates the whole job.
+          VERSION: ${{ inputs.version || github.event.client_payload.version }}
         run: |
           set -euo pipefail
           latest="$(gsutil cat "gs://${BUCKET}/edge/${PRODUCT}/latest.json" | jq -r .version)"
