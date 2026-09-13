@@ -1,0 +1,85 @@
+name: "Lint: WiX MSI sources"
+
+# The MSI sources are only ever validated by building a package, which needs
+# the release binaries and several minutes, so it happens at release time or by
+# manual dispatch -- long after a pull request could have caught the problem.
+#
+# Two errors reached main this way: an unresolved action reference (LGHT0094)
+# and an ICE18 keypath violation. Both come from light, the linker, not from
+# candle. candle compiles a .wxs on its own; light resolves references across
+# the whole product and runs the ICE validation suite, and only light sees
+# them.
+#
+# light does not care what the payload files contain, only that they exist, so
+# stubbing them gives a full link and full ICE validation in about a minute
+# without downloading a release.
+on:
+  pull_request:
+    paths:
+      - "packages/msi/**"
+      - ".github/workflows/lint_wix.yaml"
+  push:
+    branches: [main]
+    paths:
+      - "packages/msi/**"
+      - ".github/workflows/lint_wix.yaml"
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  wix:
+    name: candle and light with ICE validation
+    permissions:
+      contents: read
+    # Same image as the packaging job, which has WiX 3.14 preinstalled.
+    runs-on: windows-2025
+    strategy:
+      fail-fast: false
+      matrix:
+        # Both architectures: they take different branches of the
+        # preprocessor in Product.wxs (UpgradeCode, InstallerVersion), so one
+        # can link while the other does not.
+        arch: [x64, arm64]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Stub the payload binaries
+        shell: pwsh
+        working-directory: packages/msi/msi
+        run: |
+          # light reads these to build the cab. It never inspects them, and
+          # ICE validation works on the database rather than the payload, so
+          # a placeholder links exactly like the real thing.
+          foreach ($f in 'cnspec.exe', 'mql.exe', 'cnquery.exe') {
+            Set-Content -Path $f -Value 'placeholder for WiX linting' -NoNewline
+          }
+
+      - name: candle
+        shell: pwsh
+        working-directory: packages/msi/msi
+        run: |
+          $wix = 'C:\Program Files (x86)\WiX Toolset v3.14\bin'
+          # The same switches package.ps1 uses. ProductVersion is the semver
+          # core, so any valid three-field version exercises the same paths.
+          & "$wix\candle" -nologo `
+            -dMondooSKU="standard" `
+            -darch="${{ matrix.arch }}" `
+            -dProductVersion="99.99.99" `
+            -dVersion="99.99.99-lint.1" `
+            -ext WixUtilExtension Product.wxs
+          if ($LASTEXITCODE -ne 0) { throw "candle failed" }
+
+      - name: light with ICE validation
+        shell: pwsh
+        working-directory: packages/msi/msi
+        run: |
+          $wix = 'C:\Program Files (x86)\WiX Toolset v3.14\bin'
+          # No -sval: the ICE suite is the point. -dcl:high matches the real
+          # build so compression behaviour is the same.
+          & "$wix\light" -nologo -dcl:high -cultures:en-us -loc en-us.wxl `
+            -ext WixUIExtension -ext WixUtilExtension `
+            product.wixobj -o "lint_${{ matrix.arch }}.msi"
+          if ($LASTEXITCODE -ne 0) { throw "light failed" }
+          Write-Host "linked and validated: $((Get-Item "lint_${{ matrix.arch }}.msi").Length) bytes"
