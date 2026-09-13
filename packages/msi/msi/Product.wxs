@@ -87,7 +87,13 @@
 
     <InstallUISequence>
       <Custom Action="MutualExclusiveError" After="FindRelatedProducts"><![CDATA[OTHERSKUFOUND]]></Custom>
-      <Custom Action="AllowDowngradeClearsNewerVersion" Before="WixExitEarlyWithSuccess"><![CDATA[ALLOWDOWNGRADE = "1"]]></Custom>
+      <!-- AllowDowngradeClearsNewerVersion is scheduled only in
+           InstallExecuteSequence. CustomActionRef for WixExitEarlyWithSuccess
+           brings that action into the execute sequence alone, so scheduling
+           anything relative to it here does not resolve and the link fails
+           with LGHT0094. The execute sequence is also where the decision
+           actually happens, and it is the only sequence a silent install
+           runs. -->
     </InstallUISequence>
     <InstallExecuteSequence>
       <Custom Action="MutualExclusiveError" After="FindRelatedProducts"><![CDATA[OTHERSKUFOUND]]></Custom>
