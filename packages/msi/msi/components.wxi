@@ -16,6 +16,28 @@
     </Directory>
 
   <ComponentGroup Id="MondooClient">
+      <!-- Lets the installed binary find its own Add/Remove entry after it
+           self-updates, so the version Windows reports tracks the binary
+           rather than whatever shipped in this MSI.
+
+           The ProductCode has to be published here because nothing else can
+           know it: Product carries Id="*", so it is regenerated on every
+           build. The UpgradeCode is stable but differs per SKU and per
+           architecture, which would mean compiling three GUIDs and the rules
+           for choosing between them into the binary. The installer already
+           knows which package it is; it writes that down instead.
+
+           Version is the true version, pre-release segment included. The
+           ProductVersion above cannot carry it, because Windows Installer
+           accepts numeric fields only, so this is the one place the exact
+           build is recorded. -->
+      <Component Id="InstallRegistration" Win64="yes" Directory="INSTALLLOCATION" Guid="9a4c1f7e-6d21-4f0b-9f3e-1c2d5a7b8e04">
+        <RegistryKey Root="HKLM" Key="SOFTWARE\Mondoo" ForceCreateOnInstall="yes" ForceDeleteOnUninstall="yes">
+          <RegistryValue Name="ProductCode" Type="string" Value="[ProductCode]" KeyPath="yes" />
+          <RegistryValue Name="Version" Type="string" Value="$(var.Version)" />
+          <RegistryValue Name="InstallDir" Type="string" Value="[INSTALLLOCATION]" />
+        </RegistryKey>
+      </Component>
       <Component Id="ServiceFiles" Win64="yes" Directory="INSTALLLOCATION">
         <!-- Set binary into System Path-->
         <Environment Id="PATH" Name="PATH" Value="[INSTALLLOCATION]" Permanent="yes" Part="last" Action="set" System="yes" />

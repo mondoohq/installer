@@ -42,7 +42,7 @@ Remove-Item .\mondoo.wixpdb -ErrorAction Ignore
 # build package
 dir 'C:\Program Files (x86)\'
 info "run candle (standard)"
-& 'C:\Program Files (x86)\WiX Toolset v3.14\bin\candle' -nologo -dMondooSKU="standard" -darch="$platform" -dProductVersion="$productVersion" -ext WixUtilExtension Product.wxs
+& 'C:\Program Files (x86)\WiX Toolset v3.14\bin\candle' -nologo -dMondooSKU="standard" -darch="$platform" -dProductVersion="$productVersion" -dVersion="$version" -ext WixUtilExtension Product.wxs
 
 info "run light (standard)"
 
