@@ -131,10 +131,13 @@ def validate_release_files(url: str, expected_files: Dict[str, List[str]], min_s
 # the Linux package jobs (deb/rpm, chocolatey, arch) run only for stable
 # releases. The mondoo preview artifact set is therefore smaller than its stable
 # one by design, and is listed separately rather than reported as missing files.
+# Derived from EXPECTED_FILES rather than restated, so that a platform or
+# artifact added to the stable set is validated on preview too.
 CHANNEL_FILE_OVERRIDES = {
     ("mondoo", "preview"): {
-        "darwin": ["darwin_universal.pkg"],
-        "windows": ["windows_amd64.msi", "windows_arm64.msi"],
+        platform: files
+        for platform, files in EXPECTED_FILES["mondoo"].items()
+        if platform != "linux"
     },
 }
 
@@ -217,12 +220,21 @@ def validate_channel_consistency() -> List[str]:
             continue
 
         detail = ", ".join(f"{p}={v}" for p, v in sorted(versions.items()))
-        errors.append(
-            f"{channel}: mql and cnspec disagree ({detail}); the stale pointer "
-            f"was last written {oldest:.0f}m ago, so an indexing pass did not reach it"
-            if oldest is not None
-            else f"{channel}: mql and cnspec disagree ({detail})"
-        )
+        if oldest is not None:
+            errors.append(
+                f"{channel}: mql and cnspec disagree ({detail}); the stale pointer "
+                f"was last written {oldest:.0f}m ago, so an indexing pass did not "
+                f"reach it"
+            )
+        else:
+            # Without last-modified there is no way to tell a release in flight
+            # from a pass that stopped early. Report it rather than assume the
+            # benign case, and say which half is unknown.
+            errors.append(
+                f"{channel}: mql and cnspec disagree ({detail}); pointer age is "
+                f"unknown, so the {RELEASE_WINDOW_MINUTES}m release window could "
+                f"not be applied"
+            )
 
     if errors:
         print("\nErrors detected:")
