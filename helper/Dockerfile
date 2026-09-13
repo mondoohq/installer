@@ -2,6 +2,11 @@
 # SPDX-License-Identifier: BUSL-1.1
 
 # syntax=docker/dockerfile:1
+
+# This image is a build helper: `make` runs it to produce the Linux packages
+# and it is never deployed or published. USER and HEALTHCHECK describe a
+# container that serves something, so neither applies here.
+# nogrep: dockerfile-missing-user-instruction,dockerfile-missing-healthcheck
 FROM ubuntu:22.04
 
 ARG DEBIAN_FRONTEND=noninteractive
