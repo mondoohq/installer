@@ -34,8 +34,49 @@ jobs:
       id: cnspec
       continue-on-error: true
       run: uv run test/releases/validate_release.py cnspec
+    - name: Validate Mondoo preview releases
+      id: mondoo-preview
+      continue-on-error: true
+      run: uv run test/releases/validate_release.py mondoo --channel preview
+    - name: Validate mql preview releases
+      id: mql-preview
+      continue-on-error: true
+      run: uv run test/releases/validate_release.py mql --channel preview
+    - name: Validate cnspec preview releases
+      id: cnspec-preview
+      continue-on-error: true
+      run: uv run test/releases/validate_release.py cnspec --channel preview
+    # mql and cnspec are released in lockstep, so a channel that points them at
+    # different versions for longer than a release takes means an indexing pass
+    # did not reach both. Neither product's own validation can see that.
+    - name: Validate channel consistency
+      id: channels
+      continue-on-error: true
+      run: uv run test/releases/validate_release.py channels
+    # Every validation step above is unconditional and continue-on-error, so a
+    # non-success outcome is a real result rather than a gate that did not fire.
+    # Anything that is not "success" therefore fails the job, including an
+    # unexpected "skipped". Cancellation is excluded so a cancelled run does not
+    # page anyone.
+    - name: Summarize results
+      id: summary
+      if: success() || failure()
+      env:
+        OUTCOMES: >-
+          ${{ steps.mondoo.outcome }} ${{ steps.mql.outcome }} ${{ steps.cnspec.outcome }}
+          ${{ steps.mondoo-preview.outcome }} ${{ steps.mql-preview.outcome }} ${{ steps.cnspec-preview.outcome }}
+          ${{ steps.channels.outcome }}
+      run: |
+        failed=false
+        for outcome in $OUTCOMES; do
+          if [ "$outcome" != "success" ]; then
+            echo "not successful: $outcome"
+            failed=true
+          fi
+        done
+        echo "failed=$failed" >> "$GITHUB_OUTPUT"
     - name: Send Slack notification on failure
-      if: steps.mondoo.outcome == 'failure' || steps.mql.outcome == 'failure' || steps.cnspec.outcome == 'failure'
+      if: steps.summary.outputs.failed == 'true'
       uses: slackapi/slack-github-action@45a88b9581bfab2566dc881e2cd66d334e621e2c # v3.0.3
       with:
         method: chat.postMessage
@@ -63,7 +104,7 @@ jobs:
                 "type": "section",
                 "text": {
                   "type": "mrkdwn",
-                  "text": "${{ steps.mondoo.outcome == 'failure' && '*Mondoo:* ❌ Failed\n' || '*Mondoo:* ✅ Passed\n' }}${{ steps.mql.outcome == 'failure' && '*mql:* ❌ Failed\n' || '*mql:* ✅ Passed\n' }}${{ steps.cnspec.outcome == 'failure' && '*cnspec:* ❌ Failed' || '*cnspec:* ✅ Passed' }}"
+                  "text": "*stable*\n${{ steps.mondoo.outcome == 'failure' && '• Mondoo: ❌ Failed\n' || '• Mondoo: ✅ Passed\n' }}${{ steps.mql.outcome == 'failure' && '• mql: ❌ Failed\n' || '• mql: ✅ Passed\n' }}${{ steps.cnspec.outcome == 'failure' && '• cnspec: ❌ Failed\n' || '• cnspec: ✅ Passed\n' }}\n*preview*\n${{ steps.mondoo-preview.outcome == 'failure' && '• Mondoo: ❌ Failed\n' || '• Mondoo: ✅ Passed\n' }}${{ steps.mql-preview.outcome == 'failure' && '• mql: ❌ Failed\n' || '• mql: ✅ Passed\n' }}${{ steps.cnspec-preview.outcome == 'failure' && '• cnspec: ❌ Failed\n' || '• cnspec: ✅ Passed\n' }}\n${{ steps.channels.outcome == 'failure' && '*Channel consistency:* ❌ mql and cnspec disagree' || '*Channel consistency:* ✅ Passed' }}"
                 }
               },
               {
@@ -79,5 +120,5 @@ jobs:
             ]
           }
     - name: Final status check
-      if: steps.mondoo.outcome == 'failure' || steps.mql.outcome == 'failure' || steps.cnspec.outcome == 'failure'
+      if: steps.summary.outputs.failed == 'true'
       run: exit 1
