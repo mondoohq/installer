@@ -36,6 +36,18 @@ jobs:
           REPO: ${{ github.repository }}
         run: |
           set -euo pipefail
+
+          # This workflow is pull_request-only today, so PR is always set. If a
+          # push trigger is ever added, run the lint rather than skip it: the
+          # cost of being wrong here is a Windows runner, and the cost of being
+          # wrong the other way is an MSI error reaching main unnoticed, which
+          # is what this check exists to prevent.
+          if [ -z "${PR:-}" ]; then
+            echo "msi=true" >> "$GITHUB_OUTPUT"
+            echo "No pull request number in this event; linting rather than assuming nothing changed."
+            exit 0
+          fi
+
           # --paginate: the unpaged call returns the first 30 files only, and a
           # large pull request would look as though it changed nothing here.
           if gh api --paginate "/repos/${REPO}/pulls/${PR}/files" --jq '.[].filename' \
