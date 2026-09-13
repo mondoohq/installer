@@ -204,7 +204,10 @@ capture_sudo_cmd() {
     PATH="$_fake_bin:$PATH"
 
     # Pretend to be an unprivileged user; stub the helpers sudo_cmd may call.
-    id() { echo 1000; }
+    # Narrow on purpose: a stub that answers everything would keep returning
+    # 1000 if the real check ever became `id -ru`, and the test would pass
+    # while covering nothing.
+    id() { case "$1" in -u|-ru) echo 1000 ;; *) command id "$@" ;; esac; }
     red() { :; }
     fail() { exit 1; }
 

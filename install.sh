@@ -274,8 +274,13 @@ detect_mondoo
 # ------------
 # Used for all privileged calls. If the script is run as root, this is not required.
 
+# Resolved once rather than per call: before this file gained a single sudo_cmd
+# the branch was taken at definition time, and an install drives it often enough
+# that the fork per invocation is pure waste.
+MONDOO_EUID="$(id -u)"
+
 sudo_cmd() {
-  if [ "$(id -u)" = "0" ]; then
+  if [ "$MONDOO_EUID" = "0" ]; then
     "$@"
   elif [ ! -x "$(command -v sudo)" ]; then
     red "This command needs to run with elevated privileges, but we could not find the 'sudo' command in your path (\$PATH)."
