@@ -1,0 +1,58 @@
+---
+name: xgrep
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: xgrep-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  scan:
+    name: xgrep scan
+    permissions:
+      contents: read
+      # upload the SARIF report to code scanning
+      security-events: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # the action runs `xgrep ci`, which diffs against the pull request's
+          # merge base, so the default shallow clone is not enough
+          fetch-depth: 0
+
+      # Pinned past v13.3.0 (2026-07-01) on purpose: that tag's gate answers a
+      # missing SARIF report with "skipping gate" and exit 0, and its scan step
+      # has no report check at all, so a scan that never ran reads as a pass.
+      # mondoohq/actions#166 fixed both on 2026-09-07 and has not been tagged.
+      # Move to the tag once a release contains it.
+      - name: Run xgrep
+        uses: mondoohq/actions/xgrep@989c8b3efbd11096b5db643baf3644792ff5d380 # main, post-#166
+        with:
+          path: .
+          output-file: results.sarif
+          # pinned so a new xgrep release cannot change this repository's
+          # findings without a commit here
+          version: "0.62.0"
+          sarif-category: xgrep
+          # report only for now: main carries a backlog of 59 findings, most of
+          # them inherent to an installer whose documented usage is `curl | bash`.
+          # Switch to `error` once that is triaged.
+          fail-on: "off"
+
+      - name: Upload SARIF results file
+        if: always()
+        uses: github/codeql-action/upload-sarif@68bde559dea0fdcac2102bfdf6230c5f70eb485e # v4.35.4
+        with:
+          sarif_file: results.sarif
+          # must match sarif-category above
+          category: xgrep
