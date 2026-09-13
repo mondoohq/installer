@@ -224,23 +224,41 @@ jobs:
           # Phase 2: watch what is there, look again, and repeat until the set
           # has stopped growing and enough time has passed for a late arrival
           # to have shown up.
+          # Two conditions, because neither alone is enough. QUIET_SECONDS is
+          # measured from the last time the count actually changed, so it is a
+          # real quiet period rather than "unchanged across one poll"; the
+          # floor then guarantees a minimum total wait regardless of when the
+          # changes happened to fall.
+          QUIET_SECONDS=60
           settled=0
           previous=-1
+          last_change_at=${STARTED_AT}
           for _ in $(seq 1 20); do
             count=$(gh pr view "${PR_NUMBER}" --json statusCheckRollup \
               --jq '.statusCheckRollup | length' 2>/dev/null || echo 0)
             count=${count:-0}
-            elapsed=$(( $(date +%s) - STARTED_AT ))
+            now=$(date +%s)
+            elapsed=$(( now - STARTED_AT ))
 
-            if [ "${count}" -eq "${previous}" ] && [ "${elapsed}" -ge "${SETTLE_FLOOR_SECONDS}" ]; then
+            if [ "${count}" -ne "${previous}" ]; then
+              last_change_at=${now}
+              previous="${count}"
+            fi
+
+            if [ $(( now - last_change_at )) -ge "${QUIET_SECONDS}" ] \
+              && [ "${elapsed}" -ge "${SETTLE_FLOOR_SECONDS}" ]; then
               settled=1
               break
             fi
-            previous="${count}"
 
             if [ "${count}" -gt 0 ]; then
               echo "Watching ${count} check(s) on PR #${PR_NUMBER} (${elapsed}s elapsed)"
-              gh pr checks "${PR_NUMBER}" --watch --fail-fast --interval 10
+              # `set -e` would abort here anyway; spelled out so the job says
+              # which thing failed rather than only that gh exited non-zero.
+              gh pr checks "${PR_NUMBER}" --watch --fail-fast --interval 10 || {
+                echo "::error::a check failed on PR #${PR_NUMBER}"
+                exit 1
+              }
             fi
             sleep 20
           done
@@ -249,6 +267,15 @@ jobs:
             echo "::error::checks on PR #${PR_NUMBER} never settled"
             exit 1
           fi
+
+          # The loop can only settle on an unchanged count, and the iteration
+          # before that watched exactly that set to completion -- so this is
+          # already satisfied. Run it anyway: it is seconds when it passes, and
+          # the thing it guards against is a silent merge.
+          gh pr checks "${PR_NUMBER}" --watch --fail-fast --interval 10 || {
+            echo "::error::a check failed on PR #${PR_NUMBER}"
+            exit 1
+          }
           echo "Merging PR #${PR_NUMBER}"
           gh pr merge "${PR_NUMBER}" --squash --delete-branch
       # The VERSION bump must not fail silently: the target branch would stay
