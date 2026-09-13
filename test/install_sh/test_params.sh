@@ -80,6 +80,8 @@ capture_login_cmd() {
     purple_bold() { :; }
 
     # Override https_proxy if requested
+    no_proxy="internal.example"
+    export no_proxy
     if [ -n "$_https_proxy_env" ]; then
       https_proxy="$_https_proxy_env"
       export https_proxy
@@ -156,9 +158,12 @@ assert_contains "has cnspec login" "$result" "cnspec login"
 capture_proxy_env() {
   _api_proxy="${1:-}"
   _https_proxy_env="${2:-}"
+  _http_proxy_env="${3:-}"
 
   (
     API_PROXY="$_api_proxy"
+    no_proxy="internal.example"
+    export no_proxy
     if [ -n "$_https_proxy_env" ]; then
       https_proxy="$_https_proxy_env"
       export https_proxy
@@ -166,14 +171,24 @@ capture_proxy_env() {
       unset https_proxy 2>/dev/null || true
       unset HTTPS_PROXY 2>/dev/null || true
     fi
+    if [ -n "$_http_proxy_env" ]; then
+      http_proxy="$_http_proxy_env"
+      export http_proxy
+    else
+      unset http_proxy 2>/dev/null || true
+      unset HTTP_PROXY 2>/dev/null || true
+    fi
 
+    red() { printf '%s\n' "$1"; }
+    fail() { exit 1; }
     eval "$(sed -n '/^apply_proxy_env()/,/^}/p' "$INSTALL_SH")"
     apply_proxy_env
 
     # A child shell only sees exported variables, which is what curl/apt get.
-    printf 'API_PROXY=%s https_proxy=%s HTTPS_PROXY=%s child=%s' \
-      "$API_PROXY" "${https_proxy:-}" "${HTTPS_PROXY:-}" "$(sh -c 'printf %s "${https_proxy:-}"')"
-  )
+    printf 'API_PROXY=%s https_proxy=%s HTTPS_PROXY=%s http_proxy=%s child=%s' \
+      "$API_PROXY" "${https_proxy:-}" "${HTTPS_PROXY:-}" "${http_proxy:-}" \
+      "$(sh -c 'printf %s "${https_proxy:-}"')"
+  ) 2>/dev/null || true
 }
 
 # capture_sudo_cmd runs install.sh's sudo_cmd as a non-root user with a fake
@@ -193,6 +208,8 @@ capture_sudo_cmd() {
     red() { :; }
     fail() { exit 1; }
 
+    no_proxy="internal.example"
+    export no_proxy
     if [ -n "$_https_proxy_env" ]; then
       https_proxy="$_https_proxy_env"
       export https_proxy
@@ -226,16 +243,88 @@ assert_contains "inherited https_proxy becomes API_PROXY" "$result" "API_PROXY=h
 
 # Test 15: no proxy leaves the environment untouched
 result=$(capture_proxy_env)
-assert_contains "no proxy = nothing exported" "$result" "API_PROXY= https_proxy= HTTPS_PROXY= child="
+assert_contains "no proxy = nothing exported" "$result" "API_PROXY= https_proxy= HTTPS_PROXY= http_proxy= child="
 
 # Test 16: sudo_cmd carries the proxy across sudo's env_reset
 result=$(capture_sudo_cmd "http://proxy:3128" apt update)
-assert_contains "sudo_cmd passes the proxy through sudo" "$result" "sudo env https_proxy=http://proxy:3128 HTTPS_PROXY=http://proxy:3128 apt update"
+assert_contains "sudo_cmd passes the proxy through sudo" "$result" "sudo env https_proxy=http://proxy:3128 HTTPS_PROXY=http://proxy:3128 http_proxy=http://proxy:3128 HTTP_PROXY=http://proxy:3128"
 
 # Test 17: sudo_cmd without a proxy is plain sudo
 result=$(capture_sudo_cmd "" apt update)
 assert_contains "sudo_cmd without proxy is plain sudo" "$result" "sudo apt update"
 assert_not_contains "sudo_cmd without proxy does not use env" "$result" "env"
+
+# capture_autoupdater runs install.sh's real autoupdater() with sudo_cmd
+# passed through and `tee` capturing stdin, so the assertions below see the
+# exact bytes that would land in the cron job or the launchd plist.
+capture_autoupdater() {
+  _os="$1"
+  _proxy="$2"
+  (
+    set +e
+    _out="$(mktemp)"
+    # shellcheck disable=SC2034 # consumed by the eval'd autoupdater
+    OS="$_os"
+    API_PROXY="$_proxy"
+    purple_bold() { :; }
+    red() { :; }
+    fail() { exit 1; }
+    sudo_cmd() { "$@"; }
+    tee() { cat > "$_out"; }
+    launchctl() { :; }
+    curl() { :; }
+    cp() { :; }
+    chmod() { printf 'chmod %s\n' "$*" >> "$_out"; }
+    rm() { :; }
+    sleep() { :; }
+    eval "$(sed -n '/^autoupdater()/,/^}$/p' "$INSTALL_SH")"
+    autoupdater >/dev/null 2>&1
+    cat "$_out"
+    command rm -f "$_out"
+  ) || true
+}
+
+# Test 18a: http_proxy alone is enough -- an https-only lookup would miss it.
+result=$(capture_proxy_env "" "" "http://http-only:3128")
+assert_contains "http_proxy alone becomes API_PROXY" "$result" "API_PROXY=http://http-only:3128"
+
+# Test 18b: no_proxy survives sudo's env_reset, or a host the user excluded
+# would start going through the proxy only under sudo.
+result=$(capture_sudo_cmd "http://proxy:3128" apt update)
+assert_contains "sudo_cmd carries no_proxy" "$result" "no_proxy=internal.example"
+
+# Test 18c: a value that would need quoting to be safe in the files this script
+# generates is refused outright.
+result=$(capture_proxy_env "http://x';id>/tmp/pwn;'")
+assert_contains "a proxy with a quote is rejected" "$result" "not allowed"
+result=$(capture_proxy_env 'http://proxy:3128/?a=1&b=2')
+assert_contains "a proxy with an XML metacharacter is rejected" "$result" "not allowed"
+
+printf '\n==> Testing the generated auto updater job\n\n'
+
+# Test 18: the Linux cron job exports the proxy rather than passing -x, so the
+# value never appears in `ps` output for the scheduled run.
+result=$(capture_autoupdater Debian "http://proxy:3128")
+assert_contains "cron job exports https_proxy" "$result" "export https_proxy='http://proxy:3128'"
+assert_contains "cron job exports http_proxy too" "$result" "http_proxy='http://proxy:3128'"
+assert_not_contains "cron job does not pass -x" "$result" " -x "
+
+# Test 19: and is not readable by anyone but root, since the proxy URL may
+# carry credentials.
+assert_contains "cron job is chmod 700" "$result" "chmod 700"
+assert_not_contains "cron job is not world readable" "$result" "chmod a+x /etc/cron.weekly"
+
+# Test 20: without a proxy the job is unchanged.
+result=$(capture_autoupdater Debian "")
+assert_not_contains "no proxy means no export" "$result" "https_proxy"
+assert_contains "no proxy still writes the updater" "$result" "install.mondoo.com/sh"
+
+# Test 21: on macOS the proxy goes into EnvironmentVariables, not
+# ProgramArguments, so it stays out of `ps` and launchd's job listing.
+result=$(capture_autoupdater macOS "http://proxy:3128")
+assert_contains "plist sets https_proxy" "$result" "<key>https_proxy</key>"
+assert_contains "plist sets http_proxy" "$result" "<key>http_proxy</key>"
+assert_not_contains "plist does not pass -x" "$result" "<string>-x</string>"
 
 printf '\n==> Results: %d/%d passed' "$PASS" "$TESTS"
 if [ "$FAIL" -gt 0 ]; then

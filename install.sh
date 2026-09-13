@@ -83,7 +83,8 @@ print_usage() {
   echo "    -U <updates_url>:  Set the updates URL for mql and provider updates." >&2
   echo "    -x <proxy>:        Set the HTTP(S) proxy for the whole install (e.g., http://proxy:3128):" >&2
   echo "                        downloads, package installation, cnspec login (--api-proxy)" >&2
-  echo "                        and the auto updater. Auto-detected from https_proxy if not set." >&2
+  echo "                        and the auto updater. Auto-detected from https_proxy or" >&2
+  echo "                        http_proxy if not set." >&2
 }
 
 while getopts 'i:s:u:vt:vr:y:n:a:p:U:x:c:' flag; do
@@ -115,16 +116,36 @@ done
 # -x has to reach every network call this script makes, not only 'cnspec
 # login': curl, apt/yum/zypper and brew all honor the standard *_proxy
 # variables, so publish it there once. An explicit -x wins over an inherited
-# https_proxy; without -x, an inherited https_proxy becomes the API proxy so
-# every later step (login, auto updater) sees the same value.
+# proxy variable; without -x, an inherited one becomes the API proxy so every
+# later step (login, auto updater) sees the same value.
+#
+# Both the http and https forms are set. Mondoo's own repositories are https,
+# but 'apt update' refreshes the distribution's repositories first and those
+# are plain http on Debian and Ubuntu, so an https-only proxy leaves the
+# install dead at its first step on exactly the networks -x exists for.
 apply_proxy_env() {
   if [ -z "$API_PROXY" ]; then
-    API_PROXY="${https_proxy:-${HTTPS_PROXY:-}}"
+    API_PROXY="${https_proxy:-${HTTPS_PROXY:-${http_proxy:-${HTTP_PROXY:-}}}}"
   fi
   if [ -n "$API_PROXY" ]; then
+    # This value is written into the root-owned cron job and launchd plist
+    # further down, so it is checked once here rather than escaped three times
+    # later. The character set is what a proxy URL needs; anything else --
+    # quotes, semicolons, spaces, XML metacharacters -- is refused rather than
+    # quoted, because a value that needs quoting to be safe in a file we
+    # generate is a value we do not want.
+    case "$API_PROXY" in
+      *[!A-Za-z0-9:/._@%+~-]*)
+        red "The proxy URL contains characters that are not allowed: ${API_PROXY}"
+        echo "If it carries credentials, percent-encode them (for example ! as %21)." >&2
+        fail
+        ;;
+    esac
     https_proxy="$API_PROXY"
     HTTPS_PROXY="$API_PROXY"
-    export https_proxy HTTPS_PROXY
+    http_proxy="$API_PROXY"
+    HTTP_PROXY="$API_PROXY"
+    export https_proxy HTTPS_PROXY http_proxy HTTP_PROXY
   fi
 }
 apply_proxy_env
@@ -265,9 +286,17 @@ sudo_cmd() {
     # the *_proxy variables apt/yum/zypper need to reach the repositories
     # through the proxy. Hand them across explicitly; 'env' is portable where
     # sudo --preserve-env is not.
-    _sudo_proxy="${https_proxy:-${HTTPS_PROXY:-}}"
+    #
+    # no_proxy travels with them: without it a host the user deliberately
+    # excluded keeps being excluded in this shell and starts going through the
+    # proxy under sudo, which is a difference nobody would think to look for.
+    _sudo_proxy="${https_proxy:-${HTTPS_PROXY:-${http_proxy:-${HTTP_PROXY:-}}}}"
     if [ -n "$_sudo_proxy" ]; then
-      sudo env "https_proxy=$_sudo_proxy" "HTTPS_PROXY=$_sudo_proxy" "$@"
+      sudo env \
+        "https_proxy=$_sudo_proxy" "HTTPS_PROXY=$_sudo_proxy" \
+        "http_proxy=$_sudo_proxy" "HTTP_PROXY=$_sudo_proxy" \
+        "no_proxy=${no_proxy:-${NO_PROXY:-}}" "NO_PROXY=${no_proxy:-${NO_PROXY:-}}" \
+        "$@"
     else
       sudo "$@"
     fi
@@ -855,13 +884,17 @@ autoupdater() {
 
   # The scheduled run starts from a clean environment, so the proxy has to be
   # written into the job itself or the updater can never reach releases.mondoo.com.
+  #
+  # It goes in as an environment variable, not as an -x argument. The updater
+  # is this same script, so it picks the value up through apply_proxy_env
+  # either way -- but an argument is visible to every user on the machine in
+  # `ps` output and in launchd's job listing, and a proxy URL may carry
+  # credentials. The environment reaches the same place without publishing it.
   _updater_proxy_plist=""
   _updater_proxy_env=""
-  _updater_proxy_arg=""
   if [ -n "$API_PROXY" ]; then
-    _updater_proxy_plist="$(printf '                <string>-x</string>\n                <string>%s</string>' "$API_PROXY")"
-    _updater_proxy_env="export https_proxy='${API_PROXY}' HTTPS_PROXY='${API_PROXY}'"
-    _updater_proxy_arg=" -x '${API_PROXY}'"
+    _updater_proxy_plist="$(printf '                <key>https_proxy</key>\n                <string>%s</string>\n                <key>HTTPS_PROXY</key>\n                <string>%s</string>\n                <key>http_proxy</key>\n                <string>%s</string>\n                <key>HTTP_PROXY</key>\n                <string>%s</string>' "$API_PROXY" "$API_PROXY" "$API_PROXY" "$API_PROXY")"
+    _updater_proxy_env="export https_proxy='${API_PROXY}' HTTPS_PROXY='${API_PROXY}' http_proxy='${API_PROXY}' HTTP_PROXY='${API_PROXY}'"
   fi
 
   if [ "$OS" = "macOS" ]; then
@@ -884,6 +917,7 @@ autoupdater() {
         <dict>
                 <key>PATH</key>
                 <string>/bin:/usr/bin:/usr/local/bin</string>
+${_updater_proxy_plist}
         </dict>
         <key>ProgramArguments</key>
         <array>
@@ -892,7 +926,6 @@ autoupdater() {
                 <string>pkg</string>
                 <string>-s</string>
                 <string>enable</string>
-${_updater_proxy_plist}
         </array>
         <key>StartInterval</key>
         <integer>86400</integer>
@@ -911,9 +944,12 @@ EOL
 #!/bin/sh
 ${_updater_proxy_env}
 date > /var/log/mondoo-updater.log
-curl -sSL https://install.mondoo.com/sh | bash -s -- -s enable${_updater_proxy_arg} >> /var/log/mondoo-updater.log
+curl -sSL https://install.mondoo.com/sh | bash -s -- -s enable >> /var/log/mondoo-updater.log
 EOL
-    sudo_cmd chmod a+x /etc/cron.weekly/mondoo-update
+    # 700, not a+x: tee creates the file 0644 and the proxy URL written above
+    # may carry credentials. run-parts executes cron.weekly as root, so nothing
+    # needs to read it but root.
+    sudo_cmd chmod 700 /etc/cron.weekly/mondoo-update
   fi
 }
 

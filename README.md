@@ -60,8 +60,16 @@ iex ($wc.DownloadString('https://install.mondoo.com/ps1'));
 Install-Mondoo -Proxy 'http://proxy.example.com:3128';
 ```
 
-On Linux and macOS an inherited `https_proxy` is picked up automatically when
-`-x` is not given.
+On Linux and macOS an inherited `https_proxy` or `http_proxy` is picked up
+automatically when `-x` is not given. Either way both forms are exported, so
+the distribution's own repositories — which are plain HTTP on Debian and Ubuntu
+— are reached through the proxy as well. Any `no_proxy` you have set is carried
+through unchanged, including across `sudo`.
+
+The proxy URL must be a plain URL: if it carries credentials, percent-encode
+them (`!` as `%21`, and so on). The value is written into the auto updater's
+scheduled job, so characters that would need quoting there are refused rather
+than escaped.
 
 ## Scan your target platform
 
