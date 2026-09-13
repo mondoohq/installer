@@ -109,18 +109,18 @@ jobs:
 
           # version is free-form, so it is validated rather than enumerated.
           # The case pattern matches the whole string, so a newline is rejected
-          # along with everything else outside the charset.
+          # along with everything else outside the charset. Rejecting here is
+          # what makes the value safe everywhere it is used later.
           #
-          # xgrep does not model a `case` allowlist as a sanitizer, so the line
-          # below is suppressed rather than left to read as an open finding
-          # nobody is acting on. Remove the suppression once mondoohq/xgrep#2643
-          # lands -- the rule should then clear it on its own.
+          # It is deliberately NOT re-emitted as a step output: the one step
+          # that needs it reads the same expression through `env:`, which is
+          # not line-oriented and so cannot be injected into. Every value that
+          # does reach $GITHUB_OUTPUT above is a literal or an integer.
           case "$VERSION" in
             '') ;;
             *[!0-9A-Za-z.+_-]*)
               echo "::error::invalid version '$VERSION'"; exit 1 ;;
           esac
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT" # nogrep: actions-env-laundered-injection
 
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -230,7 +230,9 @@ jobs:
         env:
           BUCKET: ${{ steps.inputs.outputs.bucket }}
           PRODUCT: ${{ steps.inputs.outputs.product }}
-          VERSION: ${{ steps.inputs.outputs.version }}
+          # Read directly rather than through a step output -- see the note in
+          # "Converge inputs". Validation there still gates the whole job.
+          VERSION: ${{ inputs.version || github.event.client_payload.version }}
         run: |
           set -euo pipefail
           latest="$(gsutil cat "gs://${BUCKET}/edge/${PRODUCT}/latest.json" | jq -r .version)"
