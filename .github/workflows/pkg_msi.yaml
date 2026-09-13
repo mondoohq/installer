@@ -464,8 +464,10 @@ jobs:
         run: |
           & 'C:\Program Files\Mondoo\cnspec.exe' run -c "os.base.packages.where(name == 'Mondoo') { name }"
       - name: Login to edge with cnspec
+        env:
+          REGISTRATION_TOKEN: ${{ secrets.INSTALL_TEST_MONDOO_REGISTRATION_TOKEN }}
         run: |
-          & 'C:\Program Files\Mondoo\cnspec.exe' login -t "${{ secrets.INSTALL_TEST_MONDOO_REGISTRATION_TOKEN }}" --config C:\ProgramData\Mondoo\mondoo.yml
+          & 'C:\Program Files\Mondoo\cnspec.exe' login -t "$env:REGISTRATION_TOKEN" --config C:\ProgramData\Mondoo\mondoo.yml
       - name: Run a basic cnspec sanity check
         run: |
           & 'C:\Program Files\Mondoo\cnspec.exe' policy download mondoo-windows-installer -f mondoo-windows-installer.mql.yaml

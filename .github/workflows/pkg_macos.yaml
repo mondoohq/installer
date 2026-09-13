@@ -88,18 +88,23 @@ jobs:
           curl -sL --head --fail "https://github.com/mondoohq/mql/releases/download/v${VERSION}/mql_${VERSION}_darwin_amd64.tar.gz"
           curl -sL --head --fail "https://github.com/mondoohq/cnspec/releases/download/v${VERSION}/cnspec_${VERSION}_darwin_amd64.tar.gz"
       - name: Setup local keychain for signing certificates
+        env:
+          KEYCHAIN_PASSWORD: ${{ secrets.APPLE_KEYCHAIN_PASSWORD }}
+          PRODUCTSIGN_P12: ${{ secrets.APPLE_KEYS_PRODUCTSIGN_P12 }}
+          CODESIGN_P12: ${{ secrets.APPLE_KEYS_CODESIGN_P12 }}
+          KEYS_PASSWORD: ${{ secrets.APPLE_KEYS_PASSWORD }}
         run: |
-          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+          KEYCHAIN_PATH="$RUNNER_TEMP/app-signing.keychain-db"
           # Setup Keychain:
-          security create-keychain -p ${{ secrets.APPLE_KEYCHAIN_PASSWORD }} $KEYCHAIN_PATH
-          security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
-          security unlock-keychain -p ${{ secrets.APPLE_KEYCHAIN_PASSWORD }} $KEYCHAIN_PATH
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
           # Import Certificates:
-          echo "${{ secrets.APPLE_KEYS_PRODUCTSIGN_P12 }}" | base64 --decode > $RUNNER_TEMP/AppleKeysProductSign.p12
-          echo "${{ secrets.APPLE_KEYS_CODESIGN_P12 }}"  | base64 --decode > $RUNNER_TEMP/AppleKeysCodeSign.p12
-          security import $RUNNER_TEMP/AppleKeysProductSign.p12 -P ${{ secrets.APPLE_KEYS_PASSWORD }} -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
-          security import $RUNNER_TEMP/AppleKeysCodeSign.p12 -P ${{ secrets.APPLE_KEYS_PASSWORD }} -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
-          security list-keychain -d user -s $KEYCHAIN_PATH
+          echo "$PRODUCTSIGN_P12" | base64 --decode > "$RUNNER_TEMP/AppleKeysProductSign.p12"
+          echo "$CODESIGN_P12"  | base64 --decode > "$RUNNER_TEMP/AppleKeysCodeSign.p12"
+          security import "$RUNNER_TEMP/AppleKeysProductSign.p12" -P "$KEYS_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
+          security import "$RUNNER_TEMP/AppleKeysCodeSign.p12" -P "$KEYS_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
+          security list-keychain -d user -s "$KEYCHAIN_PATH"
       ########## Build Package. ##########
       - name: Run Mac Packager
         env:
@@ -117,8 +122,9 @@ jobs:
         env:
           PKGNAME: ${{ inputs.name }}
           VERSION: ${{ inputs.version }}
+          PRODUCTSIGN_ID: ${{ secrets.APPLE_KEYS_PRODUCTSIGN_ID }}
         run: |
-          productsign --sign "${{ secrets.APPLE_KEYS_PRODUCTSIGN_ID }}" "dist/${PKGNAME}-macos-universal-${VERSION}.pkg" "dist/${PKGNAME}_${VERSION}_darwin_universal.pkg"
+          productsign --sign "${PRODUCTSIGN_ID}" "dist/${PKGNAME}-macos-universal-${VERSION}.pkg" "dist/${PKGNAME}_${VERSION}_darwin_universal.pkg"
       ########## Sign Package. ##########
       - name: Notarize Package
         uses: lando/notarize-action@b5c3ef16cf2fbcf2af26dc58c90255ec242abeed # v2.0.2

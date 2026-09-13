@@ -39,6 +39,7 @@ jobs:
         env:
           MAX_ATTEMPTS: ${{ inputs.max_attempts }}
           RETRY_DELAY: ${{ inputs.retry_delay }}
+          MINSTALLER_API_KEY: ${{ secrets.MINSTALLER_API_KEY }}
         run: |
           echo "Clearing minstaller's cache..."
           cache_cleared=false
@@ -50,7 +51,7 @@ jobs:
             
             cache_response=$(curl -s -w "HTTP_CODE:%{http_code}" \
               -X POST https://install.mondoo.com/_/cache/clear-all \
-              -H "X-API-Key: ${{ secrets.MINSTALLER_API_KEY }}" 2>/dev/null || true)
+              -H "X-API-Key: ${MINSTALLER_API_KEY}" 2>/dev/null || true)
 
             if echo "$cache_response" | grep -q "HTTP_CODE:200"; then
               echo "✅ Cache cleared successfully on attempt $cache_attempt"
