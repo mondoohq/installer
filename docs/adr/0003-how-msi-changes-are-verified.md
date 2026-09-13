@@ -7,23 +7,22 @@
 
 ## Context
 
-Two MSI errors reached `main` in a single change, and both left the repository
-unable to build a package: an unresolved action reference (`LGHT0094`) and an
-ICE18 keypath violation. Neither was visible to any check that ran on the pull
-request.
+MSI defects fall into two classes with different detection costs.
 
-The reason is specific. `candle` compiles a `.wxs` on its own; `light` resolves
-references across the whole product and runs the ICE validation suite. Both
-errors came from `light`, and nothing ran `light` outside a full packaging job,
-which needs the release binaries and several minutes. So the first signal was a
-release, or a manual dispatch after the fact.
+The first is build-time. WiX splits compilation from linking: `candle` compiles
+a `.wxs` in isolation, and `light` resolves references across the whole product
+and runs the ICE validation suite. Errors of this class are therefore invisible
+to `candle` and surface only under `light`. Two such errors have reached `main`
+and left the repository unable to build a package: `LGHT0094`, an unresolved
+action reference, and `ICE18`, a keypath violation. No pull-request check ran
+`light`; the only job that did was the packaging job, which requires the
+release binaries and runs at release time or by manual dispatch.
 
-There is a second class of problem that no build can catch at all. Whether an
-installer *replaces* an existing product or installs a second one beside it,
-whether a property actually reaches the machine, and whether a self-updating
-binary corrects what Windows reports are all runtime behaviours. They were
-reasoned about from the WiX documentation and the reasoning was right roughly
-half the time.
+The second class is runtime and no build detects it. Whether an installer
+replaces an existing product or installs a second one beside it, whether an
+install-time property reaches the machine, and whether a self-updating binary
+corrects the version Windows reports are all properties of an installation
+rather than of a package.
 
 ## Decision
 
@@ -53,19 +52,22 @@ installation, upgrade or properties should walk them.
 | 7 | Install an older package, then let the binary self-update | The binary and the package disagree about the version from then on |
 | 8 | Install-time properties, set and unset | A property that defaults to doing nothing has to actually do nothing |
 
-Each of these has produced a finding rather than a confirmation:
+Four of these have non-obvious outcomes, measured on Windows 11 ARM64:
 
-- **4** returns exit code 0 and changes nothing. An operator sees success while
-  the machine keeps the old build.
-- **5** reverts the version the binary corrected, which is why the correction is
-  reconciled on every update check rather than once after an update.
-- **7** exposes that a machine installed before a packaging change never
-  receives it by self-updating, because only an installer writes the registry.
-- **3** is the scenario most easily skipped and the one every existing machine
-  will take.
+- **4** returns exit code 0 and changes nothing. `WixExitEarlyWithSuccess`
+  runs and the installed ProductCode is unchanged, so the result is reported as
+  success while the machine keeps the earlier build.
+- **5** returns 0 and reverts `DisplayVersion` from the value the binary wrote
+  to the package's `ProductVersion`. The correction is therefore reconciled on
+  every update check rather than once after an update.
+- **7** leaves the version record uncorrected on a machine whose package
+  predates the registry key the correction depends on, because a self-update
+  replaces the binary and never runs an installer.
+- **3** is the state of every machine already in the field at the time a
+  packaging change ships.
 
-**A scenario that has not been run is reported as not run.** A build passing is
-not evidence about behaviour, and "should be fine" is not a result.
+**A scenario that has not been run is reported as not run.** A passing build is
+evidence about the package, not about an installation.
 
 ## Security implications
 
@@ -96,18 +98,15 @@ not on any automated path.
 ### Positive
 
 - Link and ICE errors are caught on the pull request rather than by a release.
-- The scenario list is written down, so verification does not depend on
-  whoever last touched the MSI remembering what bit them.
+- The scenarios are recorded, so verification does not depend on recall.
 - The distinction between "it builds" and "it behaves" is explicit, which makes
   an unverified change visible rather than implied.
 
 ### Negative
 
-- Runtime verification is manual, so it is skipped under time pressure. That is
-  exactly what happened with the two errors above.
-- One test machine means one architecture and one Windows version.
-- The scenario list will go stale unless a finding is added each time one is
-  made.
+- Runtime verification is manual and therefore skippable.
+- One test machine covers one architecture and one Windows version.
+- The scenario list holds only as long as new outcomes are added to it.
 
 ### Follow-up
 
@@ -120,9 +119,9 @@ not on any automated path.
 
 ### Option A - Rely on the packaging job
 
-It already builds an MSI, so the errors would surface there. Rejected: it runs
-at release time or by manual dispatch, so the feedback arrives after merge. Two
-errors reached `main` this way in one change.
+It already builds an MSI, so both build-time errors would surface there.
+Rejected: it runs at release time or by manual dispatch, so the signal arrives
+after merge rather than before it.
 
 ### Option B - Run the ICE suite with `smoke.exe` on a built MSI
 

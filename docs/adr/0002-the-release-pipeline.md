@@ -7,19 +7,19 @@
 
 ## Context
 
-A Mondoo release touches four repositories and nobody could describe the whole
-path from memory. The steps were spread across workflows in three repositories
-plus a runbook, and the runbook had drifted from what the workflows actually
-did. Two consequences followed from that: releases were reconstructed by hand
-each time, and gaps in the automation were only found by hitting them.
+A release is produced by four repositories acting in sequence. The steps are
+defined across workflows in `mondoohq/mql`, `mondoohq/cnspec`, this repository
+and the publishing tooling, and no single document describes the order or the
+handoffs between them.
 
-This records the path as it now runs, so a reader can tell where a release
-stopped without reverse-engineering it from workflow files.
+The repositories differ in visibility. `mondoohq/mql` and `mondoohq/cnspec` are
+public. The tooling that writes to the bucket behind `releases.mondoo.com` is
+private. This repository is public and already invokes that tooling, which is
+why the publishing half of the pipeline lives here rather than in the product
+repositories.
 
-The tools are split across public and private repositories. `mondoohq/mql` and
-`mondoohq/cnspec` are public and must not reference the private tooling, so
-this repository is the seam: it is public, it already drives the publishing
-tools, and it is where anything naming them belongs.
+Releases are cut on two lines concurrently: `main` produces the current major,
+and a `v{major}` branch produces the previous one. Both use the same pipeline.
 
 ## Decision
 
@@ -88,10 +88,9 @@ over the release candidate it is running.
   or a scoped token, and the artifacts published to the bucket come from the
   GitHub releases rather than being rebuilt, so what is served is what was
   built and signed.
-- **Residual risk:** The manual merge at step 4 is also the only human gate. A
-  reviewer who merges a bump pull request without reading it releases whatever
-  mql tagged. We accept this: the alternative is a second approval on a step
-  that is already reviewed.
+- **Residual risk:** Step 4 is the only human gate in the chain. Merging the
+  bump pull request releases whatever mql tagged. We accept this; the
+  alternative is a second approval on a step that is already reviewed.
 
 ## Performance implications
 
@@ -112,14 +111,14 @@ signing and notarization.
 
 ### Negative
 
-- Four repositories have to agree. A change to the dispatch payload or the
-  branch naming has to land in two of them, and nothing enforces that beyond
-  review.
-- The manual merge means a release can stall silently: mql is tagged and
-  published, and nothing tells anyone the bump pull request is waiting.
-- Providers do not take part in this at all. They publish into a single
-  namespace with no channel, so a pre-release must not start a provider
-  release. That is a gap, not a design.
+- The dispatch payload and the bump branch name are contracts between
+  repositories. A change to either has to land in both, and nothing enforces
+  that beyond review.
+- A release stalls silently at step 4. mql is tagged and published, and no
+  signal is raised that the bump pull request is open.
+- Providers are not part of this pipeline. They publish into a single
+  namespace with no channel, so a pre-release does not start a provider
+  release.
 
 ### Follow-up
 
@@ -144,9 +143,9 @@ the credentials and the tool names would have to live in public repositories.
 
 ### Option C - Automate the bump merge as well
 
-Fully hands-off. Rejected for now: the merge is where a human confirms the two
-projects are compatible, and removing it means a bad mql tag becomes a bad
-cnspec release with nobody in between.
+Fully hands-off. Rejected for now: the merge is the point at which the two
+projects are confirmed compatible. Removing it makes an incorrect mql tag
+propagate to a cnspec release without review.
 
 ## References
 
