@@ -181,43 +181,68 @@ jobs:
           # that as a failure ("no checks reported on the ... branch", exit 1)
           # rather than waiting.
           #
-          # Waiting for the *first* check and then handing off is not enough,
-          # because they register in waves. On PR #760: GitGuardian registered
-          # and completed within one second, the next check 43 seconds later,
-          # and the last 2m36s after that. --watch would have seen one finished
-          # check and returned immediately, and since main has no required
-          # status checks the merge below would then have succeeded -- green,
-          # with most checks not yet in existence.
+          # Nor is it enough to wait for the first check and hand off, because
+          # they register in waves. On PR #760: GitGuardian registered AND
+          # completed within one second, the next seven arrived 43 seconds
+          # later, and the last 2m36s after that. --watch would have seen one
+          # finished check and returned -- and main has no required status
+          # checks, so the merge below would have succeeded. Green, with most
+          # checks not yet in existence.
           #
-          # So watch, then look again. If more appeared while watching, watch
-          # those too. Settle only when a full pass adds nothing.
-          settled=0
-          previous=0
-          for _ in $(seq 1 12); do
+          # A count that stops changing is not proof either: between the first
+          # check and the second there is a 43 second window in which the count
+          # is stable at 1. So settling needs both a stable count and enough
+          # elapsed time to have covered the gaps -- hence the floor, which is
+          # roughly twice the 2m36s spread actually observed.
+          #
+          # If these checks were required on main, none of this would be
+          # needed: `gh pr merge` would refuse until they passed. That is the
+          # better fix and this is the one available from inside the workflow.
+          SETTLE_FLOOR_SECONDS=300
+          STARTED_AT=$(date +%s)
+
+          # Phase 1: something to watch. Its own budget, so a slow first
+          # registration cannot eat the settle phase's retries.
+          registered=0
+          for _ in $(seq 1 18); do
             # Defaulted twice on purpose: `|| echo 0` covers gh exiting
             # non-zero, ${x:-0} covers it exiting zero with no output. Without
-            # the second, an empty value makes every later [ ] comparison error,
-            # and an erroring comparison reads as false -- so the guards below
-            # would silently not fire.
+            # the second, an empty value makes every later [ ] comparison
+            # error, and an erroring comparison reads as false -- so the guards
+            # here would silently not fire.
+            registered=$(gh pr view "${PR_NUMBER}" --json statusCheckRollup \
+              --jq '.statusCheckRollup | length' 2>/dev/null || echo 0)
+            registered=${registered:-0}
+            [ "${registered}" -gt 0 ] && break
+            sleep 10
+          done
+          if [ "${registered}" -eq 0 ]; then
+            echo "::error::no checks registered on PR #${PR_NUMBER} after 3 minutes"
+            exit 1
+          fi
+
+          # Phase 2: watch what is there, look again, and repeat until the set
+          # has stopped growing and enough time has passed for a late arrival
+          # to have shown up.
+          settled=0
+          previous=-1
+          for _ in $(seq 1 20); do
             count=$(gh pr view "${PR_NUMBER}" --json statusCheckRollup \
               --jq '.statusCheckRollup | length' 2>/dev/null || echo 0)
             count=${count:-0}
+            elapsed=$(( $(date +%s) - STARTED_AT ))
 
-            if [ "${count}" -eq 0 ]; then
-              echo "No checks on PR #${PR_NUMBER} yet"
-              sleep 10
-              continue
-            fi
-
-            echo "Watching ${count} check(s) on PR #${PR_NUMBER}"
-            gh pr checks "${PR_NUMBER}" --watch --fail-fast --interval 10
-
-            if [ "${count}" -eq "${previous}" ]; then
+            if [ "${count}" -eq "${previous}" ] && [ "${elapsed}" -ge "${SETTLE_FLOOR_SECONDS}" ]; then
               settled=1
               break
             fi
             previous="${count}"
-            sleep 10
+
+            if [ "${count}" -gt 0 ]; then
+              echo "Watching ${count} check(s) on PR #${PR_NUMBER} (${elapsed}s elapsed)"
+              gh pr checks "${PR_NUMBER}" --watch --fail-fast --interval 10
+            fi
+            sleep 20
           done
 
           if [ "${settled}" -ne 1 ]; then
