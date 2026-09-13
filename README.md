@@ -39,6 +39,38 @@ iex ((New-Object System.Net.WebClient).DownloadString('https://install.mondoo.co
 Install-Mondoo;
 ```
 
+### Behind an HTTP proxy
+
+Pass the proxy to the install script with `-x` (Linux and macOS) or `-Proxy`
+(Windows). The script routes its own downloads, the package installation,
+`cnspec login` and the auto updater through it. The initial download of the
+script happens before the flag is read, so point that at the proxy as well:
+
+```bash
+export https_proxy='http://proxy.example.com:3128'
+curl -sSL --proxy "$https_proxy" https://install.mondoo.com/sh | bash -s -- -x "$https_proxy"
+```
+
+```powershell
+Set-ExecutionPolicy Unrestricted -Scope Process -Force;
+[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072;
+$wc = New-Object System.Net.WebClient;
+$wc.Proxy = New-Object System.Net.WebProxy('http://proxy.example.com:3128');
+iex ($wc.DownloadString('https://install.mondoo.com/ps1'));
+Install-Mondoo -Proxy 'http://proxy.example.com:3128';
+```
+
+On Linux and macOS an inherited `https_proxy` or `http_proxy` is picked up
+automatically when `-x` is not given. Either way both forms are exported, so
+the distribution's own repositories — which are plain HTTP on Debian and Ubuntu
+— are reached through the proxy as well. Any `no_proxy` you have set is carried
+through unchanged, including across `sudo`.
+
+The proxy URL must be a plain URL: if it carries credentials, percent-encode
+them (`!` as `%21`, and so on). The value is written into the auto updater's
+scheduled job, so characters that would need quoting there are refused rather
+than escaped.
+
 ## Scan your target platform
 
 Scan your [target platform](https://github.com/mondoohq/cnspec/#supported-targets):
