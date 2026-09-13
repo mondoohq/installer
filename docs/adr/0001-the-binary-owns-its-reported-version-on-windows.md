@@ -148,8 +148,8 @@ Encode the full version into MSI's comparable fields so every build has a
 distinct `ProductVersion`, the way Chrome maps `98.0.4758.82` to `68.165.32870`.
 Rejected: Chrome needs it because a four-part version does not fit, and ours
 does. GA versions are already three-field and monotonic, and collisions occur
-only inside one pre-release series. The mapping would add a translation nobody
-can read and, for Chrome, a lookup service to reverse it.
+only inside one pre-release series. The mapping adds a translation between two
+version spaces and, in Chrome's case, a service to reverse it.
 
 ### Option C - Disable self-update for MSI-managed installs
 
