@@ -261,10 +261,32 @@ jobs:
           TOKEN: ${{ steps.auth.outputs.id_token }}
           BUCKETNAME: ${{ needs.parse-inputs.outputs.bucket }}
           GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
-          IDX_OPTS: ${{ inputs.reindex-full && '--force-recompute' || '' }}
+          BUCKET: ${{ needs.parse-inputs.outputs.bucket }}
+          VERSION: ${{ needs.parse-inputs.outputs.version }}
+          REINDEX_FULL: ${{ inputs.reindex-full }}
           SKIP: ${{ (needs.parse-inputs.outputs.skip-publish == 'true') && 'echo skipping...' || '' }}
         run: |
-          $SKIP ./releasr idx gs://${{ needs.parse-inputs.outputs.bucket }} $IDX_OPTS
+          # A release writes three trees: mondoo/<version> for the msi, pkg and OS
+          # packages, and mql/<version> and cnspec/<version> for the binaries. Index
+          # those, and let --update-parent rewrite each app's channel pointers from
+          # every version it holds.
+          #
+          # An unscoped pass rebuilds the index for every product in the bucket, which
+          # makes a release depend on the health of objects it has no relationship
+          # with. On v14.0.0-rc.6 an unreadable file under edge/ ended the pass before
+          # cnspec/ was reached, so cnspec's preview pointer stayed a release behind
+          # while mql's moved: reverse-alphabetical order decided which products
+          # published.
+          #
+          # A full pass still repairs the bucket after a change to the generator. It
+          # just does not belong on the release path.
+          if [ "${REINDEX_FULL}" = "true" ]; then
+            $SKIP ./releasr idx "gs://${BUCKET}" --force-recompute
+          else
+            $SKIP ./releasr idx "gs://${BUCKET}" \
+              --app "mondoo/${VERSION},mql/${VERSION},cnspec/${VERSION}" \
+              --update-parent
+          fi
       - name: Restart minstaller Cloud Run Service
         env:
           MINSTALLER: ${{ (needs.parse-inputs.outputs.skip-publish == 'true') && 'minstaller-dev' || 'minstaller' }}
