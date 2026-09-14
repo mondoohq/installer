@@ -14,26 +14,20 @@ extend-exclude = [
   "*.bmp",
 ]
 
+[default]
+# Blocks of base64 that are not text. Ignoring each block wholesale means
+# regenerating one cannot introduce a new "typo" -- which is what listing each
+# fragment as a word left us doing, one re-sign at a time.
+extend-ignore-re = [
+  # Authenticode signature blocks appended to the signed PowerShell scripts.
+  "(?s)# SIG # Begin signature block.*?# SIG # End signature block",
+  # The PGP public keys published in the README for verifying packages.
+  "(?s)-----BEGIN PGP PUBLIC KEY BLOCK-----.*?-----END PGP PUBLIC KEY BLOCK-----",
+]
+
 # Terms typos misflags. Each maps the word to itself so typos treats it as
 # correct. Matching is case-insensitive.
 [default.extend-words]
-# Base64 fragments from the Authenticode signature blocks appended to the
-# signed PowerShell scripts. typos reads them as words; they are not.
-nd = "nd"
-ba = "ba"
-ue = "ue"
-fo = "fo"
-pn = "pn"
-iz = "iz"
-iy = "iy"
-tbe = "tbe"
-tpe = "tpe"
-hpe = "hpe"
-tha = "tha"
-ot = "ot"
-usag = "usag"
-informat = "informat"
-informatio = "informatio"
 # PowerShell operators read as words: -ine is case-insensitive not-equal.
 ine = "ine"
 # Product and tool names
