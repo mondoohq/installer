@@ -139,17 +139,25 @@ UserAgent="MondooDownloadScript/1.0 (+https://mondoo.com/) ShellScript/$BASH_VER
 # package index has nothing for this platform/arch, which is worth reporting
 # before we start writing a tarball to disk.
 purple_bold "Downloading ${sha_url}"
-# curl exits 22 for an HTTP error under -f, which is the case that really means
-# "no such package". Every other exit -- no DNS, no route, TLS refused, a proxy
-# in the way -- was being reported as a missing package too, sending people to
-# look for a build that exists.
+# Three outcomes worth telling apart, because they send the reader somewhere
+# different: the request never completed, the server said the package is not
+# there, or the server failed. Dropping -f is what makes that possible -- with
+# it, curl exits 22 for every status >= 400 and 404 is indistinguishable from
+# 503, so a release server having a bad day reads as "your platform is not
+# supported".
 sha_rc=0
-expectedSha=$(curl -fsSL "${sha_url}") || sha_rc=$?
-if [ "${sha_rc}" -eq 22 ]; then
-  fail "No ${product} package for ${os}/${arch} (version ${version}).\nLooked in ${pkg_base_url}"
-elif [ "${sha_rc}" -ne 0 ]; then
+sha_response=$(curl -sSL -w '\n%{http_code}' "${sha_url}") || sha_rc=$?
+if [ "${sha_rc}" -ne 0 ]; then
   fail "Could not reach ${sha_url} (curl exit ${sha_rc}).\nCheck your network or proxy settings."
 fi
+
+sha_code="${sha_response##*$'\n'}"
+expectedSha="${sha_response%$'\n'*}"
+case "${sha_code}" in
+  200) ;;
+  404) fail "No ${product} package for ${os}/${arch} (version ${version}).\nLooked in ${pkg_base_url}" ;;
+  *)   fail "The release server returned HTTP ${sha_code} for ${sha_url}.\nThis is usually temporary -- try again shortly." ;;
+esac
 echo -e "Expected binary hash: ${expectedSha}"
 
 # download binary
