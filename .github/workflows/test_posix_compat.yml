@@ -5,11 +5,8 @@ on:
   pull_request:
     types: [opened, reopened, synchronize]
     paths:
-      # download.sh is deliberately bash -- it uses $BASH_VERSION and echo -e
-      # and is invoked as `bash download.sh` -- so it is not listed here. A
-      # trigger that runs this job without checking the file that changed is a
-      # green tick that inspected nothing.
       - 'install.sh'
+      - 'download.sh'
       # Globbed to match the loop below. Listing the scripts individually meant
       # a newly added one would not trigger this job, and would then be checked
       # only when some other listed file happened to change in the same PR --
@@ -40,7 +37,7 @@ jobs:
         run: |
           set -eu
           status=0
-          for f in install.sh test/install_sh/*.sh; do
+          for f in install.sh download.sh test/install_sh/*.sh; do
             # An unmatched glob expands to the literal pattern in POSIX sh, so
             # confirm there is a file here. Failing is deliberate: skipping
             # would let this job report success having checked nothing, which

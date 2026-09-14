@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 #
 # Copyright (c) 2019-2025 Mondoo, Inc.
 # License: Apache License, Version 2.0
@@ -31,10 +31,10 @@ redb="\033[1;31m"
 purple="\033[0;35m"
 purpleb="\033[1;35m"
 
-purple() { echo -e "${purple}${1}${end}"; }
-purple_bold() { echo -e "${purpleb}${1}${end}"; }
-red() { echo -e "${red}${1}${end}"; }
-red_bold() { echo -e "${redb}${1}${end}"; }
+purple() { printf '%b\n' "${purple}${1}${end}"; }
+purple_bold() { printf '%b\n' "${purpleb}${1}${end}"; }
+red() { printf '%b\n' "${red}${1}${end}"; }
+red_bold() { printf '%b\n' "${redb}${1}${end}"; }
 
 purple_bold "Mondoo Binary Download Script"
 purple "
@@ -45,7 +45,7 @@ purple "
 :_;:_;:_;\`.__.':_;:_;\`.__.'\`.__.'\`.__.
 "
 
-echo -e "\nWelcome to the Mondoo Binary Download Script. It tries to auto-detect your
+printf '%b\n' "\nWelcome to the Mondoo Binary Download Script. It tries to auto-detect your
 operating system and determines the appropriate binary for your platform. If you are
 experiencing any issues, please do not hesitate to reach out:
 
@@ -60,7 +60,7 @@ version="${MONDOO_VERSION:-latest}"
 channel="${MONDOO_CHANNEL:-}"
 
 fail() {
-  echo -e "${red}${1}${end}";
+  printf '%b\n' "${red}${1}${end}";
     exit 1;
 }
 
@@ -133,7 +133,10 @@ fi
 download_url="${pkg_base_url}/download${channel_query}"
 sha_url="${pkg_base_url}/sha256${channel_query}"
 
-UserAgent="MondooDownloadScript/1.0 (+https://mondoo.com/) ShellScript/$BASH_VERSION ($OS $DISTRIBUTION)"
+# $OS and $DISTRIBUTION are install.sh's variables and were never set here, so
+# this reported "ShellScript/5.2.15(1)-release ( )" -- a bash version and an
+# empty platform. It now reports what this script actually detected.
+UserAgent="MondooDownloadScript/1.0 (+https://mondoo.com/) ShellScript (${os} ${arch})"
 
 # download the checksum first. It is a few bytes, and a 404 here means the
 # package index has nothing for this platform/arch, which is worth reporting
@@ -151,19 +154,25 @@ if [ "${sha_rc}" -ne 0 ]; then
   fail "Could not reach ${sha_url} (curl exit ${sha_rc}).\nCheck your network or proxy settings."
 fi
 
-sha_code="${sha_response##*$'\n'}"
-expectedSha="${sha_response%$'\n'*}"
+# Built rather than written literally: a bare newline inside quotes is correct
+# POSIX but invisible, and a trailing-whitespace hook or formatter can eat it
+# without anything failing loudly. The X is a sentinel -- $() strips trailing
+# newlines, so there has to be something after it to strip instead.
+newline="$(printf '\nX')"
+newline="${newline%X}"
+sha_code="${sha_response##*"${newline}"}"
+expectedSha="${sha_response%"${newline}"*}"
 case "${sha_code}" in
   200) ;;
   404) fail "No ${product} package for ${os}/${arch} (version ${version}).\nLooked in ${pkg_base_url}" ;;
   *)   fail "The release server returned HTTP ${sha_code} for ${sha_url}.\nThis is usually temporary -- try again shortly." ;;
 esac
-echo -e "Expected binary hash: ${expectedSha}"
+printf '%b\n' "Expected binary hash: ${expectedSha}"
 
 # download binary
 purple_bold "Downloading ${download_url}"
 binarySha=$(curl -A "${UserAgent}" -fsSL "${download_url}" | tee "${filename}" | ${sha256bin} | cut -b 1-64)
-echo -e "Downloaded binary hash: ${binarySha}"
+printf '%b\n' "Downloaded binary hash: ${binarySha}"
 
 # extract binary
 if [ "$binarySha" = "$expectedSha" ]; then
@@ -180,7 +189,7 @@ fi
 
 # Display final message
 purple_bold "\nThank you for downloading Mondoo!"
-echo -e "
+printf '%b\n' "
 You can register the client via:
 
 MONDOO_REGISTRATION_TOKEN=\"ey..iU\"
