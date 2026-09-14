@@ -137,12 +137,10 @@ $releaseurl = ''
 # Appended only when asked for, so the default URLs -- and the cache entries
 # keyed on them -- are unchanged.
 $channelquery = ''
-If (-not [string]::IsNullOrEmpty($Channel)) {
-    If ([string]::IsNullOrEmpty($version)) {
-      $channelquery = "?channel=$Channel"
-    } Else {
-      info " * Ignoring -Channel $Channel : -Version $Version already names a build."
-    }
+If (-not [string]::IsNullOrEmpty($Channel) -and [string]::IsNullOrEmpty($version)) {
+    $channelquery = "?channel=$Channel"
+  } ElseIf (-not [string]::IsNullOrEmpty($Channel)) {
+    info " * Ignoring -Channel $Channel : -Version $Version already names a build."
   }
 
 # Both URLs are built from one base rather than deriving the checksum URL from
