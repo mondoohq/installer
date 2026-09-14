@@ -218,6 +218,7 @@ jobs:
           # seven minutes on the PR #760 suite -- so 20 remains comfortable.
           SETTLE_DEADLINE_SECONDS=900
           STARTED_AT=$(date +%s)
+          GH_ERR="${RUNNER_TEMP:-/tmp}/gh-checks-err"
 
           # Phase 1: something to watch. Its own budget, so a slow first
           # registration cannot eat the settle phase's retries.
@@ -231,9 +232,14 @@ jobs:
             # the second, an empty value makes every later [ ] comparison
             # error, and an erroring comparison reads as false -- so the guards
             # here would silently not fire.
+            #
+            # gh's stderr reaches the log rather than /dev/null: an auth or
+            # network failure otherwise looks exactly like "no checks yet",
+            # and the error below would blame registration for it.
             registered=$(gh pr view "${PR_NUMBER}" --json statusCheckRollup \
-              --jq '.statusCheckRollup | length' 2>/dev/null || echo 0)
+              --jq '.statusCheckRollup | length' 2>"${GH_ERR}" || echo 0)
             registered=${registered:-0}
+            [ -s "${GH_ERR}" ] && echo "::warning::gh pr view: $(tr '\n' ' ' < "${GH_ERR}")"
             [ "${registered}" -gt 0 ] && break
             sleep "${REGISTER_INTERVAL}"
           done
@@ -260,8 +266,9 @@ jobs:
           last_change_at=${STARTED_AT}
           while [ "$(( $(date +%s) - STARTED_AT ))" -lt "${SETTLE_DEADLINE_SECONDS}" ]; do
             count=$(gh pr view "${PR_NUMBER}" --json statusCheckRollup \
-              --jq '.statusCheckRollup | length' 2>/dev/null || echo 0)
+              --jq '.statusCheckRollup | length' 2>"${GH_ERR}" || echo 0)
             count=${count:-0}
+            [ -s "${GH_ERR}" ] && echo "::warning::gh pr view: $(tr '\n' ' ' < "${GH_ERR}")"
             now=$(date +%s)
             elapsed=$(( now - STARTED_AT ))
 
