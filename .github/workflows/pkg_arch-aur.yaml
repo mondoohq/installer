@@ -55,9 +55,9 @@ jobs:
       - name: 'DEBUG: Show generated package versions'
         run: |
           cd packages/archlinux
-          echo "mql: $(grep orignalVersion= mql/PKGBUILD)"
-          echo "cnspec: $(grep orignalVersion= cnspec/PKGBUILD)"
-          echo "mondoo: $(grep orignalVersion= mondoo/PKGBUILD)"
+          echo "mql: $(grep originalVersion= mql/PKGBUILD)"
+          echo "cnspec: $(grep originalVersion= cnspec/PKGBUILD)"
+          echo "mondoo: $(grep originalVersion= mondoo/PKGBUILD)"
       - name: Publish mql AUR package
         if: ${{ !inputs.skip }}
         continue-on-error: true

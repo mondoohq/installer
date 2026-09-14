@@ -224,14 +224,14 @@ var pkgBuildTemplate = `# Maintainer: Mondoo Inc <hello@mondoo.com>
 # Maintainer: Patrick Münch <patrick@mondoo.com>
 #
 pkgname={{ .PkgName }}
-orignalVersion="{{ .Version }}"
-pkgver="${orignalVersion/-/_}"
+originalVersion="{{ .Version }}"
+pkgver="${originalVersion/-/_}"
 pkgrel=1
 pkgdesc="{{ .Description }}"
 url="https://mondoo.com"
 license=('{{ .License }}')
 source=(
-    {{- if .BinFile }}"https://releases.mondoo.com/{{ .PkgName }}/${orignalVersion}/{{ .PkgName }}_${orignalVersion}_linux_amd64.tar.gz"{{- end }}
+    {{- if .BinFile }}"https://releases.mondoo.com/{{ .PkgName }}/${originalVersion}/{{ .PkgName }}_${originalVersion}_linux_amd64.tar.gz"{{- end }}
     {{ range .ExtraFiles -}}
     '{{ .Name }}'
     {{ end -}}

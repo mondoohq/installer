@@ -42,8 +42,3 @@ copywrite = "copywrite" # HashiCorp copywrite tool, used by the license check
 # (sign_powershell.yml), so a fix has to be paired with a re-sign rather than
 # ridden along with an unrelated change. Remove this entry with that fix.
 registred = "registred"
-# TODO(#786): the shell variable orignalVersion in the Arch PKGBUILD, emitted
-# from a template in packages/archlinux/generator/main.go. Renaming it means
-# changing the generator and regenerating the package. Remove this entry with
-# that fix.
-orignal = "orignal"
