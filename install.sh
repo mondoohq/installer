@@ -1046,7 +1046,9 @@ fi
 # stable under a preview request.
 #
 # Listed as the installers that DO support it, so a new installer warns by
-# default instead of silently ignoring the setting.
+# default instead of silently ignoring the setting. Add an installer here when
+# it learns to resolve a version from the channel pointer documents, i.e. when
+# it starts calling detect_latest_version.
 CHANNEL_AWARE_INSTALLERS="pkg tar"
 
 warn_if_channel_unsupported() {
@@ -1060,6 +1062,11 @@ warn_if_channel_unsupported() {
   purple "  ${MONDOO_INSTALLER} installs from a package repository, which carries stable releases only."
   purple "  Installing the stable release instead."
   purple "  To run a preview build, install the portable archive or use a container image."
+
+  # The warning is not fatal: the install continues on the stable channel.
+  # Explicit so the function does not inherit the exit status of the last
+  # purple call.
+  return 0
 }
 
 warn_if_channel_unsupported
