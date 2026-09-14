@@ -1033,6 +1033,37 @@ else
   fail
 fi
 
+# Channel support
+# ---------------
+
+# Only some install methods resolve a version from the channel pointer
+# documents. `pkg` and `tar` call detect_latest_version and read latest.json or
+# preview.json; the package managers install whatever their repository serves,
+# and those repositories carry stable builds only.
+#
+# The flag is validated at parse time, so asking for an unsupported channel
+# looks accepted. Say plainly that it is being ignored rather than installing
+# stable under a preview request.
+#
+# Listed as the installers that DO support it, so a new installer warns by
+# default instead of silently ignoring the setting.
+CHANNEL_AWARE_INSTALLERS="pkg tar"
+
+warn_if_channel_unsupported() {
+  [ "${MONDOO_CHANNEL}" = "preview" ] || return 0
+
+  for _aware in ${CHANNEL_AWARE_INSTALLERS}; do
+    [ "${MONDOO_INSTALLER}" = "${_aware}" ] && return 0
+  done
+
+  red "\n! The ${MONDOO_CHANNEL} channel is not available via ${MONDOO_INSTALLER}."
+  purple "  ${MONDOO_INSTALLER} installs from a package repository, which carries stable releases only."
+  purple "  Installing the stable release instead."
+  purple "  To run a preview build, install the portable archive or use a container image."
+}
+
+warn_if_channel_unsupported
+
 # Mondoo installation / update
 # ----------------------------
 
