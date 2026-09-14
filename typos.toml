@@ -34,11 +34,3 @@ ine = "ine"
 aks = "aks"             # Azure Kubernetes Service
 hashi = "hashi"         # HashiCorp
 copywrite = "copywrite" # HashiCorp copywrite tool, used by the license check
-# Real misspellings that cannot be corrected here.
-#
-# TODO(#785): appears in install.ps1 and Mondoo.Installer.psm1, both of which
-# carry an Authenticode signature in the repository. Editing the text
-# invalidates that signature, and signing is a manual workflow_dispatch
-# (sign_powershell.yml), so a fix has to be paired with a re-sign rather than
-# ridden along with an unrelated change. Remove this entry with that fix.
-registred = "registred"
