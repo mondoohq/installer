@@ -36,14 +36,19 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # alpine runs the script through its shebang on a system with no bash
-          # at all, so it is the one that would catch a bashism creeping back in.
+          # alpine is the weakest signal of the set, despite having no bash:
+          # busybox ash implements a good deal of bash, including $'\n', so a
+          # bashism can pass here and still break elsewhere. That is not
+          # hypothetical -- it is how the $'\n' in #805 reached production.
           - dockerfile: alpine.Dockerfile
             target: alpine
           - dockerfile: almalinux.Dockerfile
             target: almalinux
           - dockerfile: amazonlinux2.Dockerfile
             target: amazonlinux2
+          # debian and ubuntu are the ones that matter for POSIX: /bin/sh is
+          # dash, which implements the standard and little else, so with a
+          # #!/bin/sh shebang these two are what actually catch a bashism.
           - dockerfile: debian.Dockerfile
             target: debian
           - dockerfile: opensuse.Dockerfile
