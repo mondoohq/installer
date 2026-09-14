@@ -67,6 +67,7 @@ test/posix:
 ## Each Dockerfile is a multi-stage build; we must build every stage explicitly
 ## with --target, otherwise only the last stage runs.
 INSTALL_SH_DOCKER_TARGETS := \
+	dash.Dockerfile:dash \
 	almalinux.Dockerfile:almalinux8 \
 	almalinux.Dockerfile:almalinux9 \
 	almalinux.arm64.Dockerfile:almalinux8_arm64 \

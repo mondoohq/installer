@@ -34,6 +34,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          # dash.Dockerfile -- POSIX by name rather than by whichever shell a
+          # distribution points /bin/sh at. See the note in the file.
+          - dockerfile: dash.Dockerfile
+            target: dash
           # almalinux.Dockerfile
           - dockerfile: almalinux.Dockerfile
             target: almalinux8
