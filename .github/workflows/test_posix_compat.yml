@@ -10,10 +10,12 @@ on:
       # trigger that runs this job without checking the file that changed is a
       # green tick that inspected nothing.
       - 'install.sh'
-      - 'test/install_sh/test_params.sh'
-      - 'test/install_sh/test_status_timeout.sh'
-      - 'test/install_sh/test_arch_detect.sh'
-      - 'test/install_sh/test_proxy.sh'
+      # Globbed to match the loop below. Listing the scripts individually meant
+      # a newly added one would not trigger this job, and would then be checked
+      # only when some other listed file happened to change in the same PR --
+      # the same disagreement between trigger and check that put download.sh
+      # in this list without ever checking it.
+      - 'test/install_sh/*.sh'
       - '.github/workflows/test_posix_compat.yml'
 
 permissions:
