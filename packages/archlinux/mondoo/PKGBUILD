@@ -3,14 +3,14 @@
 # Maintainer: Patrick Münch <patrick@mondoo.com>
 #
 pkgname=mondoo
-orignalVersion="2.2.3"
-pkgver="${orignalVersion/-/_}"
+originalVersion="2.2.3"
+pkgver="${originalVersion/-/_}"
 pkgrel=1
 pkgdesc="Mondoo Client CLI for the Mondoo Policy as Code Platform"
 url="https://mondoo.com"
 license=('custom')
 source=(
-    "https://releases.mondoo.com/mondoo/${orignalVersion}/mondoo_${orignalVersion}_linux_amd64.tar.gz"
+    "https://releases.mondoo.com/mondoo/${originalVersion}/mondoo_${originalVersion}_linux_amd64.tar.gz"
     'LICENSE.html'
     'OSS-LICENSES.tar.xz'
     'mondoo.service'
