@@ -151,8 +151,15 @@ if [ "${sha_rc}" -ne 0 ]; then
   fail "Could not reach ${sha_url} (curl exit ${sha_rc}).\nCheck your network or proxy settings."
 fi
 
-sha_code="${sha_response##*$'\n'}"
-expectedSha="${sha_response%$'\n'*}"
+# POSIX split, deliberately: $'\n' is bash-only ANSI-C quoting, and this
+# script gets run as `sh download.sh` by CI pipelines despite the shebang.
+# Under dash the $'\n' pattern never matches, the HTTP code never splits off
+# the response, and every download fails with
+# "The release server returned HTTP <sha> 200".
+nl='
+'
+sha_code="${sha_response##*"${nl}"}"
+expectedSha="${sha_response%"${nl}"*}"
 case "${sha_code}" in
   200) ;;
   404) fail "No ${product} package for ${os}/${arch} (version ${version}).\nLooked in ${pkg_base_url}" ;;
