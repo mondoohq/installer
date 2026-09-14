@@ -213,14 +213,16 @@ jobs:
           registered=0
           for attempt in $(seq 1 "${REGISTER_ATTEMPTS}"); do
             echo "Waiting for checks to register on PR #${PR_NUMBER} (attempt ${attempt}/${REGISTER_ATTEMPTS})"
-            # Defaulted twice: `|| echo 0` for gh exiting non-zero, ${x:-0}
-            # for it exiting zero with no output -- an empty value makes every
-            # later [ ] comparison error, and an erroring comparison reads as
-            # false, so the guards would silently not fire. stderr reaches the
-            # log rather than /dev/null, where an auth or network failure would
-            # look exactly like "no checks yet".
+            # Three guards on one number, because every later [ ] comparison
+            # is arithmetic and an erroring comparison reads as false -- the
+            # guards would silently not fire. grep -Ex rejects anything that is
+            # not the count (gh exiting 0 having printed a notice to stdout),
+            # `|| echo 0` covers gh exiting non-zero, ${x:-0} covers no output
+            # at all. stderr reaches the log rather than /dev/null, where an
+            # auth or network failure would look exactly like "no checks yet".
             registered=$(gh pr view "${PR_NUMBER}" --json statusCheckRollup \
-              --jq '.statusCheckRollup | length' 2>"${GH_ERR}" || echo 0)
+              --jq '.statusCheckRollup | length' 2>"${GH_ERR}" \
+              | grep -Ex '[0-9]+' || echo 0)
             registered=${registered:-0}
             [ -s "${GH_ERR}" ] && echo "::warning::gh pr view: $(tr '\n' ' ' < "${GH_ERR}")"
             [ "${registered}" -gt 0 ] && break
@@ -245,7 +247,8 @@ jobs:
           last_change_at=${STARTED_AT}
           while [ "$(( $(date +%s) - STARTED_AT ))" -lt "${SETTLE_DEADLINE_SECONDS}" ]; do
             count=$(gh pr view "${PR_NUMBER}" --json statusCheckRollup \
-              --jq '.statusCheckRollup | length' 2>"${GH_ERR}" || echo 0)
+              --jq '.statusCheckRollup | length' 2>"${GH_ERR}" \
+              | grep -Ex '[0-9]+' || echo 0)
             count=${count:-0}
             [ -s "${GH_ERR}" ] && echo "::warning::gh pr view: $(tr '\n' ' ' < "${GH_ERR}")"
             now=$(date +%s)
