@@ -5,11 +5,17 @@ on:
   pull_request:
     types: [opened, reopened, synchronize]
     paths:
+      # download.sh is deliberately bash -- it uses $BASH_VERSION and echo -e
+      # and is invoked as `bash download.sh` -- so it is not listed here. A
+      # trigger that runs this job without checking the file that changed is a
+      # green tick that inspected nothing.
       - 'install.sh'
-      - 'download.sh'
-      - 'test/install_sh/test_params.sh'
-      - 'test/install_sh/test_status_timeout.sh'
-      - 'test/install_sh/test_arch_detect.sh'
+      # Globbed to match the loop below. Listing the scripts individually meant
+      # a newly added one would not trigger this job, and would then be checked
+      # only when some other listed file happened to change in the same PR --
+      # the same disagreement between trigger and check that put download.sh
+      # in this list without ever checking it.
+      - 'test/install_sh/*.sh'
       - '.github/workflows/test_posix_compat.yml'
 
 permissions:
@@ -25,23 +31,37 @@ jobs:
       - name: Install checkbashisms
         run: sudo apt-get update && sudo apt-get install -y devscripts
 
-      - name: Run checkbashisms on install.sh
-        run: checkbashisms install.sh
-
-      - name: Run ShellCheck in POSIX mode
-        run: shellcheck -s sh -S warning install.sh
-
-      - name: Verify shebang is #!/bin/sh
+      # The test scripts are #!/bin/sh too, and they were being executed
+      # without ever being linted -- so a bashism in one of them would only
+      # surface if it happened to be reached on a runner whose /bin/sh is
+      # bash, which on ubuntu-latest it is not. They pass all three checks
+      # today, which is why this is the moment to wire them in.
+      - name: Check POSIX compliance
         run: |
-          for f in install.sh; do
-            head -1 "$f" | grep -q '^#!/bin/sh' || {
-              echo "ERROR: $f shebang is not #!/bin/sh"
+          set -eu
+          status=0
+          for f in install.sh test/install_sh/*.sh; do
+            # An unmatched glob expands to the literal pattern in POSIX sh, so
+            # confirm there is a file here. Failing is deliberate: skipping
+            # would let this job report success having checked nothing, which
+            # is the failure it exists to prevent.
+            [ -f "$f" ] || {
+              echo "::error::no file matches '$f' -- nothing was checked"
               exit 1
             }
-          done
 
-      - name: Parse with dash (syntax check)
-        run: dash -n install.sh
+            echo "==> $f"
+
+            head -1 "$f" | grep -q '^#!/bin/sh' || {
+              echo "::error file=$f::shebang is not #!/bin/sh"
+              status=1
+            }
+
+            checkbashisms "$f" || status=1
+            shellcheck -s sh -S warning "$f" || status=1
+            dash -n "$f" || status=1
+          done
+          exit "$status"
 
       - name: Test parameter passing
         run: sh test/install_sh/test_params.sh
