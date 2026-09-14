@@ -1,0 +1,78 @@
+---
+name: Test download.sh
+
+# download.sh had no CI at all. `make test/download_sh` existed, was not run by
+# anything, and had been failing since #339 changed the default product from
+# mondoo to cnspec without updating these Dockerfiles -- a year of a test nobody
+# ran reporting nothing.
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+    paths:
+      - 'download.sh'
+      - 'test/download_sh/*.Dockerfile'
+      - '.github/workflows/test_download_sh.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'download.sh'
+      - 'test/download_sh/*.Dockerfile'
+      - '.github/workflows/test_download_sh.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: test-download-sh-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  download:
+    name: download.sh (${{ matrix.target }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # alpine runs the script through its shebang on a system with no bash
+          # at all, so it is the one that would catch a bashism creeping back in.
+          - dockerfile: alpine.Dockerfile
+            target: alpine
+          - dockerfile: almalinux.Dockerfile
+            target: almalinux
+          - dockerfile: amazonlinux2.Dockerfile
+            target: amazonlinux2
+          - dockerfile: debian.Dockerfile
+            target: debian
+          - dockerfile: opensuse.Dockerfile
+            target: opensuse
+          - dockerfile: ubuntu.Dockerfile
+            target: ubuntu
+          # emulated, and pinned in its FROM for that reason
+          - dockerfile: almalinux.arm64.Dockerfile
+            target: almalinux_arm64
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@96fe6ef7f33517b61c61be40b68a1882f3264fb8 # v4.2.0
+        with:
+          image: tonistiigi/binfmt@sha256:d3b963f787999e6c0219a48dba02978769286ff61a5f4d26245cb6a6e5567ea3 # latest
+          platforms: arm64
+
+      - name: Set up Docker BuildX
+        uses: docker/setup-buildx-action@d7f5e7f509e45cec5c76c4d5afdd7de93d0b3df5 # v4.1.0
+
+      - name: Copy download.sh into the build context
+        run: cp download.sh test/download_sh/
+
+      - name: Build and test (${{ matrix.target }})
+        uses: docker/build-push-action@f9f3042f7e2789586610d6e8b85c8f03e5195baf # v7.2.0
+        with:
+          context: test/download_sh
+          file: test/download_sh/${{ matrix.dockerfile }}
+          push: false
+          # no-cache: each run must actually download and verify, not replay a layer
+          no-cache: true
