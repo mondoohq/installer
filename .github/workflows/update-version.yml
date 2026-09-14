@@ -176,46 +176,32 @@ jobs:
           # synchronous: unlike `gh pr merge --auto`, a failed check or refused
           # merge fails the job instead of silently leaving the PR open.
           #
-          # --watch only watches the checks that exist when it starts, and a
-          # second after the PR is opened none are registered yet -- gh treats
-          # that as a failure ("no checks reported on the ... branch", exit 1)
-          # rather than waiting.
+          # One --watch call is not enough, for two reasons. It only watches
+          # checks that exist when it starts, and a second after the PR opens
+          # none are registered -- gh calls that a failure ("no checks reported
+          # on the ... branch", exit 1) rather than waiting. And they register
+          # in waves: on PR #760 GitGuardian registered and completed within a
+          # second, seven more arrived 43s later, the last 2m36s after that. A
+          # single watch would have returned on that one green check, and main
+          # has no required checks to stop the merge.
           #
-          # Nor is it enough to wait for the first check and hand off, because
-          # they register in waves. On PR #760: GitGuardian registered AND
-          # completed within one second, the next seven arrived 43 seconds
-          # later, and the last 2m36s after that. --watch would have seen one
-          # finished check and returned -- and main has no required status
-          # checks, so the merge below would have succeeded. Green, with most
-          # checks not yet in existence.
+          # A stable count is not proof either -- across that first 43s window
+          # it sits at 1. Settling needs both a stable count and enough elapsed
+          # time to cover the gaps. (Requiring these checks on main would make
+          # all of this unnecessary; this is the fix available from inside the
+          # workflow.)
           #
-          # A count that stops changing is not proof either: between the first
-          # check and the second there is a 43 second window in which the count
-          # is stable at 1. So settling needs both a stable count and enough
-          # elapsed time to have covered the gaps -- hence the floor, which is
-          # roughly twice the 2m36s spread actually observed.
-          #
-          # If these checks were required on main, none of this would be
-          # needed: `gh pr merge` would refuse until they passed. That is the
-          # better fix and this is the one available from inside the workflow.
-          # Both are tuned to what this repository's suite actually did on
-          # PR #760 -- a 2m36s spread between the first check registering and
-          # the last. They will need revisiting if that spread grows: the cost
-          # of being wrong low is a merge that skipped its checks, the cost of
-          # being wrong high is a slower release, so prefer generous.
-          #
-          # Kept next to the logic they govern rather than hoisted into a
-          # job-level `env`: this step is their only consumer, and the
-          # paragraph above is the whole reason the floor is not a smaller,
-          # tidier number. Separating a value like this from what justifies it
-          # is how it gets trimmed later by someone who cannot see what it was
-          # protecting.
+          # Tuned to that 2m36s spread, so revisit if it grows: wrong low is a
+          # merge that skipped its checks, wrong high is a slower release.
+          # These live here rather than in a job-level `env` because this step
+          # is their only consumer, and the reasoning above is what stops the
+          # floor being tidied down to a number that no longer covers it.
           SETTLE_FLOOR_SECONDS=300
           QUIET_SECONDS=60
-          # Under the step's timeout-minutes: 20 (line 169), so the loop
-          # reports its own failure rather than being killed mid-wait. A normal
-          # run is the 300s floor plus however long the checks take -- about
-          # seven minutes on the PR #760 suite -- so 20 remains comfortable.
+          # Under the step's timeout-minutes: 20, so the loop reports its own
+          # failure rather than being killed mid-wait. A normal run is the
+          # floor plus however long the checks take -- about seven minutes on
+          # the PR #760 suite.
           SETTLE_DEADLINE_SECONDS=900
           STARTED_AT=$(date +%s)
           GH_ERR="${RUNNER_TEMP:-/tmp}/gh-checks-err"
@@ -227,15 +213,12 @@ jobs:
           registered=0
           for attempt in $(seq 1 "${REGISTER_ATTEMPTS}"); do
             echo "Waiting for checks to register on PR #${PR_NUMBER} (attempt ${attempt}/${REGISTER_ATTEMPTS})"
-            # Defaulted twice on purpose: `|| echo 0` covers gh exiting
-            # non-zero, ${x:-0} covers it exiting zero with no output. Without
-            # the second, an empty value makes every later [ ] comparison
-            # error, and an erroring comparison reads as false -- so the guards
-            # here would silently not fire.
-            #
-            # gh's stderr reaches the log rather than /dev/null: an auth or
-            # network failure otherwise looks exactly like "no checks yet",
-            # and the error below would blame registration for it.
+            # Defaulted twice: `|| echo 0` for gh exiting non-zero, ${x:-0}
+            # for it exiting zero with no output -- an empty value makes every
+            # later [ ] comparison error, and an erroring comparison reads as
+            # false, so the guards would silently not fire. stderr reaches the
+            # log rather than /dev/null, where an auth or network failure would
+            # look exactly like "no checks yet".
             registered=$(gh pr view "${PR_NUMBER}" --json statusCheckRollup \
               --jq '.statusCheckRollup | length' 2>"${GH_ERR}" || echo 0)
             registered=${registered:-0}
@@ -248,19 +231,15 @@ jobs:
             exit 1
           fi
 
-          # Phase 2: watch what is there, look again, and repeat until the set
-          # has stopped growing and enough time has passed for a late arrival
-          # to have shown up.
-          # Two conditions, because neither alone is enough. QUIET_SECONDS is
-          # measured from the last time the count actually changed, so it is a
-          # real quiet period rather than "unchanged across one poll"; the
-          # floor then guarantees a minimum total wait regardless of when the
-          # changes happened to fall.
+          # Phase 2: watch what is there, look again, repeat until the set has
+          # stopped growing and enough time has passed for a late arrival to
+          # show up. QUIET_SECONDS runs from the last actual change, making it
+          # a real quiet period rather than "unchanged across one poll"; the
+          # floor then guarantees a minimum total wait however the changes fell.
           #
-          # Bounded by elapsed time rather than an iteration count: each pass
-          # blocks inside --watch for however long the slowest check takes, so
-          # counting iterations would give up after an amount of time nobody
-          # can predict from reading it.
+          # Bounded by elapsed time, not an iteration count: each pass blocks
+          # in --watch for however long the slowest check takes, so iterations
+          # would give up after an unpredictable amount of time.
           settled=0
           previous=-1
           last_change_at=${STARTED_AT}
@@ -277,19 +256,11 @@ jobs:
               previous="${count}"
             fi
 
-            # The count is part of the condition, not just its stability: a
-            # persistent 0 -- a flapping API, or the defaults above firing
-            # repeatedly -- is stable too, and without this the loop would
-            # settle on having watched nothing. The final watch below catches
-            # that today, but relying on a later step to reject a state this
-            # one declared good is the wrong place for the check.
-            #
-            # A 0 does not end the loop, it just fails this condition and we
-            # poll again. Phase 1 already proved checks exist on this PR, so a
-            # 0 here is the API flapping rather than checks disappearing, and
-            # riding it out is right. If it never recovers the deadline ends
-            # the job -- which is also right: a check set we cannot read is not
-            # one we can merge on.
+            # count > 0 is part of the condition, not just its stability: a
+            # persistent 0 is stable too, and the loop would settle on having
+            # watched nothing. It does not end the loop though -- phase 1
+            # proved checks exist, so a 0 is the API flapping, and we poll on
+            # until it recovers or the deadline gives up.
             if [ "${count}" -gt 0 ] \
               && [ "$(( now - last_change_at ))" -ge "${QUIET_SECONDS}" ] \
               && [ "${elapsed}" -ge "${SETTLE_FLOOR_SECONDS}" ]; then
@@ -297,28 +268,15 @@ jobs:
               break
             fi
 
-            # On --watch blocking, which reads like a bug and is not.
+            # --watch blocks for as long as the slowest registered check runs,
+            # and that is intended: last_change_at marks when the check *set*
+            # last changed, and a slow check is not the set changing. New
+            # checks arriving during the watch are caught by the next poll,
+            # which resets the clock -- the signal QUIET_SECONDS measures.
             #
-            # This call returns once every check it can see is non-pending, so
-            # it blocks for as long as the slowest *currently registered* check
-            # takes to run. Three consequences, all intended:
-            #
-            # last_change_at deliberately does not move while we are blocked.
-            # It marks when the check *set* last changed, and a check taking
-            # four minutes to run is not the set changing. If new checks do
-            # register during the watch, the next poll sees a different count
-            # and resets the clock -- which is precisely the signal
-            # QUIET_SECONDS exists to measure.
-            #
-            # A normal run therefore costs the floor plus the longest check,
-            # not the floor alone. SETTLE_DEADLINE_SECONDS is sized for that:
-            # it has to exceed floor + longest check + margin, or a slow suite
-            # fails the settle check having done nothing wrong.
-            #
-            # Re-watching a set that is already green is close to free -- with
-            # nothing pending the call returns immediately. It blocks again
-            # only once new checks have appeared, which is the case worth
-            # blocking for.
+            # So a run costs the floor plus the longest check, and the deadline
+            # has to clear floor + longest check + margin. Re-watching a green
+            # set is near free: nothing pending, it returns immediately.
             if [ "${count}" -gt 0 ]; then
               echo "Watching ${count} check(s) on PR #${PR_NUMBER} (${elapsed}s elapsed)"
               # `set -e` would abort here anyway; spelled out so the job says
@@ -328,10 +286,8 @@ jobs:
                 exit 1
               }
             fi
-            # Pacing, not waiting. SETTLE_FLOOR_SECONDS is a lower bound on
-            # total elapsed time, so the loop cannot finish before it however
-            # quickly a pass returns -- dropping this sleep would poll the API
-            # more often to fill the same five minutes, not finish sooner.
+            # Pacing, not waiting: the floor is a lower bound on elapsed time,
+            # so dropping this would poll harder to fill the same window.
             sleep 20
           done
 
@@ -340,10 +296,9 @@ jobs:
             exit 1
           fi
 
-          # The loop can only settle on an unchanged count, and the iteration
-          # before that watched exactly that set to completion -- so this is
-          # already satisfied. Run it anyway: it is seconds when it passes, and
-          # the thing it guards against is a silent merge.
+          # Already satisfied: the loop settles only on an unchanged count,
+          # and the iteration before watched that set to completion. Run it
+          # anyway -- seconds when it passes, and it guards a silent merge.
           gh pr checks "${PR_NUMBER}" --watch --fail-fast --interval 10 || {
             echo "::error::a check failed on PR #${PR_NUMBER}"
             exit 1
