@@ -46,9 +46,12 @@ jobs:
             target: almalinux
           - dockerfile: amazonlinux2.Dockerfile
             target: amazonlinux2
-          # debian and ubuntu are the ones that matter for POSIX: /bin/sh is
-          # dash, which implements the standard and little else, so with a
-          # #!/bin/sh shebang these two are what actually catch a bashism.
+          # dash by name, so the POSIX coverage does not rest on a distro
+          # keeping /bin/sh pointed at it.
+          - dockerfile: dash.Dockerfile
+            target: dash
+          # debian and ubuntu reach dash through /bin/sh, which is their choice
+          # rather than ours -- useful, but not something to rely on alone.
           - dockerfile: debian.Dockerfile
             target: debian
           - dockerfile: opensuse.Dockerfile
