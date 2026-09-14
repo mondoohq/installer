@@ -57,6 +57,7 @@ This script source is available at: https://github.com/mondoohq/installer
 base_url="${MONDOO_MIRROR:-https://install.mondoo.com/package}"
 product="${MONDOO_PRODUCT:-cnspec}"
 version="${MONDOO_VERSION:-latest}"
+channel="${MONDOO_CHANNEL:-}"
 
 fail() {
   echo -e "${red}${1}${end}";
@@ -97,8 +98,28 @@ fi
 
 filename="${product}_${version}_${os}_${arch}.tar.gz"
 pkg_base_url="${base_url}/${product}/${os}/${arch}/tar.gz/${version}"
-download_url="${pkg_base_url}/download"
-sha_url="${pkg_base_url}/sha256"
+
+# The channel selects which release line `latest` resolves to. It is only
+# meaningful for a moving version: a pinned MONDOO_VERSION names one build, and
+# that build is the same object whichever channel points at it.
+#
+# Appended only when asked for, so the default URLs -- and the cache entries
+# keyed on them -- are unchanged.
+channel_query=""
+if [ -n "${channel}" ]; then
+  case "${channel}" in
+    stable|preview) ;;
+    *) fail "Unknown channel '${channel}', expected stable or preview." ;;
+  esac
+  if [ "${version}" != "latest" ]; then
+    purple "Ignoring MONDOO_CHANNEL=${channel}: MONDOO_VERSION=${version} already names a build."
+  else
+    channel_query="?channel=${channel}"
+  fi
+fi
+
+download_url="${pkg_base_url}/download${channel_query}"
+sha_url="${pkg_base_url}/sha256${channel_query}"
 
 UserAgent="MondooDownloadScript/1.0 (+https://mondoo.com/) ShellScript/$BASH_VERSION ($OS $DISTRIBUTION)"
 
