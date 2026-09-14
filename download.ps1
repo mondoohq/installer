@@ -22,6 +22,10 @@ Param(
       [string]   $Product = 'cnspec',
       [string]   $Path = '',
       [string]   $Version = '',
+      # ValidateSet is the only gate on this value, and it is sufficient: it
+      # rejects at parameter binding, before the script body runs, and there is
+      # no other way in -- unlike download.sh, which reads MONDOO_CHANNEL from
+      # the environment and so has to check it at point of use.
       [ValidateSet('stable', 'preview')]
       [string]   $Channel = ''
   )
@@ -137,7 +141,7 @@ $releaseurl = ''
 # Appended only when asked for, so the default URLs -- and the cache entries
 # keyed on them -- are unchanged.
 $channelquery = ''
-If (-not [string]::IsNullOrEmpty($Channel) -and [string]::IsNullOrEmpty($version)) {
+If (-not [string]::IsNullOrEmpty($Channel) -and [string]::IsNullOrEmpty($Version)) {
     $channelquery = "?channel=$Channel"
   } ElseIf (-not [string]::IsNullOrEmpty($Channel)) {
     info " * Ignoring -Channel $Channel : -Version $Version already names a build."
@@ -148,7 +152,7 @@ If (-not [string]::IsNullOrEmpty($Channel) -and [string]::IsNullOrEmpty($version
 # which is anchored at the end of the string: a query parameter after the verb
 # stops it matching, and the checksum URL would silently stay pointed at the
 # binary.
-If ([string]::IsNullOrEmpty($version)) {
+If ([string]::IsNullOrEmpty($Version)) {
     # latest release on the selected channel
     $pkgbaseurl = "https://install.mondoo.com/package/${product}/windows/${arch}/${filetype}/latest"
   } Else {
