@@ -341,7 +341,7 @@ function Install-Mondoo {
       $backupErrorActionPreference = $ErrorActionPreference
       $ErrorActionPreference = "Continue"
 
-      # Logout if already cnspec client registred in
+      # Logout if already cnspec client registered in
       If ((Test-Path -Path "C:\ProgramData\Mondoo\mondoo.yml")) {
         info " * $Product Client is already registered. Logging out and back in again to update the registration"
         $output = (& $program $logout_params 2>&1)
