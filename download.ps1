@@ -21,7 +21,9 @@
 Param(
       [string]   $Product = 'cnspec',
       [string]   $Path = '',
-      [string]   $Version = ''
+      [string]   $Version = '',
+      [ValidateSet('stable', 'preview')]
+      [string]   $Channel = ''
   )
 
 function fail($msg) {
@@ -128,13 +130,34 @@ $filetype = 'zip'
 $arch = $($env:PROCESSOR_ARCHITECTURE).ToLower()
 $releaseurl = ''
 
+# The channel selects which release line 'latest' resolves to. It is only
+# meaningful for a moving version: a pinned -Version names one build, and that
+# build is the same object whichever channel points at it.
+#
+# Appended only when asked for, so the default URLs -- and the cache entries
+# keyed on them -- are unchanged.
+$channelquery = ''
+If (-not [string]::IsNullOrEmpty($Channel)) {
+    If ([string]::IsNullOrEmpty($version)) {
+      $channelquery = "?channel=$Channel"
+    } Else {
+      info " * Ignoring -Channel $Channel : -Version $Version already names a build."
+    }
+  }
+
+# Both URLs are built from one base rather than deriving the checksum URL from
+# the download URL. It used to be `$releaseurl -replace "download$", "sha256"`,
+# which is anchored at the end of the string: a query parameter after the verb
+# stops it matching, and the checksum URL would silently stay pointed at the
+# binary.
 If ([string]::IsNullOrEmpty($version)) {
-    # latest release
-    $releaseurl = "https://install.mondoo.com/package/${product}/windows/${arch}/${filetype}/latest/download"
+    # latest release on the selected channel
+    $pkgbaseurl = "https://install.mondoo.com/package/${product}/windows/${arch}/${filetype}/latest"
   } Else {
     # specific version
-    $releaseurl = "https://install.mondoo.com/package/${product}/windows/${arch}/${filetype}/${Version}/download"
+    $pkgbaseurl = "https://install.mondoo.com/package/${product}/windows/${arch}/${filetype}/${Version}"
   }
+$releaseurl = "${pkgbaseurl}/download${channelquery}"
 
 # download windows binary zip
 $downloadlocation = "$path\$Product.$filetype"
@@ -142,7 +165,7 @@ info " * Downloading $Product from $releaseurl to $downloadlocation"
 download $releaseurl $downloadlocation
 
 # build checksum URL
-$checksumurl = $releaseurl -replace "download$", "sha256"
+$checksumurl = "${pkgbaseurl}/sha256${channelquery}"
 $checksumfile = "$downloadlocation.sha256"
 info " * Downloading checksum from $checksumurl to $checksumfile"
 download $checksumurl $checksumfile
