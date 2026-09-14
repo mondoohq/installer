@@ -5,11 +5,15 @@ on:
   pull_request:
     types: [opened, reopened, synchronize]
     paths:
+      # download.sh is deliberately bash -- it uses $BASH_VERSION and echo -e
+      # and is invoked as `bash download.sh` -- so it is not listed here. A
+      # trigger that runs this job without checking the file that changed is a
+      # green tick that inspected nothing.
       - 'install.sh'
-      - 'download.sh'
       - 'test/install_sh/test_params.sh'
       - 'test/install_sh/test_status_timeout.sh'
       - 'test/install_sh/test_arch_detect.sh'
+      - 'test/install_sh/test_proxy.sh'
       - '.github/workflows/test_posix_compat.yml'
 
 permissions:
@@ -25,23 +29,28 @@ jobs:
       - name: Install checkbashisms
         run: sudo apt-get update && sudo apt-get install -y devscripts
 
-      - name: Run checkbashisms on install.sh
-        run: checkbashisms install.sh
-
-      - name: Run ShellCheck in POSIX mode
-        run: shellcheck -s sh -S warning install.sh
-
-      - name: Verify shebang is #!/bin/sh
+      # The test scripts are #!/bin/sh too, and they were being executed
+      # without ever being linted -- so a bashism in one of them would only
+      # surface if it happened to be reached on a runner whose /bin/sh is
+      # bash, which on ubuntu-latest it is not. They pass all three checks
+      # today, which is why this is the moment to wire them in.
+      - name: Check POSIX compliance
         run: |
-          for f in install.sh; do
-            head -1 "$f" | grep -q '^#!/bin/sh' || {
-              echo "ERROR: $f shebang is not #!/bin/sh"
-              exit 1
-            }
-          done
+          set -eu
+          status=0
+          for f in install.sh test/install_sh/*.sh; do
+            echo "==> $f"
 
-      - name: Parse with dash (syntax check)
-        run: dash -n install.sh
+            head -1 "$f" | grep -q '^#!/bin/sh' || {
+              echo "::error file=$f::shebang is not #!/bin/sh"
+              status=1
+            }
+
+            checkbashisms "$f" || status=1
+            shellcheck -s sh -S warning "$f" || status=1
+            dash -n "$f" || status=1
+          done
+          exit "$status"
 
       - name: Test parameter passing
         run: sh test/install_sh/test_params.sh
