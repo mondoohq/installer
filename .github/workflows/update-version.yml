@@ -203,6 +203,13 @@ jobs:
           # the last. They will need revisiting if that spread grows: the cost
           # of being wrong low is a merge that skipped its checks, the cost of
           # being wrong high is a slower release, so prefer generous.
+          #
+          # Kept next to the logic they govern rather than hoisted into a
+          # job-level `env`: this step is their only consumer, and the
+          # paragraph above is the whole reason the floor is not a smaller,
+          # tidier number. Separating a value like this from what justifies it
+          # is how it gets trimmed later by someone who cannot see what it was
+          # protecting.
           SETTLE_FLOOR_SECONDS=300
           QUIET_SECONDS=60
           # Under the step's timeout-minutes: 20 (line 169), so the loop
@@ -269,6 +276,13 @@ jobs:
             # settle on having watched nothing. The final watch below catches
             # that today, but relying on a later step to reject a state this
             # one declared good is the wrong place for the check.
+            #
+            # A 0 does not end the loop, it just fails this condition and we
+            # poll again. Phase 1 already proved checks exist on this PR, so a
+            # 0 here is the API flapping rather than checks disappearing, and
+            # riding it out is right. If it never recovers the deadline ends
+            # the job -- which is also right: a check set we cannot read is not
+            # one we can merge on.
             if [ "${count}" -gt 0 ] \
               && [ "$(( now - last_change_at ))" -ge "${QUIET_SECONDS}" ] \
               && [ "${elapsed}" -ge "${SETTLE_FLOOR_SECONDS}" ]; then
@@ -276,6 +290,28 @@ jobs:
               break
             fi
 
+            # On --watch blocking, which reads like a bug and is not.
+            #
+            # This call returns once every check it can see is non-pending, so
+            # it blocks for as long as the slowest *currently registered* check
+            # takes to run. Three consequences, all intended:
+            #
+            # last_change_at deliberately does not move while we are blocked.
+            # It marks when the check *set* last changed, and a check taking
+            # four minutes to run is not the set changing. If new checks do
+            # register during the watch, the next poll sees a different count
+            # and resets the clock -- which is precisely the signal
+            # QUIET_SECONDS exists to measure.
+            #
+            # A normal run therefore costs the floor plus the longest check,
+            # not the floor alone. SETTLE_DEADLINE_SECONDS is sized for that:
+            # it has to exceed floor + longest check + margin, or a slow suite
+            # fails the settle check having done nothing wrong.
+            #
+            # Re-watching a set that is already green is close to free -- with
+            # nothing pending the call returns immediately. It blocks again
+            # only once new checks have appeared, which is the case worth
+            # blocking for.
             if [ "${count}" -gt 0 ]; then
               echo "Watching ${count} check(s) on PR #${PR_NUMBER} (${elapsed}s elapsed)"
               # `set -e` would abort here anyway; spelled out so the job says
@@ -285,6 +321,10 @@ jobs:
                 exit 1
               }
             fi
+            # Pacing, not waiting. SETTLE_FLOOR_SECONDS is a lower bound on
+            # total elapsed time, so the loop cannot finish before it however
+            # quickly a pass returns -- dropping this sleep would poll the API
+            # more often to fill the same five minutes, not finish sooner.
             sleep 20
           done
 
