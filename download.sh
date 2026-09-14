@@ -154,8 +154,12 @@ if [ "${sha_rc}" -ne 0 ]; then
   fail "Could not reach ${sha_url} (curl exit ${sha_rc}).\nCheck your network or proxy settings."
 fi
 
-newline='
-'
+# Built rather than written literally: a bare newline inside quotes is correct
+# POSIX but invisible, and a trailing-whitespace hook or formatter can eat it
+# without anything failing loudly. The X is a sentinel -- $() strips trailing
+# newlines, so there has to be something after it to strip instead.
+newline="$(printf '\nX')"
+newline="${newline%X}"
 sha_code="${sha_response##*"${newline}"}"
 expectedSha="${sha_response%"${newline}"*}"
 case "${sha_code}" in
