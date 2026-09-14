@@ -61,7 +61,7 @@ jobs:
       - name: Publish mql AUR package
         if: ${{ !inputs.skip }}
         continue-on-error: true
-        uses: KSXGitHub/github-actions-deploy-aur@abe8ac26b51011c88be58c8809fd2ac674068ea5 # v4.1.2
+        uses: KSXGitHub/github-actions-deploy-aur@084b0d9b15415bf9cdb65d44dad1efe37a354050 # v4.2.0
         with:
           pkgname: mql
           pkgbuild: packages/archlinux/mql/PKGBUILD
@@ -74,7 +74,7 @@ jobs:
       - name: Publish cnspec AUR package
         if: ${{ !inputs.skip }}
         continue-on-error: true
-        uses: KSXGitHub/github-actions-deploy-aur@abe8ac26b51011c88be58c8809fd2ac674068ea5 # v4.1.2
+        uses: KSXGitHub/github-actions-deploy-aur@084b0d9b15415bf9cdb65d44dad1efe37a354050 # v4.2.0
         with:
           pkgname: cnspec
           pkgbuild: packages/archlinux/cnspec/PKGBUILD
@@ -87,7 +87,7 @@ jobs:
       - name: Publish mondoo AUR package
         if: ${{ !inputs.skip }}
         continue-on-error: true
-        uses: KSXGitHub/github-actions-deploy-aur@abe8ac26b51011c88be58c8809fd2ac674068ea5 # v4.1.2
+        uses: KSXGitHub/github-actions-deploy-aur@084b0d9b15415bf9cdb65d44dad1efe37a354050 # v4.2.0
         with:
           pkgname: mondoo
           pkgbuild: packages/archlinux/mondoo/PKGBUILD
