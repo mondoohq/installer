@@ -41,6 +41,15 @@ jobs:
           set -eu
           status=0
           for f in install.sh test/install_sh/*.sh; do
+            # An unmatched glob expands to the literal pattern in POSIX sh, so
+            # confirm there is a file here. Failing is deliberate: skipping
+            # would let this job report success having checked nothing, which
+            # is the failure it exists to prevent.
+            [ -f "$f" ] || {
+              echo "::error::no file matches '$f' -- nothing was checked"
+              exit 1
+            }
+
             echo "==> $f"
 
             head -1 "$f" | grep -q '^#!/bin/sh' || {
