@@ -96,6 +96,18 @@ else
   sha256bin=sha256sum
 fi
 
+# Everything this script cannot work without. Checked together so a bare
+# container is told the whole list at once rather than discovering it one
+# failed run at a time, and checked here because the sha tool depends on the
+# OS detected above.
+missing=""
+for cmd in curl tar gzip "${sha256bin%% *}"; do
+  command -v "${cmd}" >/dev/null 2>&1 || missing="${missing} ${cmd}"
+done
+if [ -n "${missing}" ]; then
+  fail "This script needs the following commands, which are not in your \$PATH:${missing}"
+fi
+
 filename="${product}_${version}_${os}_${arch}.tar.gz"
 pkg_base_url="${base_url}/${product}/${os}/${arch}/tar.gz/${version}"
 
@@ -127,8 +139,16 @@ UserAgent="MondooDownloadScript/1.0 (+https://mondoo.com/) ShellScript/$BASH_VER
 # package index has nothing for this platform/arch, which is worth reporting
 # before we start writing a tarball to disk.
 purple_bold "Downloading ${sha_url}"
-if ! expectedSha=$(curl -fsSL "${sha_url}"); then
+# curl exits 22 for an HTTP error under -f, which is the case that really means
+# "no such package". Every other exit -- no DNS, no route, TLS refused, a proxy
+# in the way -- was being reported as a missing package too, sending people to
+# look for a build that exists.
+sha_rc=0
+expectedSha=$(curl -fsSL "${sha_url}") || sha_rc=$?
+if [ "${sha_rc}" -eq 22 ]; then
   fail "No ${product} package for ${os}/${arch} (version ${version}).\nLooked in ${pkg_base_url}"
+elif [ "${sha_rc}" -ne 0 ]; then
+  fail "Could not reach ${sha_url} (curl exit ${sha_rc}).\nCheck your network or proxy settings."
 fi
 echo -e "Expected binary hash: ${expectedSha}"
 
