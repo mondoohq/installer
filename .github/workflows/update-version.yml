@@ -217,7 +217,8 @@ jobs:
           REGISTER_ATTEMPTS=18
           REGISTER_INTERVAL=10
           registered=0
-          for _ in $(seq 1 "${REGISTER_ATTEMPTS}"); do
+          for attempt in $(seq 1 "${REGISTER_ATTEMPTS}"); do
+            echo "Waiting for checks to register on PR #${PR_NUMBER} (attempt ${attempt}/${REGISTER_ATTEMPTS})"
             # Defaulted twice on purpose: `|| echo 0` covers gh exiting
             # non-zero, ${x:-0} covers it exiting zero with no output. Without
             # the second, an empty value makes every later [ ] comparison
