@@ -83,14 +83,21 @@ jobs:
       version: ${{ (github.event_name == 'workflow_dispatch' && inputs.version) || github.event.release.tag_name }}
       bucket: ${{ inputs.bucket }}
 
-  # Gates the packaging that reaches a shared, channel-less stream: apt, yum,
-  # chocolatey, homebrew and AUR each have exactly one distribution, so a
-  # release candidate published there is one an `apt upgrade` hands to every
-  # machine that never opted into it.
+  # Asserts that a version parse-inputs called stable really is one. It runs only
+  # on stable and blocks nothing by itself -- the jobs that must stay stable-only
+  # (build-arch, build-chocolatey, build-homebrew) carry their own channel
+  # condition. What it does do is fail the run, and `reindex` refuses to publish
+  # to the bucket when it has failed, so a version that disagrees with its
+  # channel stops the release rather than shipping.
   #
-  # Not the MSI or the macOS pkg: those publish a versioned artifact into the
-  # bucket and nothing else, so they build on every channel (see build-msi).
-  # Nor the bucket publication in `reindex`.
+  # It used to also gate build-mondoo-pkgs, and that was the wrong granularity.
+  # That job does two things with different audiences: it uploads versioned deb
+  # and rpm artifacts to the bucket, and it tells repobuilder to fold the version
+  # into the apt and yum repositories. Gating the whole job to keep release
+  # candidates out of apt also kept them out of the bucket, which is why Linux
+  # was the one platform with no preview artifacts at all while Windows and macOS
+  # had them. The gate now sits on the half that needs it -- the update-downstream
+  # job in release_mondoo_pkgs.yaml, which derives the channel from the version.
   #
   # A pre-release skips these jobs rather than failing the run: the run is
   # expected and its other half has work to do.
@@ -129,11 +136,16 @@ jobs:
       version: ${{ needs.parse-inputs.outputs.version }}
       skip-publish: ${{ needs.parse-inputs.outputs.skip-publish == 'true' }}
       bucket: ${{ needs.parse-inputs.outputs.bucket }}
+  # Channel-independent, like build-msi and build-macos. The packages land in
+  # mondoo/<version>/ and reach a client only by version or by asking for the
+  # preview channel; the apt/yum publication is gated separately inside this
+  # workflow. Without this a preview user on Linux had no installable package at
+  # all, while Windows and macOS had one.
   build-mondoo-pkgs:
     permissions:
       contents: write
     uses: ./.github/workflows/release_mondoo_pkgs.yaml
-    needs: [check-version, parse-inputs]
+    needs: [parse-inputs]
     secrets:
       GCP_CREDENTIALS: ${{ secrets.GCP_CREDENTIALS }}
       GPG_KEY: ${{ secrets.GPG_KEY }}

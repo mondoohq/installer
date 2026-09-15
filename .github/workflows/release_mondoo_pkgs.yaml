@@ -135,6 +135,21 @@ jobs:
           path: helper/packages/
           retention-days: 7
 
+  # Stable only, unlike the job above it.
+  #
+  # Building a package and publishing it to the apt and yum repositories are two
+  # different acts with two different audiences. The build puts a versioned
+  # artifact in the bucket, where nothing reaches it unless someone asks for that
+  # version or that channel. This tells repobuilder to fold the version into
+  # repositories that have exactly one stream and no notion of a channel, so a
+  # release candidate that lands there is one `apt upgrade` hands to every
+  # machine that never asked for it.
+  #
+  # The channel is derived from the version rather than passed in, because a
+  # caller that has to declare it is a caller that can declare it wrongly, and
+  # the whole release pipeline derives channels from semver for that reason.
+  # Deriving it here also means a manual workflow_dispatch of a release candidate
+  # skips the repositories without anyone having to remember to say so.
   update-downstream:
     runs-on: ubuntu-latest
     needs: build-mondoo-payloads
@@ -143,9 +158,26 @@ jobs:
       matrix:
         repo: ["mondoohq/repobuilder"]
     steps:
+      - name: Derive the channel from the version
+        id: channel
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          # SemVer 9: a pre-release is the segment after `-`. Build metadata is
+          # stripped first, because a `-` after `+` is metadata (SemVer 10), so
+          # 8.4.0+41-build is stable while 14.0.0-rc.7 is not.
+          core="${VERSION%%+*}"
+          if [ "${core}" != "${core#*-}" ]; then
+            echo "::notice::${VERSION} is a pre-release; not publishing to the apt/yum repositories"
+            echo "stable=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "stable=true" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Repository Dispatch (Release)
         uses: peter-evans/repository-dispatch@28959ce8df70de7be546dd1250a005dd32156697 # v4.0.1
-        if: ${{ !inputs.skip-publish }}
+        if: ${{ !inputs.skip-publish && steps.channel.outputs.stable == 'true' }}
         with:
           token: ${{ secrets.REPO_API_TOKEN }}
           repository: ${{ matrix.repo }}
