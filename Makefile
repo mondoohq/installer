@@ -116,7 +116,7 @@ test/install_sh/s390x:
 
 ## Per-distro install.sh tests using sh (POSIX) — matches test-released-install-sh.yaml matrix
 ## These mount the local install.sh and run it under the distro's /bin/sh.
-INSTALL_SH_APT_DISTROS := debian:12 debian:13ubuntu:18.04 ubuntu:20.04 ubuntu:22.04 ubuntu:24.04
+INSTALL_SH_APT_DISTROS := debian:12 debian:13 ubuntu:18.04 ubuntu:20.04 ubuntu:22.04 ubuntu:24.04
 INSTALL_SH_YUM_DISTROS := quay.io/centos/centos:stream9 fedora:40 rockylinux:8 rockylinux:9 redhat/ubi8 redhat/ubi9
 INSTALL_SH_ZYPPER_DISTROS := registry.suse.com/suse/sle15:15.6
 
@@ -148,7 +148,7 @@ test/install_sh/zypper:
 	done
 
 ## Test upgrade from cnquery -> mql (extracted from test-released-install-sh.yaml)
-UPGRADE_APT_DISTROS := debian:12 debian:13ubuntu:20.04 ubuntu:22.04 ubuntu:24.04
+UPGRADE_APT_DISTROS := debian:12 debian:13 ubuntu:20.04 ubuntu:22.04 ubuntu:24.04
 UPGRADE_YUM_DISTROS := quay.io/centos/centos:stream9 rockylinux:8 rockylinux:9
 
 .PHONY: test/install_sh/upgrade-apt
