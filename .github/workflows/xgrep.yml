@@ -42,7 +42,7 @@ jobs:
           output-file: results.sarif
           # pinned so a new xgrep release cannot change this repository's
           # findings without a commit here
-          version: "0.62.0"
+          version: "0.64.0"
           sarif-category: xgrep
           # report only for now: main carries a backlog of 59 findings, most of
           # them inherent to an installer whose documented usage is `curl | bash`.
