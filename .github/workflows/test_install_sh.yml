@@ -82,6 +82,18 @@ jobs:
             target: ubuntu2004
           - dockerfile: ubuntu.Dockerfile
             target: ubuntu2204
+          # The preview channel installs packages as files rather than from a
+          # repository, so nothing resolves mondoo -> cnspec -> mql for us.
+          # assert_preview.sh checks the whole chain landed, at the version
+          # preview.json actually points at, with no repository configured.
+          - dockerfile: preview.Dockerfile
+            target: preview_ubuntu2204
+          - dockerfile: preview.Dockerfile
+            target: preview_debian12
+          - dockerfile: preview.Dockerfile
+            target: preview_almalinux9
+          - dockerfile: preview.Dockerfile
+            target: preview_opensuse_leap154
     name: "install.sh (${{ matrix.target }})"
     steps:
       - name: Clone repository
