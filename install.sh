@@ -765,17 +765,29 @@ run_login_cmd() {
   RELEASES_URL="https://releases.mondoo.com"
   INSTALL_URL="https://install.mondoo.com"
   _standard_host="releases.mondoo"".com"
+  _standard_install_host="install.mondoo"".com"
   if [ -z "$UPDATES_URL" ]; then
-    case "$RELEASES_URL" in
-      *"$_standard_host"*) ;;
+    # Prefer the install service host: it serves the binary manifest natively
+    # at /package/<name>/latest.json with ?channel= support and redirects
+    # /providers/* to the release bucket. The check tests the host that is
+    # actually used, so a rewriter that misses install.mondoo.com can never
+    # leak the public host into a client config; it falls back to the release
+    # bucket host, the pre-existing behavior. cnspec v13 self-update looks for
+    # <updates_url>/cnspec/latest.json, which the install service does not
+    # serve -- v13 fleets update through the OS package repos configured
+    # above, so only the (already non-functional on-premise) v13 self-update
+    # check loses out.
+    case "$INSTALL_URL" in
+      *"$_standard_install_host"*)
+        case "$RELEASES_URL" in
+          *"$_standard_host"*) ;;
+          *)
+            lightblue_bold "\n* Overriding updates URL"
+            UPDATES_URL="${RELEASES_URL}"
+            ;;
+        esac
+        ;;
       *)
-        # Point clients at the install service, not the release bucket: it
-        # serves the binary manifest at /package/<name>/latest.json with
-        # ?channel= support and redirects /providers/* to the bucket. cnspec
-        # v13 self-update looks for <updates_url>/cnspec/latest.json, which
-        # the install service does not serve -- v13 fleets update through the
-        # OS package repos configured above, so only the (already
-        # non-functional on-premise) v13 self-update check loses out.
         lightblue_bold "\n* Overriding updates URL"
         UPDATES_URL="${INSTALL_URL}"
         ;;
