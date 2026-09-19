@@ -45,6 +45,9 @@ extract_fn() {
 
 # set -e aborts the test if the extraction fails
 PORTABLE_FN="$(extract_fn install_portable)"
+# The arch map lives in its own function now, shared with the package install
+# path, so install_portable alone is no longer the whole subject under test.
+ARCH_FN="$(extract_fn detect_arch)"
 
 STUB_DIR="$(mktemp -d)"
 trap 'rm -rf "$STUB_DIR"' EXIT
@@ -94,6 +97,7 @@ portable() {
     fail() { exit 1; }
     detect_latest_version() { MONDOO_LATEST_VERSION="9.9.9"; }
     detect_portable() { MONDOO_EXECUTABLE="${STUB_DIR}/cnspec"; }
+    eval "$ARCH_FN"
     eval "$PORTABLE_FN"
     install_portable 2>&1
   ) || true
