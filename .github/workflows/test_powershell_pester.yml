@@ -5,6 +5,7 @@ on:
   pull_request:
     paths:
       - "install.ps1"
+      - "download.ps1"
       - "test/**.Tests.ps1"
       - ".github/workflows/test_powershell_pester.yml"
 
@@ -13,7 +14,7 @@ permissions:
 
 jobs:
   pester:
-    name: Pester (install.ps1)
+    name: Pester (install.ps1, download.ps1)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository

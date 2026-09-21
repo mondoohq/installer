@@ -22,11 +22,21 @@ Param(
       [string]   $Product = 'cnspec',
       [string]   $Path = '',
       [string]   $Version = '',
-      # ValidateSet is the only gate on this value, and it is sufficient: it
-      # rejects at parameter binding, before the script body runs, and there is
-      # no other way in -- unlike download.sh, which reads MONDOO_CHANNEL from
-      # the environment and so has to check it at point of use.
-      [ValidateSet('stable', 'preview')]
+      # '' is in the set because it is the default, and the default has to be
+      # a member. PowerShell skips validation on an unbound default only when
+      # this file is run as a script; callers that pipe it through
+      # Invoke-Expression -- which is how the Azure run command installs cnspec
+      # -- turn the param block into variable assignments, and the attribute is
+      # then applied to the default. An out-of-set default throws
+      # ValidationMetadataException there, before the body runs, so nothing
+      # downloads and nothing says why. '' and an omitted -Channel mean the
+      # same thing to the body below, so admitting it costs nothing.
+      #
+      # With that, ValidateSet is the only gate this value needs: it rejects at
+      # binding, and there is no other way in -- unlike download.sh, which
+      # reads MONDOO_CHANNEL from the environment and so has to check it at
+      # point of use.
+      [ValidateSet('', 'stable', 'preview')]
       [string]   $Channel = ''
   )
 
