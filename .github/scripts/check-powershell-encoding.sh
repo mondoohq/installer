@@ -24,10 +24,13 @@
 set -uo pipefail
 
 # Test fixtures are exempt: they are never signed and never shipped, so neither
-# property is load-bearing for them.
+# property is load-bearing for them. Matched by shape rather than named one by
+# one, so a new Pester file is exempt on the same reasoning as the first
+# without a second edit here -- and so the exemption cannot silently widen: it
+# reaches Pester files under test/ and nothing else.
 is_exempt() {
   case "$1" in
-    test/install.Tests.ps1) return 0 ;;
+    test/*.Tests.ps1) return 0 ;;
     *) return 1 ;;
   esac
 }
