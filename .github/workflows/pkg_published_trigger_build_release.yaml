@@ -227,8 +227,43 @@ jobs:
           BUCKET: ${{ needs.parse-inputs.outputs.bucket }}
           REINDEX_PATH: ${{ inputs.reindex-path }}
         run: |
-          echo "bucket=${BUCKET}" >> $GITHUB_OUTPUT
-          echo "reindex-path=${REINDEX_PATH}" >> $GITHUB_OUTPUT
+          # reindex-path is the one free-text input on this workflow -- bucket is
+          # a choice and version is validated by parse_inputs -- and it is spliced
+          # into a `gsutil rm` and a CDN invalidation below. Validate it here,
+          # once, where it enters, rather than quoting it at each use: the same
+          # reasoning parse_inputs.yml gives for validating the version there.
+          #
+          # The class is what a GCS object prefix needs and nothing more, so it
+          # admits no character that means anything to a shell. Leading character
+          # is constrained separately so a path cannot start with `/`, `-` or `.`,
+          # and `..` is rejected outright -- harmless to GCS, which has no path
+          # traversal, but it reaches the CDN invalidation as a URL path too.
+          if [ -n "${REINDEX_PATH}" ]; then
+            if [[ ! "${REINDEX_PATH}" =~ ^[A-Za-z0-9][A-Za-z0-9._/-]*$ ]]; then
+              echo "::error::invalid reindex-path: ${REINDEX_PATH}"
+              exit 1
+            fi
+            case "${REINDEX_PATH}" in
+              *..*)
+                echo "::error::reindex-path must not contain '..': ${REINDEX_PATH}"
+                exit 1
+                ;;
+            esac
+          fi
+
+          # The CDN default lives here rather than as an `|| '*'` fallback in the
+          # template at the point of use. An unset path means "invalidate
+          # everything", which is worth reading in one place instead of inferring
+          # it from a fallback buried in a command line.
+          #
+          # Note the fallback could not simply be quoted where it stood: Actions
+          # expands a template anywhere in a `run:` block, comments included, so
+          # the value has to stop being a template to stop being a splice.
+          CACHE_INVALIDATION_PATH="${REINDEX_PATH:-*}"
+
+          printf 'bucket=%s\n' "${BUCKET}" >> "$GITHUB_OUTPUT"
+          printf 'reindex-path=%s\n' "${REINDEX_PATH}" >> "$GITHUB_OUTPUT"
+          printf 'cache-invalidation-path=%s\n' "${CACHE_INVALIDATION_PATH}" >> "$GITHUB_OUTPUT"
       - name: "Authenticate to Google Cloud"
         uses: "google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093" # v3.0.0
         with:
@@ -254,19 +289,25 @@ jobs:
           TOKEN: ${{ steps.auth.outputs.id_token }}
           BUCKETNAME: ${{ needs.parse-inputs.outputs.bucket }}
           GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
+          VERSION: ${{ needs.parse-inputs.outputs.version }}
           SKIP: ${{ (needs.parse-inputs.outputs.skip-publish == 'true') && 'echo skipping...' || '' }}
         run: |
-          $SKIP ./releasr release cp  https://github.com/mondoohq/mql/releases/tag/v${{ needs.parse-inputs.outputs.version }} gs://${{ needs.parse-inputs.outputs.bucket }}
-          $SKIP ./releasr release cp  https://github.com/mondoohq/cnspec/releases/tag/v${{ needs.parse-inputs.outputs.version }} gs://${{ needs.parse-inputs.outputs.bucket }}
+          # BUCKETNAME was already declared above and then not used; the step
+          # interpolated the same two values straight into the command instead.
+          $SKIP ./releasr release cp "https://github.com/mondoohq/mql/releases/tag/v${VERSION}" "gs://${BUCKETNAME}"
+          $SKIP ./releasr release cp "https://github.com/mondoohq/cnspec/releases/tag/v${VERSION}" "gs://${BUCKETNAME}"
       - name: "Remove Artifacts.json & Index.html from path (Optional)"
         env:
+          BUCKETNAME: ${{ needs.parse-inputs.outputs.bucket }}
+          REINDEX_PATH: ${{ steps.inputs.outputs.reindex-path }}
           SKIP: ${{ (needs.parse-inputs.outputs.skip-publish == 'true') && 'echo skipping...' || '' }}
         run: |
-          if [ -n "${{ inputs.reindex-path }}" ]; then
-            echo "Removing artifacts.json & index.html from path ${{ inputs.reindex-path }}"
+          # Reads the value Converge Inputs validated, not the raw input.
+          if [ -n "${REINDEX_PATH}" ]; then
+            echo "Removing artifacts.json & index.html from path ${REINDEX_PATH}"
             # If the files don't exist this will fail, but that's ok
-            $SKIP gsutil rm gs://${{ needs.parse-inputs.outputs.bucket }}/${{ inputs.reindex-path }}/artifacts.json || true
-            $SKIP gsutil rm gs://${{ needs.parse-inputs.outputs.bucket }}/${{ inputs.reindex-path }}/index.html || true
+            $SKIP gsutil rm "gs://${BUCKETNAME}/${REINDEX_PATH}/artifacts.json" || true
+            $SKIP gsutil rm "gs://${BUCKETNAME}/${REINDEX_PATH}/index.html" || true
           fi
       - name: Regenerate Release Indexes
         env:
@@ -309,8 +350,10 @@ jobs:
               run services replace "$MINSTALLER.yaml" --region us-central1
           rm "$MINSTALLER.yaml"
       - name: Invalidate Google Load Balancer caches (ETA~10 minutes)
+        env:
+          CACHE_INVALIDATION_PATH: ${{ steps.inputs.outputs.cache-invalidation-path }}
         run: |
-          gcloud compute url-maps invalidate-cdn-cache releases-mondoo-io --path "/${{ inputs.reindex-path || '*' }}"
+          gcloud compute url-maps invalidate-cdn-cache releases-mondoo-io --path "/${CACHE_INVALIDATION_PATH}"
   build-arch:
     # Packaging: stable only. See check-version.
     if: ${{ needs.parse-inputs.outputs.channel == 'stable' }}
