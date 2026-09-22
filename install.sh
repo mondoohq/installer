@@ -1226,8 +1226,9 @@ fi
 # Empty means no way to install here, and the configure_*_installer that ran has
 # already defined mondoo_install to name what was missing -- yay/paru on Arch,
 # apt, yum or zypper elsewhere. Call it rather than reporting a generic failure
-# over the top of four specific ones (see #607). It is defined on every branch,
-# and the chain above exits for an unsupported OS, so fail is only a backstop.
+# over the top of four specific ones (see #607). Each of those definitions exits,
+# so the fail below is unreachable today; it stays so that a branch which forgets
+# to cannot fall through into an install with no installer.
 if [ -z "${MONDOO_INSTALLER}" ]; then
   mondoo_install
   fail
