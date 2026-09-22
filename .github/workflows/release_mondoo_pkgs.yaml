@@ -123,7 +123,7 @@ jobs:
 
       - name: Upload files to GitHub Release Page
         if: ${{ !inputs.skip-publish }}
-        uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b # v2.5.0
+        uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
         with:
           tag_name: v${{ inputs.version }}
           files: helper/packages/*
