@@ -120,6 +120,24 @@ jobs:
           echo "computed make_latest:  $MAKE_LATEST"
           echo "computed prerelease:   $PRERELEASE"
           echo "dry-run:               $DRY_RUN"
+      # Laid out like cnspec's release message, which this one follows in the
+      # channel: a header, the channel line, then the fields. Version and
+      # channel come from parse-inputs, which validated them, so both are safe
+      # inside the double-quoted YAML scalars and Slack mrkdwn below.
+      - name: Compose Slack message
+        id: meta
+        if: ${{ needs.resolve-inputs.outputs.dry-run != 'true' }}
+        env:
+          CHANNEL: ${{ needs.parse-inputs.outputs.channel }}
+          SKIP_PUBLISH: ${{ needs.parse-inputs.outputs.skip-publish }}
+        run: |
+          if [ "$CHANNEL" != "stable" ]; then
+            echo "channel_line=:test_tube: *preview* — published as a pre-release, not promoted to latest" >> "$GITHUB_OUTPUT"
+          elif [ "$SKIP_PUBLISH" = "true" ]; then
+            echo "channel_line=:double_vertical_bar: *stable, skip-publish* — published as a pre-release, not promoted to latest" >> "$GITHUB_OUTPUT"
+          else
+            echo "channel_line=:package: *stable* — published and promoted to latest" >> "$GITHUB_OUTPUT"
+          fi
       - id: slack
         if: ${{ needs.resolve-inputs.outputs.dry-run != 'true' }}
         uses: slackapi/slack-github-action@dcb1066f776dd043e64d0e8ba94ca15cc7e1875d # v4.0.0
@@ -128,16 +146,27 @@ jobs:
           token: ${{ secrets.SLACK_BOT_TOKEN }}
           payload: |
             channel: "${{ env.SLACK_BOT_CHANNEL_ID }}"
-            text: "GitHub Actions Run"
-            attachments:
-              - color: "#FFFF00"
-                blocks:
-                  - type: "section"
-                    fields:
-                      - type: "mrkdwn"
-                        text: "<${{ github.event.repository.html_url }}/actions/runs/${{ github.run_id }}/attempts/${{ github.run_attempt }}|${{ github.workflow }}>"
-                      - type: "mrkdwn"
-                        text: "*Status:*\n`In Progress`"
+            text: ":hourglass_flowing_sand: installer v${{ needs.parse-inputs.outputs.version }} GitHub release in progress"
+            blocks:
+              - type: "header"
+                text:
+                  type: "plain_text"
+                  text: ":hourglass_flowing_sand: installer v${{ needs.parse-inputs.outputs.version }} GitHub release in progress"
+                  emoji: true
+              - type: "section"
+                text:
+                  type: "mrkdwn"
+                  text: "${{ steps.meta.outputs.channel_line }}"
+              - type: "section"
+                fields:
+                  - type: "mrkdwn"
+                    text: "*Repository:*\n`${{ github.repository }}`"
+                  - type: "mrkdwn"
+                    text: "*Version:*\n`v${{ needs.parse-inputs.outputs.version }}`"
+                  - type: "mrkdwn"
+                    text: "*Triggered by:*\n${{ github.actor }}"
+                  - type: "mrkdwn"
+                    text: "*Workflow run:*\n<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}/attempts/${{ github.run_attempt }}|Open run>"
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       # fetch a token for the mondoo-mergebot app
@@ -173,23 +202,58 @@ jobs:
           make_latest: ${{ (needs.parse-inputs.outputs.channel == 'stable' && needs.parse-inputs.outputs.skip-publish != 'true') && 'legacy' || 'false' }}
           prerelease: ${{ needs.parse-inputs.outputs.channel != 'stable' || needs.parse-inputs.outputs.skip-publish == 'true' }}
           token: ${{ steps.generate-token.outputs.token }}
-      - uses: slackapi/slack-github-action@dcb1066f776dd043e64d0e8ba94ca15cc7e1875d # v4.0.0
+      - name: Set status
+        id: status
         if: ${{ always() && needs.resolve-inputs.outputs.dry-run != 'true' }}
+        env:
+          VERSION: ${{ needs.parse-inputs.outputs.version }}
+          OUTCOME: ${{ steps.release.outcome }}
+        run: |
+          # `skipped` means a step before the release failed, so the release did
+          # not happen: that is a failure to report, not a quiet non-event.
+          {
+            if [ "$OUTCOME" = "success" ]; then
+              echo "header=:rocket: installer v${VERSION} GitHub release created"
+              echo "mention="
+              echo "release_status=:white_check_mark: Done"
+            else
+              echo "header=:x: installer v${VERSION} GitHub release failed"
+              echo "mention=<!here> "
+              echo "release_status=:x: ${OUTCOME:-not run}"
+            fi
+          } >> "$GITHUB_OUTPUT"
+      - uses: slackapi/slack-github-action@dcb1066f776dd043e64d0e8ba94ca15cc7e1875d # v4.0.0
+        # Without a ts there is no message to update; chat.update would only
+        # add a second failure to the one that stopped the post.
+        if: ${{ always() && needs.resolve-inputs.outputs.dry-run != 'true' && steps.slack.outputs.ts != '' }}
         with:
           method: chat.update
           token: ${{ secrets.SLACK_BOT_TOKEN }}
           payload: |
             channel: "${{ env.SLACK_BOT_CHANNEL_ID }}"
             ts: "${{ steps.slack.outputs.ts }}"
-            text: "GitHub Actions Run"
-            attachments:
-              - color: "${{ (steps.release.outcome == 'success') && '#00FF00' || (steps.release.outcome == 'failure') && '#FF0000' || '#FFA500' }}"
-                blocks:
-                  - type: "section"
-                    fields:
-                      - type: "mrkdwn"
-                        text: "<${{ github.event.repository.html_url }}/actions/runs/${{ github.run_id }}/attempts/${{ github.run_attempt }}|${{ github.workflow }}>"
-                      - type: "mrkdwn"
-                        text: " "
-                      - type: "mrkdwn"
-                        text: "*Status:*\n`${{ steps.release.outcome }}`"
+            text: "${{ steps.status.outputs.mention }}${{ steps.status.outputs.header }}"
+            blocks:
+              - type: "header"
+                text:
+                  type: "plain_text"
+                  text: "${{ steps.status.outputs.header }}"
+                  emoji: true
+              - type: "section"
+                text:
+                  type: "mrkdwn"
+                  text: "${{ steps.meta.outputs.channel_line }}"
+              - type: "section"
+                fields:
+                  - type: "mrkdwn"
+                    text: "*Repository:*\n`${{ github.repository }}`"
+                  - type: "mrkdwn"
+                    text: "*Version:*\n`v${{ needs.parse-inputs.outputs.version }}`"
+                  - type: "mrkdwn"
+                    text: "*Triggered by:*\n${{ github.actor }}"
+                  - type: "mrkdwn"
+                    text: "*Workflow run:*\n<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}/attempts/${{ github.run_attempt }}|Open run>"
+                  - type: "mrkdwn"
+                    text: "*GitHub release:*\n${{ steps.status.outputs.release_status }}"
+                  - type: "mrkdwn"
+                    text: "*Release notes:*\n<${{ github.server_url }}/${{ github.repository }}/releases/tag/v${{ needs.parse-inputs.outputs.version }}|v${{ needs.parse-inputs.outputs.version }}>"
