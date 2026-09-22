@@ -1239,6 +1239,15 @@ fi
 # mondoo_install is defined on every branch of every configure_*, and the chain
 # above exits for an OS that has none, so there is nothing left to guard. fail is
 # a backstop in case one of those branches ever returns instead of exiting.
+#
+# The empty value is deliberate and worth keeping empty. It means "this machine
+# has no way to install", which is a different thing from any installer name --
+# giving the branch a name instead only moves the problem, because the line below
+# would then announce "Installing via <name>" before the same failure. An Arch
+# box with no AUR helper could fall back to the portable archive rather than
+# failing, but that is a behaviour change rather than a rename: finalize_setup
+# enables mondoo.service for OS=Arch, and that unit comes from the AUR package,
+# not from the tarball.
 if [ -z "${MONDOO_INSTALLER}" ]; then
   mondoo_install
   fail
