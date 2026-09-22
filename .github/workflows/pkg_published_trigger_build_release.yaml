@@ -233,22 +233,28 @@ jobs:
           # once, where it enters, rather than quoting it at each use: the same
           # reasoning parse_inputs.yml gives for validating the version there.
           #
-          # The class is what a GCS object prefix needs and nothing more, so it
-          # admits no character that means anything to a shell. Leading character
-          # is constrained separately so a path cannot start with `/`, `-` or `.`,
-          # and `..` is rejected outright -- harmless to GCS, which has no path
-          # traversal, but it reaches the CDN invalidation as a URL path too.
+          # Matched a segment at a time rather than as one flat class, because a
+          # GCS object name is a literal string: nothing normalises it. A path
+          # that merely looks odd resolves to an object that does not exist, and
+          # the `gsutil rm ... || true` below then reports success having removed
+          # nothing. `foo/` asks for `foo//artifacts.json`, and `a/./b` asks for
+          # a directory named `.` -- neither is the file anyone meant.
+          #
+          # Requiring each segment to start alphanumeric is what rejects those,
+          # and it subsumes the `..` check this replaced: `..` cannot be a whole
+          # segment if every segment begins with a letter or digit. It also rules
+          # out a leading `/`, `-` or `.`, and an empty segment from `//`.
+          #
+          # The character class is what a GCS object prefix needs and nothing
+          # more, so it admits nothing that means anything to a shell. `a..b`
+          # stays legal: dots inside a segment are not a traversal, and the CDN
+          # invalidation this also feeds reads it as a URL path where only a
+          # whole `..` segment would be.
           if [ -n "${REINDEX_PATH}" ]; then
-            if [[ ! "${REINDEX_PATH}" =~ ^[A-Za-z0-9][A-Za-z0-9._/-]*$ ]]; then
+            if [[ ! "${REINDEX_PATH}" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*(/[A-Za-z0-9][A-Za-z0-9._-]*)*$ ]]; then
               echo "::error::invalid reindex-path: ${REINDEX_PATH}"
               exit 1
             fi
-            case "${REINDEX_PATH}" in
-              *..*)
-                echo "::error::reindex-path must not contain '..': ${REINDEX_PATH}"
-                exit 1
-                ;;
-            esac
           fi
 
           # The CDN default lives here rather than as an `|| '*'` fallback in the
