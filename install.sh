@@ -319,6 +319,96 @@ detect_portable() {
   fi
 }
 
+# Map `uname -m` onto the architecture names the published artifacts use.
+#
+# Both deb and rpm files are named with Go's architecture names
+# (mondoo_13.38.1_linux_amd64.rpm, not x86_64), so one mapping serves every
+# package type and the portable archive alike.
+detect_arch() {
+  ARCH_DETECT="$(uname -m)"
+  case "$ARCH_DETECT" in
+  "x86_64") ARCH="amd64" ;;
+  "i386") ARCH="386" ;;
+  "aarch64_be") ARCH="arm64" ;;
+  "aarch64") ARCH="arm64" ;;
+  "armv8b") ARCH="arm64" ;;
+  "armv8l") ARCH="arm64" ;;
+  "s390x") ARCH="s390x" ;;
+  *)
+    red "${MONDOO_PRODUCT_NAME} does not support the (${ARCH_DETECT}) architecture."
+    fail
+    ;;
+  esac
+}
+
+# Download the packages for the requested channel and leave their paths in
+# MONDOO_CHANNEL_PACKAGES, for the caller to hand to its package manager.
+#
+# apt, yum and zypper each install from one repository with a single stream and
+# no notion of a channel -- the apt suite is even called `stable`, which is a
+# Debian suite name and nothing to do with our channels. A preview release
+# cannot be expressed there at all. The packages themselves are published under
+# their version like every other artifact, so fetch them and install the files.
+#
+# All three are fetched, not just mondoo, because mondoo is a metapackage:
+#
+#   mondoo  Depends: cnspec (>= <version>)
+#   cnspec  Depends: mql
+#
+# Installing mondoo alone fails on unmet dependencies, because the dependency
+# would normally be resolved from the repository we are deliberately not using.
+# Handing all three to the package manager in one invocation lets it resolve
+# them against each other. They release in lockstep on one version, so the same
+# version string names all three.
+fetch_channel_packages() {
+  _ext="$1"
+
+  # curl is a new prerequisite on this path, not an inherited one. The stable
+  # yum path never fetches anything itself -- it writes a repository file and
+  # lets yum do the downloading -- so a minimal RHEL image without curl installs
+  # the stable release perfectly well and only fails once a channel is asked
+  # for. Without this check the failure surfaces later as an empty version and
+  # "could not determine the latest version from the preview channel", which
+  # blames the channel for a missing command.
+  if [ ! -x "$(command -v curl)" ]; then
+    red "This script needs the 'curl' command to install from the ${MONDOO_CHANNEL} channel, but we could not find 'curl' in your path (\$PATH)."
+    fail
+  fi
+
+  detect_arch
+  detect_latest_version
+
+  MONDOO_CHANNEL_PACKAGES=""
+  MONDOO_CHANNEL_PKGDIR="$(mktemp -d)"
+
+  for _pkg in mql cnspec mondoo; do
+    _file="${_pkg}_${MONDOO_LATEST_VERSION}_linux_${ARCH}.${_ext}"
+    _url="https://releases.mondoo.com/${_pkg}/${MONDOO_LATEST_VERSION}/${_file}"
+
+    echo "  Downloading ${_file}"
+    if ! curl -A "${UserAgent}" --retry 3 --retry-delay 10 -fsSL "${_url}" -o "${MONDOO_CHANNEL_PKGDIR}/${_file}"; then
+      red "\nCould not download ${_url}"
+      purple "  The ${MONDOO_CHANNEL} channel may not publish ${_ext} packages for ${ARCH} yet."
+      rm -rf "${MONDOO_CHANNEL_PKGDIR}"
+      fail
+    fi
+
+    MONDOO_CHANNEL_PACKAGES="${MONDOO_CHANNEL_PACKAGES} ${MONDOO_CHANNEL_PKGDIR}/${_file}"
+  done
+}
+
+# Remove the packages fetch_channel_packages downloaded.
+#
+# The package manager has copied what it needs into its own database by now, so
+# the files are dead weight -- and they are not small. The failure path inside
+# fetch_channel_packages cleans up its own mess; this is the successful one.
+cleanup_channel_packages() {
+  [ -n "${MONDOO_CHANNEL_PKGDIR:-}" ] || return 0
+  rm -rf "${MONDOO_CHANNEL_PKGDIR}"
+  MONDOO_CHANNEL_PKGDIR=""
+  MONDOO_CHANNEL_PACKAGES=""
+}
+
 # Resolve the version to install from the channel's pointer document.
 #
 # This used to scrape the directory listing for the first thing shaped like
@@ -363,20 +453,7 @@ install_portable() {
   *) SYSTEM="linux" ;;
   esac
 
-  ARCH_DETECT="$(uname -m)"
-  case "$ARCH_DETECT" in
-  "x86_64") ARCH="amd64" ;;
-  "i386") ARCH="386" ;;
-  "aarch64_be") ARCH="arm64" ;;
-  "aarch64") ARCH="arm64" ;;
-  "armv8b") ARCH="arm64" ;;
-  "armv8l") ARCH="arm64" ;;
-  "s390x") ARCH="s390x" ;;
-  *)
-    red "${MONDOO_PRODUCT_NAME} does not support the (${ARCH_DETECT}) architecture."
-    fail
-    ;;
-  esac
+  detect_arch
 
   detect_latest_version
 
@@ -506,6 +583,20 @@ configure_rhel_installer() {
   if [ -x "$(command -v yum)" ]; then
     MONDOO_INSTALLER="yum"
     mondoo_install() {
+      if [ "${MONDOO_CHANNEL}" = "preview" ]; then
+        # The signing key is the same one the repository would have configured;
+        # only the distribution stream differs by channel, not the signature.
+        sudo_cmd rpm --import https://releases.mondoo.com/rpm/pubkey.gpg
+
+        purple_bold "\n* Fetching ${MONDOO_PRODUCT_NAME} from the ${MONDOO_CHANNEL} channel"
+        fetch_channel_packages rpm
+        purple_bold "\n* Installing ${MONDOO_PRODUCT_NAME} ${MONDOO_LATEST_VERSION}"
+        # shellcheck disable=SC2086 # the package list is intentionally split
+        sudo_cmd yum install -y ${MONDOO_CHANNEL_PACKAGES}
+        cleanup_channel_packages
+        return
+      fi
+
       purple_bold "\n* Configuring YUM sources for Mondoo at /etc/yum.repos.d/mondoo.repo"
       sudo_cmd tee /etc/yum.repos.d/mondoo.repo <<EOL
 [mondoo]
@@ -559,6 +650,23 @@ configure_debian_installer() {
     }
 
     mondoo_install() {
+      if [ "${MONDOO_CHANNEL}" = "preview" ]; then
+        purple_bold "\n* Installing prerequisites for Debian"
+        sudo_cmd apt update -y
+        sudo_cmd apt install -y ca-certificates curl
+
+        purple_bold "\n* Fetching ${MONDOO_PRODUCT_NAME} from the ${MONDOO_CHANNEL} channel"
+        fetch_channel_packages deb
+        purple_bold "\n* Installing ${MONDOO_PRODUCT_NAME} ${MONDOO_LATEST_VERSION}"
+        # apt, not dpkg: given the files it resolves them against each other,
+        # where `dpkg -i` would need them in dependency order and would still
+        # fail on anything they need from the distribution.
+        # shellcheck disable=SC2086 # the package list is intentionally split
+        TERM=dumb sudo_cmd apt install -y ${MONDOO_CHANNEL_PACKAGES}
+        cleanup_channel_packages
+        return
+      fi
+
       purple_bold "\n* Installing prerequisites for Debian"
       sudo_cmd apt update -y
       sudo_cmd apt install -y apt-transport-https ca-certificates gnupg curl
@@ -592,6 +700,18 @@ configure_suse_installer() {
   if [ -x "$(command -v zypper)" ]; then
     MONDOO_INSTALLER="zypper"
     mondoo_install() {
+      if [ "${MONDOO_CHANNEL}" = "preview" ]; then
+        sudo_cmd rpm --import https://releases.mondoo.com/rpm/pubkey.gpg
+
+        purple_bold "\n* Fetching ${MONDOO_PRODUCT_NAME} from the ${MONDOO_CHANNEL} channel"
+        fetch_channel_packages rpm
+        purple_bold "\n* Installing ${MONDOO_PRODUCT_NAME} ${MONDOO_LATEST_VERSION}"
+        # shellcheck disable=SC2086 # the package list is intentionally split
+        sudo_cmd zypper -n install ${MONDOO_CHANNEL_PACKAGES}
+        cleanup_channel_packages
+        return
+      fi
+
       purple_bold "\n* Configuring ZYPPER sources for Mondoo at /etc/zypp/repos.d/mondoo.repo"
       curl -A "${UserAgent}" --retry 3 --retry-delay 10 -sSL https://releases.mondoo.com/rpm/mondoo.repo | sudo_cmd tee /etc/zypp/repos.d/mondoo.repo
       # zypper does not recognize the gpg key reference from mondoo.repo properly, therefore we need to add this here manually
@@ -1070,7 +1190,7 @@ fi
 # default instead of silently ignoring the setting. Add an installer here when
 # it learns to resolve a version from the channel pointer documents, i.e. when
 # it starts calling detect_latest_version.
-CHANNEL_AWARE_INSTALLERS="pkg tar"
+CHANNEL_AWARE_INSTALLERS="pkg tar apt yum zypper"
 
 warn_if_channel_unsupported() {
   [ "${MONDOO_CHANNEL}" = "preview" ] || return 0
