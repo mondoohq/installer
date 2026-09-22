@@ -87,3 +87,108 @@ Describe 'Get-MondooUpdaterTaskArgument' {
         ($arg.ToCharArray() | Where-Object { $_ -eq '"' }).Count | Should -Be 2
     }
 }
+
+Describe 'Get-MondooUpdaterTaskArgument self-update gate' {
+
+    # The task tries `cnspec update` first and keeps the installer as the fallback.
+    # These run the decision itself rather than grepping the string: the payload is
+    # cut at the fallback and executed against a stub binary, so what is asserted is
+    # which branch the task would actually take.
+    BeforeAll {
+        # Pester 5 runs It blocks in their own scope, so the helper has to be
+        # defined here rather than in the Describe body to be visible to them.
+        function Invoke-UpdaterGate {
+        param([string] $VersionLine, [int] $UpdateExit, [switch] $NoBinary)
+
+        $dir = Join-Path ([System.IO.Path]::GetTempPath()) ([guid]::NewGuid())
+        New-Item -ItemType Directory -Path $dir | Out-Null
+        try {
+            if (-not $NoBinary) {
+                $stub = Join-Path $dir 'cnspec.exe'
+                # A stub, not the real binary: the gate only reads `version` and the
+                # exit status of `update`, which is exactly what is under test.
+                Set-Content -Path $stub -Value @"
+#!/bin/sh
+if [ "`$1" = "version" ]; then echo "$VersionLine"; exit 0; fi
+if [ "`$1" = "update" ]; then exit $UpdateExit; fi
+"@
+                if ($IsLinux -or $IsMacOS) { chmod +x $stub }
+            }
+
+            $arg = Get-MondooUpdaterTaskArgument -Product 'mondoo' `
+                -Path ($dir + [IO.Path]::DirectorySeparatorChar) `
+                -UpdateTask 'enable' -Time '12:00' -Interval '3'
+
+            $payload = $arg.Substring($arg.IndexOf('&{') + 2)
+            $payload = $payload.Substring(0, $payload.LastIndexOf('}"'))
+
+            # Stop before the installer fallback: running it would hit the network.
+            $gate = $payload.Substring(0, $payload.IndexOf('if (-not $updated) {'))
+            return & ([scriptblock]::Create($gate + '; $updated'))
+        }
+            finally {
+                Remove-Item -Recurse -Force $dir -ErrorAction SilentlyContinue
+            }
+        }
+    }
+
+    It 'uses cnspec update on 14 and above' {
+        Invoke-UpdaterGate -VersionLine 'cnspec 14.0.0 (abc, x)' -UpdateExit 0 |
+            Should -BeTrue -Because 'v14 replaces the MSI download with an in-place self-update'
+    }
+
+    It 'uses cnspec update on a 14 pre-release' {
+        Invoke-UpdaterGate -VersionLine 'cnspec 14.0.0-rc.10 (abc, x)' -UpdateExit 0 |
+            Should -BeTrue -Because 'the gate reads the major, so a pre-release of 14 still qualifies'
+    }
+
+    It 'falls back to the installer when cnspec update fails' {
+        Invoke-UpdaterGate -VersionLine 'cnspec 14.0.0 (abc, x)' -UpdateExit 1 |
+            Should -BeFalse -Because 'a failed self-update must not leave the machine un-updated'
+    }
+
+    It 'falls back to the installer on 13' {
+        Invoke-UpdaterGate -VersionLine 'cnspec 13.39.0 (abc, x)' -UpdateExit 0 |
+            Should -BeFalse -Because "v13's update re-runs install.ps1 with no arguments, dropping -Service and -Proxy"
+    }
+
+    It 'falls back to the installer on an older major' {
+        Invoke-UpdaterGate -VersionLine 'cnspec 9.1.0 (abc, x)' -UpdateExit 0 |
+            Should -BeFalse
+    }
+
+    It 'falls back to the installer when cnspec is not present' {
+        Invoke-UpdaterGate -NoBinary |
+            Should -BeFalse -Because 'a task that assumed the binary exists would silently do nothing'
+    }
+
+    It 'keeps the installer fallback in the payload' {
+        $arg = Get-MondooUpdaterTaskArgument -Product 'mondoo' -Path 'C:\Program Files\Mondoo\' `
+            -Service 'enable' -UpdateTask 'enable' -Time '12:00' -Interval '3'
+
+        $arg | Should -Match 'install\.mondoo\.com/ps1'
+        $arg | Should -Match 'Install-Mondoo'
+        $arg | Should -Match '-Service enable'
+    }
+
+    It 'still wraps the payload in exactly one pair of double quotes' {
+        $arg = Get-MondooUpdaterTaskArgument -Product 'mondoo' -Path 'C:\Program Files\Mondoo\' `
+            -Service 'enable' -IdDetector @('hostname') `
+            -UpdateTask 'enable' -Time '12:00' -Interval '3'
+
+        ($arg.ToCharArray() | Where-Object { $_ -eq '"' }).Count |
+            Should -Be 2 -Because 'the self-update gate must not introduce an interior double quote'
+    }
+
+    It 'produces a payload that parses as PowerShell' {
+        $arg = Get-MondooUpdaterTaskArgument -Product 'mondoo' -Path 'C:\Program Files\Mondoo\' `
+            -Service 'enable' -UpdateTask 'enable' -Time '12:00' -Interval '3'
+
+        $payload = $arg.Substring($arg.IndexOf('&{') + 2)
+        $payload = $payload.Substring(0, $payload.LastIndexOf('}"'))
+
+        $errs = $null
+        [System.Management.Automation.Language.Parser]::ParseInput($payload, [ref]$null, [ref]$errs) | Out-Null
+        $errs.Count | Should -Be 0 -Because 'an unbalanced brace in the gate would break the task silently'
+    }
+}
