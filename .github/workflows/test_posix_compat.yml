@@ -102,11 +102,28 @@ jobs:
 
           exit "$status"
 
-      - name: Test parameter passing
-        run: sh test/install_sh/test_params.sh
+      # Globbed rather than named one step at a time, so a new test runs here
+      # the day it is added instead of the day someone remembers this file.
+      - name: Run the install.sh unit tests
+        run: |
+          set -eu
+          status=0
+          ran=0
+          for t in test/install_sh/test_*.sh; do
+            [ -f "$t" ] || {
+              echo "::error::no file matches '$t' -- nothing was run"
+              exit 1
+            }
+            # test_proxy.sh is the one deliberate exclusion: it needs docker,
+            # pulls a squid image and takes a couple of minutes, which is why
+            # it has its own make target and is kept out of
+            # `make test/install_sh/all` too. Excluded by name so adding a test
+            # does not silently inherit the exemption.
+            case "$t" in */test_proxy.sh) echo "skip $t (needs docker)"; continue ;; esac
 
-      - name: Test cnspec status probe
-        run: sh test/install_sh/test_status_timeout.sh
-
-      - name: Test architecture detection
-        run: sh test/install_sh/test_arch_detect.sh
+            echo "==> $t"
+            sh "$t" || status=1
+            ran=$((ran + 1))
+          done
+          echo "ran ${ran} test scripts"
+          exit "$status"
