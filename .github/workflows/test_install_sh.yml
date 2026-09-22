@@ -94,6 +94,13 @@ jobs:
             target: preview_almalinux9
           - dockerfile: preview.Dockerfile
             target: preview_opensuse_leap154
+          # error_paths.Dockerfile -- the two ways install.sh declines to
+          # install. Nothing covered either, which is how four
+          # "we could not find the X command" messages sat unreachable.
+          - dockerfile: error_paths.Dockerfile
+            target: no_package_manager
+          - dockerfile: error_paths.Dockerfile
+            target: unsupported_os
     name: "install.sh (${{ matrix.target }})"
     steps:
       - name: Clone repository
