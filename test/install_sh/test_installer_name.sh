@@ -50,7 +50,7 @@ MONDOO_PRODUCT_NAME="mondoo"
 # Run a configurator with an empty PATH, so no package manager is found and
 # every one takes the branch that used to blank the variable.
 check_fn() {
-  _fn="$1"; _want="$2"
+  _fn="$1"; _want="${2:-}"
   eval "$(extract_fn "$_fn")"
   MONDOO_INSTALLER=""
   # Emptying PATH is the point: no yay, paru, apt, yum or zypper is findable,
@@ -62,6 +62,8 @@ check_fn() {
 
   if [ -z "$_got" ]; then
     bad "$_fn leaves a name when its tool is missing" "MONDOO_INSTALLER is empty; it is printed in user-facing text"
+  elif [ -z "$_want" ]; then
+    ok "$_fn -> $_got, with no tool on PATH (no expected name pinned)"
   elif [ "$_got" != "$_want" ]; then
     bad "$_fn names its method" "expected '$_want', got '$_got'"
   else
@@ -69,11 +71,29 @@ check_fn() {
   fi
 }
 
+# Discovered from install.sh, not listed here. A configurator added for a new
+# platform is covered the day it is added; a list would cover it the day someone
+# remembered this file, which is the same gap the runtime check guards against.
 printf '\nMONDOO_INSTALLER is set even when the tool is absent\n'
-check_fn configure_archlinux_installer aur
-check_fn configure_rhel_installer      yum
-check_fn configure_debian_installer    apt
-check_fn configure_suse_installer      zypper
+
+FOUND=0
+for _fn in $(grep -o '^configure_[a-z_]*_installer' "$INSTALL_SH" | sort -u); do
+  FOUND=$((FOUND + 1))
+  case "$_fn" in
+    configure_archlinux_installer) check_fn "$_fn" aur ;;
+    configure_rhel_installer)      check_fn "$_fn" yum ;;
+    configure_debian_installer)    check_fn "$_fn" apt ;;
+    configure_suse_installer)      check_fn "$_fn" zypper ;;
+    # A configurator with no expected name yet still has to name something.
+    *)                             check_fn "$_fn" ;;
+  esac
+done
+
+if [ "$FOUND" -eq 0 ]; then
+  bad "found the configurators" "no configure_*_installer matched in ${INSTALL_SH}"
+else
+  ok "discovered ${FOUND} configurators"
+fi
 
 # The sentinel is gone; nothing should reintroduce it.
 printf '\nno empty assignment remains\n'

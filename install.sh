@@ -1223,6 +1223,19 @@ if [ $MONDOO_INSTALLED = true ]; then
   exit 0
 fi
 
+# Every configure_*_installer names its method, whether or not the command to
+# run it is installed, so reaching this empty means one of them did not -- a new
+# one that forgot, not a machine without a package manager. That case has its own
+# message inside mondoo_install. This is the genuine "we do not know" and says so.
+#
+# It used to fire for a machine without a package manager too, because the
+# configurators blanked the variable to mean "cannot install". That is what made
+# the message wrong, and what #607 was reported as.
+if [ -z "${MONDOO_INSTALLER}" ]; then
+  red "Cannot determine which installer to use. Exiting."
+  fail
+fi
+
 purple_bold "\n* Installing ${MONDOO_PRODUCT_NAME} via $MONDOO_INSTALLER"
 mondoo_install
 
