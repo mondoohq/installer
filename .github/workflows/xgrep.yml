@@ -36,7 +36,7 @@ jobs:
       # mondoohq/actions#166 fixed both on 2026-09-07 and has not been tagged.
       # Move to the tag once a release contains it.
       - name: Run xgrep
-        uses: mondoohq/actions/xgrep@989c8b3efbd11096b5db643baf3644792ff5d380 # main, post-#166
+        uses: mondoohq/actions/xgrep@32a664bab3d192486346385acb490e86fbde72e7 # main, post-#166
         with:
           path: .
           output-file: results.sarif
