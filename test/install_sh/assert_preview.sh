@@ -46,13 +46,25 @@ pkg_version() {
   esac
 }
 
-# The version the preview channel actually points at, read the same way
-# install.sh reads it. Asserting against this rather than against "something
-# with a hyphen in it" is what makes a silent fall back to stable visible.
-EXPECTED="$(curl -fsSL https://releases.mondoo.com/mondoo/preview.json \
-  | grep -o '"version"[[:space:]]*:[[:space:]]*"[^"]*"' \
-  | head -n1 \
-  | sed 's/.*"\([^"]*\)"$/\1/')"
+# The version the preview channel actually points at. Asserting against this
+# rather than against "something with a hyphen in it" is what makes a silent
+# fall back to stable visible.
+#
+# Read with jq where it exists, rather than reusing install.sh's grep pipeline.
+# install.sh parses this document with grep because it is POSIX sh and cannot
+# assume jq; a test that parsed it the same way would agree with that parser
+# even when it was wrong, which is the one thing this value must not do. The
+# images install jq for exactly this reason. The pipeline stays as a fallback so
+# the script still runs standalone on a host without it.
+PREVIEW_JSON="$(curl -fsSL https://releases.mondoo.com/mondoo/preview.json)"
+if command -v jq >/dev/null 2>&1; then
+  EXPECTED="$(printf '%s' "${PREVIEW_JSON}" | jq -r '.version')"
+else
+  EXPECTED="$(printf '%s' "${PREVIEW_JSON}" \
+    | grep -o '"version"[[:space:]]*:[[:space:]]*"[^"]*"' \
+    | head -n1 \
+    | sed 's/.*"\([^"]*\)"$/\1/')"
+fi
 
 [ -n "${EXPECTED}" ] || { echo "FAIL: could not read the preview version" >&2; exit 1; }
 

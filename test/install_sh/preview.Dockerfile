@@ -13,28 +13,28 @@
 # and that no repository was configured behind our back.
 
 FROM ubuntu:22.04 AS preview_ubuntu2204
-RUN apt update -y && apt install -y curl
+RUN apt update -y && apt install -y curl jq
 COPY install.sh /run/install.sh
 COPY test/install_sh/assert_preview.sh /run/assert_preview.sh
 RUN /run/install.sh -c preview
 RUN /run/assert_preview.sh deb
 
 FROM debian:12 AS preview_debian12
-RUN apt update -y && apt install -y curl
+RUN apt update -y && apt install -y curl jq
 COPY install.sh /run/install.sh
 COPY test/install_sh/assert_preview.sh /run/assert_preview.sh
 RUN /run/install.sh -c preview
 RUN /run/assert_preview.sh deb
 
 FROM almalinux:9 AS preview_almalinux9
-RUN yum install -y --allowerasing curl
+RUN yum install -y --allowerasing curl jq
 COPY install.sh /run/install.sh
 COPY test/install_sh/assert_preview.sh /run/assert_preview.sh
 RUN /run/install.sh -c preview
 RUN /run/assert_preview.sh rpm
 
 FROM opensuse/leap:15.4 AS preview_opensuse_leap154
-RUN zypper -n install curl
+RUN zypper -n install curl jq
 COPY install.sh /run/install.sh
 COPY test/install_sh/assert_preview.sh /run/assert_preview.sh
 RUN /run/install.sh -c preview

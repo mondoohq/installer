@@ -363,6 +363,18 @@ detect_arch() {
 fetch_channel_packages() {
   _ext="$1"
 
+  # curl is a new prerequisite on this path, not an inherited one. The stable
+  # yum path never fetches anything itself -- it writes a repository file and
+  # lets yum do the downloading -- so a minimal RHEL image without curl installs
+  # the stable release perfectly well and only fails once a channel is asked
+  # for. Without this check the failure surfaces later as an empty version and
+  # "could not determine the latest version from the preview channel", which
+  # blames the channel for a missing command.
+  if [ ! -x "$(command -v curl)" ]; then
+    red "This script needs the 'curl' command to install from the ${MONDOO_CHANNEL} channel, but we could not find 'curl' in your path (\$PATH)."
+    fail
+  fi
+
   detect_arch
   detect_latest_version
 
