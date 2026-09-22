@@ -7,6 +7,9 @@ on:
       - "**.ps1"
       - "**.psm1"
       - "**.psd1"
+      # This file too, so a change to the checks runs the checks. Without it a
+      # weakened check merges green, having never run against anything.
+      - ".github/workflows/verify_powershell_files.yml"
 
 permissions:
   contents: read
