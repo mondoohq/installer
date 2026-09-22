@@ -10,8 +10,8 @@
 ## Status
 
 - Docker Containers: [![Release Test: Docker Containers](https://github.com/mondoohq/installer/actions/workflows/test-released-docker.yaml/badge.svg)](https://github.com/mondoohq/installer/actions/workflows/test-released-docker.yaml)
-- Homebrew: [![Release Test: Homebrew](https://github.com/mondoohq/installer/actions/workflows/test-released-docker.yaml/badge.svg)](https://github.com/mondoohq/installer/actions/workflows/test-released-docker.yaml)
-- Install.sh: [![Release Test: install.sh](https://github.com/mondoohq/installer/actions/workflows/test-released-install-sh.yaml/badge.svg)](https://github.com/mondoohq/installer/actions/workflows/test-released-install-sh.yaml.yaml)
+- Homebrew: [![Release Test: Homebrew](https://github.com/mondoohq/installer/actions/workflows/test-released-brew.yaml/badge.svg)](https://github.com/mondoohq/installer/actions/workflows/test-released-brew.yaml)
+- Install.sh: [![Release Test: install.sh](https://github.com/mondoohq/installer/actions/workflows/test-released-install-sh.yaml/badge.svg)](https://github.com/mondoohq/installer/actions/workflows/test-released-install-sh.yaml)
 - Install.ps1: [![Release Test: install.ps1](https://github.com/mondoohq/installer/actions/workflows/test-released-install-ps1.yaml/badge.svg)](https://github.com/mondoohq/installer/actions/workflows/test-released-install-ps1.yaml)
 - macOS Pkg: [![Release Test: macOS Package](https://github.com/mondoohq/installer/actions/workflows/test-released-osx-pkg.yaml/badge.svg)](https://github.com/mondoohq/installer/actions/workflows/test-released-osx-pkg.yaml)
 - Arch Linux: [![Release Test: Arch Linux](https://github.com/mondoohq/installer/actions/workflows/test-released-archlinux.yaml/badge.svg)](https://github.com/mondoohq/installer/actions/workflows/test-released-archlinux.yaml)
