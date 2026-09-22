@@ -5,7 +5,35 @@ updates:
     directory: /
     schedule:
       interval: weekly
+    # One pull request per week for the routine bumps, instead of one per
+    # action. The 2026-09-21 run opened five (#821-#825) and the 2026-09-14
+    # run another five, each carrying a full CI suite and its own merge.
+    #
+    # Majors are deliberately left out of the group and keep arriving on their
+    # own. Both recent ones deserved that: azure/trusted-signing-action 1.2.0
+    # -> 2.0.0 signs the release artifacts, and softprops/action-gh-release
+    # 2.5.0 -> 3.0.3 publishes them. A breaking change in either is not
+    # something to review as one line of a batch of five.
+    #
+    # Grouping also makes a failure legible. #822 was one of those five and was
+    # the only one that failed; as a group it would have been one red run to
+    # diagnose rather than a hunt across five near-identical PRs.
+    groups:
+      github-actions:
+        patterns:
+          - "*"
+        update-types:
+          - minor
+          - patch
   - package-ecosystem: docker
     directory: /
     schedule:
       interval: daily
+    # Daily, so batching matters more here than for the weekly actions.
+    groups:
+      docker:
+        patterns:
+          - "*"
+        update-types:
+          - minor
+          - patch
