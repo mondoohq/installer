@@ -1223,8 +1223,24 @@ if [ $MONDOO_INSTALLED = true ]; then
   exit 0
 fi
 
+# Each configure_*_installer that cannot find its package manager leaves
+# MONDOO_INSTALLER empty and defines mondoo_install to name the command that was
+# missing -- "Mondoo uses yay or paru to install on AUR" on Arch, "we could not
+# find the 'apt' command" on Debian, and the same for yum and zypper. Calling it
+# is what puts that in front of anyone. Reporting here instead replaced all four
+# with one line that names nothing and suggests nothing.
+#
+# That is what #607 reported as Manjaro not being detected. Manjaro is detected,
+# as Arch, by /etc/arch-release; a Manjaro image simply ships no AUR helper, and
+# the message said the installer could not tell what the machine was rather than
+# that it needed yay or paru. Stock archlinux:latest says the same thing for the
+# same reason.
+#
+# mondoo_install is defined on every branch of every configure_*, and the chain
+# above exits for an OS that has none, so there is nothing left to guard. fail is
+# a backstop in case one of those branches ever returns instead of exiting.
 if [ -z "${MONDOO_INSTALLER}" ]; then
-  red "Cannot determine which installer to use. Exiting."
+  mondoo_install
   fail
 fi
 purple_bold "\n* Installing ${MONDOO_PRODUCT_NAME} via $MONDOO_INSTALLER"
