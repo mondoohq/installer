@@ -11,15 +11,17 @@
 
 These run against `main`, so they reflect the scripts in this repository as they stand.
 
-- install.sh: [![Test install.sh](https://github.com/mondoohq/installer/actions/workflows/test_install_sh.yml/badge.svg)](https://github.com/mondoohq/installer/actions/workflows/test_install_sh.yml)
-- download.sh: [![Test download.sh](https://github.com/mondoohq/installer/actions/workflows/test_download_sh.yml/badge.svg)](https://github.com/mondoohq/installer/actions/workflows/test_download_sh.yml)
-- install.ps1 / download.ps1: [![Test PowerShell Installer](https://github.com/mondoohq/installer/actions/workflows/test_install_pwsh_installer.yml/badge.svg)](https://github.com/mondoohq/installer/actions/workflows/test_install_pwsh_installer.yml)
-- Release files: [![Releases.mondoo.com File Validation](https://github.com/mondoohq/installer/actions/workflows/test-releases.yaml/badge.svg)](https://github.com/mondoohq/installer/actions/workflows/test-releases.yaml)
+| | Status | Coverage |
+| --- | --- | --- |
+| `install.sh` | [![Test install.sh](https://github.com/mondoohq/installer/actions/workflows/test_install_sh.yml/badge.svg)](https://github.com/mondoohq/installer/actions/workflows/test_install_sh.yml) | 23 container targets — apt, yum and zypper across AlmaLinux, Amazon Linux, Debian, openSUSE, RHEL and Ubuntu, plus a POSIX `dash` run and emulated s390x |
+| `download.sh` | [![Test download.sh](https://github.com/mondoohq/installer/actions/workflows/test_download_sh.yml/badge.svg)](https://github.com/mondoohq/installer/actions/workflows/test_download_sh.yml) | 8 container targets, including Alpine and arm64 |
+| `install.ps1`, `download.ps1` | [![Test PowerShell Installer](https://github.com/mondoohq/installer/actions/workflows/test_install_pwsh_installer.yml/badge.svg)](https://github.com/mondoohq/installer/actions/workflows/test_install_pwsh_installer.yml) | Windows Server 2022, covering `scan.ps1` too |
+| Release files | [![Releases.mondoo.com File Validation](https://github.com/mondoohq/installer/actions/workflows/test-releases.yaml/badge.svg)](https://github.com/mondoohq/installer/actions/workflows/test-releases.yaml) | `mondoo`, `mql` and `cnspec` on releases.mondoo.com, stable and preview, every 15 minutes |
 
 Docker images, Homebrew, Arch Linux and the macOS package are tested against every
-published release by [Test Release: ALL](https://github.com/mondoohq/installer/actions/workflows/test-released-all.yaml). Those are
-reusable workflows called by that run, so GitHub attributes each run to the caller and
-they have no badge of their own to show.
+published release by [Test Release: ALL](https://github.com/mondoohq/installer/actions/workflows/test-released-all.yaml).
+They are reusable workflows called by that run, so GitHub attributes each run to the
+caller and they have no badge of their own to show.
 
 ## Installation
 
