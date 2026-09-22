@@ -5,6 +5,10 @@ on:
   push:
     paths:
       - '**.ps1'
+      # This file too. Without it, a change to the jobs below does not run the
+      # jobs below -- which is how a step could be added here, reviewed, and
+      # merged having never executed once.
+      - '.github/workflows/test_install_pwsh_installer.yml'
 
 permissions:
   contents: read
