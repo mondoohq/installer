@@ -56,6 +56,45 @@ jobs:
           ./cnspec version
           Remove-Item ./cnspec.exe
 
+      # The step above runs the file. The production caller does not: the Azure
+      # run command installs cnspec by piping the script through
+      # Invoke-Expression, and so do the docs.
+      #
+      #   iex ((New-Object Net.WebClient).DownloadString('.../download/ps1/cnspec'))
+      #
+      # Those are different code paths. Running the file leaves a default the
+      # caller never bound unvalidated; Invoke-Expression turns the param block
+      # into assignments in the caller's scope and applies the attributes to
+      # the defaults, so an out-of-set default throws before the body runs.
+      #
+      # #826 was exactly that, and every job in this file stayed green through
+      # it, because they all run the file. An Azure tenant stopped scanning 382
+      # Windows VMs and the integration kept reporting success.
+      - name: Test download.ps1 the way the Azure run command calls it
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+
+          $dir = Join-Path $env:RUNNER_TEMP 'iex-download'
+          Remove-Item -Recurse -Force $dir -ErrorAction SilentlyContinue
+          New-Item -ItemType Directory -Path $dir | Out-Null
+          Push-Location $dir
+          try {
+            Invoke-Expression (Get-Content -Raw (Join-Path $env:GITHUB_WORKSPACE 'download.ps1'))
+
+            # Assert the binary, not just the absence of a throw. The failure
+            # mode is silent: nothing downloads, nothing says why, and the
+            # caller carries on to run something that was never fetched.
+            if (-not (Test-Path './cnspec.exe')) {
+              throw 'download.ps1 through Invoke-Expression produced no binary'
+            }
+            & './cnspec.exe' version
+          }
+          finally {
+            Pop-Location
+            Remove-Item -Recurse -Force $dir -ErrorAction SilentlyContinue
+          }
+
       - name: Install mondoo package
         shell: powershell
         env:
