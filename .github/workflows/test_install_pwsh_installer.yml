@@ -13,12 +13,41 @@ jobs:
   pwsh_install_script:
     name: Run PowerShell install script
     runs-on: windows-2022
+    # Dependabot runs do not get the repository's secrets -- they get the
+    # separate dependabot secret store -- so MONDOO_TOKEN arrives empty and
+    # this job cannot do the one thing it exists to do. Skipping is the fix
+    # rather than granting the secret: a registration token reachable from
+    # dependency-update branches is exactly the exposure that restriction
+    # exists to prevent.
+    #
+    # The trigger stays as it is. `push` with no branch filter is what gives
+    # release tags their PowerShell coverage -- v14.0.0-rc.10 and v13.39.0 both
+    # ran this job -- and narrowing it to pull_request would trade a recurring
+    # dependabot failure for a gap in release validation.
+    if: github.actor != 'dependabot[bot]'
     steps:
       - name: Check out repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
 
+
+      # Both remaining steps register a client, so a missing token fails them
+      # either way -- just not until several commands later, and not in terms
+      # anyone can act on. When PR #822 hit this, `cnspec status` reported
+      # "not registered" and the step carried on to die at `cnspec logout`,
+      # printing logout's usage text: forty seconds of Windows runner, and
+      # nothing in the output naming the token.
+      - name: Verify the registration token is available
+        shell: powershell
+        env:
+          MONDOO_TOKEN: ${{ secrets.MONDOO_TOKEN }}
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:MONDOO_TOKEN)) {
+            Write-Output "::error::MONDOO_TOKEN is empty. This job registers a client with Mondoo Platform and cannot run without it. Runs that do not receive repository secrets -- forks, and dependabot before the guard above -- cannot pass this job."
+            exit 1
+          }
+          Write-Output "MONDOO_TOKEN is present"
 
       - name: Test download.ps1 PowerShell script
         shell: powershell
