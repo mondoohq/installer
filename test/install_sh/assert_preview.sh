@@ -101,9 +101,18 @@ for repo in /etc/apt/sources.list.d/mondoo.list \
   [ -e "${repo}" ] && fail "${repo} was configured, but preview must not use a repository"
 done
 
+# 4. No downloaded packages were left behind.
+#
+# The preview path fetches the .deb/.rpm files into a temp directory, which the
+# repository path never does -- so it is the only path that can leave anything
+# there. They are not small, and on a long-lived machine nothing else would
+# clean them up.
+LEFTOVER="$(find /tmp -maxdepth 2 -name "*.${PKG_KIND}" 2>/dev/null | head -n5)"
+[ -z "${LEFTOVER}" ] || fail "downloaded packages were left in /tmp: ${LEFTOVER}"
+
 if [ "${FAILED}" -ne 0 ]; then
   echo "preview install assertions FAILED" >&2
   exit 1
 fi
 
-echo "preview install OK: mql, cnspec and mondoo all at ${EXPECTED}, no repository configured"
+echo "preview install OK: mql, cnspec and mondoo all at ${EXPECTED}, no repository configured, no leftover packages"

@@ -367,22 +367,34 @@ fetch_channel_packages() {
   detect_latest_version
 
   MONDOO_CHANNEL_PACKAGES=""
-  _pkgdir="$(mktemp -d)"
+  MONDOO_CHANNEL_PKGDIR="$(mktemp -d)"
 
   for _pkg in mql cnspec mondoo; do
     _file="${_pkg}_${MONDOO_LATEST_VERSION}_linux_${ARCH}.${_ext}"
     _url="https://releases.mondoo.com/${_pkg}/${MONDOO_LATEST_VERSION}/${_file}"
 
     echo "  Downloading ${_file}"
-    if ! curl -A "${UserAgent}" --retry 3 --retry-delay 10 -fsSL "${_url}" -o "${_pkgdir}/${_file}"; then
+    if ! curl -A "${UserAgent}" --retry 3 --retry-delay 10 -fsSL "${_url}" -o "${MONDOO_CHANNEL_PKGDIR}/${_file}"; then
       red "\nCould not download ${_url}"
       purple "  The ${MONDOO_CHANNEL} channel may not publish ${_ext} packages for ${ARCH} yet."
-      rm -rf "${_pkgdir}"
+      rm -rf "${MONDOO_CHANNEL_PKGDIR}"
       fail
     fi
 
-    MONDOO_CHANNEL_PACKAGES="${MONDOO_CHANNEL_PACKAGES} ${_pkgdir}/${_file}"
+    MONDOO_CHANNEL_PACKAGES="${MONDOO_CHANNEL_PACKAGES} ${MONDOO_CHANNEL_PKGDIR}/${_file}"
   done
+}
+
+# Remove the packages fetch_channel_packages downloaded.
+#
+# The package manager has copied what it needs into its own database by now, so
+# the files are dead weight -- and they are not small. The failure path inside
+# fetch_channel_packages cleans up its own mess; this is the successful one.
+cleanup_channel_packages() {
+  [ -n "${MONDOO_CHANNEL_PKGDIR:-}" ] || return 0
+  rm -rf "${MONDOO_CHANNEL_PKGDIR}"
+  MONDOO_CHANNEL_PKGDIR=""
+  MONDOO_CHANNEL_PACKAGES=""
 }
 
 # Resolve the version to install from the channel's pointer document.
@@ -569,6 +581,7 @@ configure_rhel_installer() {
         purple_bold "\n* Installing ${MONDOO_PRODUCT_NAME} ${MONDOO_LATEST_VERSION}"
         # shellcheck disable=SC2086 # the package list is intentionally split
         sudo_cmd yum install -y ${MONDOO_CHANNEL_PACKAGES}
+        cleanup_channel_packages
         return
       fi
 
@@ -638,6 +651,7 @@ configure_debian_installer() {
         # fail on anything they need from the distribution.
         # shellcheck disable=SC2086 # the package list is intentionally split
         TERM=dumb sudo_cmd apt install -y ${MONDOO_CHANNEL_PACKAGES}
+        cleanup_channel_packages
         return
       fi
 
@@ -682,6 +696,7 @@ configure_suse_installer() {
         purple_bold "\n* Installing ${MONDOO_PRODUCT_NAME} ${MONDOO_LATEST_VERSION}"
         # shellcheck disable=SC2086 # the package list is intentionally split
         sudo_cmd zypper -n install ${MONDOO_CHANNEL_PACKAGES}
+        cleanup_channel_packages
         return
       fi
 
