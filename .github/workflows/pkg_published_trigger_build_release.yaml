@@ -93,12 +93,12 @@ jobs:
           token: ${{ secrets.SLACK_BOT_TOKEN }}
           payload: |
             channel: "${{ env.SLACK_BOT_CHANNEL_ID }}"
-            text: ":hourglass_flowing_sand: installer v${{ needs.parse-inputs.outputs.version }} packages publishing"
+            text: ":hourglass_flowing_sand: Mondoo package v${{ needs.parse-inputs.outputs.version }} publishing"
             blocks:
               - type: "header"
                 text:
                   type: "plain_text"
-                  text: ":hourglass_flowing_sand: installer v${{ needs.parse-inputs.outputs.version }} packages publishing"
+                  text: ":hourglass_flowing_sand: Mondoo package v${{ needs.parse-inputs.outputs.version }} publishing"
                   emoji: true
               - type: "section"
                 text:
@@ -504,10 +504,10 @@ jobs:
           echo "results: $RESULTS -> success=$ok"
           echo "status_success=$ok" >> "$GITHUB_OUTPUT"
           if [ "$ok" = "true" ]; then
-            echo "header=:rocket: installer v${VERSION} packages published" >> "$GITHUB_OUTPUT"
+            echo "header=:rocket: Mondoo package v${VERSION} published" >> "$GITHUB_OUTPUT"
             echo "mention=" >> "$GITHUB_OUTPUT"
           else
-            echo "header=:x: installer v${VERSION} packages failed to publish" >> "$GITHUB_OUTPUT"
+            echo "header=:x: Mondoo package v${VERSION} failed to publish" >> "$GITHUB_OUTPUT"
             echo "mention=<!here> " >> "$GITHUB_OUTPUT"
           fi
 
