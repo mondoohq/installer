@@ -12,7 +12,7 @@ permissions:
 jobs:
   pwsh_install_script:
     name: Run PowerShell install script
-    runs-on: windows-2022
+    runs-on: windows-2025
     # Dependabot runs do not get the repository's secrets -- they get the
     # separate dependabot secret store -- so MONDOO_TOKEN arrives empty and
     # this job cannot do the one thing it exists to do. Skipping is the fix
