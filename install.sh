@@ -551,22 +551,22 @@ configure_macos_installer() {
 # --------------------
 
 configure_archlinux_installer() {
+  # The method is AUR either way; yay and paru are how you reach it.
+  MONDOO_INSTALLER="aur"
+
   if [ -x "$(command -v yay)" ]; then
-    MONDOO_INSTALLER="yay"
     mondoo_install() {
       yay -S "${MONDOO_PKG_NAME}"
     }
     mondoo_update() { mondoo_install "$@"; }
 
   elif [ -x "$(command -v paru)" ]; then
-    MONDOO_INSTALLER="paru"
     mondoo_install() {
       paru -S "${MONDOO_PKG_NAME}"
     }
     mondoo_update() { mondoo_install "$@"; }
 
   else
-    MONDOO_INSTALLER=""
     mondoo_install() {
       red "Mondoo uses yay or paru to install on AUR, but we could not find either command in your path (\$PATH)."
       echo "You can install the ${MONDOO_PRODUCT_NAME} package manually from AUR, or use one of the above installers directly."
@@ -617,7 +617,7 @@ EOL
     }
 
   else
-    MONDOO_INSTALLER=""
+    MONDOO_INSTALLER="yum"
     mondoo_install() {
       red "Mondoo uses YUM to install on Red Hat Linux, but we could not find the 'yum' command in your path (\$PATH)."
       fail
@@ -683,7 +683,7 @@ configure_debian_installer() {
     }
 
   else
-    MONDOO_INSTALLER=""
+    MONDOO_INSTALLER="apt"
     mondoo_install() {
       red "Mondoo uses APT to install on Debian Linux, but we could not find the 'apt' command in your path (\$PATH)."
       fail
@@ -728,7 +728,7 @@ configure_suse_installer() {
     }
 
   else
-    MONDOO_INSTALLER=""
+    MONDOO_INSTALLER="zypper"
     mondoo_install() {
       red "Mondoo uses ZYPPER to install on SUSE Linux, but we could not find the 'zypper' command in your path (\$PATH)."
       fail
@@ -1223,10 +1223,19 @@ if [ $MONDOO_INSTALLED = true ]; then
   exit 0
 fi
 
+# Every configure_*_installer names its method, whether or not the command to
+# run it is installed, so reaching this empty means one of them did not -- a new
+# one that forgot, not a machine without a package manager. That case has its own
+# message inside mondoo_install. This is the genuine "we do not know" and says so.
+#
+# It used to fire for a machine without a package manager too, because the
+# configurators blanked the variable to mean "cannot install". That is what made
+# the message wrong, and what #607 was reported as.
 if [ -z "${MONDOO_INSTALLER}" ]; then
   red "Cannot determine which installer to use. Exiting."
   fail
 fi
+
 purple_bold "\n* Installing ${MONDOO_PRODUCT_NAME} via $MONDOO_INSTALLER"
 mondoo_install
 
