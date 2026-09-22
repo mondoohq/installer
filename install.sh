@@ -1223,31 +1223,11 @@ if [ $MONDOO_INSTALLED = true ]; then
   exit 0
 fi
 
-# Each configure_*_installer that cannot find its package manager leaves
-# MONDOO_INSTALLER empty and defines mondoo_install to name the command that was
-# missing -- "Mondoo uses yay or paru to install on AUR" on Arch, "we could not
-# find the 'apt' command" on Debian, and the same for yum and zypper. Calling it
-# is what puts that in front of anyone. Reporting here instead replaced all four
-# with one line that names nothing and suggests nothing.
-#
-# That is what #607 reported as Manjaro not being detected. Manjaro is detected,
-# as Arch, by /etc/arch-release; a Manjaro image simply ships no AUR helper, and
-# the message said the installer could not tell what the machine was rather than
-# that it needed yay or paru. Stock archlinux:latest says the same thing for the
-# same reason.
-#
-# mondoo_install is defined on every branch of every configure_*, and the chain
-# above exits for an OS that has none, so there is nothing left to guard. fail is
-# a backstop in case one of those branches ever returns instead of exiting.
-#
-# The empty value is deliberate and worth keeping empty. It means "this machine
-# has no way to install", which is a different thing from any installer name --
-# giving the branch a name instead only moves the problem, because the line below
-# would then announce "Installing via <name>" before the same failure. An Arch
-# box with no AUR helper could fall back to the portable archive rather than
-# failing, but that is a behaviour change rather than a rename: finalize_setup
-# enables mondoo.service for OS=Arch, and that unit comes from the AUR package,
-# not from the tarball.
+# Empty means no way to install here, and the configure_*_installer that ran has
+# already defined mondoo_install to name what was missing -- yay/paru on Arch,
+# apt, yum or zypper elsewhere. Call it rather than reporting a generic failure
+# over the top of four specific ones (see #607). It is defined on every branch,
+# and the chain above exits for an unsupported OS, so fail is only a backstop.
 if [ -z "${MONDOO_INSTALLER}" ]; then
   mondoo_install
   fail
