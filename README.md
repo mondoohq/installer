@@ -9,12 +9,17 @@
 
 ## Status
 
-- Docker Containers: [![Release Test: Docker Containers](https://github.com/mondoohq/installer/actions/workflows/test-released-docker.yaml/badge.svg)](https://github.com/mondoohq/installer/actions/workflows/test-released-docker.yaml)
-- Homebrew: [![Release Test: Homebrew](https://github.com/mondoohq/installer/actions/workflows/test-released-brew.yaml/badge.svg)](https://github.com/mondoohq/installer/actions/workflows/test-released-brew.yaml)
-- Install.sh: [![Release Test: install.sh](https://github.com/mondoohq/installer/actions/workflows/test-released-install-sh.yaml/badge.svg)](https://github.com/mondoohq/installer/actions/workflows/test-released-install-sh.yaml)
-- Install.ps1: [![Release Test: install.ps1](https://github.com/mondoohq/installer/actions/workflows/test-released-install-ps1.yaml/badge.svg)](https://github.com/mondoohq/installer/actions/workflows/test-released-install-ps1.yaml)
-- macOS Pkg: [![Release Test: macOS Package](https://github.com/mondoohq/installer/actions/workflows/test-released-osx-pkg.yaml/badge.svg)](https://github.com/mondoohq/installer/actions/workflows/test-released-osx-pkg.yaml)
-- Arch Linux: [![Release Test: Arch Linux](https://github.com/mondoohq/installer/actions/workflows/test-released-archlinux.yaml/badge.svg)](https://github.com/mondoohq/installer/actions/workflows/test-released-archlinux.yaml)
+These run against `main`, so they reflect the scripts in this repository as they stand.
+
+- install.sh: [![Test install.sh](https://github.com/mondoohq/installer/actions/workflows/test_install_sh.yml/badge.svg)](https://github.com/mondoohq/installer/actions/workflows/test_install_sh.yml)
+- download.sh: [![Test download.sh](https://github.com/mondoohq/installer/actions/workflows/test_download_sh.yml/badge.svg)](https://github.com/mondoohq/installer/actions/workflows/test_download_sh.yml)
+- install.ps1 / download.ps1: [![Test PowerShell Installer](https://github.com/mondoohq/installer/actions/workflows/test_install_pwsh_installer.yml/badge.svg)](https://github.com/mondoohq/installer/actions/workflows/test_install_pwsh_installer.yml)
+- Release files: [![Releases.mondoo.com File Validation](https://github.com/mondoohq/installer/actions/workflows/test-releases.yaml/badge.svg)](https://github.com/mondoohq/installer/actions/workflows/test-releases.yaml)
+
+Docker images, Homebrew, Arch Linux and the macOS package are tested against every
+published release by [Test Release: ALL](https://github.com/mondoohq/installer/actions/workflows/test-released-all.yaml). Those are
+reusable workflows called by that run, so GitHub attributes each run to the caller and
+they have no badge of their own to show.
 
 ## Installation
 
