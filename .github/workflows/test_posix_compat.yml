@@ -5,14 +5,12 @@ on:
   pull_request:
     types: [opened, reopened, synchronize]
     paths:
-      - 'install.sh'
-      - 'download.sh'
-      # Globbed to match the loop below. Listing the scripts individually meant
-      # a newly added one would not trigger this job, and would then be checked
-      # only when some other listed file happened to change in the same PR --
-      # the same disagreement between trigger and check that put download.sh
-      # in this list without ever checking it.
-      - 'test/install_sh/*.sh'
+      # Every shell script, not just the POSIX ones. The job sorts out which
+      # are #!/bin/sh; the trigger only has to make sure it gets to run. A
+      # narrower filter is how a script ends up listed but never checked, or
+      # added and never noticed -- the trigger and the check disagreeing about
+      # what is in scope is the failure this job keeps rediscovering.
+      - '**.sh'
       - '.github/workflows/test_posix_compat.yml'
 
 permissions:
@@ -33,11 +31,25 @@ jobs:
       # surface if it happened to be reached on a runner whose /bin/sh is
       # bash, which on ubuntu-latest it is not. They pass all three checks
       # today, which is why this is the moment to wire them in.
+      #
+      # helper/mondoo.sh and packages/archlinux/mondoo/mondoo.sh joined them
+      # for the same reason, and the completeness check below exists so the
+      # next one does not have to be found by hand.
       - name: Check POSIX compliance
         run: |
           set -eu
           status=0
-          for f in install.sh download.sh test/install_sh/*.sh; do
+          checked=""
+
+          # Enumerated, not discovered by shebang. The shebang assertion in the
+          # loop is what catches one of these being switched to bash, and under
+          # discovery such a file would simply drop out of the set instead of
+          # failing -- the check would go quiet at precisely the moment it
+          # mattered.
+          scripts="install.sh download.sh helper/mondoo.sh
+                   packages/archlinux/mondoo/mondoo.sh test/install_sh/*.sh"
+
+          for f in $scripts; do
             # An unmatched glob expands to the literal pattern in POSIX sh, so
             # confirm there is a file here. Failing is deliberate: skipping
             # would let this job report success having checked nothing, which
@@ -47,7 +59,16 @@ jobs:
               exit 1
             }
 
+            # The glob walks the filesystem, so it also finds build
+            # artifacts -- `make` drops a copy of install.sh into
+            # test/install_sh/, which .gitignore covers and which carries the
+            # bashisms of whatever it was copied from. CI checks out clean and
+            # never sees one, but anyone running this job's steps locally does,
+            # and a failure there is noise rather than signal.
+            git ls-files --error-unmatch "$f" >/dev/null 2>&1 || continue
+
             echo "==> $f"
+            checked="$checked $f"
 
             head -1 "$f" | grep -q '^#!/bin/sh' || {
               echo "::error file=$f::shebang is not #!/bin/sh"
@@ -58,6 +79,27 @@ jobs:
             shellcheck -s sh -S warning "$f" || status=1
             dash -n "$f" || status=1
           done
+
+          # Every tracked #!/bin/sh script must appear in the list above.
+          #
+          # The list is explicit on purpose, and an explicit list drifts: that
+          # is how helper/mondoo.sh and the archlinux one sat unchecked while
+          # passing all three gates, and how download.sh was listed in the
+          # trigger without ever being linted. Discovery alone would fix the
+          # drift and break the shebang assertion; this keeps both, by making
+          # an incomplete list a failure that names the missing file instead of
+          # something anyone has to go looking for.
+          for f in $(git ls-files '*.sh'); do
+            head -1 "$f" | grep -q '^#!/bin/sh' || continue
+            case " $checked " in
+              *" $f "*) ;;
+              *)
+                echo "::error file=$f::$f is #!/bin/sh but is not in the POSIX check list -- add it to 'scripts' in this workflow"
+                status=1
+                ;;
+            esac
+          done
+
           exit "$status"
 
       - name: Test parameter passing
