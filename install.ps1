@@ -585,6 +585,29 @@ function Install-Mondoo {
         if (![string]::IsNullOrEmpty($Name)) {
           $login_params = $login_params + @('--name', $Name)
         }
+        # Resolve updates URL: -UpdatesUrl takes priority, then auto-detect.
+        # Mirrors the configure_token logic in install.sh.
+        # NOTE: On-premise builds replace "releases.mondoo.com" and
+        # "install.mondoo.com" throughout this file. The standard-host checks
+        # are deliberately split so the replacement does NOT match them. This
+        # lets the comparison fall through to set the URL for on-premise,
+        # testing the host that is actually used so a rewriter that misses
+        # install.mondoo.com can never leak the public host into a client
+        # config.
+        $ReleasesUrl = "https://releases.mondoo.com"
+        $InstallUrl = "https://install.mondoo.com"
+        $StandardReleasesHost = 'releases.mondoo' + '.com'
+        $StandardInstallHost = 'install.mondoo' + '.com'
+        If ([string]::IsNullOrEmpty($UpdatesUrl)) {
+          If ($InstallUrl -notlike "*$StandardInstallHost*") {
+            info " * Overriding updates URL"
+            $UpdatesUrl = $InstallUrl
+          } ElseIf ($ReleasesUrl -notlike "*$StandardReleasesHost*") {
+            info " * Overriding updates URL"
+            $UpdatesUrl = $ReleasesUrl
+          }
+        }
+
         If (![string]::IsNullOrEmpty($UpdatesUrl)) {
           $login_params = $login_params + @("--updates-url", "$UpdatesUrl")
         }
