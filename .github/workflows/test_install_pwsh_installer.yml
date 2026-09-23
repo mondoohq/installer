@@ -121,6 +121,48 @@ jobs:
           Write-Output "Unregister from mondoo"
           & 'C:\Program Files\Mondoo\cnspec.exe' logout --force 
 
+      # The scheduled task is what actually runs, and it is assembled as a string,
+      # so assert what Task Scheduler ended up holding rather than what the builder
+      # returned. The two can differ: a machine whose task was written by an older
+      # install.ps1 keeps that payload until something rewrites it.
+      #
+      # A double quote inside the payload is the failure worth guarding. It
+      # terminates the outer -Command string when the task is parsed, and fails
+      # silently -- the task still exists, still reports Ready, and updates nothing.
+      - name: Verify the registered updater task
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+
+          $task = Get-ScheduledTask -TaskName 'mondooUpdater' -TaskPath '\mondoo\' -ErrorAction Stop
+          $taskArgs = $task.Actions[0].Arguments
+          Write-Output "payload length: $($taskArgs.Length)"
+
+          if (-not $taskArgs.Contains('cnspec.exe')) {
+            throw 'the task never looks at cnspec.exe, so the self-update gate is missing'
+          }
+          if (-not $taskArgs.Contains('Test-Path')) {
+            throw 'the task does not check the binary is present before calling it'
+          }
+          if (-not $taskArgs.Contains('install.mondoo.com/ps1')) {
+            throw 'the task lost the installer fallback, so v13 and any failure would update nothing'
+          }
+
+          $quotes = ($taskArgs.ToCharArray() | Where-Object { $_ -eq '"' }).Count
+          if ($quotes -ne 2) {
+            throw "expected exactly 2 double quotes in the task argument, found $quotes"
+          }
+
+          $payload = $taskArgs.Substring($taskArgs.IndexOf('&{') + 2)
+          $payload = $payload.Substring(0, $payload.LastIndexOf('}"'))
+          $errs = $null
+          [System.Management.Automation.Language.Parser]::ParseInput($payload, [ref]$null, [ref]$errs) | Out-Null
+          if ($errs.Count -ne 0) {
+            throw "the registered payload does not parse as PowerShell: $($errs[0].Message)"
+          }
+
+          Write-Output 'registered updater task carries the gate, the fallback, and parses'
+
       - name: Test scan.ps1 PowerShell script
         shell: powershell
         env:

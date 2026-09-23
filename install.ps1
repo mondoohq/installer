@@ -752,8 +752,36 @@ function Get-MondooUpdaterTaskArgument {
     [string]   $Interval = ''
   )
 
-  # Start building the command string
+  # v14 can update itself: `cnspec update` stages the new release, verifies it,
+  # swaps the binary in place and corrects the version Windows reports. Fetching
+  # the MSI again does work the binary now does for itself, so try that first and
+  # keep the installer as the fallback.
+  #
+  # Gated on what the installed binary reports, not on what was current when the
+  # task was written. A machine installed on v13 and since upgraded starts
+  # self-updating on the next run, without anyone rewriting the task.
+  #
+  # Below 14 the fallback is not an optimisation, it is required: v13's `cnspec
+  # update` is a different command that re-runs install.ps1 with no arguments,
+  # dropping -Service, -Proxy, -Annotation, -Name and -IdDetector on the way.
+  #
+  # Path is concatenated rather than Join-Path'd because this function is
+  # unit-tested off-Windows, where Join-Path would produce a '/' separator.
+  $cnspecExe = $Path.TrimEnd('\') + '\cnspec.exe'
+
   $command = @(
+    '$cnspec = ' + "'$cnspecExe'" + ';'
+    '$updated = $false;'
+    'if (Test-Path $cnspec) {'
+    'try {'
+    '$v = & $cnspec version 2>$null | Select-Object -First 1;'
+    'if ($v -match ' + "'cnspec (\d+)\.'" + ' -and [int]$Matches[1] -ge 14) {'
+    '& $cnspec update 2>$null;'
+    'if ($LASTEXITCODE -eq 0) { $updated = $true }'
+    '}'
+    '} catch { $updated = $false }'
+    '}'
+    'if (-not $updated) {'
     '[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12;'
     '$wc = New-Object Net.Webclient;'
   )
@@ -793,6 +821,8 @@ function Get-MondooUpdaterTaskArgument {
   }
 
   $command += ($installCmd -join ' ')
+  # close `if (-not $updated) {`
+  $command += '}'
 
   # Wrap command in quotes for -Command argument
   "-NoProfile -WindowStyle Hidden -ExecutionPolicy RemoteSigned -Command `"&{ $($command -join ' ') }`""
