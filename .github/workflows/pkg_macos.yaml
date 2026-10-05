@@ -127,8 +127,10 @@ jobs:
           productsign --sign "${PRODUCTSIGN_ID}" "dist/${PKGNAME}-macos-universal-${VERSION}.pkg" "dist/${PKGNAME}_${VERSION}_darwin_universal.pkg"
       ########## Notarize Package. ##########
       # The job passes only on an Accepted status, read from notarytool's
-      # JSON output rather than inferred from its exit code. On any other
-      # outcome Apple's log for the submission is printed and the job fails.
+      # JSON output rather than inferred from its exit code. When notarytool
+      # produced no JSON at all (bad credentials, network failure), the job
+      # fails with its exit code; its own error is on stderr above. On any
+      # other status Apple's log for the submission is printed.
       - name: Notarize Package
         env:
           PKGNAME: ${{ inputs.name }}
@@ -141,8 +143,12 @@ jobs:
           RESULT="${RUNNER_TEMP}/notarytool-submit.json"
           xcrun notarytool submit "${PKG}" \
             --apple-id "${APPLE_ID}" --password "${APPLE_PASSWORD}" --team-id "${APPLE_TEAM_ID}" \
-            --wait --timeout 30m --output-format json > "${RESULT}" || true
+            --wait --timeout 30m --output-format json > "${RESULT}" && SUBMIT_EXIT=0 || SUBMIT_EXIT=$?
           cat "${RESULT}"
+          if ! jq -e . "${RESULT}" > /dev/null 2>&1; then
+            echo "::error::notarytool exited ${SUBMIT_EXIT} without a JSON result"
+            exit 1
+          fi
           STATUS=$(jq -r '.status // empty' "${RESULT}")
           ID=$(jq -r '.id // empty' "${RESULT}")
           if [ "${STATUS}" != "Accepted" ]; then
