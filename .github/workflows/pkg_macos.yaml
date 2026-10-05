@@ -125,19 +125,62 @@ jobs:
           PRODUCTSIGN_ID: ${{ secrets.APPLE_KEYS_PRODUCTSIGN_ID }}
         run: |
           productsign --sign "${PRODUCTSIGN_ID}" "dist/${PKGNAME}-macos-universal-${VERSION}.pkg" "dist/${PKGNAME}_${VERSION}_darwin_universal.pkg"
-      ########## Sign Package. ##########
+      ########## Notarize Package. ##########
+      # The job passes only on an Accepted status, read from notarytool's
+      # JSON output rather than inferred from its exit code. When notarytool
+      # produced no JSON at all (bad credentials, network failure), the job
+      # fails with its exit code; its own error is on stderr above. On any
+      # other status Apple's log for the submission is printed.
       - name: Notarize Package
-        uses: lando/notarize-action@b5c3ef16cf2fbcf2af26dc58c90255ec242abeed # v2.0.2
-        with:
-          product-path: dist/${{ inputs.name }}_${{ inputs.version }}_darwin_universal.pkg
-          appstore-connect-username: ${{ secrets.APPLE_ACCOUNT_USERNAME }}
-          appstore-connect-password: ${{ secrets.APPLE_ACCOUNT_PASSWORD }}
-          appstore-connect-team-id: ${{ secrets.APPLE_ACCOUNT_TEAM_ID }}
-          primary-bundle-id: 'com.${{ inputs.name }}.client'
-      - name: "Staple Release Build"
-        uses: mondoohq/xcode-staple@b6e11c09bc87790744f6e6d6f66f3be98f4dce48 # v1
-        with:
-          product-path: dist/${{ inputs.name }}_${{ inputs.version }}_darwin_universal.pkg
+        env:
+          PKGNAME: ${{ inputs.name }}
+          VERSION: ${{ inputs.version }}
+          APPLE_ID: ${{ secrets.APPLE_ACCOUNT_USERNAME }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_ACCOUNT_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_ACCOUNT_TEAM_ID }}
+        run: |
+          PKG="dist/${PKGNAME}_${VERSION}_darwin_universal.pkg"
+          RESULT="${RUNNER_TEMP}/notarytool-submit.json"
+          xcrun notarytool submit "${PKG}" \
+            --apple-id "${APPLE_ID}" --password "${APPLE_PASSWORD}" --team-id "${APPLE_TEAM_ID}" \
+            --wait --timeout 30m --output-format json > "${RESULT}" && SUBMIT_EXIT=0 || SUBMIT_EXIT=$?
+          cat "${RESULT}"
+          if [ ! -s "${RESULT}" ]; then
+            echo "::error::notarytool exited ${SUBMIT_EXIT} with no output"
+            exit 1
+          fi
+          if ! jq -e . "${RESULT}" > /dev/null 2>&1; then
+            echo "::error::notarytool exited ${SUBMIT_EXIT} without a JSON result"
+            exit 1
+          fi
+          STATUS=$(jq -r '.status // empty' "${RESULT}")
+          ID=$(jq -r '.id // empty' "${RESULT}")
+          {
+            echo "### Notarization: ${PKGNAME} ${VERSION}"
+            echo "| Status | Submission ID |"
+            echo "|---|---|"
+            echo "| ${STATUS:-none} | \`${ID:-none}\` |"
+          } >> "${GITHUB_STEP_SUMMARY}"
+          if [ "${STATUS}" != "Accepted" ]; then
+            echo "::error::Notarization status: ${STATUS:-none}"
+            if [ -n "${ID}" ]; then
+              xcrun notarytool log "${ID}" \
+                --apple-id "${APPLE_ID}" --password "${APPLE_PASSWORD}" --team-id "${APPLE_TEAM_ID}"
+            fi
+            exit 1
+          fi
+      # Stapling attaches the notarization ticket to the pkg, so Gatekeeper
+      # can verify it without reaching Apple, for example on an offline host.
+      # spctl then assesses the pkg the way Gatekeeper does on install.
+      - name: Staple Package
+        env:
+          PKGNAME: ${{ inputs.name }}
+          VERSION: ${{ inputs.version }}
+        run: |
+          PKG="dist/${PKGNAME}_${VERSION}_darwin_universal.pkg"
+          xcrun stapler staple "${PKG}"
+          xcrun stapler validate "${PKG}"
+          spctl --assess --type install -vv "${PKG}"
       ########## Save Package as Artifact. ##########
       - name: Archive Notarized Package
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
