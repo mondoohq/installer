@@ -155,6 +155,12 @@ jobs:
           fi
           STATUS=$(jq -r '.status // empty' "${RESULT}")
           ID=$(jq -r '.id // empty' "${RESULT}")
+          {
+            echo "### Notarization: ${PKGNAME} ${VERSION}"
+            echo "| Status | Submission ID |"
+            echo "|---|---|"
+            echo "| ${STATUS:-none} | \`${ID:-none}\` |"
+          } >> "${GITHUB_STEP_SUMMARY}"
           if [ "${STATUS}" != "Accepted" ]; then
             echo "::error::Notarization status: ${STATUS:-none}"
             if [ -n "${ID}" ]; then
