@@ -145,6 +145,10 @@ jobs:
             --apple-id "${APPLE_ID}" --password "${APPLE_PASSWORD}" --team-id "${APPLE_TEAM_ID}" \
             --wait --timeout 30m --output-format json > "${RESULT}" && SUBMIT_EXIT=0 || SUBMIT_EXIT=$?
           cat "${RESULT}"
+          if [ ! -s "${RESULT}" ]; then
+            echo "::error::notarytool exited ${SUBMIT_EXIT} with no output"
+            exit 1
+          fi
           if ! jq -e . "${RESULT}" > /dev/null 2>&1; then
             echo "::error::notarytool exited ${SUBMIT_EXIT} without a JSON result"
             exit 1
