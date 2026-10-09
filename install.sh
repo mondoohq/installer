@@ -1082,6 +1082,9 @@ ${_updater_proxy_plist}
 </dict>
 </plist>
 EOL
+    # CIS "Ensure access to all logfiles has been configured" requires 0640 or stricter
+    sudo_cmd touch /var/log/mondoo-updater.log
+    sudo_cmd chmod 0640 /var/log/mondoo-updater.log
     sleep 5
     sudo_cmd launchctl load /Library/LaunchDaemons/com.mondoo.autoupdater.plist
     sudo_cmd launchctl start /Library/LaunchDaemons/com.mondoo.autoupdater.plist
@@ -1091,11 +1094,16 @@ EOL
 ${_updater_proxy_env}
 date > /var/log/mondoo-updater.log
 curl -sSL https://install.mondoo.com/sh | bash -s -- -s enable >> /var/log/mondoo-updater.log
+# Re-assert last so the log ends every run compliant, whatever happened above
+chmod 0640 /var/log/mondoo-updater.log
 EOL
     # 700, not a+x: tee creates the file 0644 and the proxy URL written above
     # may carry credentials. run-parts executes cron.weekly as root, so nothing
     # needs to read it but root.
     sudo_cmd chmod 700 /etc/cron.weekly/mondoo-update
+    # CIS "Ensure access to all logfiles has been configured" requires 0640 or stricter
+    sudo_cmd touch /var/log/mondoo-updater.log
+    sudo_cmd chmod 0640 /var/log/mondoo-updater.log
   fi
 }
 
@@ -1112,6 +1120,15 @@ finalize_setup() {
   # Enable Mondoo auto updater
   if [ "$MONDOO_AUTOUPDATER" = "enable" ]; then
     autoupdater
+  fi
+
+  # Self-heal: older installs created /var/log/mondoo-updater.log with the
+  # default umask (0644), failing the CIS "Ensure access to all logfiles has
+  # been configured" control (0640 or stricter). The weekly auto-update
+  # re-runs this script with "-s enable" only, so repair the mode here —
+  # autoupdater() is never reached on that path.
+  if [ -f /var/log/mondoo-updater.log ]; then
+    sudo_cmd chmod 0640 /var/log/mondoo-updater.log
   fi
 
   # Display final message
