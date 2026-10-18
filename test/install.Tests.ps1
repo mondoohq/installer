@@ -192,3 +192,17 @@ if [ "`$1" = "update" ]; then exit $UpdateExit; fi
         $errs.Count | Should -Be 0 -Because 'an unbalanced brace in the gate would break the task silently'
     }
 }
+
+# The installers run against every Mondoo instance, including private ones, and cannot
+# tell which instance they registered to, so they must not name a console host
+# (mondoohq/server#22317).
+Describe 'PowerShell installer output' {
+
+    It '<Script> names no Mondoo console host' -ForEach @(
+        @{ Script = 'install.ps1' }
+        @{ Script = 'powershell/Mondoo.Installer/Mondoo.Installer.psm1' }
+    ) {
+        $src = Get-Content -Raw -LiteralPath (Join-Path $PSScriptRoot '..' $Script)
+        $src | Should -Not -Match 'console\.mondoo\.com'
+    }
+}
