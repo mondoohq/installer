@@ -415,7 +415,7 @@ function Install-Mondoo {
 
       Set-Service -Name mondoo -Status Running -StartupType Automatic
 
-    Scan your system now and view your results at https://console.mondoo.com:
+    Scan your system now:
 
       cnspec scan
     "
