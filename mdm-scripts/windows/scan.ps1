@@ -220,7 +220,9 @@ If (-not (Test-Path -Path "$($ConfigFile)")) {
 
 try {
   info " * Execute $Product Client"
-  & $program @("scan", "--config", "$($configFile)")
+  # Name the target explicitly. A bare `scan` relies on cnspec picking `local`
+  # as the default, and if it does not it exits 0 without scanning.
+  & $program @("scan", "local", "--config", "$($configFile)")
 }
 catch {
   fail "Cnspec scan failed"
