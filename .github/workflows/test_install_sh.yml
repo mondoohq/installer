@@ -51,6 +51,9 @@ jobs:
             target: amazonlinux2
           - dockerfile: amazonlinux2.Dockerfile
             target: amazonlinux2022
+          # azurelinux.Dockerfile (tdnf, no /etc/redhat-release)
+          - dockerfile: azurelinux.Dockerfile
+            target: azurelinux3
           # debian.Dockerfile
           - dockerfile: debian.Dockerfile
             target: debian9
@@ -61,6 +64,12 @@ jobs:
           # debian.s390x.Dockerfile (emulated IBM Z)
           - dockerfile: debian.s390x.Dockerfile
             target: debian12_s390x
+          # mageia.Dockerfile (dnf, no yum)
+          - dockerfile: mageia.Dockerfile
+            target: mageia9
+          # opencloudos.Dockerfile (no /etc/redhat-release)
+          - dockerfile: opencloudos.Dockerfile
+            target: opencloudos9
           # opensuse_leap.Dockerfile
           - dockerfile: opensuse_leap.Dockerfile
             target: opensuse_leap154
