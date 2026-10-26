@@ -56,22 +56,34 @@ pkg_version() {
 # even when it was wrong, which is the one thing this value must not do. The
 # images install jq for exactly this reason. The pipeline stays as a fallback so
 # the script still runs standalone on a host without it.
-PREVIEW_JSON="$(curl -fsSL https://releases.mondoo.com/mondoo/preview.json)"
-if command -v jq >/dev/null 2>&1; then
-  EXPECTED="$(printf '%s' "${PREVIEW_JSON}" | jq -r '.version')"
-else
-  EXPECTED="$(printf '%s' "${PREVIEW_JSON}" \
-    | grep -o '"version"[[:space:]]*:[[:space:]]*"[^"]*"' \
-    | head -n1 \
-    | sed 's/.*"\([^"]*\)"$/\1/')"
-fi
+read_version() {
+  _doc="$(curl -fsSL "$1")"
+  if command -v jq >/dev/null 2>&1; then
+    printf '%s' "${_doc}" | jq -r '.version'
+  else
+    printf '%s' "${_doc}" \
+      | grep -o '"version"[[:space:]]*:[[:space:]]*"[^"]*"' \
+      | head -n1 \
+      | sed 's/.*"\([^"]*\)"$/\1/'
+  fi
+}
+
+EXPECTED="$(read_version https://releases.mondoo.com/mondoo/preview.json)"
 
 [ -n "${EXPECTED}" ] || { echo "FAIL: could not read the preview version" >&2; exit 1; }
 
-case "${EXPECTED}" in
-  *-*) : ;;  # SemVer 9: a pre-release carries a segment after '-'
-  *) fail "preview.json points at ${EXPECTED}, which is not a pre-release" ;;
-esac
+# preview.json points at the highest version overall (ADR 0002), so once a GA
+# lands over its release candidate preview and stable name the same release.
+# Only a preview that differs from stable has to be a pre-release.
+LATEST="$(read_version https://releases.mondoo.com/mondoo/latest.json)"
+[ -n "${LATEST}" ] || { echo "FAIL: could not read the stable version" >&2; exit 1; }
+
+if [ "${EXPECTED}" != "${LATEST}" ]; then
+  case "${EXPECTED}" in
+    *-*) : ;;  # SemVer 9: a pre-release carries a segment after '-'
+    *) fail "preview.json points at ${EXPECTED}, which is neither stable (${LATEST}) nor a pre-release" ;;
+  esac
+fi
 
 # 1. Every package in the chain is installed.
 #
