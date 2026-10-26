@@ -220,7 +220,7 @@ fi
 # Detect operating system
 # -----------------------
 # Store detected value in $OS
-KNOWN_DISTRIBUTION="(RedHat|Red Hat|CentOS|Debian|Ubuntu|openSUSE|Amazon|SUSE|Arch Linux|AlmaLinux|Rocky Linux|EulerOS|openEuler)"
+KNOWN_DISTRIBUTION="(RedHat|Red Hat|CentOS|Debian|Ubuntu|openKylin|openSUSE|Amazon|SUSE|Arch Linux|AlmaLinux|Rocky Linux|EulerOS|openEuler|OpenCloudOS|Azure Linux)"
 DISTRIBUTION="$(
   lsb_release -d 2>/dev/null | grep -Eo "$KNOWN_DISTRIBUTION" ||
     grep -m1 -Eo "$KNOWN_DISTRIBUTION" /etc/os-release 2>/dev/null ||
@@ -230,7 +230,8 @@ DISTRIBUTION="$(
 
 if [ "$DISTRIBUTION" = "Darwin" ]; then
   OS="macOS"
-elif [ -f /etc/debian_version ] || [ "$DISTRIBUTION" = "Debian" ] || [ "$DISTRIBUTION" = "Ubuntu" ]; then
+# openKylin is Debian-based with apt but ships no /etc/debian_version
+elif [ -f /etc/debian_version ] || [ "$DISTRIBUTION" = "Debian" ] || [ "$DISTRIBUTION" = "Ubuntu" ] || [ "$DISTRIBUTION" = "openKylin" ]; then
   OS="Debian"
 elif [ "$AWS_EXECUTION_ENV" = "CloudShell" ] || [ "$POWERSHELL_DISTRIBUTION_CHANNEL" = "CloudShell" ]; then
   OS="CloudShell"
@@ -238,6 +239,9 @@ elif [ -f /etc/redhat-release ] || [ "$DISTRIBUTION" = "RedHat" ] || [ "$DISTRIB
   OS="RedHat"
 elif [ -f /etc/photon-release ] || [ "$DISTRIBUTION" = "Photon" ]; then
   # NOTE: it requires tdnf >= 2.1.2-3.ph3, before remote http gpg keys were not supported
+  OS="RedHat"
+# OpenCloudOS and Azure Linux are rpm based but ship no /etc/redhat-release
+elif [ -f /etc/opencloudos-release ] || [ -f /etc/azurelinux-release ] || [ "$DISTRIBUTION" = "OpenCloudOS" ] || [ "$DISTRIBUTION" = "Azure Linux" ]; then
   OS="RedHat"
 # openSUSE and SUSE use /etc/SuSE-release
 elif [ -f /etc/SuSE-release ] || [ "$DISTRIBUTION" = "SUSE" ] || [ "$DISTRIBUTION" = "openSUSE" ]; then
@@ -580,8 +584,18 @@ configure_archlinux_installer() {
 # --------------
 
 configure_rhel_installer() {
-  if [ -x "$(command -v yum)" ]; then
-    MONDOO_INSTALLER="yum"
+  # yum where it exists. Mageia ships only dnf and Azure Linux only tdnf; both
+  # read /etc/yum.repos.d and take the same install and update arguments.
+  RPM_TOOL=""
+  for _tool in yum dnf tdnf; do
+    if [ -x "$(command -v "$_tool")" ]; then
+      RPM_TOOL="$_tool"
+      break
+    fi
+  done
+
+  if [ -n "$RPM_TOOL" ]; then
+    MONDOO_INSTALLER="$RPM_TOOL"
     mondoo_install() {
       if [ "${MONDOO_CHANNEL}" = "preview" ]; then
         # The signing key is the same one the repository would have configured;
@@ -592,7 +606,7 @@ configure_rhel_installer() {
         fetch_channel_packages rpm
         purple_bold "\n* Installing ${MONDOO_PRODUCT_NAME} ${MONDOO_LATEST_VERSION}"
         # shellcheck disable=SC2086 # the package list is intentionally split
-        sudo_cmd yum install -y ${MONDOO_CHANNEL_PACKAGES}
+        sudo_cmd "$RPM_TOOL" install -y ${MONDOO_CHANNEL_PACKAGES}
         cleanup_channel_packages
         return
       fi
@@ -609,17 +623,17 @@ metadata_expire=21600
 EOL
 
       purple_bold "\n* Installing ${MONDOO_PRODUCT_NAME}"
-      sudo_cmd yum install -y ${MONDOO_PKG_NAME}
+      sudo_cmd "$RPM_TOOL" install -y ${MONDOO_PKG_NAME}
     }
 
     mondoo_update() {
-      sudo_cmd yum update -y ${MONDOO_PKG_NAME}
+      sudo_cmd "$RPM_TOOL" update -y ${MONDOO_PKG_NAME}
     }
 
   else
     MONDOO_INSTALLER="yum"
     mondoo_install() {
-      red "Mondoo uses YUM to install on Red Hat Linux, but we could not find the 'yum' command in your path (\$PATH)."
+      red "Mondoo uses YUM to install on Red Hat Linux, but we could not find the 'yum', 'dnf' or 'tdnf' command in your path (\$PATH)."
       fail
     }
     mondoo_update() { mondoo_install "$@"; }
@@ -1207,7 +1221,7 @@ fi
 # default instead of silently ignoring the setting. Add an installer here when
 # it learns to resolve a version from the channel pointer documents, i.e. when
 # it starts calling detect_latest_version.
-CHANNEL_AWARE_INSTALLERS="pkg tar apt yum zypper"
+CHANNEL_AWARE_INSTALLERS="pkg tar apt yum dnf tdnf zypper"
 
 warn_if_channel_unsupported() {
   [ "${MONDOO_CHANNEL}" = "preview" ] || return 0
