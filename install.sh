@@ -220,7 +220,7 @@ fi
 # Detect operating system
 # -----------------------
 # Store detected value in $OS
-KNOWN_DISTRIBUTION="(RedHat|Red Hat|CentOS|Debian|Ubuntu|openKylin|openSUSE|Amazon|SUSE|Arch Linux|AlmaLinux|Rocky Linux|EulerOS|openEuler)"
+KNOWN_DISTRIBUTION="(RedHat|Red Hat|CentOS|Debian|Ubuntu|openKylin|openSUSE|Amazon|SUSE|Arch Linux|AlmaLinux|Rocky Linux|EulerOS|openEuler|OpenCloudOS|Azure Linux)"
 DISTRIBUTION="$(
   lsb_release -d 2>/dev/null | grep -Eo "$KNOWN_DISTRIBUTION" ||
     grep -m1 -Eo "$KNOWN_DISTRIBUTION" /etc/os-release 2>/dev/null ||
@@ -241,7 +241,7 @@ elif [ -f /etc/photon-release ] || [ "$DISTRIBUTION" = "Photon" ]; then
   # NOTE: it requires tdnf >= 2.1.2-3.ph3, before remote http gpg keys were not supported
   OS="RedHat"
 # OpenCloudOS and Azure Linux are rpm based but ship no /etc/redhat-release
-elif [ -f /etc/opencloudos-release ] || [ -f /etc/azurelinux-release ]; then
+elif [ -f /etc/opencloudos-release ] || [ -f /etc/azurelinux-release ] || [ "$DISTRIBUTION" = "OpenCloudOS" ] || [ "$DISTRIBUTION" = "Azure Linux" ]; then
   OS="RedHat"
 # openSUSE and SUSE use /etc/SuSE-release
 elif [ -f /etc/SuSE-release ] || [ "$DISTRIBUTION" = "SUSE" ] || [ "$DISTRIBUTION" = "openSUSE" ]; then
