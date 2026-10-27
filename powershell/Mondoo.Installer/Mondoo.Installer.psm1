@@ -179,7 +179,11 @@ function Install-Mondoo {
       $(New-ScheduledTaskTrigger -Daily -DaysInterval $Interval -At $Time)
     )
     $principal = New-ScheduledTaskPrincipal -GroupId "NT AUTHORITY\SYSTEM" -RunLevel Highest
-    $settings = New-ScheduledTaskSettingsSet -Compatibility Win8
+    # Laptops are often off, asleep or unplugged at $Time. -StartWhenAvailable
+    # runs a missed start once the machine is back, and by default Task
+    # Scheduler neither starts a task on battery nor lets it keep running when
+    # the machine is unplugged.
+    $settings = New-ScheduledTaskSettingsSet -Compatibility Win8 -StartWhenAvailable -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries
     Register-ScheduledTask -Action $action -Settings $settings -Trigger $trigger -TaskName $taskname -Description "$Product Updater Task" -TaskPath $taskpath -Principal $principal
 
     If (Get-ScheduledTask -TaskName $taskname -EA 0)
@@ -248,12 +252,36 @@ function Install-Mondoo {
     $filetype = 'zip'
   }
   # get the installed mondoo version
-  $Apps = @()
-  $Apps += Get-ItemProperty "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*" # 32 Bit
-  $Apps += Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*" # 64 Bit
-  $installed_version = $Apps | where-object Publisher -eq "Mondoo, Inc." | Select-Object -Last 1
-  if ($installed_version){
-    $installed_version | Add-Member -NotePropertyName version -NotePropertyValue $installed_version.DisplayVersion -Force
+  # Read the Uninstall keys through the .NET registry API, not the HKLM: drive.
+  # The drive treats '/' in a key name as a path separator, so an entry like
+  # "/n software SFTP Server 2022" cannot be resolved and, with
+  # $erroractionpreference = 'stop', aborts the install. Opening each registry
+  # view explicitly also finds the 64-bit entry from a 32-bit PowerShell host.
+  # The 64-bit view goes first because the MSI registers there; the first
+  # Mondoo entry found wins.
+  $installed_version = $null
+  foreach ($view in 'Registry64', 'Registry32') {
+    $hklm = [Microsoft.Win32.RegistryKey]::OpenBaseKey('LocalMachine', $view)
+    $uninstall = $null
+    try {
+      $uninstall = $hklm.OpenSubKey('SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall')
+      if ($null -eq $uninstall) { continue }
+      foreach ($keyName in $uninstall.GetSubKeyNames()) {
+        $app = $uninstall.OpenSubKey($keyName)
+        # $null when the entry was removed after GetSubKeyNames listed it
+        if ($null -eq $app) { continue }
+        try {
+          if ($app.GetValue('Publisher') -eq 'Mondoo, Inc.') {
+            $installed_version = [pscustomobject]@{ version = $app.GetValue('DisplayVersion') }
+            break
+          }
+        } finally { $app.Dispose() }
+      }
+    } finally {
+      if ($uninstall) { $uninstall.Dispose() }
+      $hklm.Dispose()
+    }
+    if ($installed_version) { break }
   }
 
   $arch = 'amd64'
