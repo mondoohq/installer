@@ -257,18 +257,31 @@ function Install-Mondoo {
   # "/n software SFTP Server 2022" cannot be resolved and, with
   # $erroractionpreference = 'stop', aborts the install. Opening each registry
   # view explicitly also finds the 64-bit entry from a 32-bit PowerShell host.
+  # The 64-bit view goes first because the MSI registers there; the first
+  # Mondoo entry found wins.
   $installed_version = $null
-  foreach ($view in 'Registry32', 'Registry64') {
+  foreach ($view in 'Registry64', 'Registry32') {
     $hklm = [Microsoft.Win32.RegistryKey]::OpenBaseKey('LocalMachine', $view)
-    $uninstall = $hklm.OpenSubKey('SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall')
-    if ($null -eq $uninstall) { continue }
-    foreach ($keyName in $uninstall.GetSubKeyNames()) {
-      $app = $uninstall.OpenSubKey($keyName)
-      # $null when the entry was removed after GetSubKeyNames listed it
-      if ($app -and $app.GetValue('Publisher') -eq 'Mondoo, Inc.') {
-        $installed_version = [pscustomobject]@{ version = $app.GetValue('DisplayVersion') }
+    $uninstall = $null
+    try {
+      $uninstall = $hklm.OpenSubKey('SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall')
+      if ($null -eq $uninstall) { continue }
+      foreach ($keyName in $uninstall.GetSubKeyNames()) {
+        $app = $uninstall.OpenSubKey($keyName)
+        # $null when the entry was removed after GetSubKeyNames listed it
+        if ($null -eq $app) { continue }
+        try {
+          if ($app.GetValue('Publisher') -eq 'Mondoo, Inc.') {
+            $installed_version = [pscustomobject]@{ version = $app.GetValue('DisplayVersion') }
+            break
+          }
+        } finally { $app.Dispose() }
       }
+    } finally {
+      if ($uninstall) { $uninstall.Dispose() }
+      $hklm.Dispose()
     }
+    if ($installed_version) { break }
   }
 
   $arch = 'amd64'
