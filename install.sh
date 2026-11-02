@@ -649,17 +649,21 @@ configure_debian_installer() {
     MONDOO_INSTALLER="apt"
 
     apt_update() {
-        purple_bold "\n* Configuring APT package sources for Mondoo at /etc/apt/sources.list.d/mondoo.list"
         APT_VERSION=$(dpkg-query --show --showformat '${Version}' apt)
-        if dpkg --compare-versions "${APT_VERSION}" le 1.0.2;
+        # apt 1.1 added both the signed-by option and deb822 .sources files
+        if dpkg --compare-versions "${APT_VERSION}" lt 1.1;
         then
+          purple_bold "\n* Configuring APT package sources for Mondoo at /etc/apt/sources.list.d/mondoo.list"
           curl -A "${UserAgent}" --retry 3 --retry-delay 10 -sSL https://releases.mondoo.com/debian/pubkey.gpg | sudo_cmd apt-key add -
           echo "deb https://releases.mondoo.com/debian/ stable main" | sudo_cmd tee /etc/apt/sources.list.d/mondoo.list
         else
+          purple_bold "\n* Configuring APT package sources for Mondoo at /etc/apt/sources.list.d/mondoo.sources"
           KEYRING_PATH="/usr/share/keyrings/mondoo-archive-keyring.gpg"
           curl -A "${UserAgent}" --retry 3 --retry-delay 10 -sSL https://releases.mondoo.com/debian/pubkey.gpg | sudo_cmd gpg --dearmor --yes --output "${KEYRING_PATH}"
           sudo_cmd chmod 0644 "${KEYRING_PATH}"
-          echo "deb [signed-by=${KEYRING_PATH}] https://releases.mondoo.com/debian/ stable main" | sudo_cmd tee /etc/apt/sources.list.d/mondoo.list
+          printf 'Types: deb\nURIs: https://releases.mondoo.com/debian/\nSuites: stable\nComponents: main\nSigned-By: %s\n' "${KEYRING_PATH}" | sudo_cmd tee /etc/apt/sources.list.d/mondoo.sources > /dev/null
+          # Remove the one-line source written by earlier versions of this script
+          sudo_cmd rm -f /etc/apt/sources.list.d/mondoo.list
         fi
     }
 
