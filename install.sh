@@ -661,7 +661,7 @@ configure_debian_installer() {
           KEYRING_PATH="/usr/share/keyrings/mondoo-archive-keyring.gpg"
           curl -A "${UserAgent}" --retry 3 --retry-delay 10 -sSL https://releases.mondoo.com/debian/pubkey.gpg | sudo_cmd gpg --dearmor --yes --output "${KEYRING_PATH}"
           sudo_cmd chmod 0644 "${KEYRING_PATH}"
-          printf 'Types: deb\nURIs: https://releases.mondoo.com/debian/\nSuites: stable\nComponents: main\nSigned-By: %s\n' "${KEYRING_PATH}" | sudo_cmd tee /etc/apt/sources.list.d/mondoo.sources
+          printf 'Types: deb\nURIs: https://releases.mondoo.com/debian/\nSuites: stable\nComponents: main\nSigned-By: %s\n' "${KEYRING_PATH}" | sudo_cmd tee /etc/apt/sources.list.d/mondoo.sources > /dev/null
           # Remove the one-line source written by earlier versions of this script
           sudo_cmd rm -f /etc/apt/sources.list.d/mondoo.list
         fi
