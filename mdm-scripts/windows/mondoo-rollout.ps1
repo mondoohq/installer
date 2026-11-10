@@ -45,9 +45,10 @@ else {
     Exit 1
 }
 
-$cmdOutput = cnspec status 2>&1
+# cnspec status exits 0 only when the client is registered and authenticates
+cnspec status 2>&1 | Write-Output
 
-if ($cmdOutput -like "*client is registered*") {
+if ($LASTEXITCODE -eq 0) {
     Write-Output 'Mondoo Installation successful'
     Exit 0
 }
