@@ -15,12 +15,14 @@ If ($RegistrationToken -eq 'tokenHere') {
 }
 
 $software = "mondoo";
-$installed = (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where { $_.DisplayName -eq $software }) -ne $null
-
-If ($installed) {
-    Write-Output "remove '$software'";
-    Get-Package *mondoo* | uninstall-package;
-}
+# Uninstall via msiexec, not Get-Package: PackageManagement is missing in some MDM PowerShell hosts.
+# MSI uninstall keys are named after the ProductCode.
+Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* -ErrorAction SilentlyContinue |
+    Where-Object { $_.Publisher -eq 'Mondoo, Inc.' } |
+    ForEach-Object {
+        Write-Output "remove '$software'";
+        Start-Process msiexec.exe -Wait -ArgumentList '/x', $_.PSChildName, '/qn', '/norestart';
+    }
 
 if (Test-Path 'C:\ProgramData\Mondoo\mondoo.yml') {
     Remove-Item 'C:\ProgramData\Mondoo\mondoo.yml'
