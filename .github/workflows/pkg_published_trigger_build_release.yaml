@@ -13,7 +13,7 @@ on:
     # The event type was never doing real work anyway: every job below gates on
     # `needs.parse-inputs.outputs.channel`, derived from the version itself.
     # Keying off the type as well was a second, less reliable copy of a decision
-    # already made. See minstaller ADR 0003.
+    # already made.
     types: [published]
   workflow_dispatch:
     inputs:

@@ -18,42 +18,16 @@ Trigger the GoReleaser GitHub Actions workflow for the repository. This builds a
 
 The unstable/RC pipeline uses `.github/.goreleaser-unstable.yml`.
 
-## 3. Copy Artifacts to GCS Buckets
+## 3. Copy Artifacts to the Bucket
 
-After GoReleaser completes, copy the release artifacts to the GCS buckets using the `github_copy.yaml` workflow.
+This step is automatic. Once cnspec dispatches to this repository, the installer GitHub release for the version is created, and publishing it triggers `PKG: Package, Release, Reindex` in this repository (see [ADR 0002](adr/0002-the-release-pipeline.md), step 7). Its `reindex` job copies the mql and cnspec binaries from their GitHub releases into the bucket and regenerates the indexes for every channel, pre-releases included.
 
-Run the workflow for each bucket you want to populate. Replace `<repository>`, `<version>`, and `<bucket>` with the appropriate values.
-
-### For mql
+To redo it, dispatch that workflow with `version` (for example `v13.0.0-rc4`) and `bucket`:
 
 ```bash
-# Test bucket (releases.mondoo.love)
-gh workflow run github_copy.yaml --ref main \
-  -f repository=mql \
+gh workflow run pkg_published_trigger_build_release.yaml --ref main \
   -f version=v13.0.0-rc4 \
   -f bucket=releases-com-test
-
-# Production bucket (releases.mondoo.io)
-gh workflow run github_copy.yaml --ref main \
-  -f repository=mql \
-  -f version=v13.0.0-rc4 \
-  -f bucket=releases-us.mondoo.io
 ```
 
-### For cnspec
-
-```bash
-# Test bucket (releases.mondoo.love)
-gh workflow run github_copy.yaml --ref main \
-  -f repository=cnspec \
-  -f version=v13.0.0-rc4 \
-  -f bucket=releases-com-test
-
-# Production bucket (releases.mondoo.io)
-gh workflow run github_copy.yaml --ref main \
-  -f repository=cnspec \
-  -f version=v13.0.0-rc4 \
-  -f bucket=releases-us.mondoo.io
-```
-
-> **Note:** The `github_copy.yaml` workflow lives in the installer repository (`go.mondoo.com/installer`). The `repository` field must match the product name used in the release URL (`mql` or `cnspec`).
+The workflow also rebuilds the Linux, macOS and MSI packages for the version. See [Recovering from a Failed Release](failed-release-recovery.md) before dispatching it for a version that is already published.
