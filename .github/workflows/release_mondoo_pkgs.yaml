@@ -106,7 +106,11 @@ jobs:
           passphrase_file="$(mktemp)"
           trap 'rm -f "$passphrase_file"' EXIT
           printf '%s' "$GPG_PASSPHRASE" > "$passphrase_file"
+          # rpm 6 builds v6 packages and signs only the v6 OpenPGP tag, which
+          # rpm 4.x (EL8/EL9, Amazon Linux 2) ignores. --rpmv4 adds the legacy
+          # header signature alongside it so older clients can verify.
           rpmsign \
+              --rpmv4 \
               --define='%_gpg_name Mondoo Inc' \
               --define="_gpg_sign_cmd_extra_args --batch --pinentry-mode loopback --passphrase-file $passphrase_file" \
               --addsign ./packages/*rpm
