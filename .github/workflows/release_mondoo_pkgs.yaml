@@ -103,10 +103,15 @@ jobs:
       - name: Sign RPMs
         run: |
           cd helper/
+          passphrase_file="$(mktemp)"
+          trap 'rm -f "$passphrase_file"' EXIT
+          printf '%s' "$GPG_PASSPHRASE" > "$passphrase_file"
           rpmsign \
               --define='%_gpg_name Mondoo Inc' \
-              --define='_gpg_sign_cmd_extra_args --batch --pinentry-mode loopback --passphrase "${{ secrets.GPG_PASSPHRASE }}"' \
+              --define="_gpg_sign_cmd_extra_args --batch --pinentry-mode loopback --passphrase-file $passphrase_file" \
               --addsign ./packages/*rpm
+        env:
+          GPG_PASSPHRASE: "${{ secrets.GPG_PASSPHRASE }}"
 
       - name: Generate Checksums
         run: |
