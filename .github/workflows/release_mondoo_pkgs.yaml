@@ -32,7 +32,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "Version that should be released"
+        description: "Version without leading v (e.g. 14.11.0)"
         required: true
         default: "1.2.3"
         type: "string"
