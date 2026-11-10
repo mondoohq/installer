@@ -105,7 +105,7 @@ jobs:
           cd helper/
           rpmsign \
               --define='%_gpg_name Mondoo Inc' \
-              --define='%__gpg_sign_cmd %{__gpg} gpg --batch --no-armor --pinentry-mode loopback --passphrase "${{ secrets.GPG_PASSPHRASE }}" %{?_gpg_digest_algo:--digest-algo %{_gpg_digest_algo}} --no-secmem-warning -u "%{_gpg_name}" -sbo %{__signature_filename} %{__plaintext_filename}' \
+              --define='_gpg_sign_cmd_extra_args --batch --pinentry-mode loopback --passphrase "${{ secrets.GPG_PASSPHRASE }}"' \
               --addsign ./packages/*rpm
 
       - name: Generate Checksums
