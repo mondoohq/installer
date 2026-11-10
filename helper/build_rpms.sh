@@ -68,7 +68,13 @@ EOF
 
 # Build
 echo "Building RPM..."
-rpmbuild --define "_topdir $(pwd)" -v -bb ./SPECS/mondoo.spec
+# Pin the package format and payload compression: rpm 6 defaults to v6
+# packages with a zstd payload, which rpm 4.11 (Amazon Linux 2, EL7) cannot
+# install ("rpmlib(PayloadIsZstd) is needed"). rpm 4.x ignores _rpmformat.
+rpmbuild --define "_topdir $(pwd)" \
+  --define "_rpmformat 4" \
+  --define "_binary_payload w9.gzdio" \
+  -v -bb ./SPECS/mondoo.spec
 
 # Save
 echo "Creating NOARCH RPM"
