@@ -30,4 +30,6 @@ gh workflow run pkg_published_trigger_build_release.yaml --ref main \
   -f bucket=releases-com-test
 ```
 
+Use `releases-com-test` to try it, and `releases-us.mondoo.io` for production.
+
 The workflow also rebuilds the Linux, macOS and MSI packages for the version. See [Recovering from a Failed Release](failed-release-recovery.md) before dispatching it for a version that is already published.
