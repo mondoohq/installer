@@ -26,7 +26,7 @@ The folder of the partial version can stay in the bucket. Channel documents poin
 
 ## If you must keep the same version
 
-Dispatch `PKG: Package, Release, Reindex` from `main`, with the same `version`. This uses the fixed workflow. Keep these constraints in mind:
+Dispatch `PKG: Package, Release, Reindex` from `main`, with the same version including the leading `v` (for example `v14.11.0`). This uses the fixed workflow. Keep these constraints in mind:
 
 - It rebuilds and re-signs macOS and MSI, and overwrites the files in the bucket with a plain `gsutil cp`. There is no "already published" guard. Expect new hashes, because signing and notarization add timestamps. This is expected, not measured. The Linux packages are rebuilt and overwritten the same way.
 - Never do this once the Homebrew cask has been updated for the version. The cask pins the SHA-256 of the file at its exact `releases.mondoo.com` URL, taken from `latest.json`, so replacing the pkg breaks `brew install` with a checksum mismatch.
@@ -58,4 +58,4 @@ Use this when only the Linux build failed. It avoids replacing the macOS and MSI
 
 ## `skip-publish` is not a complete no-op
 
-`skip-publish` blocks the uploads. On the full workflow, the CDN invalidation and the Slack notifications still run, and `minstaller-dev` is restarted.
+`skip-publish` blocks the uploads to the bucket and the GitHub release, and the reindex. On the full workflow, the CDN invalidation and the Slack notifications still run, and `minstaller-dev` is restarted.
