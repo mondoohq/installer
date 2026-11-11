@@ -202,9 +202,9 @@ jobs:
       APPLE_KEYS_PASSWORD: ${{ secrets.APPLE_KEYS_PASSWORD }}
       APPLE_KEYS_CODESIGN_ID: ${{ secrets.APPLE_KEYS_CODESIGN_ID }}
       APPLE_KEYS_PRODUCTSIGN_ID: ${{ secrets.APPLE_KEYS_PRODUCTSIGN_ID }}
-      APPLE_ACCOUNT_USERNAME: ${{ secrets.APPLE_ACCOUNT_USERNAME }}
-      APPLE_ACCOUNT_PASSWORD: ${{ secrets.APPLE_ACCOUNT_PASSWORD }}
-      APPLE_ACCOUNT_TEAM_ID: ${{ secrets.APPLE_ACCOUNT_TEAM_ID }}
+      APPLE_NOTARY_KEY: ${{ secrets.APPLE_NOTARY_KEY }}
+      APPLE_NOTARY_KEY_ID: ${{ secrets.APPLE_NOTARY_KEY_ID }}
+      APPLE_NOTARY_ISSUER: ${{ secrets.APPLE_NOTARY_ISSUER }}
       GCP_CREDENTIALS: ${{ secrets.GCP_CREDENTIALS }}
     with:
       version: ${{ needs.parse-inputs.outputs.version }}
