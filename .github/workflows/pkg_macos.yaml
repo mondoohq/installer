@@ -136,7 +136,8 @@ jobs:
       # one quill uses in mql, cnspec, mhunt and xgrep, rather than a shared
       # Apple ID and app-specific password. APPLE_NOTARY_KEY holds the .p8
       # base64-encoded, and notarytool only reads the key from a file, so it is
-      # decoded into RUNNER_TEMP for this step and removed when it exits.
+      # decoded into RUNNER_TEMP for this step, readable only by the runner
+      # user, and removed when it exits.
       - name: Notarize Package
         env:
           PKGNAME: ${{ inputs.name }}
@@ -149,7 +150,7 @@ jobs:
           RESULT="${RUNNER_TEMP}/notarytool-submit.json"
           KEY_FILE="${RUNNER_TEMP}/notary-key.p8"
           trap 'rm -f "${KEY_FILE}"' EXIT
-          printf '%s' "${NOTARY_KEY}" | base64 --decode > "${KEY_FILE}"
+          (umask 077 && printf '%s' "${NOTARY_KEY}" | base64 --decode > "${KEY_FILE}")
           AUTH=(--key "${KEY_FILE}" --key-id "${NOTARY_KEY_ID}" --issuer "${NOTARY_ISSUER}")
           xcrun notarytool submit "${PKG}" "${AUTH[@]}" \
             --wait --timeout 30m --output-format json > "${RESULT}" && SUBMIT_EXIT=0 || SUBMIT_EXIT=$?
