@@ -55,9 +55,10 @@ NAME=''
 UPDATES_URL=''
 PROVIDERS_URL=''  # deprecated, use -U (UPDATES_URL)
 API_PROXY=''
+API_ENDPOINT=''
 
 print_usage() {
-  echo "usage: [-i] [-s] [-t token] [-u] [-U url] [-x proxy] [-c channel]" >&2
+  echo "usage: [-i] [-s] [-t token] [-u] [-U url] [-x proxy] [-e api_endpoint] [-c channel]" >&2
   echo "  Options: " >&2
   echo "    -i <installer>:     Select a specific installer, options are:" >&2
   echo "                        macOS: brew, pkg" >&2
@@ -85,9 +86,12 @@ print_usage() {
   echo "                        downloads, package installation, cnspec login (--api-proxy)" >&2
   echo "                        and the auto updater. Auto-detected from https_proxy or" >&2
   echo "                        http_proxy if not set." >&2
+  echo "    -e <api_endpoint>: Set the Mondoo API endpoint cnspec registers with and" >&2
+  echo "                        stores in mondoo.yml (e.g., https://api.internal.example.com)." >&2
+  echo "                        Default is the endpoint in the registration token." >&2
 }
 
-while getopts 'i:s:u:vt:vr:y:n:a:p:U:x:c:' flag; do
+while getopts 'i:s:u:vt:vr:y:n:a:p:U:x:e:c:' flag; do
   case "${flag}" in
     i) MONDOO_INSTALLER="${OPTARG}" ;;
     s) MONDOO_SERVICE="${OPTARG}" ;;
@@ -100,6 +104,7 @@ while getopts 'i:s:u:vt:vr:y:n:a:p:U:x:c:' flag; do
     p) PROVIDERS_URL="${OPTARG}"; echo "WARNING: -p is deprecated, use -U instead" >&2 ;;
     U) UPDATES_URL="${OPTARG}" ;;
     x) API_PROXY="${OPTARG}" ;;
+    e) API_ENDPOINT="${OPTARG}" ;;
     c) MONDOO_CHANNEL="${OPTARG}"
        case "${MONDOO_CHANNEL}" in
          stable|preview) ;;
@@ -943,6 +948,12 @@ run_login_cmd() {
   fi
   if [ -n "$API_PROXY" ]; then
     set -- "$@" --api-proxy "$API_PROXY"
+  fi
+
+  # Override the API endpoint from the registration token, e.g. for hosts that
+  # only reach the platform through an internal hostname
+  if [ -n "$API_ENDPOINT" ]; then
+    set -- "$@" --api-endpoint "$API_ENDPOINT"
   fi
 
   "$@"

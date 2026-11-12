@@ -15,6 +15,10 @@
     Set 'msi' (default) to download the package or 'zip' for the agent binary instead
     .PARAMETER Version
     If provided, tries to download the specific version instead of the latest
+    .PARAMETER ApiEndpoint
+    (Optional) Mondoo API endpoint cnspec registers with and stores in mondoo.yml
+    (e.g. 'https://api.internal.example.com'). Defaults to the endpoint in the
+    registration token.
     .PARAMETER Annotation
     (Optional) Comma-separated key=value pairs to annotate the asset in mondoo.yml
     .PARAMETER Name
@@ -139,6 +143,7 @@ function Install-Mondoo {
     [string]   $Name = '',
     [string]   $IdDetector = '',
     [string]   $UpdatesUrl = '',
+    [string]   $ApiEndpoint = '',
     [ValidateSet('enable', 'disable')]
     [string]   $CleanupStaleSystem32 = 'enable'
   )
@@ -457,6 +462,7 @@ function Install-Mondoo {
     info ("  Path:              {0}" -f $Path)
     info ("  Version:           {0}" -f $Version)
     info ("  Proxy:             {0}" -f $Proxy)
+    info ("  ApiEndpoint:       {0}" -f $ApiEndpoint)
     info ("  Service:           {0}" -f $Service)
     info ("  UpdateTask:        {0}" -f $UpdateTask)
     info ("  Time:              {0}" -f $Time)
@@ -602,6 +608,9 @@ function Install-Mondoo {
         $login_params = @("login", "-t", "$RegistrationToken", "--config", "C:\ProgramData\Mondoo\mondoo.yml")
         If (![string]::IsNullOrEmpty($Proxy)) {
           $login_params = $login_params + @("--api-proxy", "$Proxy")
+        }
+        If (![string]::IsNullOrEmpty($ApiEndpoint)) {
+          $login_params = $login_params + @("--api-endpoint", "$ApiEndpoint")
         }
         If (![string]::IsNullOrEmpty($Timer)) {
           $login_params = $login_params + @("--timer", "$Timer")

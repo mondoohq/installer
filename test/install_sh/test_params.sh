@@ -50,6 +50,7 @@ capture_login_cmd() {
   _https_proxy_env="${4:-}"
   _annotation="${5:-}"
   _name="${6:-}"
+  _api_endpoint="${7:-}"
 
   (
     # Stub sudo_cmd to just echo its arguments
@@ -74,6 +75,8 @@ capture_login_cmd() {
     ANNOTATION="$_annotation"
     # shellcheck disable=SC2034
     NAME="$_name"
+    # shellcheck disable=SC2034
+    API_ENDPOINT="$_api_endpoint"
 
     # Stub color functions
     lightblue_bold() { :; }
@@ -144,6 +147,12 @@ assert_contains "--annotation is passed" "$result" "--annotation foo=bar"
 # Test 10: --name is passed
 result=$(capture_login_cmd "" "" "" "" "" "my-host")
 assert_contains "--name is passed" "$result" "--name my-host"
+
+# Test 10b: -e passes --api-endpoint, and only when set
+result=$(capture_login_cmd "" "" "" "" "" "" "https://api.internal.example.com")
+assert_contains "-e sets --api-endpoint" "$result" "--api-endpoint https://api.internal.example.com"
+result=$(capture_login_cmd)
+assert_not_contains "no -e means no --api-endpoint" "$result" "--api-endpoint"
 
 # Test 11: base login params are always present
 result=$(capture_login_cmd)
