@@ -50,6 +50,11 @@ test/install_sh/arch:
 test/install_sh/installer-name:
 	sh test/install_sh/test_installer_name.sh
 
+## install.sh service hardening (-H) tests
+.PHONY: test/install_sh/hardening
+test/install_sh/hardening:
+	sh test/install_sh/test_hardening.sh
+
 ## install.sh behind an HTTP proxy, with real network isolation. Needs docker,
 ## pulls a squid image, and takes a couple of minutes -- so it is kept out of
 ## the target list below and run on its own.
@@ -82,6 +87,8 @@ INSTALL_SH_DOCKER_TARGETS := \
 	debian.Dockerfile:debian9 \
 	debian.Dockerfile:debian10 \
 	debian.Dockerfile:debian11 \
+	hardening.Dockerfile:hardening_rejected \
+	hardening.Dockerfile:hardening_no_systemd \
 	opensuse_leap.Dockerfile:opensuse_leap154 \
 	opensuse_leap.Dockerfile:opensuse_tumbleweed \
 	redhat.Dockerfile:rhel8 \
@@ -191,7 +198,7 @@ test/install_sh/upgrade-yum:
 
 ## Run all install.sh tests
 .PHONY: test/install_sh/all
-test/install_sh/all: test/install_sh/params test/install_sh/status test/install_sh/arch test/install_sh/installer-name test/posix test/install_sh test/install_sh/apt test/install_sh/yum test/install_sh/zypper
+test/install_sh/all: test/install_sh/params test/install_sh/status test/install_sh/arch test/install_sh/installer-name test/install_sh/hardening test/posix test/install_sh test/install_sh/apt test/install_sh/yum test/install_sh/zypper
 
 .PHONY: test/download_sh
 # MONDOO_REGISTRATION_TOKEN="changeme"

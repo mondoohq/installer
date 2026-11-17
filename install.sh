@@ -46,6 +46,7 @@ MONDOO_BINARY="cnspec" # binary that we search for
 # read flags
 MONDOO_INSTALLER=''
 MONDOO_SERVICE=''
+MONDOO_HARDENING=''
 MONDOO_REGISTRATION_TOKEN=''
 
 TIMER='60'
@@ -58,7 +59,7 @@ API_PROXY=''
 API_ENDPOINT=''
 
 print_usage() {
-  echo "usage: [-i] [-s] [-t token] [-u] [-U url] [-x proxy] [-e api_endpoint] [-c channel]" >&2
+  echo "usage: [-i] [-s] [-t token] [-u] [-U url] [-x proxy] [-e api_endpoint] [-c channel] [-H hardening]" >&2
   echo "  Options: " >&2
   echo "    -i <installer>:     Select a specific installer, options are:" >&2
   echo "                        macOS: brew, pkg" >&2
@@ -89,9 +90,13 @@ print_usage() {
   echo "    -e <api_endpoint>: Set the Mondoo API endpoint cnspec registers with and" >&2
   echo "                        stores in mondoo.yml (e.g., https://api.internal.example.com)." >&2
   echo "                        Default is the endpoint in the registration token." >&2
+  echo "    -H <hardening>:     Turns the hardened systemd settings for the cnspec service on or off" >&2
+  echo "                        (memory and CPU limits and a few hardening options). Requires" >&2
+  echo "                        -s enable and cnspec 14.12.0 or newer from the deb or rpm package." >&2
+  echo "                        options are: enable, disable" >&2
 }
 
-while getopts 'i:s:u:vt:vr:y:n:a:p:U:x:e:c:' flag; do
+while getopts 'i:s:u:vt:vr:y:n:a:p:U:x:e:c:H:' flag; do
   case "${flag}" in
     i) MONDOO_INSTALLER="${OPTARG}" ;;
     s) MONDOO_SERVICE="${OPTARG}" ;;
@@ -111,10 +116,23 @@ while getopts 'i:s:u:vt:vr:y:n:a:p:U:x:e:c:' flag; do
          *) echo "unknown channel '${MONDOO_CHANNEL}', expected stable or preview" >&2
             exit 1 ;;
        esac ;;
+    H) MONDOO_HARDENING="${OPTARG}"
+       case "${MONDOO_HARDENING}" in
+         enable|disable) ;;
+         *) echo "unknown hardening option '${MONDOO_HARDENING}', expected enable or disable" >&2
+            exit 1 ;;
+       esac ;;
     *) print_usage
        fail ;;
   esac
 done
+
+# -H changes the settings of the cnspec service, so it only makes sense when
+# this run manages that service. Checked here, before anything is installed.
+if [ -n "${MONDOO_HARDENING}" ] && [ "${MONDOO_SERVICE}" != "enable" ]; then
+  echo "-H ${MONDOO_HARDENING} requires -s enable" >&2
+  exit 1
+fi
 
 # Proxy
 # -----
@@ -220,6 +238,10 @@ fi
 
 if [ "${MONDOO_AUTOUPDATER}" != '' ]; then
   printf '\nMondoo auto updater creation enabled\n'
+fi
+
+if [ "${MONDOO_HARDENING}" != '' ]; then
+  printf '\nMondoo Service hardening: %s\n' "$MONDOO_HARDENING"
 fi
 
 # Detect operating system
@@ -1051,6 +1073,51 @@ EOL
   fi
 }
 
+# Service hardening config action
+# -------------------------------
+
+# The cnspec deb and rpm packages ship hardened systemd settings for the cnspec
+# service (memory and CPU limits and a few hardening options) in a directory
+# systemd does not read. They take effect once the file is copied into the
+# service's drop-in directory: -H enable makes that copy, -H disable removes it.
+#
+# Only daemon-reload is run here. The service is restarted by the steps that
+# follow in finalize_setup, which is when the change is picked up.
+hardening() {
+  hardening_src="/usr/share/cnspec/systemd/hardening.conf"
+  hardening_dir="/etc/systemd/system/cnspec.service.d"
+  hardening_dst="${hardening_dir}/50-cnspec-hardening.conf"
+
+  if [ "$(cat /proc/1/comm 2>/dev/null)" != "systemd" ]; then
+    red "\nThe -H option is only supported on Linux with systemd."
+    fail
+  fi
+
+  if [ "$MONDOO_HARDENING" = "enable" ]; then
+    if [ ! -f "$hardening_src" ]; then
+      red "\nWe could not find the hardened systemd settings at ${hardening_src}."
+      red "-H enable needs cnspec 14.12.0 or newer, installed from the deb or rpm package."
+      fail
+    fi
+
+    purple_bold "\n* Enable the hardened systemd settings for the cnspec service"
+    if ! { sudo_cmd mkdir -p "$hardening_dir" &&
+      sudo_cmd cp "$hardening_src" "$hardening_dst" &&
+      sudo_cmd chmod 0644 "$hardening_dst" &&
+      sudo_cmd systemctl daemon-reload; }; then
+      red "\nFailed to enable the hardened systemd settings for the cnspec service."
+      fail
+    fi
+  else
+    purple_bold "\n* Disable the hardened systemd settings for the cnspec service"
+    # Only our own file is removed; other drop-ins in the directory are not ours
+    if ! { sudo_cmd rm -f "$hardening_dst" && sudo_cmd systemctl daemon-reload; }; then
+      red "\nFailed to disable the hardened systemd settings for the cnspec service."
+      fail
+    fi
+  fi
+}
+
 # Auto updater config action
 # --------------------------
 
@@ -1137,6 +1204,13 @@ EOL
 }
 
 finalize_setup() {
+
+  # Turn the service hardening on or off. This comes first so that the service
+  # restarts done by the steps below already use the new settings, and so that
+  # a host that cannot be hardened stops here, before it is registered.
+  if [ -n "$MONDOO_HARDENING" ]; then
+    hardening
+  fi
 
   # Authenticate with Mondoo platform if a registration token is provided
   configure_token

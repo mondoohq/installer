@@ -110,6 +110,12 @@ jobs:
             target: no_package_manager
           - dockerfile: error_paths.Dockerfile
             target: unsupported_os
+          # hardening.Dockerfile -- the ways install.sh declines -H. Applying
+          # the settings needs systemd, which a container build does not have.
+          - dockerfile: hardening.Dockerfile
+            target: hardening_rejected
+          - dockerfile: hardening.Dockerfile
+            target: hardening_no_systemd
     name: "install.sh (${{ matrix.target }})"
     steps:
       - name: Clone repository
