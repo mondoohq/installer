@@ -492,15 +492,21 @@ install_portable() {
 # ---------------
 
 configure_macos_installer() {
-  # auto-detect installer type
-  if [ "${MONDOO_INSTALLER}" = "" ] && [ -x "$(command -v brew)" ]; then
-      MONDOO_INSTALLER="brew"
-  else
-      MONDOO_INSTALLER="pkg"
-  fi
+  case "${MONDOO_INSTALLER}" in
+    brew) ;; # asked for with -i brew: used as given
+    "")
+      # auto-detect installer type
+      if [ -x "$(command -v brew)" ]; then
+        MONDOO_INSTALLER="brew"
+      else
+        MONDOO_INSTALLER="pkg"
+      fi
 
-  # Brew may be installed but the pkg being used instead
-  pkgutil --pkg-info=com.mondoo.client 2>/dev/null >/dev/null && MONDOO_INSTALLER="pkg"
+      # Brew may be installed but the pkg being used instead
+      pkgutil --pkg-info=com.mondoo.client 2>/dev/null >/dev/null && MONDOO_INSTALLER="pkg"
+      ;;
+    *) MONDOO_INSTALLER="pkg" ;;
+  esac
 
   # The service is a LaunchDaemon: launchd runs it as root, at boot. The pkg
   # puts cnspec in /Library/Mondoo/bin, which only root can change. A Homebrew
@@ -544,6 +550,16 @@ configure_macos_installer() {
         brew upgrade "${MONDOO_BREW_FORMULA}" -q
       fi
     }
+
+    # Only reachable with -i brew: auto-detection picks brew only when it's there.
+    if [ ! -x "$(command -v brew)" ]; then
+      mondoo_install() {
+        red "Mondoo uses Homebrew to install with '-i brew', but we could not find the 'brew' command in your path (\$PATH)."
+        echo "Install Homebrew first, or re-run with '-i pkg' to install the Mondoo package instead."
+        fail
+      }
+      mondoo_update() { mondoo_install "$@"; }
+    fi
 
   elif [ "${MONDOO_INSTALLER}" = "pkg" ]; then
     mondoo_install() {

@@ -2,6 +2,12 @@
 # Copyright Mondoo, Inc. 2025, 2026
 # SPDX-License-Identifier: BUSL-1.1
 
+# How install.sh picks between Homebrew and the pkg on macOS.
+#
+# Without -i it auto-detects: Homebrew when brew is present, unless the
+# Mondoo pkg is already installed. An explicit -i brew or -i pkg is used as
+# given.
+#
 # The macOS service (-s enable) is a LaunchDaemon: launchd runs it as root,
 # at boot. On a pkg install it runs /Library/Mondoo/bin/cnspec, which only
 # root can change. A Homebrew prefix is owned by the logged-in user, so a
@@ -53,9 +59,10 @@ printf '#!/bin/sh\nexit 0\n' > "${FAKE_BREW_DIR}/brew"
 chmod +x "${FAKE_BREW_DIR}/brew"
 trap 'rm -rf "$FAKE_BREW_DIR"' EXIT
 
-# pick_installer <requested installer> <service> <brew present> <pkg receipt>
+# pick_installer <requested installer> <service> <brew present> <pkg receipt> [install]
 # runs configure_macos_installer and prints the installer it settled on, every
-# message it printed, and FAIL_CALLED if it stopped the install.
+# message it printed, and FAIL_CALLED if it stopped the install. With
+# "install" it then runs the mondoo_install it defined, too.
 pick_installer() {
   (
     set +e
@@ -77,6 +84,10 @@ pick_installer() {
     eval "$(sed -n '/^configure_macos_installer()/,/^}$/p' "$INSTALL_SH")"
     configure_macos_installer
     echo "INSTALLER=${MONDOO_INSTALLER}"
+    if [ "$5" = install ]; then
+      mondoo_install
+      echo INSTALL_RETURNED
+    fi
   ) 2>&1 || true
 }
 
@@ -88,6 +99,25 @@ assert_contains "auto-detected brew with the service stops the install" "$result
 assert_not_contains "and never settles on an installer" "$result" "INSTALLER="
 assert_contains "the refusal names the service" "$result" "-s enable"
 assert_contains "the refusal points at the pkg" "$result" "-i pkg"
+
+# Homebrew asked for explicitly
+result=$(pick_installer brew enable true false)
+assert_contains "-i brew with the service stops the install" "$result" "FAIL_CALLED"
+
+printf '\n==> -i brew is used as given\n\n'
+
+result=$(pick_installer brew "" true false)
+assert_contains "-i brew installs with Homebrew" "$result" "INSTALLER=brew"
+
+# Asked for explicitly, Homebrew wins over an existing pkg install.
+result=$(pick_installer brew "" true true)
+assert_contains "-i brew wins over an existing pkg" "$result" "INSTALLER=brew"
+
+# Without brew on the machine, say so instead of failing on 'brew: not found'.
+result=$(pick_installer brew "" false false install)
+assert_contains "-i brew without brew stops the install" "$result" "FAIL_CALLED"
+assert_contains "-i brew without brew names the missing command" "$result" "could not find the 'brew' command"
+assert_not_contains "-i brew without brew does not go on" "$result" "INSTALL_RETURNED"
 
 printf '\n==> Everything else is unchanged\n\n'
 
