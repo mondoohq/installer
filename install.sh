@@ -1011,7 +1011,7 @@ service() {
     sudo_cmd rm -f /Library/LaunchDaemons/com.mondoo.client.plist
 
     # Create the new launchd Mondoo service to run cnspec every hour
-    sudo_cmd tee /Library/LaunchDaemons/com.mondoo.client.plist <<EOL
+    sudo_cmd tee /Library/LaunchDaemons/com.mondoo.client.plist >/dev/null <<EOL
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
@@ -1072,16 +1072,30 @@ autoupdater() {
     _updater_proxy_env="export https_proxy='${API_PROXY}' HTTPS_PROXY='${API_PROXY}' http_proxy='${API_PROXY}' HTTP_PROXY='${API_PROXY}'"
   fi
 
-  if [ "$OS" = "macOS" ]; then
+  if [ "$OS" = "macOS" ] && [ "$MONDOO_INSTALLER" = "brew" ]; then
+    # The launchd job below re-runs this script as root with '-i pkg'. On a
+    # Homebrew install that cannot work: there is no /Library/Mondoo/bin to
+    # put the script in, brew refuses to run as root, and switching to pkg
+    # would leave a second cnspec next to Homebrew's. Homebrew keeps it
+    # current instead. A job left behind by an earlier run of this script is
+    # just as broken, so take it down.
+    if [ -f /Library/LaunchDaemons/com.mondoo.autoupdater.plist ]; then
+      sudo_cmd launchctl bootout system/com.mondoo.autoupdater
+      sudo_cmd rm -f /Library/LaunchDaemons/com.mondoo.autoupdater.plist
+    fi
+    purple "  ${MONDOO_PRODUCT_NAME} was installed with Homebrew, which keeps it up to date."
+    purple "  No auto updater service was created. Update with: brew upgrade ${MONDOO_BREW_FORMULA}"
+  elif [ "$OS" = "macOS" ]; then
      ## Remove old launchd plists
     sudo_cmd launchctl bootout system/com.mondoo.autoupdater
     sudo_cmd rm -f /Library/LaunchDaemons/com.mondoo.autoupdater.plist
 
     sudo_cmd curl -sSL https://install.mondoo.com/sh -o /tmp/mondoo-updater.sh
+    sudo_cmd mkdir -p /Library/Mondoo/bin
     sudo_cmd cp /tmp/mondoo-updater.sh /Library/Mondoo/bin/mondoo-updater.sh
     sudo_cmd chmod a+x /Library/Mondoo/bin/mondoo-updater.sh
 
-    sudo_cmd tee /Library/LaunchDaemons/com.mondoo.autoupdater.plist <<EOL
+    sudo_cmd tee /Library/LaunchDaemons/com.mondoo.autoupdater.plist >/dev/null <<EOL
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
@@ -1118,7 +1132,7 @@ EOL
     sudo_cmd launchctl load /Library/LaunchDaemons/com.mondoo.autoupdater.plist
     sudo_cmd launchctl start /Library/LaunchDaemons/com.mondoo.autoupdater.plist
   elif [ "$OS" = "RedHat" ] || [ "$OS" = "Debian" ] || [ "$OS" = "Suse" ]; then
-    sudo_cmd tee /etc/cron.weekly/mondoo-update <<EOL
+    sudo_cmd tee /etc/cron.weekly/mondoo-update >/dev/null <<EOL
 #!/bin/sh
 ${_updater_proxy_env}
 date > /var/log/mondoo-updater.log

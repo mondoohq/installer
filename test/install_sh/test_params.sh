@@ -268,29 +268,40 @@ assert_not_contains "sudo_cmd without proxy does not use env" "$result" "env"
 
 # capture_autoupdater runs install.sh's real autoupdater() with sudo_cmd
 # passed through and `tee` capturing stdin, so the assertions below see the
-# exact bytes that would land in the cron job or the launchd plist.
+# exact bytes that would land in the cron job or the launchd plist. The
+# mkdir, launchctl and messages it runs are logged alongside; whatever tee
+# would echo back to the terminal shows up as TEE_ECHO.
 capture_autoupdater() {
   _os="$1"
   _proxy="$2"
+  _installer="${3:-pkg}"
   (
     set +e
     _out="$(mktemp)"
     # shellcheck disable=SC2034 # consumed by the eval'd autoupdater
     OS="$_os"
     API_PROXY="$_proxy"
+    # shellcheck disable=SC2034 # consumed by the eval'd autoupdater
+    MONDOO_INSTALLER="$_installer"
+    # shellcheck disable=SC2034 # consumed by the eval'd autoupdater
+    MONDOO_PRODUCT_NAME="cnspec"
+    # shellcheck disable=SC2034 # consumed by the eval'd autoupdater
+    MONDOO_BREW_FORMULA="mondoohq/mondoo/cnspec"
     purple_bold() { :; }
+    purple() { printf 'MSG %s\n' "$1" >> "$_out"; }
     red() { :; }
     fail() { exit 1; }
     sudo_cmd() { "$@"; }
-    tee() { cat > "$_out"; }
-    launchctl() { :; }
+    tee() { cat >> "$_out"; echo TEE_ECHO; }
+    launchctl() { printf 'launchctl %s\n' "$*" >> "$_out"; }
     curl() { :; }
     cp() { :; }
+    mkdir() { printf 'mkdir %s\n' "$*" >> "$_out"; }
     chmod() { printf 'chmod %s\n' "$*" >> "$_out"; }
-    rm() { :; }
+    rm() { printf 'rm %s\n' "$*" >> "$_out"; }
     sleep() { :; }
     eval "$(sed -n '/^autoupdater()/,/^}$/p' "$INSTALL_SH")"
-    autoupdater >/dev/null 2>&1
+    autoupdater 2>/dev/null >> "$_out"
     cat "$_out"
     command rm -f "$_out"
   ) || true
@@ -337,6 +348,26 @@ result=$(capture_autoupdater macOS "http://proxy:3128")
 assert_contains "plist sets https_proxy" "$result" "<key>https_proxy</key>"
 assert_contains "plist sets http_proxy" "$result" "<key>http_proxy</key>"
 assert_not_contains "plist does not pass -x" "$result" "<string>-x</string>"
+
+# Test 22: the pkg install copies the updater into /Library/Mondoo/bin, so
+# make sure the directory is there rather than trusting the package for it.
+result=$(capture_autoupdater macOS "" pkg)
+assert_contains "pkg updater creates its bin directory" "$result" "mkdir -p /Library/Mondoo/bin"
+assert_contains "pkg updater still loads the job" "$result" "launchctl load /Library/LaunchDaemons/com.mondoo.autoupdater.plist"
+
+# Test 23: writing the plist does not echo it back to the terminal.
+assert_not_contains "launchd plist is not printed" "$result" "TEE_ECHO"
+result=$(capture_autoupdater Debian "")
+assert_not_contains "cron job is not printed" "$result" "TEE_ECHO"
+
+# Test 24: a Homebrew install has no /Library/Mondoo/bin, and the launchd job
+# runs as root with '-i pkg' -- brew refuses root, and pkg would put a second
+# cnspec next to Homebrew's. Homebrew updates it, so no job is created.
+result=$(capture_autoupdater macOS "" brew)
+assert_not_contains "brew install writes no updater plist" "$result" "<plist"
+assert_not_contains "brew install loads no updater job" "$result" "launchctl load"
+assert_not_contains "brew install copies no updater script" "$result" "/Library/Mondoo/bin"
+assert_contains "brew install points at brew upgrade" "$result" "brew upgrade mondoohq/mondoo/cnspec"
 
 printf '\n==> Results: %d/%d passed' "$PASS" "$TESTS"
 if [ "$FAIL" -gt 0 ]; then
