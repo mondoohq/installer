@@ -502,6 +502,19 @@ configure_macos_installer() {
   # Brew may be installed but the pkg being used instead
   pkgutil --pkg-info=com.mondoo.client 2>/dev/null >/dev/null && MONDOO_INSTALLER="pkg"
 
+  # The service is a LaunchDaemon: launchd runs it as root, at boot. The pkg
+  # puts cnspec in /Library/Mondoo/bin, which only root can change. A Homebrew
+  # prefix belongs to the logged-in user, so a service run from it would let
+  # anything running as that user replace the binary and get root on the next
+  # start. Refuse before anything is installed.
+  if [ "${MONDOO_INSTALLER}" = "brew" ] && [ "${MONDOO_SERVICE}" = "enable" ]; then
+    red "\n! The ${MONDOO_PRODUCT_NAME} service (-s enable) is not supported on Homebrew installs."
+    purple "  The service runs as root, so it has to run a binary only root can change,"
+    purple "  and Homebrew's directory is writable by your user."
+    purple "  To run ${MONDOO_PRODUCT_NAME} as a service, install the Mondoo package instead: re-run with '-i pkg'."
+    fail
+  fi
+
   if [ "${MONDOO_INSTALLER}" = "brew" ]; then
     # Homebrew doesn't support empty metapackages, so we redefine the package name to cnspec
     MONDOO_PKG_NAME="cnspec"

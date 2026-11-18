@@ -40,6 +40,11 @@ test/install_sh/params:
 test/install_sh/status:
 	sh test/install_sh/test_status_timeout.sh
 
+## install.sh macOS service tests (pkg and Homebrew layouts)
+.PHONY: test/install_sh/macos-service
+test/install_sh/macos-service:
+	sh test/install_sh/test_macos_service.sh
+
 ## install.sh architecture detection tests
 .PHONY: test/install_sh/arch
 test/install_sh/arch:
@@ -191,7 +196,7 @@ test/install_sh/upgrade-yum:
 
 ## Run all install.sh tests
 .PHONY: test/install_sh/all
-test/install_sh/all: test/install_sh/params test/install_sh/status test/install_sh/arch test/install_sh/installer-name test/posix test/install_sh test/install_sh/apt test/install_sh/yum test/install_sh/zypper
+test/install_sh/all: test/install_sh/params test/install_sh/macos-service test/install_sh/status test/install_sh/arch test/install_sh/installer-name test/posix test/install_sh test/install_sh/apt test/install_sh/yum test/install_sh/zypper
 
 .PHONY: test/download_sh
 # MONDOO_REGISTRATION_TOKEN="changeme"
