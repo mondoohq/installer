@@ -492,15 +492,34 @@ install_portable() {
 # ---------------
 
 configure_macos_installer() {
-  # auto-detect installer type
-  if [ "${MONDOO_INSTALLER}" = "" ] && [ -x "$(command -v brew)" ]; then
-      MONDOO_INSTALLER="brew"
-  else
-      MONDOO_INSTALLER="pkg"
-  fi
+  case "${MONDOO_INSTALLER}" in
+    brew) ;; # asked for with -i brew: used as given
+    "")
+      # auto-detect installer type
+      if [ -x "$(command -v brew)" ]; then
+        MONDOO_INSTALLER="brew"
+      else
+        MONDOO_INSTALLER="pkg"
+      fi
 
-  # Brew may be installed but the pkg being used instead
-  pkgutil --pkg-info=com.mondoo.client 2>/dev/null >/dev/null && MONDOO_INSTALLER="pkg"
+      # Brew may be installed but the pkg being used instead
+      pkgutil --pkg-info=com.mondoo.client 2>/dev/null >/dev/null && MONDOO_INSTALLER="pkg"
+      ;;
+    *) MONDOO_INSTALLER="pkg" ;;
+  esac
+
+  # The service is a LaunchDaemon: launchd runs it as root, at boot. The pkg
+  # puts cnspec in /Library/Mondoo/bin, which only root can change. A Homebrew
+  # prefix belongs to the logged-in user, so a service run from it would let
+  # anything running as that user replace the binary and get root on the next
+  # start. Refuse before anything is installed.
+  if [ "${MONDOO_INSTALLER}" = "brew" ] && [ "${MONDOO_SERVICE}" = "enable" ]; then
+    red "\n! The ${MONDOO_PRODUCT_NAME} service (-s enable) is not supported on Homebrew installs."
+    purple "  The service runs as root, so it has to run a binary only root can change,"
+    purple "  and Homebrew's directory is writable by your user."
+    purple "  To run ${MONDOO_PRODUCT_NAME} as a service, install the Mondoo package instead: re-run with '-i pkg'."
+    fail
+  fi
 
   if [ "${MONDOO_INSTALLER}" = "brew" ]; then
     # Homebrew doesn't support empty metapackages, so we redefine the package name to cnspec
@@ -531,6 +550,16 @@ configure_macos_installer() {
         brew upgrade "${MONDOO_BREW_FORMULA}" -q
       fi
     }
+
+    # Only reachable with -i brew: auto-detection picks brew only when it's there.
+    if [ ! -x "$(command -v brew)" ]; then
+      mondoo_install() {
+        red "Mondoo uses Homebrew to install with '-i brew', but we could not find the 'brew' command in your path (\$PATH)."
+        echo "Install Homebrew first, or re-run with '-i pkg' to install the Mondoo package instead."
+        fail
+      }
+      mondoo_update() { mondoo_install "$@"; }
+    fi
 
   elif [ "${MONDOO_INSTALLER}" = "pkg" ]; then
     mondoo_install() {
