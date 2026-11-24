@@ -333,6 +333,11 @@ jobs:
       - msi-build
     runs-on: windows-2025
     steps:
+      # Before the download: checkout cleans the workspace and would delete dist/.
+      - name: Checkout test policies
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          sparse-checkout: test/cnspec
       - name: Download MSI Package
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
@@ -468,10 +473,9 @@ jobs:
           REGISTRATION_TOKEN: ${{ secrets.INSTALL_TEST_MONDOO_REGISTRATION_TOKEN }}
         run: |
           & 'C:\Program Files\Mondoo\cnspec.exe' login -t "$env:REGISTRATION_TOKEN" --config C:\ProgramData\Mondoo\mondoo.yml
-      - name: Run a basic cnspec sanity check
+      - name: Scan the installation with the mondoo-windows-installer policy
         run: |
-          & 'C:\Program Files\Mondoo\cnspec.exe' policy download mondoo-windows-installer -f mondoo-windows-installer.mql.yaml
-          & 'C:\Program Files\Mondoo\cnspec.exe' scan local --detect-cicd --score-threshold 100 -o full --policy-bundle mondoo-windows-installer.mql.yaml
+          & 'C:\Program Files\Mondoo\cnspec.exe' scan local --detect-cicd --score-threshold 100 -o full --policy-bundle test/cnspec/mondoo-windows-installer.mql.yaml
       - name: Logout from edge with cnspec
         run: |
           & 'C:\Program Files\Mondoo\cnspec.exe' logout --config C:\ProgramData\Mondoo\mondoo.yml --force

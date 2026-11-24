@@ -265,6 +265,14 @@ make test/download_sh
 make test/powershell
 ```
 
+### Windows MSI
+
+Every MSI release is installed on a Windows runner and checked before it is published.
+The check needs a registration token for an edge test space and the
+[`mondoo-windows-installer`](test/cnspec/mondoo-windows-installer.mql.yaml) policy. See
+[Release test](packages/msi/README.md#release-test) for what runs and how to replace the
+space or the token.
+
 ## Code Signature Verification
 
 Mondoo signs Microsoft Windows executables, PowerShell scripts, Linux packages and code signs Apple macOS executables.

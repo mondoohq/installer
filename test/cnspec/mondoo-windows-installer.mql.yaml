@@ -1,0 +1,62 @@
+# Copyright Mondoo, Inc. 2026
+# SPDX-License-Identifier: BUSL-1.1
+
+# Sanity checks for a freshly installed Mondoo MSI. Used by the
+# "Test Signed Package" job in .github/workflows/pkg_msi.yaml, which installs
+# the MSI, runs `cnspec login`, then scans the runner with this policy at
+# --score-threshold 100: every check must pass.
+#
+# The job reads this file from the repo. It used to download the policy from
+# the test space instead, and a release broke when that space was deleted.
+# See packages/msi/README.md ("Release test").
+policies:
+  - uid: mondoo-windows-installer
+    name: Mondoo Windows Installer
+    version: 1.0.0
+    require:
+      - provider: os
+    tags:
+      mondoo.com/category: installer
+      mondoo.com/platform: windows
+    authors:
+      - name: Mondoo Inc
+        email: hello@mondoo.com
+    groups:
+      - title: Mondoo MSI installation
+        filters: asset.family.contains("windows")
+        checks:
+          - uid: mondoo-windows-installer-package-installed
+          - uid: mondoo-windows-installer-binaries-present
+          - uid: mondoo-windows-installer-service-installed
+          - uid: mondoo-windows-installer-registry-key
+          - uid: mondoo-windows-installer-config-present
+
+queries:
+  - uid: mondoo-windows-installer-package-installed
+    title: The Mondoo package is registered as installed
+    mql: |
+      package("Mondoo").installed
+
+  - uid: mondoo-windows-installer-binaries-present
+    title: cnspec, mql and cnquery are installed in Program Files
+    mql: |
+      file("C:\\Program Files\\Mondoo\\cnspec.exe").exists
+      file("C:\\Program Files\\Mondoo\\mql.exe").exists
+      file("C:\\Program Files\\Mondoo\\cnquery.exe").exists
+
+  - uid: mondoo-windows-installer-service-installed
+    title: The Mondoo service is installed
+    mql: |
+      service("Mondoo").installed
+
+  - uid: mondoo-windows-installer-registry-key
+    title: The installer wrote its registry key with a version and install dir
+    mql: |
+      registrykey(path: "HKEY_LOCAL_MACHINE\\SOFTWARE\\Mondoo").exists
+      registrykey.property(path: "HKEY_LOCAL_MACHINE\\SOFTWARE\\Mondoo", name: "Version").data != empty
+      registrykey.property(path: "HKEY_LOCAL_MACHINE\\SOFTWARE\\Mondoo", name: "InstallDir").data != empty
+
+  - uid: mondoo-windows-installer-config-present
+    title: cnspec login wrote the service config
+    mql: |
+      file("C:\\ProgramData\\Mondoo\\mondoo.yml").exists
