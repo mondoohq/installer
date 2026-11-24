@@ -31,20 +31,13 @@ Chocolatey, Homebrew and Arch packages.
 
 ### The edge test space
 
-| | |
-|---|---|
-| Environment | edge |
-| Space | `//captain.api.mondoo.app/spaces/jovial-cerf-366427` |
-| Used by | `INSTALL_TEST_MONDOO_REGISTRATION_TOKEN` |
+The test logs in to a dedicated space on edge. Its registration token is stored as
+`INSTALL_TEST_MONDOO_REGISTRATION_TOKEN`, and the token's description names the
+installer release tests, so `cnspec login` prints it at the start of the step.
 
-**Do not delete this space.** The registration token is a signed JWT, so it still
-looks valid after its space is gone. If the space is deleted, `cnspec login` fails with:
-
-```
-ERR failed to log in client: ... rpc error: code = Internal desc = could not create agent credential
-```
-
-The release test has failed this way before.
+**Do not delete this space.** If it is gone, `cnspec login` fails with
+`could not create agent credential`, and the release is blocked until the token is
+replaced (see below).
 
 The policy is kept in this repo rather than in the space, so the space holds no state
 the test depends on. `cnspec scan --policy-bundle` runs a local bundle incognito,
@@ -56,8 +49,7 @@ so nothing is uploaded to the space either.
 2. Create a registration token in it: no expiry, agent role, and a description
    that says what uses it.
 3. Store it as the `INSTALL_TEST_MONDOO_REGISTRATION_TOKEN` repository secret.
-4. Update the table above.
-5. Re-run the failed release jobs: `gh run rerun <run-id> -R mondoohq/installer --failed`.
+4. Re-run the failed release jobs: `gh run rerun <run-id> -R mondoohq/installer --failed`.
 
 ### Changing the policy
 
