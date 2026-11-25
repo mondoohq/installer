@@ -109,7 +109,7 @@ jobs:
       - name: 🔑 Generate GitHub App Token (mondoohq)
         if: ${{ !inputs.dry-run }}
         id: generate-token
-        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        uses: actions/create-github-app-token@f418cff399f7aef4c2f0ad47e25ca7a6abbdd6fc # v3.4.0
         with:
           # client-id accepts the same value as the old app-id input, see
           # https://github.com/actions/create-github-app-token/blob/v3.1.1/main.js#L21
@@ -118,7 +118,7 @@ jobs:
       - name: Create PR
         if: ${{ !inputs.dry-run }}
         id: create-pr
-        uses: peter-evans/create-pull-request@15733dbdfeedb4f7fdb73d13c6f5ac83b710fab8 # v8.1.2
+        uses: peter-evans/create-pull-request@3ffccacd46053766916f087ce41d627c0b8cf2d1 # v8.1.3
         with:
           base: ${{ steps.base.outputs.base }}
           # main requires signed commits; without this the PR is created but
@@ -310,7 +310,7 @@ jobs:
           gh pr merge "${PR_NUMBER}" --squash --delete-branch
       # The VERSION bump must not fail silently: the target branch would stay
       # out of sync with the published release with nobody watching Actions.
-      - uses: slackapi/slack-github-action@dcb1066f776dd043e64d0e8ba94ca15cc7e1875d # v4.0.0
+      - uses: slackapi/slack-github-action@0bc3581177d9a0f8d555e07689384b376528e8fa # v4.1.0
         if: ${{ failure() && !inputs.dry-run }}
         with:
           method: chat.postMessage

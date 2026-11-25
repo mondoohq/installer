@@ -128,7 +128,7 @@ jobs:
       - name: Generate mergebot token
         id: generate-token
         if: ${{ inputs.skip-publish == false && inputs.use-test-cert == false }}
-        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        uses: actions/create-github-app-token@f418cff399f7aef4c2f0ad47e25ca7a6abbdd6fc # v3.4.0
         with:
           client-id: ${{ secrets.MONDOO_MERGEBOT_APP_ID }}
           private-key: ${{ secrets.MONDOO_MERGEBOT_APP_PRIVATE_KEY }}
@@ -136,7 +136,7 @@ jobs:
       - name: Open PR with signed scripts
         id: cpr
         if: ${{ inputs.skip-publish == false && inputs.use-test-cert == false }}
-        uses: peter-evans/create-pull-request@15733dbdfeedb4f7fdb73d13c6f5ac83b710fab8 # v8.1.2
+        uses: peter-evans/create-pull-request@3ffccacd46053766916f087ce41d627c0b8cf2d1 # v8.1.3
         with:
           sign-commits: true
           commit-message: "Sign powershell scripts"
