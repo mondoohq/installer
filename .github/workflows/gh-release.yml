@@ -125,7 +125,7 @@ jobs:
       # fetch a token for the mondoo-mergebot app
       - name: Generate token
         id: generate-token
-        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        uses: actions/create-github-app-token@f418cff399f7aef4c2f0ad47e25ca7a6abbdd6fc # v3.4.0
         with:
           # client-id accepts the same value as the old app-id input, see
           # https://github.com/actions/create-github-app-token/blob/v3.1.1/main.js#L21
@@ -163,7 +163,7 @@ jobs:
       #
       # Version comes from parse-inputs, which validated it, so it is safe inside
       # the double-quoted YAML scalars and Slack mrkdwn below.
-      - uses: slackapi/slack-github-action@dcb1066f776dd043e64d0e8ba94ca15cc7e1875d # v4.0.0
+      - uses: slackapi/slack-github-action@0bc3581177d9a0f8d555e07689384b376528e8fa # v4.1.0
         if: ${{ always() && needs.resolve-inputs.outputs.dry-run != 'true' && steps.release.outcome != 'success' }}
         with:
           method: chat.postMessage
