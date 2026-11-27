@@ -876,7 +876,9 @@ configure_token() {
     config_path="$HOME/.config/mondoo"
     if [ "$MONDOO_SERVICE" = "enable" ]; then
       if [ "$OS" = "macOS" ]; then
-        install_macos_service_config "$config_path/mondoo.yml"
+        if [ "$MONDOO_INSTALLER" != "brew" ]; then
+          install_macos_service_config "$config_path/mondoo.yml"
+        fi
       elif [ ! -f /etc/opt/mondoo/mondoo.yml ] && [ -f "$config_path/mondoo.yml" ]; then
         sudo_cmd mkdir -p /etc/opt/mondoo
         sudo_cmd cp "$config_path/mondoo.yml" /etc/opt/mondoo/mondoo.yml
@@ -1002,13 +1004,15 @@ configure_macos_token() {
   # that follows (run as the user) could not read it.
   run_login_cmd "$config_path" user
 
-  if [ "$MONDOO_SERVICE" = "enable" ]; then
+  # Homebrew installs get no service (see service()), so nothing reads the
+  # system config there.
+  if [ "$MONDOO_SERVICE" = "enable" ] && [ "$MONDOO_INSTALLER" != "brew" ]; then
     install_macos_service_config "$config_path/mondoo.yml"
   fi
 }
 
-# Copies the user's config to where the launchd service reads it. Only the
-# pkg creates /Library/Mondoo, so a Homebrew install needs the directory made.
+# Copies the user's config to where the launchd service reads it. Create the
+# directory rather than trusting the package for it.
 install_macos_service_config() {
   sudo_cmd mkdir -p /Library/Mondoo/etc
   sudo_cmd cp "$1" /Library/Mondoo/etc/mondoo.yml
@@ -1018,13 +1022,25 @@ install_macos_service_config() {
 # Earlier versions of this script ran 'cnspec login' through sudo, which left
 # the user's own config owned by root: unreadable to the user, so every later
 # run reported the registration as failed. Hand it back to the user.
+#
+# The path is in a directory the user controls, so this runs a privileged
+# chown on a path anything running as the user could swap out. Only act on a
+# plain root-owned file with no symlink on the way to it, and don't follow one
+# if it appears between the check and the chown (-h).
 reclaim_macos_user_config() {
   if [ "$MONDOO_EUID" = "0" ] || [ ! -e "$1" ]; then
     return
   fi
-  if [ ! -r "$1" ] || [ ! -w "$1" ]; then
-    sudo_cmd chown "$(id -u):$(id -g)" "$1"
+  if [ -r "$1" ] && [ -w "$1" ]; then
+    return
   fi
+  _cfg_dir="$(dirname "$1")"
+  if [ -L "$1" ] || [ -L "$_cfg_dir" ] || [ -L "$(dirname "$_cfg_dir")" ] ||
+    [ ! -f "$1" ] || [ "$(stat -f %u "$1")" != "0" ]; then
+    red "\n* $1 is not readable by you. Fix its ownership, or remove it to register again."
+    return
+  fi
+  sudo_cmd chown -h "$(id -u):$(id -g)" "$1"
 }
 
 configure_linux_token() {
@@ -1060,14 +1076,16 @@ postinstall_check() {
 # ---------------------
 
 service() {
-  if [ "$OS" = "macOS" ]; then
+  if [ "$OS" = "macOS" ] && [ "$MONDOO_INSTALLER" = "brew" ]; then
+    # The service is a root launchd job. Homebrew's cnspec lives in a prefix
+    # the user owns, so pointing a root job at it would let anything running
+    # as that user replace the binary and run code as root. Use the pkg for
+    # the service.
+    purple "  ${MONDOO_PRODUCT_NAME} was installed with Homebrew. No service was created:"
+    purple "  the service runs as root and must not run a binary the user can replace."
+    purple "  For the service, reinstall with the pkg: brew uninstall ${MONDOO_PKG_NAME}, then rerun with -i pkg -s enable."
+  elif [ "$OS" = "macOS" ]; then
     purple_bold "\n* Enable and start the mondoo service"
-    # The pkg installs to /Library/Mondoo/bin. Homebrew does not; its prefix
-    # bin/cnspec is a symlink that stays put across 'brew upgrade'.
-    service_bin="/Library/Mondoo/bin/${MONDOO_BINARY}"
-    if [ "$MONDOO_INSTALLER" = "brew" ]; then
-      service_bin="$(brew --prefix)/bin/${MONDOO_BINARY}"
-    fi
     # Remove old launchd plists
     sudo_cmd launchctl bootout system/com.mondoo.client
     sudo_cmd rm -f /Library/LaunchDaemons/com.mondoo.client.plist
@@ -1082,7 +1100,7 @@ service() {
         <string>com.mondoo.client</string>
         <key>ProgramArguments</key>
         <array>
-                <string>${service_bin}</string>
+                <string>/Library/Mondoo/bin/cnspec</string>
                 <string>serve</string>
                 <string>--config</string>
                 <string>/Library/Mondoo/etc/mondoo.yml</string>

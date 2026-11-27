@@ -370,7 +370,7 @@ assert_not_contains "brew install copies no updater script" "$result" "/Library/
 assert_contains "brew install points at brew upgrade" "$result" "brew upgrade mondoohq/mondoo/cnspec"
 
 # capture_macos_service runs install.sh's real service() for macOS, logging
-# the commands it runs and the plist it writes.
+# the commands it runs, the messages it prints and the plist it writes.
 capture_macos_service() {
   _installer="$1"
   (
@@ -381,12 +381,14 @@ capture_macos_service() {
     # shellcheck disable=SC2034 # consumed by the eval'd service
     MONDOO_INSTALLER="$_installer"
     # shellcheck disable=SC2034 # consumed by the eval'd service
-    MONDOO_BINARY="cnspec"
+    MONDOO_PRODUCT_NAME="cnspec"
+    # shellcheck disable=SC2034 # consumed by the eval'd service
+    MONDOO_PKG_NAME="cnspec"
     purple_bold() { :; }
+    purple() { printf 'MSG %s\n' "$1" >> "$_out"; }
     sudo_cmd() { "$@"; }
-    brew() { echo /opt/homebrew; }
     tee() { cat >> "$_out"; }
-    launchctl() { :; }
+    launchctl() { printf 'launchctl %s\n' "$*" >> "$_out"; }
     rm() { :; }
     sleep() { :; }
     eval "$(sed -n '/^service()/,/^}$/p' "$INSTALL_SH")"
@@ -399,17 +401,21 @@ capture_macos_service() {
 # Test 25: the pkg service runs the pkg's binary.
 result=$(capture_macos_service pkg)
 assert_contains "pkg service runs /Library/Mondoo/bin/cnspec" "$result" "<string>/Library/Mondoo/bin/cnspec</string>"
+assert_contains "pkg service is loaded" "$result" "launchctl bootstrap system"
 
-# Test 26: Homebrew has no /Library/Mondoo/bin; the service runs brew's cnspec.
+# Test 26: the service is a root launchd job, and Homebrew's cnspec sits in a
+# prefix the user owns. A root job running it would hand that user root, so a
+# Homebrew install gets no service and is pointed at the pkg.
 result=$(capture_macos_service brew)
-assert_contains "brew service runs the Homebrew cnspec" "$result" "<string>/opt/homebrew/bin/cnspec</string>"
-assert_not_contains "brew service does not use the pkg path" "$result" "/Library/Mondoo/bin"
-assert_contains "brew service still reads the system config" "$result" "<string>/Library/Mondoo/etc/mondoo.yml</string>"
+assert_not_contains "brew install writes no service plist" "$result" "<plist"
+assert_not_contains "brew install loads no service" "$result" "launchctl bootstrap"
+assert_contains "brew install points at the pkg" "$result" "-i pkg -s enable"
 
 # capture_macos_login runs install.sh's real configure_macos_token() and the
 # helpers it calls, logging every command and whether it went through sudo.
 capture_macos_login() {
   _service="$1"
+  _installer="${2:-pkg}"
   (
     set +e
     _home="$(mktemp -d)"
@@ -417,6 +423,8 @@ capture_macos_login() {
     HOME="$_home"
     # shellcheck disable=SC2034 # consumed by the eval'd functions
     MONDOO_SERVICE="$_service"
+    # shellcheck disable=SC2034 # consumed by the eval'd functions
+    MONDOO_INSTALLER="$_installer"
     # shellcheck disable=SC2034 # consumed by the eval'd functions
     MONDOO_BINARY_PATH="cnspec"
     # shellcheck disable=SC2034 # consumed by the eval'd functions
@@ -450,32 +458,67 @@ assert_contains "service config dir is created" "$result" "SUDO mkdir -p /Librar
 assert_contains "service config is copied" "$result" "/Library/Mondoo/etc/mondoo.yml"
 assert_contains "service config is 0600" "$result" "SUDO chmod 0600 /Library/Mondoo/etc/mondoo.yml"
 
+# Test 28b: Homebrew installs get no service, so the system config is not
+# copied either.
+result=$(capture_macos_login enable brew)
+assert_contains "brew login still runs as the user" "$result" "USER cnspec login --config"
+assert_not_contains "brew install copies no system config" "$result" "/Library/Mondoo/etc"
+
 # capture_reclaim runs reclaim_macos_user_config() against a real file.
+# _owner is what stat reports as the file's owner uid; _link makes the config
+# a symlink, or makes its directory one.
 capture_reclaim() {
   _mode="$1"
   _euid="$2"
+  _owner="${3:-0}"
+  _link="${4:-}"
   (
     set +e
     _dir="$(mktemp -d)"
     # shellcheck disable=SC2034 # consumed by the eval'd function
     MONDOO_EUID="$_euid"
     sudo_cmd() { echo "SUDO $*"; }
+    red() { echo "RED $1"; }
+    stat() { echo "$_owner"; }
     eval "$(sed -n '/^reclaim_macos_user_config()/,/^}$/p' "$INSTALL_SH")"
+    mkdir -p "$_dir/home/.config/mondoo"
+    _cfg="$_dir/home/.config/mondoo/mondoo.yml"
     if [ "$_mode" != "missing" ]; then
-      : > "$_dir/mondoo.yml"
-      chmod "$_mode" "$_dir/mondoo.yml"
+      : > "$_dir/target"
+      chmod "$_mode" "$_dir/target"
+      case "$_link" in
+        file) ln -s "$_dir/target" "$_cfg" ;;
+        dir)
+          command rm -rf "$_dir/home/.config/mondoo"
+          mkdir "$_dir/real"
+          mv "$_dir/target" "$_dir/real/mondoo.yml"
+          ln -s "$_dir/real" "$_dir/home/.config/mondoo"
+          ;;
+        *) mv "$_dir/target" "$_cfg" ;;
+      esac
     fi
-    reclaim_macos_user_config "$_dir/mondoo.yml"
-    chmod 0600 "$_dir/mondoo.yml" 2>/dev/null
+    reclaim_macos_user_config "$_cfg"
+    chmod -R u+rwx "$_dir" 2>/dev/null
     command rm -rf "$_dir"
   ) || true
 }
 
-# Test 29: a config the user cannot read (root-owned, left by an earlier run)
-# is handed back. A readable one, a missing one, or a root run is left alone.
+# Test 29: a root-owned config the user cannot read (left by an earlier run)
+# is handed back without following symlinks. A readable one, a missing one,
+# or a root run is left alone.
 if [ "$(id -u)" != "0" ]; then
   result=$(capture_reclaim 0000 501)
-  assert_contains "unreadable user config is chowned back" "$result" "SUDO chown"
+  assert_contains "unreadable root-owned config is chowned back" "$result" "SUDO chown -h"
+
+  # Test 30: the path is in a directory the user controls, so a symlink on
+  # it could point the privileged chown at any root file. Refuse instead.
+  result=$(capture_reclaim 0000 501 0 file)
+  assert_not_contains "symlinked config is not chowned" "$result" "SUDO"
+  assert_contains "symlinked config is reported" "$result" "RED"
+  result=$(capture_reclaim 0000 501 0 dir)
+  assert_not_contains "config under a symlinked dir is not chowned" "$result" "SUDO"
+  result=$(capture_reclaim 0000 501 502)
+  assert_not_contains "config owned by another user is not chowned" "$result" "SUDO"
 fi
 result=$(capture_reclaim 0600 501)
 assert_not_contains "readable user config is left alone" "$result" "SUDO"
