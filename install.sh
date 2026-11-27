@@ -863,6 +863,10 @@ configure_token() {
     return
   fi
 
+  if [ "$OS" = "macOS" ]; then
+    reclaim_macos_user_config "$HOME/.config/mondoo/mondoo.yml"
+  fi
+
   detect_mondoo_registered
 
   if [ "$MONDOO_IS_REGISTERED" = true ]; then
@@ -872,7 +876,7 @@ configure_token() {
     config_path="$HOME/.config/mondoo"
     if [ "$MONDOO_SERVICE" = "enable" ]; then
       if [ "$OS" = "macOS" ]; then
-        sudo_cmd cp "$config_path/mondoo.yml" /Library/Mondoo/etc/mondoo.yml
+        install_macos_service_config "$config_path/mondoo.yml"
       elif [ ! -f /etc/opt/mondoo/mondoo.yml ] && [ -f "$config_path/mondoo.yml" ]; then
         sudo_cmd mkdir -p /etc/opt/mondoo
         sudo_cmd cp "$config_path/mondoo.yml" /etc/opt/mondoo/mondoo.yml
@@ -901,10 +905,13 @@ configure_token() {
 
 run_login_cmd() {
   # Build and execute the login command using positional parameters
-  # (POSIX-compatible, no arrays or eval needed)
+  # (POSIX-compatible, no arrays or eval needed). Pass "user" as the second
+  # argument to run it as the invoking user instead of through sudo, for a
+  # config that lives in that user's home directory.
   config_dir_path="$1"
   config_file_path="${config_dir_path}/mondoo.yml"
-  set -- sudo_cmd "${MONDOO_BINARY_PATH}" login \
+  login_as="${2:-root}"
+  set -- "${MONDOO_BINARY_PATH}" login \
     --config "$config_file_path" \
     --token "$MONDOO_REGISTRATION_TOKEN" \
     --timer "$TIMER" --splay "$SPLAY"
@@ -978,6 +985,10 @@ run_login_cmd() {
     set -- "$@" --api-endpoint "$API_ENDPOINT"
   fi
 
+  if [ "$login_as" != "user" ]; then
+    set -- sudo_cmd "$@"
+  fi
+
   "$@"
 }
 
@@ -986,10 +997,33 @@ configure_macos_token() {
   config_path="$HOME/.config/mondoo"
   mkdir -p "$config_path"
 
-  run_login_cmd "$config_path"
+  # The config lives in the user's home directory, so the user writes it.
+  # Under sudo it would be owned by root, and the 'cnspec status' check
+  # that follows (run as the user) could not read it.
+  run_login_cmd "$config_path" user
 
   if [ "$MONDOO_SERVICE" = "enable" ]; then
-    sudo_cmd cp "$config_path/mondoo.yml" /Library/Mondoo/etc/mondoo.yml
+    install_macos_service_config "$config_path/mondoo.yml"
+  fi
+}
+
+# Copies the user's config to where the launchd service reads it. Only the
+# pkg creates /Library/Mondoo, so a Homebrew install needs the directory made.
+install_macos_service_config() {
+  sudo_cmd mkdir -p /Library/Mondoo/etc
+  sudo_cmd cp "$1" /Library/Mondoo/etc/mondoo.yml
+  sudo_cmd chmod 0600 /Library/Mondoo/etc/mondoo.yml
+}
+
+# Earlier versions of this script ran 'cnspec login' through sudo, which left
+# the user's own config owned by root: unreadable to the user, so every later
+# run reported the registration as failed. Hand it back to the user.
+reclaim_macos_user_config() {
+  if [ "$MONDOO_EUID" = "0" ] || [ ! -e "$1" ]; then
+    return
+  fi
+  if [ ! -r "$1" ] || [ ! -w "$1" ]; then
+    sudo_cmd chown "$(id -u):$(id -g)" "$1"
   fi
 }
 
@@ -1028,6 +1062,12 @@ postinstall_check() {
 service() {
   if [ "$OS" = "macOS" ]; then
     purple_bold "\n* Enable and start the mondoo service"
+    # The pkg installs to /Library/Mondoo/bin. Homebrew does not; its prefix
+    # bin/cnspec is a symlink that stays put across 'brew upgrade'.
+    service_bin="/Library/Mondoo/bin/${MONDOO_BINARY}"
+    if [ "$MONDOO_INSTALLER" = "brew" ]; then
+      service_bin="$(brew --prefix)/bin/${MONDOO_BINARY}"
+    fi
     # Remove old launchd plists
     sudo_cmd launchctl bootout system/com.mondoo.client
     sudo_cmd rm -f /Library/LaunchDaemons/com.mondoo.client.plist
@@ -1042,7 +1082,7 @@ service() {
         <string>com.mondoo.client</string>
         <key>ProgramArguments</key>
         <array>
-                <string>/Library/Mondoo/bin/cnspec</string>
+                <string>${service_bin}</string>
                 <string>serve</string>
                 <string>--config</string>
                 <string>/Library/Mondoo/etc/mondoo.yml</string>

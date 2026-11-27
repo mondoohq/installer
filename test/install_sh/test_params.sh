@@ -369,6 +369,121 @@ assert_not_contains "brew install loads no updater job" "$result" "launchctl loa
 assert_not_contains "brew install copies no updater script" "$result" "/Library/Mondoo/bin"
 assert_contains "brew install points at brew upgrade" "$result" "brew upgrade mondoohq/mondoo/cnspec"
 
+# capture_macos_service runs install.sh's real service() for macOS, logging
+# the commands it runs and the plist it writes.
+capture_macos_service() {
+  _installer="$1"
+  (
+    set +e
+    _out="$(mktemp)"
+    # shellcheck disable=SC2034 # consumed by the eval'd service
+    OS="macOS"
+    # shellcheck disable=SC2034 # consumed by the eval'd service
+    MONDOO_INSTALLER="$_installer"
+    # shellcheck disable=SC2034 # consumed by the eval'd service
+    MONDOO_BINARY="cnspec"
+    purple_bold() { :; }
+    sudo_cmd() { "$@"; }
+    brew() { echo /opt/homebrew; }
+    tee() { cat >> "$_out"; }
+    launchctl() { :; }
+    rm() { :; }
+    sleep() { :; }
+    eval "$(sed -n '/^service()/,/^}$/p' "$INSTALL_SH")"
+    service >/dev/null 2>&1
+    cat "$_out"
+    command rm -f "$_out"
+  ) || true
+}
+
+# Test 25: the pkg service runs the pkg's binary.
+result=$(capture_macos_service pkg)
+assert_contains "pkg service runs /Library/Mondoo/bin/cnspec" "$result" "<string>/Library/Mondoo/bin/cnspec</string>"
+
+# Test 26: Homebrew has no /Library/Mondoo/bin; the service runs brew's cnspec.
+result=$(capture_macos_service brew)
+assert_contains "brew service runs the Homebrew cnspec" "$result" "<string>/opt/homebrew/bin/cnspec</string>"
+assert_not_contains "brew service does not use the pkg path" "$result" "/Library/Mondoo/bin"
+assert_contains "brew service still reads the system config" "$result" "<string>/Library/Mondoo/etc/mondoo.yml</string>"
+
+# capture_macos_login runs install.sh's real configure_macos_token() and the
+# helpers it calls, logging every command and whether it went through sudo.
+capture_macos_login() {
+  _service="$1"
+  (
+    set +e
+    _home="$(mktemp -d)"
+    # shellcheck disable=SC2034 # consumed by the eval'd functions
+    HOME="$_home"
+    # shellcheck disable=SC2034 # consumed by the eval'd functions
+    MONDOO_SERVICE="$_service"
+    # shellcheck disable=SC2034 # consumed by the eval'd functions
+    MONDOO_BINARY_PATH="cnspec"
+    # shellcheck disable=SC2034 # consumed by the eval'd functions
+    MONDOO_REGISTRATION_TOKEN="tok"
+    # shellcheck disable=SC2034 # consumed by the eval'd functions
+    TIMER=60 SPLAY=60 UPDATES_URL="https://example.invalid" API_PROXY="" API_ENDPOINT=""
+    https_proxy="" HTTPS_PROXY=""
+    purple_bold() { :; }
+    lightblue_bold() { :; }
+    sudo_cmd() { echo "SUDO $*"; }
+    cnspec() { echo "USER cnspec $*"; }
+    for _fn in run_login_cmd configure_macos_token install_macos_service_config; do
+      eval "$(sed -n "/^${_fn}()/,/^}\$/p" "$INSTALL_SH")"
+    done
+    configure_macos_token
+    command rm -rf "$_home"
+  ) || true
+}
+
+# Test 27: the login writes a config in the user's home directory, so it runs
+# as the user. Under sudo the file would be owned by root and the status check
+# after it (run as the user) would report the registration as failed.
+result=$(capture_macos_login disable)
+assert_contains "macOS login runs as the user" "$result" "USER cnspec login --config"
+assert_not_contains "macOS login does not use sudo" "$result" "SUDO cnspec login"
+
+# Test 28: with the service enabled, the system config directory is created
+# before the copy (a Homebrew install has no /Library/Mondoo).
+result=$(capture_macos_login enable)
+assert_contains "service config dir is created" "$result" "SUDO mkdir -p /Library/Mondoo/etc"
+assert_contains "service config is copied" "$result" "/Library/Mondoo/etc/mondoo.yml"
+assert_contains "service config is 0600" "$result" "SUDO chmod 0600 /Library/Mondoo/etc/mondoo.yml"
+
+# capture_reclaim runs reclaim_macos_user_config() against a real file.
+capture_reclaim() {
+  _mode="$1"
+  _euid="$2"
+  (
+    set +e
+    _dir="$(mktemp -d)"
+    # shellcheck disable=SC2034 # consumed by the eval'd function
+    MONDOO_EUID="$_euid"
+    sudo_cmd() { echo "SUDO $*"; }
+    eval "$(sed -n '/^reclaim_macos_user_config()/,/^}$/p' "$INSTALL_SH")"
+    if [ "$_mode" != "missing" ]; then
+      : > "$_dir/mondoo.yml"
+      chmod "$_mode" "$_dir/mondoo.yml"
+    fi
+    reclaim_macos_user_config "$_dir/mondoo.yml"
+    chmod 0600 "$_dir/mondoo.yml" 2>/dev/null
+    command rm -rf "$_dir"
+  ) || true
+}
+
+# Test 29: a config the user cannot read (root-owned, left by an earlier run)
+# is handed back. A readable one, a missing one, or a root run is left alone.
+if [ "$(id -u)" != "0" ]; then
+  result=$(capture_reclaim 0000 501)
+  assert_contains "unreadable user config is chowned back" "$result" "SUDO chown"
+fi
+result=$(capture_reclaim 0600 501)
+assert_not_contains "readable user config is left alone" "$result" "SUDO"
+result=$(capture_reclaim missing 501)
+assert_not_contains "missing user config is left alone" "$result" "SUDO"
+result=$(capture_reclaim 0000 0)
+assert_not_contains "root run does not chown" "$result" "SUDO"
+
 printf '\n==> Results: %d/%d passed' "$PASS" "$TESTS"
 if [ "$FAIL" -gt 0 ]; then
   printf ', %d FAILED\n' "$FAIL"
