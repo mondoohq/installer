@@ -863,6 +863,10 @@ configure_token() {
     return
   fi
 
+  if [ "$OS" = "macOS" ]; then
+    remove_unreadable_macos_user_config "$HOME/.config/mondoo/mondoo.yml"
+  fi
+
   detect_mondoo_registered
 
   if [ "$MONDOO_IS_REGISTERED" = true ]; then
@@ -872,7 +876,9 @@ configure_token() {
     config_path="$HOME/.config/mondoo"
     if [ "$MONDOO_SERVICE" = "enable" ]; then
       if [ "$OS" = "macOS" ]; then
-        sudo_cmd cp "$config_path/mondoo.yml" /Library/Mondoo/etc/mondoo.yml
+        if [ "$MONDOO_INSTALLER" != "brew" ]; then
+          install_macos_service_config "$config_path/mondoo.yml"
+        fi
       elif [ ! -f /etc/opt/mondoo/mondoo.yml ] && [ -f "$config_path/mondoo.yml" ]; then
         sudo_cmd mkdir -p /etc/opt/mondoo
         sudo_cmd cp "$config_path/mondoo.yml" /etc/opt/mondoo/mondoo.yml
@@ -901,10 +907,13 @@ configure_token() {
 
 run_login_cmd() {
   # Build and execute the login command using positional parameters
-  # (POSIX-compatible, no arrays or eval needed)
+  # (POSIX-compatible, no arrays or eval needed). Pass "nosudo" as the second
+  # argument to run it as the invoking user instead of through sudo, for a
+  # config that lives in that user's home directory.
   config_dir_path="$1"
   config_file_path="${config_dir_path}/mondoo.yml"
-  set -- sudo_cmd "${MONDOO_BINARY_PATH}" login \
+  login_as="${2:-sudo}"
+  set -- "${MONDOO_BINARY_PATH}" login \
     --config "$config_file_path" \
     --token "$MONDOO_REGISTRATION_TOKEN" \
     --timer "$TIMER" --splay "$SPLAY"
@@ -978,6 +987,10 @@ run_login_cmd() {
     set -- "$@" --api-endpoint "$API_ENDPOINT"
   fi
 
+  if [ "$login_as" != "nosudo" ]; then
+    set -- sudo_cmd "$@"
+  fi
+
   "$@"
 }
 
@@ -986,10 +999,46 @@ configure_macos_token() {
   config_path="$HOME/.config/mondoo"
   mkdir -p "$config_path"
 
-  run_login_cmd "$config_path"
+  # The config lives in the user's home directory, so the user writes it.
+  # Under sudo it would be owned by root, and the 'cnspec status' check
+  # that follows (run as the user) could not read it.
+  run_login_cmd "$config_path" nosudo
 
-  if [ "$MONDOO_SERVICE" = "enable" ]; then
-    sudo_cmd cp "$config_path/mondoo.yml" /Library/Mondoo/etc/mondoo.yml
+  # Homebrew installs get no service (see service()), so nothing reads the
+  # system config there.
+  if [ "$MONDOO_SERVICE" = "enable" ] && [ "$MONDOO_INSTALLER" != "brew" ]; then
+    install_macos_service_config "$config_path/mondoo.yml"
+  fi
+}
+
+# Copies the user's config to where the launchd service reads it. Create the
+# directory rather than trusting the package for it.
+install_macos_service_config() {
+  sudo_cmd mkdir -p /Library/Mondoo/etc
+  sudo_cmd cp "$1" /Library/Mondoo/etc/mondoo.yml
+  sudo_cmd chmod 0600 /Library/Mondoo/etc/mondoo.yml
+}
+
+# Earlier versions of this script ran 'cnspec login' through sudo, which left
+# the user's own config owned by root: unreadable to the user, so every later
+# run reported the registration as failed. Remove it so the login below writes
+# a fresh one the user owns.
+#
+# This deliberately runs without sudo. The path is in a directory the user
+# controls, so any privileged chown, copy or read of it can be pointed at a
+# root file through a symlink or hardlink. Removing a directory entry needs
+# only write access to the directory, and touches nothing outside it.
+remove_unreadable_macos_user_config() {
+  if [ "$MONDOO_EUID" = "0" ] || [ ! -e "$1" ]; then
+    return
+  fi
+  if [ -r "$1" ] && [ -w "$1" ]; then
+    return
+  fi
+  if rm -f "$1" 2>/dev/null; then
+    purple "  Removed $1, which you could not read (left by an earlier install). Registering again."
+  else
+    red "\n* $1 is not readable by you and could not be removed. Remove it, then run this script again."
   fi
 }
 
@@ -1026,7 +1075,15 @@ postinstall_check() {
 # ---------------------
 
 service() {
-  if [ "$OS" = "macOS" ]; then
+  if [ "$OS" = "macOS" ] && [ "$MONDOO_INSTALLER" = "brew" ]; then
+    # The service is a root launchd job. Homebrew's cnspec lives in a prefix
+    # the user owns, so pointing a root job at it would let anything running
+    # as that user replace the binary and run code as root. Use the pkg for
+    # the service.
+    purple "  ${MONDOO_PRODUCT_NAME} was installed with Homebrew. No service was created:"
+    purple "  the service runs as root and must not run a binary the user can replace."
+    purple "  For the service, reinstall with the pkg: brew uninstall ${MONDOO_PKG_NAME}, then rerun with -i pkg -s enable."
+  elif [ "$OS" = "macOS" ]; then
     purple_bold "\n* Enable and start the mondoo service"
     # Remove old launchd plists
     sudo_cmd launchctl bootout system/com.mondoo.client

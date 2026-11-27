@@ -369,6 +369,142 @@ assert_not_contains "brew install loads no updater job" "$result" "launchctl loa
 assert_not_contains "brew install copies no updater script" "$result" "/Library/Mondoo/bin"
 assert_contains "brew install points at brew upgrade" "$result" "brew upgrade mondoohq/mondoo/cnspec"
 
+# capture_macos_service runs install.sh's real service() for macOS, logging
+# the commands it runs, the messages it prints and the plist it writes.
+capture_macos_service() {
+  _installer="$1"
+  (
+    set +e
+    _out="$(mktemp)"
+    # shellcheck disable=SC2034 # consumed by the eval'd service
+    OS="macOS"
+    # shellcheck disable=SC2034 # consumed by the eval'd service
+    MONDOO_INSTALLER="$_installer"
+    # shellcheck disable=SC2034 # consumed by the eval'd service
+    MONDOO_PRODUCT_NAME="cnspec"
+    # shellcheck disable=SC2034 # consumed by the eval'd service
+    MONDOO_PKG_NAME="cnspec"
+    purple_bold() { :; }
+    purple() { printf 'MSG %s\n' "$1" >> "$_out"; }
+    sudo_cmd() { "$@"; }
+    tee() { cat >> "$_out"; }
+    launchctl() { printf 'launchctl %s\n' "$*" >> "$_out"; }
+    rm() { :; }
+    sleep() { :; }
+    eval "$(sed -n '/^service()/,/^}$/p' "$INSTALL_SH")"
+    service >/dev/null 2>&1
+    cat "$_out"
+    command rm -f "$_out"
+  ) || true
+}
+
+# Test 25: the pkg service runs the pkg's binary.
+result=$(capture_macos_service pkg)
+assert_contains "pkg service runs /Library/Mondoo/bin/cnspec" "$result" "<string>/Library/Mondoo/bin/cnspec</string>"
+assert_contains "pkg service is loaded" "$result" "launchctl bootstrap system"
+
+# Test 26: the service is a root launchd job, and Homebrew's cnspec sits in a
+# prefix the user owns. A root job running it would hand that user root, so a
+# Homebrew install gets no service and is pointed at the pkg.
+result=$(capture_macos_service brew)
+assert_not_contains "brew install writes no service plist" "$result" "<plist"
+assert_not_contains "brew install loads no service" "$result" "launchctl bootstrap"
+assert_contains "brew install points at the pkg" "$result" "-i pkg -s enable"
+
+# capture_macos_login runs install.sh's real configure_macos_token() and the
+# helpers it calls, logging every command and whether it went through sudo.
+capture_macos_login() {
+  _service="$1"
+  _installer="${2:-pkg}"
+  (
+    set +e
+    _home="$(mktemp -d)"
+    # shellcheck disable=SC2034 # consumed by the eval'd functions
+    HOME="$_home"
+    # shellcheck disable=SC2034 # consumed by the eval'd functions
+    MONDOO_SERVICE="$_service"
+    # shellcheck disable=SC2034 # consumed by the eval'd functions
+    MONDOO_INSTALLER="$_installer"
+    # shellcheck disable=SC2034 # consumed by the eval'd functions
+    MONDOO_BINARY_PATH="cnspec"
+    # shellcheck disable=SC2034 # consumed by the eval'd functions
+    MONDOO_REGISTRATION_TOKEN="tok"
+    # shellcheck disable=SC2034 # consumed by the eval'd functions
+    TIMER=60 SPLAY=60 UPDATES_URL="https://example.invalid" API_PROXY="" API_ENDPOINT=""
+    https_proxy="" HTTPS_PROXY=""
+    purple_bold() { :; }
+    lightblue_bold() { :; }
+    sudo_cmd() { echo "SUDO $*"; }
+    cnspec() { echo "USER cnspec $*"; }
+    for _fn in run_login_cmd configure_macos_token install_macos_service_config; do
+      eval "$(sed -n "/^${_fn}()/,/^}\$/p" "$INSTALL_SH")"
+    done
+    configure_macos_token
+    command rm -rf "$_home"
+  ) || true
+}
+
+# Test 27: the login writes a config in the user's home directory, so it runs
+# as the user. Under sudo the file would be owned by root and the status check
+# after it (run as the user) would report the registration as failed.
+result=$(capture_macos_login disable)
+assert_contains "macOS login runs as the user" "$result" "USER cnspec login --config"
+assert_not_contains "macOS login does not use sudo" "$result" "SUDO cnspec login"
+
+# Test 28: with the service enabled, the system config directory is created
+# before the copy (a Homebrew install has no /Library/Mondoo).
+result=$(capture_macos_login enable)
+assert_contains "service config dir is created" "$result" "SUDO mkdir -p /Library/Mondoo/etc"
+assert_contains "service config is copied" "$result" "/Library/Mondoo/etc/mondoo.yml"
+assert_contains "service config is 0600" "$result" "SUDO chmod 0600 /Library/Mondoo/etc/mondoo.yml"
+
+# Test 28b: Homebrew installs get no service, so the system config is not
+# copied either.
+result=$(capture_macos_login enable brew)
+assert_contains "brew login still runs as the user" "$result" "USER cnspec login --config"
+assert_not_contains "brew install copies no system config" "$result" "/Library/Mondoo/etc"
+
+# capture_remove_unreadable runs remove_unreadable_macos_user_config()
+# against a real file and reports whether it is still there afterwards.
+capture_remove_unreadable() {
+  _mode="$1"
+  _euid="$2"
+  (
+    set +e
+    _dir="$(mktemp -d)"
+    # shellcheck disable=SC2034 # consumed by the eval'd function
+    MONDOO_EUID="$_euid"
+    sudo_cmd() { echo "SUDO $*"; }
+    purple() { echo "MSG $1"; }
+    red() { echo "RED $1"; }
+    eval "$(sed -n '/^remove_unreadable_macos_user_config()/,/^}$/p' "$INSTALL_SH")"
+    _cfg="$_dir/mondoo.yml"
+    if [ "$_mode" != "missing" ]; then
+      : > "$_cfg"
+      chmod "$_mode" "$_cfg"
+    fi
+    remove_unreadable_macos_user_config "$_cfg"
+    if [ -e "$_cfg" ]; then echo "STILL_THERE"; else echo "GONE"; fi
+    command rm -rf "$_dir"
+  ) || true
+}
+
+# Test 29: a config the user cannot read (root-owned, left by an earlier run)
+# is removed so the login writes a fresh one. A privileged chown, copy or read
+# of a path in the user's directory could be pointed at a root file through a
+# symlink or hardlink, so none of this goes through sudo.
+if [ "$(id -u)" != "0" ]; then
+  result=$(capture_remove_unreadable 0000 501)
+  assert_contains "unreadable config is removed" "$result" "GONE"
+  assert_not_contains "unreadable config is removed without sudo" "$result" "SUDO"
+fi
+result=$(capture_remove_unreadable 0600 501)
+assert_contains "readable user config is kept" "$result" "STILL_THERE"
+result=$(capture_remove_unreadable missing 501)
+assert_not_contains "missing user config needs nothing" "$result" "MSG"
+result=$(capture_remove_unreadable 0000 0)
+assert_contains "root run leaves the config alone" "$result" "STILL_THERE"
+
 printf '\n==> Results: %d/%d passed' "$PASS" "$TESTS"
 if [ "$FAIL" -gt 0 ]; then
   printf ', %d FAILED\n' "$FAIL"
