@@ -864,7 +864,7 @@ configure_token() {
   fi
 
   if [ "$OS" = "macOS" ]; then
-    reclaim_macos_user_config "$HOME/.config/mondoo/mondoo.yml"
+    remove_unreadable_macos_user_config "$HOME/.config/mondoo/mondoo.yml"
   fi
 
   detect_mondoo_registered
@@ -907,12 +907,12 @@ configure_token() {
 
 run_login_cmd() {
   # Build and execute the login command using positional parameters
-  # (POSIX-compatible, no arrays or eval needed). Pass "user" as the second
+  # (POSIX-compatible, no arrays or eval needed). Pass "nosudo" as the second
   # argument to run it as the invoking user instead of through sudo, for a
   # config that lives in that user's home directory.
   config_dir_path="$1"
   config_file_path="${config_dir_path}/mondoo.yml"
-  login_as="${2:-root}"
+  login_as="${2:-sudo}"
   set -- "${MONDOO_BINARY_PATH}" login \
     --config "$config_file_path" \
     --token "$MONDOO_REGISTRATION_TOKEN" \
@@ -987,7 +987,7 @@ run_login_cmd() {
     set -- "$@" --api-endpoint "$API_ENDPOINT"
   fi
 
-  if [ "$login_as" != "user" ]; then
+  if [ "$login_as" != "nosudo" ]; then
     set -- sudo_cmd "$@"
   fi
 
@@ -1002,7 +1002,7 @@ configure_macos_token() {
   # The config lives in the user's home directory, so the user writes it.
   # Under sudo it would be owned by root, and the 'cnspec status' check
   # that follows (run as the user) could not read it.
-  run_login_cmd "$config_path" user
+  run_login_cmd "$config_path" nosudo
 
   # Homebrew installs get no service (see service()), so nothing reads the
   # system config there.
@@ -1021,26 +1021,25 @@ install_macos_service_config() {
 
 # Earlier versions of this script ran 'cnspec login' through sudo, which left
 # the user's own config owned by root: unreadable to the user, so every later
-# run reported the registration as failed. Hand it back to the user.
+# run reported the registration as failed. Remove it so the login below writes
+# a fresh one the user owns.
 #
-# The path is in a directory the user controls, so this runs a privileged
-# chown on a path anything running as the user could swap out. Only act on a
-# plain root-owned file with no symlink on the way to it, and don't follow one
-# if it appears between the check and the chown (-h).
-reclaim_macos_user_config() {
+# This deliberately runs without sudo. The path is in a directory the user
+# controls, so any privileged chown, copy or read of it can be pointed at a
+# root file through a symlink or hardlink. Removing a directory entry needs
+# only write access to the directory, and touches nothing outside it.
+remove_unreadable_macos_user_config() {
   if [ "$MONDOO_EUID" = "0" ] || [ ! -e "$1" ]; then
     return
   fi
   if [ -r "$1" ] && [ -w "$1" ]; then
     return
   fi
-  _cfg_dir="$(dirname "$1")"
-  if [ -L "$1" ] || [ -L "$_cfg_dir" ] || [ -L "$(dirname "$_cfg_dir")" ] ||
-    [ ! -f "$1" ] || [ "$(stat -f %u "$1")" != "0" ]; then
-    red "\n* $1 is not readable by you. Fix its ownership, or remove it to register again."
-    return
+  if rm -f "$1" 2>/dev/null; then
+    purple "  Removed $1, which you could not read (left by an earlier install). Registering again."
+  else
+    red "\n* $1 is not readable by you and could not be removed. Remove it, then run this script again."
   fi
-  sudo_cmd chown -h "$(id -u):$(id -g)" "$1"
 }
 
 configure_linux_token() {

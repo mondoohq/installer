@@ -464,68 +464,46 @@ result=$(capture_macos_login enable brew)
 assert_contains "brew login still runs as the user" "$result" "USER cnspec login --config"
 assert_not_contains "brew install copies no system config" "$result" "/Library/Mondoo/etc"
 
-# capture_reclaim runs reclaim_macos_user_config() against a real file.
-# _owner is what stat reports as the file's owner uid; _link makes the config
-# a symlink, or makes its directory one.
-capture_reclaim() {
+# capture_remove_unreadable runs remove_unreadable_macos_user_config()
+# against a real file and reports whether it is still there afterwards.
+capture_remove_unreadable() {
   _mode="$1"
   _euid="$2"
-  _owner="${3:-0}"
-  _link="${4:-}"
   (
     set +e
     _dir="$(mktemp -d)"
     # shellcheck disable=SC2034 # consumed by the eval'd function
     MONDOO_EUID="$_euid"
     sudo_cmd() { echo "SUDO $*"; }
+    purple() { echo "MSG $1"; }
     red() { echo "RED $1"; }
-    stat() { echo "$_owner"; }
-    eval "$(sed -n '/^reclaim_macos_user_config()/,/^}$/p' "$INSTALL_SH")"
-    mkdir -p "$_dir/home/.config/mondoo"
-    _cfg="$_dir/home/.config/mondoo/mondoo.yml"
+    eval "$(sed -n '/^remove_unreadable_macos_user_config()/,/^}$/p' "$INSTALL_SH")"
+    _cfg="$_dir/mondoo.yml"
     if [ "$_mode" != "missing" ]; then
-      : > "$_dir/target"
-      chmod "$_mode" "$_dir/target"
-      case "$_link" in
-        file) ln -s "$_dir/target" "$_cfg" ;;
-        dir)
-          command rm -rf "$_dir/home/.config/mondoo"
-          mkdir "$_dir/real"
-          mv "$_dir/target" "$_dir/real/mondoo.yml"
-          ln -s "$_dir/real" "$_dir/home/.config/mondoo"
-          ;;
-        *) mv "$_dir/target" "$_cfg" ;;
-      esac
+      : > "$_cfg"
+      chmod "$_mode" "$_cfg"
     fi
-    reclaim_macos_user_config "$_cfg"
-    chmod -R u+rwx "$_dir" 2>/dev/null
+    remove_unreadable_macos_user_config "$_cfg"
+    if [ -e "$_cfg" ]; then echo "STILL_THERE"; else echo "GONE"; fi
     command rm -rf "$_dir"
   ) || true
 }
 
-# Test 29: a root-owned config the user cannot read (left by an earlier run)
-# is handed back without following symlinks. A readable one, a missing one,
-# or a root run is left alone.
+# Test 29: a config the user cannot read (root-owned, left by an earlier run)
+# is removed so the login writes a fresh one. A privileged chown, copy or read
+# of a path in the user's directory could be pointed at a root file through a
+# symlink or hardlink, so none of this goes through sudo.
 if [ "$(id -u)" != "0" ]; then
-  result=$(capture_reclaim 0000 501)
-  assert_contains "unreadable root-owned config is chowned back" "$result" "SUDO chown -h"
-
-  # Test 30: the path is in a directory the user controls, so a symlink on
-  # it could point the privileged chown at any root file. Refuse instead.
-  result=$(capture_reclaim 0000 501 0 file)
-  assert_not_contains "symlinked config is not chowned" "$result" "SUDO"
-  assert_contains "symlinked config is reported" "$result" "RED"
-  result=$(capture_reclaim 0000 501 0 dir)
-  assert_not_contains "config under a symlinked dir is not chowned" "$result" "SUDO"
-  result=$(capture_reclaim 0000 501 502)
-  assert_not_contains "config owned by another user is not chowned" "$result" "SUDO"
+  result=$(capture_remove_unreadable 0000 501)
+  assert_contains "unreadable config is removed" "$result" "GONE"
+  assert_not_contains "unreadable config is removed without sudo" "$result" "SUDO"
 fi
-result=$(capture_reclaim 0600 501)
-assert_not_contains "readable user config is left alone" "$result" "SUDO"
-result=$(capture_reclaim missing 501)
-assert_not_contains "missing user config is left alone" "$result" "SUDO"
-result=$(capture_reclaim 0000 0)
-assert_not_contains "root run does not chown" "$result" "SUDO"
+result=$(capture_remove_unreadable 0600 501)
+assert_contains "readable user config is kept" "$result" "STILL_THERE"
+result=$(capture_remove_unreadable missing 501)
+assert_not_contains "missing user config needs nothing" "$result" "MSG"
+result=$(capture_remove_unreadable 0000 0)
+assert_contains "root run leaves the config alone" "$result" "STILL_THERE"
 
 printf '\n==> Results: %d/%d passed' "$PASS" "$TESTS"
 if [ "$FAIL" -gt 0 ]; then
